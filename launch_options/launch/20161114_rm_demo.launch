@@ -1,0 +1,15 @@
+<!-- 3 Terminals: launch, rviz and teleop node
+roslaunch launch_options 20161114_rm_demo.launch
+rosrun rviz rviz -d launch_options/20161114_reviewMeeting.rviz
+rosrun launch_options turtle_teleop_key -->
+
+
+<launch>
+	<arg name="mav_name" default="euroc5"/>
+
+	<include file="$(find launch_options)/launch/octree_and_gazebo_grvc_velodyne.launch">
+		<arg name="mav_name" value="$(arg mav_name)"/>
+		<arg name="map_resolution" value="0.1"/>
+	</include>
+
+</launch>

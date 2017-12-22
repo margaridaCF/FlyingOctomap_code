@@ -1,0 +1,4 @@
+<launch>
+  <node name="talker" pkg="path_planning" type="talker" />
+  <node name="listener" pkg="path_planning" type="listener" />
+</launch>

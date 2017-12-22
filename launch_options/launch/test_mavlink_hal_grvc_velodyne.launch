@@ -1,0 +1,61 @@
+<launch>
+  	<env name="ROSCONSOLE_CONFIG_FILE" 
+       value="$(find mavlink_adapter)/custom_rosconsole.conf"/>
+	<!-- Spawn a quad: send the robot XML to param server, push robot_description to factory and spawn robot in gazebo-->
+	<!-- <include file="$(find grvc_quadrotor_hal)/launch/test_simulator.launch"> -->
+	<!-- 	<arg name="robot_name" value="quad1"/>
+	</include> -->
+	<!-- Configurable options -->
+	<arg name="use_sim_time" default="true"/>
+	<arg name="gui" default="true"/>
+	<arg name="multi" default="true"/>
+	<arg name="robot_name" default="grvc_gazebo_1"/>
+
+	<!-- ########################################################################## -->
+	<!-- Launch Gazebo -->
+	<!-- ########################################################################## -->
+	<!-- Configure gazebo server options -->
+	<group if="$(arg use_sim_time)">
+		<param name="/use_sim_time" value="true" />
+	</group>
+
+	<!-- Actually start gazebo server -->
+	<node name="gazebo" pkg="gazebo_ros" type="gzserver" respawn="false" output="screen" args="worlds/empty.world">
+		<env name="LC_NUMERIC" value="C"/>
+	</node>
+	<!-- launch gazebo client -->
+	<group if="$(arg gui)">
+		<node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen">
+			<env name="LC_NUMERIC" value="C"/>
+		</node>
+	</group>
+
+	<!-- Spawn UAV -->
+	<arg name="base_frame_mav" value="$(arg robot_name)/base_link"/>
+	<arg name="odometry_topic_partial_param" value="ground_truth/odometry"/>
+	<arg name="odometry_topic_full_param" value="/$(arg robot_name)/$(arg odometry_topic_partial_param)"/>
+
+	<include file="$(find grvc_quadrotor_gazebo)/launch/spawn_quad_velodyne.launch">
+		<arg name="robot_name" value="$(arg robot_name)"/>
+		<arg name="base_frame" value="$(arg base_frame_mav)"/>
+		<arg name="odometry_topic" value="$(arg odometry_topic_full_param)"/>
+	</include>
+
+	
+	<!-- Publish the transform -->
+	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+		<param name="publish_frequency" type="double" value="30.0" />
+	</node>
+	
+	<!-- Spawn the simple_box -->
+	<param name="box_description" command="$(find xacro)/xacro --inorder '$(find velodyne_description)/urdf/box.urdf'" />
+	<node pkg="gazebo_ros" type="spawn_model" name="spawn_box" args="-urdf -param /box_description -model simple_box"/>
+
+	<!-- Spawn hal controller -->
+	<node name="grvc_hal_$(arg robot_name)" pkg="grvc_quadrotor_hal" type="hal_node" respawn="false" output="screen"
+		args="-hal_ns=/$(arg robot_name)/hal -wp_topic=go_to_wp -gazebo_ns=/$(arg robot_name)"/> 
+
+	<!-- Spawn mavlink dummy -->
+	<node pkg="mavlink_adapter" type="mav_listener" name="mavlink_dummy" output="screen"  args="-robot_name=$(arg robot_name)" />
+
+</launch>

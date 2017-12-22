@@ -1,0 +1,51 @@
+// = ICUAS 2017 paper =
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal$ roslaunch pcl_maker map_creator.launch bag_file:=/home/mfaria/ws_mavlink_grvcHal/src/pcl_maker/euroc_showcase_2017-02-14-12-20-45.bag
+
+rosrun octomap_server octomap_saver euroc_res02.bt
+
+octovis euroc_res02.bt
+
+
+// = Red Uas paper =
+// ARRANGE
+// (install dependencies)
+sudo apt-get install ros-indigo-image-transport-plugins ros-indigo-multimaster-fkie 
+
+// (filter bags of planner output topics)
+cd ~/ws_mavlink_grvcHal/src/pcl_maker
+rosbag filter euroc_showcase_2017-03-28-13-17-15_run_1.bag run_1_filtered.bag "topic == '/clock' or topic == '/euroc5/amcl3d_node/particle_cloud' or topic == '/euroc5/amcl3d_node/range' or topic == '/euroc5/amcl3d_node/transform' or topic == '/euroc5/back/depth_registered/camera_info' or topic == '/euroc5/back/depth_registered/image_raw/compressedDepth' or topic == '/euroc5/back/rgb/camera_info' or topic == '/euroc5/back/rgb/image_raw/compressed' or topic == '/euroc5/front/rgb/image_raw/compressed' or topic == '/euroc5/command/current_reference' or topic == '/euroc5/command/roll_pitch_yawrate_thrust' or topic == '/euroc5/command/trajectory' or topic == '/euroc5/front/depth_registered/camera_info' or topic == '/euroc5/front/depth_registered/image_raw/compressedDepth' or topic == '/euroc5/front/rgb/camera_info' or topic == '/euroc5/ground_estimator_node/ground_height' or topic == '/euroc5/human_detector_node/pose' or topic == '/euroc5/imu' or topic == '/euroc5/mav_detector_node/pose' or topic == '/euroc5/motor_speed' or topic == '/euroc5/msf_core/odometry' or topic == '/euroc5/rc' or topic == '/euroc5/rgbd_odom/transform' or topic == '/euroc5/safety_pilot_status' or topic == '/euroc5/state_machine/state_info' or topic == '/euroc5/status' or topic == '/euroc5/trajectory_tracker/input_trajectory' or topic == '/euroc5/trajectory_tracker/status' or topic == '/euroc5/two_pc_maker_node/point_cloud' or topic == '/idolink_node/range' or topic == '/rosout' or topic == '/tf' or topic == '/euroc5/global_planner/goal_position'"
+
+rosbag filter euroc_showcase_2017-03-28-15-05-31_run_2.bag run_2_filtered.bag "topic == '/clock' or topic == '/euroc5/amcl3d_node/particle_cloud' or topic == '/euroc5/amcl3d_node/range' or topic == '/euroc5/amcl3d_node/transform' or topic == '/euroc5/back/depth_registered/camera_info' or topic == '/euroc5/back/depth_registered/image_raw/compressedDepth' or topic == '/euroc5/back/rgb/camera_info' or topic == '/euroc5/back/rgb/image_raw/compressed' or topic == '/euroc5/front/rgb/image_raw/compressed' or topic == '/euroc5/command/current_reference' or topic == '/euroc5/command/roll_pitch_yawrate_thrust' or topic == '/euroc5/command/trajectory' or topic == '/euroc5/front/depth_registered/camera_info' or topic == '/euroc5/front/depth_registered/image_raw/compressedDepth' or topic == '/euroc5/front/rgb/camera_info' or topic == '/euroc5/ground_estimator_node/ground_height' or topic == '/euroc5/human_detector_node/pose' or topic == '/euroc5/imu' or topic == '/euroc5/mav_detector_node/pose' or topic == '/euroc5/motor_speed' or topic == '/euroc5/msf_core/odometry' or topic == '/euroc5/rc' or topic == '/euroc5/rgbd_odom/transform' or topic == '/euroc5/safety_pilot_status' or topic == '/euroc5/state_machine/state_info' or topic == '/euroc5/status' or topic == '/euroc5/trajectory_tracker/input_trajectory' or topic == '/euroc5/trajectory_tracker/status' or topic == '/euroc5/two_pc_maker_node/point_cloud' or topic == '/idolink_node/range' or topic == '/rosout' or topic == '/tf' or topic == '/euroc5/global_planner/goal_position'"
+
+delete previous ws_mavlink_grvcHal/count_file.csv
+
+// ACT (measure time and iteration count to csv, change for each bag!)
+roscore
+
+<run planning nodes + image decompression nodes + octomap builder + ros bag (beware of starting time!)>
+ ==  with args ==
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal/src/pcl_maker$ roslaunch euroc_motion_planning_launch showcase2_neo_wBag.launch bag_file:=/home/mfaria/ws_mavlink_grvcHal/src/pcl_maker/run_2_filtered.bag
+
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal/src/pcl_maker$ roslaunch euroc_motion_planning_launch showcase2_neo_wBag.launch bag_file:=/home/mfaria/ws_mavlink_grvcHal/src/pcl_maker/euroc_showcase_2017-03-28-15-05-31_run_2.bag 
+ == all-in-one ==
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal$ roslaunch euroc_motion_planning_launch showcase1_neo_wBag.launch 
+ ==     old    ==
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal$ roslaunch euroc_motion_planning_launch showcase1_neo.launch 
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal/src/pcl_maker$ rosbag play euroc_showcase_2017-03-28-13-17-15_run_1.bag -s 120 --clock
+
+<save octomap>
+rosrun octomap_server octomap_saver euroc_demo_run_1.bt
+
+// ASSERT
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal/src/pcl_maker$ rviz
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal/src/pcl_maker$ rosrun rviz rviz -d 201706_redUas_data.rviz 
+
+octovis src/pcl_maker/euroc_demo_run_1.bt 
+
+mfaria@mfaria-pc:~/ws_mavlink_grvcHal$ rosbag info src/pcl_maker/run_1_filtered.bag 
+
+
+ === Nodes with the bags ===
+  <node pkg="rosbag" type="play" name="player" output="screen" args="--clock -s 120 /home/mfaria/ws_mavlink_grvcHal/src/pcl_maker/euroc_showcase_2017-03-28-13-17-15_run_1.bag"/>
+<node pkg="rosbag" type="play" name="player" output="screen" args="--clock -s 120 /home/mfaria/ws_mavlink_grvcHal/src/pcl_maker/run_1_filtered.bag"/> 
+

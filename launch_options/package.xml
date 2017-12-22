@@ -1,0 +1,16 @@
+<package format="2">
+	<name>launch_options</name>
+	<version>1.0.0</version>
+	<description>
+		This package provides the launch options for pandora project.
+	</description>
+	<maintainer email="mfaria@catec.aero">FADA-CATEC</maintainer>
+	<license>MIT</license>
+
+	<buildtool_depend>catkin</buildtool_depend>
+
+	<depend>geometry_msgs</depend>
+  <depend>grvc_quadrotor_utils</depend>
+
+	
+</package>

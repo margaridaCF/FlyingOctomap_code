@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>path_planning</name>
+  <version>0.1.0</version>
+  <description>A package for path planners on octree</description>
+
+  <maintainer email="mfaria@todo.todo">mfaria</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>octomap_msgs</depend>
+  <depend>octomap_ros</depend>
+
+</package>

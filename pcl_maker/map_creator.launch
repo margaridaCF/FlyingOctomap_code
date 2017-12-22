@@ -1,0 +1,44 @@
+<!-- 
+-->
+
+<launch>
+
+  # Bag filename
+  <arg name="bag_file" />
+  
+  # Use simulation time fro TFs
+  <param name="use_sim_time" value="true" />
+
+  # Bag file
+  <node name="bag_player" type="play" pkg="rosbag" args="$(arg bag_file) --clock -r 0.5" output="screen"/>
+  
+  # Uncompress images and depth
+  <node name="republish_img" type="republish" pkg="image_transport" output="screen" args="compressed in:=/euroc5/front/rgb/image_raw raw out:=/euroc5/front/rgb/image_raw"/>
+  <node name="republish_depth" type="republish" pkg="image_transport" output="screen" args="compressedDepth in:=/euroc5/front/depth_registered/image_raw raw out:=/euroc5/front/depth_registered/image_raw"/>
+
+  <node name="republish_img_2" type="republish" pkg="image_transport" output="screen" args="compressed in:=/euroc5/back/rgb/image_raw raw out:=/euroc5/back/rgb/image_raw"/>
+  <node name="republish_depth_2" type="republish" pkg="image_transport" output="screen" args="compressedDepth in:=/euroc5/back/depth_registered/image_raw raw out:=/euroc5/back/depth_registered/image_raw"/>
+
+  <node name="two_pc_maker" pkg="pcl_maker" type="two_pc_maker_node" output="screen">
+    <param name="front_camera_topic" value="/euroc5/front" />
+    <param name="back_camera_topic" value="/euroc5/back" />
+    <param name="apply_downsampling" value="true" />
+    <param name="pc_downsampling" value="0.1" />
+    <param name="apply_crop" value="true" />
+    <param name="pc_crop_dist" value="5.0" />
+    <param name="apply_outlier" value="true" />
+    <param name="pc_outlier_radius" value="0.4" />
+    <param name="pc_outlier_neighbors" value="10" />
+  </node>
+
+  <node name="mapper" type="octomap_server_node" pkg="octomap_server" output="screen" >
+    <remap from="cloud_in" to="/two_pc_maker_node/point_cloud" />
+    <param name="pointcloud_min_z" value="-0.5" />
+    <param name="occupancy_min_z" value="-0.5" />
+    <param name="frame_id" value="world" />
+    <param name="resolution" value="0.2" />
+  </node>
+
+ <!--node pkg="tf" type="static_transform_publisher" name="map_to_world_tf_broadcaster" args="0 0 0 0 0 0 1 /euroc5 /base_link 100" /-->
+
+</launch>

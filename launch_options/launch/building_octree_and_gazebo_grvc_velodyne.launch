@@ -1,0 +1,49 @@
+<launch>
+  	<env name="ROSCONSOLE_CONFIG_FILE" 
+       value="$(find launch_options)/custom_rosconsole.conf"/>
+	<arg name="mav_name" default="euroc5"/>
+	<arg name="namespace" default="$(arg mav_name)"/>
+	<arg name="base_frame_mav" value="$(arg mav_name)/base_link"/>
+	<arg name="odometry_topic_partial_param" value="ground_truth/odometry"/>
+	<arg name="odometry_topic_full_param" value="/$(arg mav_name)/$(arg odometry_topic_partial_param)"/>	
+	<arg name="map_resolution" default="0.2"/>
+
+	<!-- ########################################################################## -->
+	<!-- TF -->
+	<group ns="$(arg namespace)">
+		<arg name="odometry_topic" 		default="$(arg odometry_topic_partial_param)"/>
+		<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+			<param name="publish_frequency" type="double" value="30.0" />
+		</node>
+	</group>
+
+	<!-- ########################################################################## -->
+	<!-- OCTOMAP -->
+	<node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+	    <remap from="cloud_in" to="/$(arg mav_name)/velodyne_points/down" /> 	  				
+	    <param name="frame_id" type="string" value="/world" /> 	 <!--name of the fixed frame -->
+	    <!--<param name="sensor_model/max_range" value="100.0" /> 	 max range / depth resolution of the sensor in meter -->
+	    <param name="latch" value="false" /> 
+	    <param name="resolution" value="$(arg map_resolution)" />
+	    <param name="pointcloud_min" value="0"/>
+	    <param name="pointcloud_max" value="2"/>
+	    <param name="occupancy_min" value="0.5"/>
+	    <param name="occupancy_min" value="1"/>
+	    <param name="sensor_model/max_range" value="80"/>
+  	</node> 
+
+	<!-- ########################################################################## -->
+	<!-- Launch Gazebo -->
+	<param name="/use_sim_time" value="true" />
+	<!-- Start gazebo server -->
+	<node name="gazebo" pkg="gazebo_ros" type="gzserver" respawn="false" output="screen" 
+		args="$(find launch_options)/urdf/offShoreOil.world -e ode"/>
+	<node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen"/>
+    <!-- Spawn quad -->
+	<include file="$(find grvc_quadrotor_gazebo)/launch/spawn_quad_velodyne.launch">
+		<arg name="robot_name" value="$(arg mav_name)"/>
+		<arg name="base_frame" value="$(arg base_frame_mav)"/>
+		<arg name="odometry_topic" value="$(arg odometry_topic_full_param)"/>
+	</include>
+
+</launch>

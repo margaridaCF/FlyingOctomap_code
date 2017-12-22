@@ -1,0 +1,50 @@
+<!--
+The MIT License (MIT)
+Copyright (c) 2016 GRVC University of Seville
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<launch>
+  	<env name="ROSCONSOLE_CONFIG_FILE" 
+       value="$(find mavlink_adapter)/custom_rosconsole.conf"/>
+
+       
+	<!-- Configurable options -->
+	<arg name="use_sim_time" default="true"/>
+	<arg name="gui" default="true"/>
+	<arg name="multi" default="true"/>
+	<arg name="robot_name" default="grvc_gazebo_1"/>
+
+	<!-- ########################################################################## -->
+	<!-- Launch Gazebo -->
+	<!-- ########################################################################## -->
+	<!-- Configure gazebo server options -->
+	<group if="$(arg use_sim_time)">
+		<param name="/use_sim_time" value="true" />
+	</group>
+
+	<!-- Actually start gazebo server -->
+	<node name="gazebo" pkg="gazebo_ros" type="gzserver" respawn="false" output="screen" args="worlds/empty.world">
+		<env name="LC_NUMERIC" value="C"/>
+	</node>
+	<!-- launch gazebo client -->
+	<group if="$(arg gui)">
+		<node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen">
+			<env name="LC_NUMERIC" value="C"/>
+		</node>
+	</group>
+
+	<!-- Spawn a quad: send the robot XML to param server, push robot_description to factory and spawn robot in gazebo-->
+	<include file="$(find grvc_quadrotor_hal)/launch/spawn_quad_gazebo.launch">
+		<arg name="robot_name" value="$(arg robot_name)"/>
+		<arg name="id" value="1"/>
+	</include>
+
+	<node pkg="mavlink_adapter" type="mav_listener" name="listener" output="screen" args="-robot_name=$(arg robot_name)" />
+
+</launch>
+

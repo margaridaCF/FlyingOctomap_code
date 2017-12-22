@@ -1,0 +1,86 @@
+<!-- 
+The MIT License (MIT)
+Copyright (c) 2016 GRVC University of Seville
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+-->
+<launch>
+  	<env name="ROSCONSOLE_CONFIG_FILE" 
+       value="$(find launch_options)/custom_rosconsole.conf"/>
+	<arg name="mav_name" default="euroc5"/>
+	<arg name="namespace" default="$(arg mav_name)"/>
+	<arg name="base_frame_mav" value="$(arg mav_name)/base_link"/>
+	<arg name="odometry_topic_partial_param" value="ground_truth/odometry"/>
+	<arg name="odometry_topic_full_param" value="/$(arg mav_name)/$(arg odometry_topic_partial_param)"/>
+
+    <!-- Spawn quad -->
+	<include file="$(find grvc_quadrotor_gazebo)/launch/spawn_quad_velodyne.launch">
+		<arg name="robot_name" value="$(arg mav_name)"/>
+		<arg name="base_frame" value="$(arg base_frame_mav)"/>
+		<arg name="odometry_topic" value="$(arg odometry_topic_full_param)"/>
+	</include>
+	
+
+	<group ns="$(arg namespace)">
+		<!-- Odometry topic-->
+		<arg name="odometry_topic" 		default="$(arg odometry_topic_partial_param)"/>
+		<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+			<param name="publish_frequency" type="double" value="30.0" />
+		</node>
+		<!-- Publish TF ground (/world) to UAV (/base_link) from odometry messages-->
+		<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
+			<param name="robot_description" textfile="$(find grvc_quadrotor_gazebo)/urdf/grvc_quadrotor.urdf.xacro"/>
+		</node> 
+		<node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="log">
+			<param name="odometry_topic" value="$(arg odometry_topic_partial_param)" />
+			<param name="frame_id" value="$(arg base_frame_mav)" />
+			<param name="child_frame_id" value="/base_link" />
+		</node>
+	</group>
+
+	<!-- Configurable options -->
+	<arg name="use_sim_time" default="true"/>
+	<arg name="gui" default="true"/>
+	<arg name="multi" default="true"/>
+
+	<!-- ########################################################################## -->
+	<!-- Launch Gazebo -->
+	<!-- ########################################################################## -->
+	<!-- Configure gazebo server options -->
+	<group if="$(arg use_sim_time)">
+		<param name="/use_sim_time" value="true" />
+	</group>
+	<!-- Actually start gazebo server -->
+	<node name="gazebo" pkg="gazebo_ros" type="gzserver" respawn="false" output="screen" 
+		args="$(find grvc_quadrotor_gazebo)/urdf/tunnel.world -e ode"/>
+
+	<!-- launch gazebo client -->
+	<group if="$(arg gui)">
+		<node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen"/>
+	</group>
+
+	<!-- Spawn the simple_box -->
+	<param name="box_description" command="$(find xacro)/xacro --inorder '$(find launch_options)/urdf/box.urdf.xacro' x:=9 y:=0 z:=0 name:=obs1" />
+	<node pkg="gazebo_ros" type="spawn_model" name="spawn_obs_1" args="-urdf -param /box_description -model obs1"/>
+	<param name="box_description_2" command="$(find xacro)/xacro --inorder '$(find launch_options)/urdf/box.urdf.xacro' x:=3 y:=0 z:=0 name:=obs2" />
+	<node pkg="gazebo_ros" type="spawn_model" name="spawn_obs_2" args="-urdf -param /box_description_2 -model obs2"/>
+	<param name="box_description_3" command="$(find xacro)/xacro --inorder '$(find launch_options)/urdf/box.urdf.xacro' x:=15 y:=0 z:=0 name:=obs3" />
+	<node pkg="gazebo_ros" type="spawn_model" name="spawn_obs_3" args="-urdf -param /box_description_3 -model obs3"/>
+
+	<!-- Spawn hal controller -->
+	<node name="grvc_hal_$(arg mav_name)" pkg="grvc_quadrotor_hal" type="hal_node" respawn="false" output="screen"
+		args="-hal_ns=/$(arg mav_name)/hal -wp_topic=go_to_wp -gazebo_ns=/$(arg mav_name)"/> 
+
+	<!-- Spawn mavlink dummy -->
+	<node pkg="mavlink_adapter" type="mav_listener" name="mavlink_dummy" output="screen"  args="-robot_name=$(arg mav_name)" />
+
+	<!-- Spawn multiDof_2_Pose -->
+	<node pkg="multiDof_2_Pose" type="multiDof_2_Pose" name="multiDof_2_Pose" output="screen" 
+		args="-robot_name=$(arg mav_name)"/>
+
+
+</launch>

@@ -1,0 +1,22 @@
+<launch> 
+ 
+  <arg name="bag_file"/>
+  <arg name="skip_time"/>
+  <node pkg="rosbag" type="play" name="player" output="screen" args="--clock -s $(arg skip_time) $(arg bag_file)"/> 
+ 
+  <!-- ########################################################################## --> 
+  <!-- OCTOMAP --> 
+  <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt">    
+    <param name="frame_id" type="str" value="/world" />
+  </node>
+ 
+  
+ 
+ 
+ 
+ 
+ 
+  <!-- ########################################################################## --> 
+  <!-- Lazy theta * --> 
+  <node pkg="path_planning" type="ltStar_dispatcher_node" name="ltstar_printer" output="screen"/>
+</launch>

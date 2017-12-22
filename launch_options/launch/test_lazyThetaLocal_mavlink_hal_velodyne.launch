@@ -1,0 +1,211 @@
+<!-- 
+The MIT License (MIT)
+Copyright (c) 2016 GRVC University of Seville
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+-->
+<launch>
+  	<env name="ROSCONSOLE_CONFIG_FILE" 
+       value="$(find launch_options)/custom_rosconsole.conf"/>
+	<arg name="mav_name" default="euroc5"/>
+	<arg name="namespace" default="$(arg mav_name)"/>
+	<arg name="base_frame_mav" value="$(arg mav_name)/base_link"/>
+	<arg name="odometry_topic_partial_param" value="ground_truth/odometry"/>
+	<arg name="odometry_topic_full_param" value="/$(arg mav_name)/$(arg odometry_topic_partial_param)"/>
+
+    <!-- Spawn quad -->
+	<include file="$(find grvc_quadrotor_gazebo)/launch/spawn_quad_velodyne.launch">
+		<arg name="robot_name" value="$(arg mav_name)"/>
+		<arg name="base_frame" value="$(arg base_frame_mav)"/>
+		<arg name="odometry_topic" value="$(arg odometry_topic_full_param)"/>
+	</include>
+	
+
+	<group ns="$(arg namespace)">
+		<!-- Odometry topic-->
+		<arg name="odometry_topic" 		default="$(arg odometry_topic_partial_param)"/>
+		
+		<!-- Yaw angular velocity -->
+		<arg name="linear_dxy" default="0.2"/>
+		<arg name="linear_dz" default="0.2"/>
+		<arg name="linear_v" default="0.1"/>
+		<arg name="w_yaw" default="0.4"/>
+		
+		<!-- Point Cloud topic name-->
+		<arg name="point_cloud_topic" 	default="/$(arg mav_name)/velodyne_points/down"/>
+		
+		<!-- Frames -->
+		<arg name="world_frame"				default="/world"/>
+		<arg name="base_stabilized_frame"	default="/$(arg mav_name)/base_link"/>
+		<arg name="point_cloud_frame"		default="/$(arg base_frame_mav)"/>
+		
+		<!-- Global workspace -->
+		<arg name="global_ws_x_max"		default="11.0"/>		# workspace in world frame [meters]
+		<arg name="global_ws_y_max"		default="4.0"/>
+		<arg name="global_ws_z_max"		default="2.0"/>
+		<arg name="global_ws_x_min"		default="-1.0"/>
+		<arg name="global_ws_y_min"		default="-4.0"/>
+		<arg name="global_ws_z_min"		default="0.5"/>
+
+		<!-- Global planner (Global theta* planner + Octomap global planner server + TF /map to /world) --> 
+		<include file="$(find global_planner_3d)/launch/global_planner_tasks.launch">
+			<arg name="odometry_topic" 					value="$(arg odometry_topic_full_param)" />
+			<arg name="output_topic_name" 				value="local_planner/input_trajectory" />	
+			<arg name="static_map_file" 				value="$(find theta_star)/resource/empty.bt"/> 	# testbed_withoutFloor.bt
+
+			<arg name="ws_x_max" 						value="$(arg global_ws_x_max)"/>		# workspace in world frame [meters]
+			<arg name="ws_y_max" 						value="$(arg global_ws_y_max)"/>
+			<arg name="ws_z_max" 						value="$(arg global_ws_z_max)"/>
+			<arg name="ws_x_min" 						value="$(arg global_ws_x_min)"/>
+			<arg name="ws_y_min" 						value="$(arg global_ws_y_min)"/>
+			<arg name="ws_z_min" 						value="$(arg global_ws_z_min)"/>
+
+			<arg name="map_resolution" 					value="0.1"/>							# Discrete matrix resolution [meters]
+			<arg name="map_h_real_size_inflaction" 		value="0.4"/>							# Obstacles inflaction for real UAV wingspan [meters]. Optimal: [0.4, 0.16] meters
+			<arg name="map_v_real_size_inflaction" 		value="0.16"/>
+			<arg name="map_h_safe_distance_inflaction" 	value="0.8"/>							# Obstacles inflaction for safe distance [meters]. Optimal: [0.8, 1.04] meters
+			<arg name="map_v_safe_distance_inflaction" 	value="1.04"/>
+			<arg name="initial_point_factor" 			value="0.1"/>							# Weight of the goal, as a distance from initial position factor, for the Lazy theta* with Optimz.[minor than 1]
+			<arg name="z_weight_cost" 					value="4.0"/>							# Weight of heigth changes 
+			 
+			<arg name="traj_dxy_max" 					value="$(arg linear_dxy)"/>				# Maximum horizontal position increment [m] 
+			<arg name="traj_dz_max" 					value="$(arg linear_dz)"/>				# Maximum vertical position increment [m] 
+			<arg name="traj_vxy_m" 						value="$(arg linear_v)"/>				# Horizontal velocity average [m/s] 
+			<arg name="traj_vz_m" 						value="$(arg linear_v)"/>				# Vertical velocity average [m/s] 
+			<arg name="traj_vxy_m_1" 					value="$(arg linear_v)"/>				# Horizontal velocity for the first and the last wp [m/s] 
+			<arg name="traj_vz_m_1" 					value="$(arg linear_v)"/>				# Vertical velocity for the first and the last wp [m/s] 
+			<arg name="traj_wyaw_m" 					value="$(arg w_yaw)"/>					# Yaw angular velocity to estimate the necessary time to achive a yaw reference [rad/s]
+			<arg name="traj_dpos_tolerance" 			value="0.2"/>							# Position tolerance to wps division [m]
+			<arg name="traj_dpos_ahead_min" 			value="0.3"/>							# Min position diff btwn wp to set yaw ahead [m]
+			<arg name="traj_yaw_mode" 					value="2"/>								# Trajectory yaw configuration: constant (0), at time (1), in advance (2)
+		</include>
+
+		<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+			<param name="publish_frequency" type="double" value="30.0" />
+			<!--<remap from="robot_description" to="robot_description_$(arg mav_name)" />-->
+		</node>
+
+
+		<!-- Local planner (Local theta* planner) --> 
+		<include file="$(find local_planner_3d)/launch/local_planner.launch">
+			<arg name="odometry_topic" 					value="$(arg odometry_topic_full_param)" />
+			<arg name="point_cloud_topic" 				value="$(arg point_cloud_topic)" />
+			<arg name="local_planner_frame" 			value="$(arg base_stabilized_frame)" />
+			<arg name="global_planner_frame" 			value="$(arg world_frame)" />
+			<arg name="visual_pointcloud_frame" 		value="$(arg point_cloud_frame)" /> 						# Best results was with 0.0, but then the current UAV pose = Wp[0] = 0.0 are outside the workspace. Other reason: If Wp[0] not free, Theta Initial position not free
+			<arg name="local_ws_y_min"					value="-3.0"/>
+			<arg name="local_ws_z_min"					value="-2.0"/>
+			<arg name="global_ws_x_max"					value="$(arg global_ws_x_max)"/>		# Theta workspace in $global_planner_frame [meters]
+			<arg name="global_ws_y_max"					value="$(arg global_ws_y_max)"/>
+			<arg name="global_ws_z_max"					value="$(arg global_ws_z_max)"/>
+			<arg name="global_ws_x_min"					value="$(arg global_ws_x_min)"/>		
+			<arg name="global_ws_y_min"					value="$(arg global_ws_y_min)"/>
+			<arg name="global_ws_z_min"					value="$(arg global_ws_z_min)"/>
+
+			<arg name="free_space_x"					value="0.2"/>							# Permanent free space around the MAV at the local frame [m]
+			<arg name="free_space_y"					value="0.2"/>
+			<arg name="free_space_z"					value="0.2"/>
+
+			<arg name="cloud_points_timeout" 			value="2.0"/>							# Time to eliminate a point that has not been seen another time [seconds]
+
+			<arg name="map_resolution" 					value="0.2"/>							# Discrete matrix resolution [meters]
+			<arg name="theta_timeout" 					value="0.5" />
+			<arg name="map_h_real_size_inflaction" 		value="0.1"/>							# Obstacles inflaction for real UAV wingspan [meters]. Optimal: [0.4, 0.16] meters
+			<arg name="map_v_real_size_inflaction" 		value="0.1"/>
+			<arg name="map_h_safe_distance_inflaction" 	value="0.1"/>							# Obstacles inflaction for safe distance [meters]. Optimal: [0.8, 1.04] meters
+			<arg name="map_v_safe_distance_inflaction" 	value="0.1"/>
+			<arg name="initial_point_factor" 			value="0.1"/>							# Weight of the goal, as a distance from initial position factor, for the Lazy theta* with Optimz.[Minor than 1]
+			<arg name="z_weight_cost" 					value="100.0"/>							# Weight of heigth changes
+			<arg name="line_of_sight_margin" 			value="0.2"/>							# Margin for line of sight checking to replan [meters]
+
+			<arg name="traj_dxy_max" 					value="$(arg linear_dxy)"/>							# Maximum horizontal position increment [m] 
+			<arg name="traj_dz_max" 					value="$(arg linear_dz)"/>							# Maximum vertical position increment [m] 
+			<arg name="traj_vxy_m" 						value="$(arg linear_v)"/>							# Horizontal velocity average [m/s] 
+			<arg name="traj_vz_m" 						value="$(arg linear_v)"/>							# Vertical velocity average [m/s] 
+			<arg name="traj_vxy_m_1" 					value="$(arg linear_v)"/>							# Horizontal velocity for the first and the last wp [m/s] 
+			<arg name="traj_vz_m_1" 					value="$(arg linear_v)"/>							# Vertical velocity for the first and the last wp [m/s] 
+			<arg name="traj_wyaw_m" 					value="$(arg w_yaw)"/>					# Yaw angular velocity to estimate the necessary time to achive a yaw reference [rad/s]
+			<arg name="traj_dpos_tolerance" 			value="0.2"/>							# Position tolerance to wps division [m]
+			<arg name="traj_dpos_ahead_min" 			value="0.3"/>							# Min position diff btwn wp to set yaw ahead [m]
+			<arg name="traj_yaw_mode" 					value="2"/>								# Trajectory yaw configuration: constant (0), at time (1), in advance (2)
+
+			<!-- Human-Aware Navigation DISABLE -->
+			<arg name="human_detection_topic" 			value=""/>	  
+			<arg name="human_aware_enabled" 			value="false"/>
+			<arg name="human_safe_distance" 			value="0"/>
+			<arg name="human_track_distance" 			value="0"/>
+			
+			<!-- Multi-MAV avoidance DISABLED -->
+			<arg name="multimav_detection_topic" 		default=""/>	  
+			<arg name="multimav_avoidance_enabled" 		default="false"/>
+			<arg name="multimav_safe_distance" 			default="0"/>
+			
+		</include>
+
+
+
+
+		<!-- Publish TF ground (/world) to UAV (/base_link) from odometry messages-->
+		<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
+			<!--<remap from="robot_description" to="robot_description_$(arg mav_name)" />-->
+			<param name="robot_description" textfile="$(find grvc_quadrotor_gazebo)/urdf/grvc_quadrotor.urdf.xacro"/>
+		</node> 
+		<node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="log">
+			<param name="odometry_topic" value="$(arg odometry_topic_partial_param)" />
+			<param name="frame_id" value="$(arg base_frame_mav)" />
+			<param name="child_frame_id" value="/base_link" />
+		</node>
+	</group>
+
+	<!-- Configurable options -->
+	<arg name="use_sim_time" default="true"/>
+	<arg name="gui" default="true"/>
+	<arg name="multi" default="true"/>
+
+	<!-- ########################################################################## -->
+	<!-- Launch Gazebo -->
+	<!-- ########################################################################## -->
+	<!-- Configure gazebo server options -->
+	<group if="$(arg use_sim_time)">
+		<param name="/use_sim_time" value="true" />
+	</group>
+	<!-- Actually start gazebo server -->
+	<node name="gazebo" pkg="gazebo_ros" type="gzserver" respawn="false" output="screen" 
+		args="$(find grvc_quadrotor_gazebo)/urdf/tunnel.world -e ode"/>
+
+	<!-- launch gazebo client -->
+	<group if="$(arg gui)">
+		<node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen"/>
+	</group>
+
+	
+	<!-- Spawn the simple_box -->
+	<param name="box_description" command="$(find xacro)/xacro --inorder '$(find launch_options)/urdf/box.urdf.xacro' x:=7 y:=0 z:=0 name:=obs1" />
+	<node pkg="gazebo_ros" type="spawn_model" name="spawn_obs_1" args="-urdf -param /box_description -model obs1"/>
+	<param name="box_description_2" command="$(find xacro)/xacro --inorder '$(find launch_options)/urdf/box.urdf.xacro' x:=4 y:=0 z:=0 name:=obs2" />
+	<node pkg="gazebo_ros" type="spawn_model" name="spawn_obs_2" args="-urdf -param /box_description_2 -model obs2"/>
+	<param name="box_description_3" command="$(find xacro)/xacro --inorder '$(find launch_options)/urdf/box.urdf.xacro' x:=11 y:=0 z:=0 name:=obs3" />
+	<node pkg="gazebo_ros" type="spawn_model" name="spawn_obs_3" args="-urdf -param /box_description_3 -model obs3"/>
+
+
+	
+	<!-- Spawn hal controller -->
+	<node name="grvc_hal_$(arg mav_name)" pkg="grvc_quadrotor_hal" type="hal_node" respawn="false" output="screen"
+		args="-hal_ns=/$(arg mav_name)/hal -wp_topic=go_to_wp -gazebo_ns=/$(arg mav_name)"/> 
+
+	<!-- Spawn mavlink dummy -->
+	<node pkg="mavlink_adapter" type="mav_listener" name="mavlink_dummy" output="screen"  args="-robot_name=$(arg mav_name)" />
+
+	<!-- Spawn multiDof_2_Pose -->
+	<node pkg="multiDof_2_Pose" type="multiDof_2_Pose" name="multiDof_2_Pose" output="screen" 
+		args="-waypoint_topic=/setpoint_position/local -robot_name=$(arg mav_name)"/>
+
+
+	<!-- RViz
+	<arg name="rviz_config_file" default="$(find launch_options)/lazyThetaConfig.rviz"/>
+	<node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(arg rviz_config_file)"/>  -->
+</launch>
