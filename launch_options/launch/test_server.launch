@@ -1,0 +1,63 @@
+<!-- The MIT License (MIT) Copyright (c) 2016 GRVC University of Seville Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -->
+<launch>
+
+  <arg name="multi" default="false"/>
+  <arg name="ns_prefix" default="uav_"/>
+  <arg name="world" default="disaster.world"/>
+
+  <!-- Load frame transforms for map and UAVs -->
+  <rosparam file="$(find px4_bringup)/config/simulation_params.yaml" command="load"/>
+
+  <!-- Launch static_tf_publisher for map to world transform (if defined) -->
+  <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/>
+
+  <!-- moved in spawn_robot -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="uav_1_to_base_link" args="0 0 0 0 0 0 /uav_1 /local_origin 100"/> <node pkg="tf" type="static_transform_publisher" name="local_origin_to_base_link" args="0 0 0 0 0 0 /local_origin /base_link
+  100"/> -->
+  <!-- <node name="odom_to_tf" pkg="message_to_tf" type="message_to_tf"></node> -->
+
+  <!-- Launch Gazebo simulation TODO: world location? -->
+  <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=/home/pulver/Desktop/FlyingOctomap_code/launch_options)/world/disaster.world"/>
+  <!-- DEFAULT WORLD: -world=$(find px4_bringup)/config/empty_light.world -->
+
+  <!-- Launch robots. Argument mode can be: - sitl: for software in the loop simulation - serial: for serial connection to px4 - udp: for udp connection to px4 -->
+  <!-- Launch robot id=1 -->
+  <include file="$(find px4_bringup)/launch/spawn_robot.launch">
+    <arg name="id" value="1"/>
+    <arg name="material" value="Orange"/>
+    <arg name="mode" value="sitl"/>
+    <arg name="ns_prefix" value="$(arg ns_prefix)"/>
+  </include>
+
+  <group if="$(arg multi)">
+    <!-- Launch robot id=2 -->
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch">
+      <arg name="id" value="2"/>
+      <arg name="material" value="Indigo"/>
+      <arg name="mode" value="sitl"/>
+      <arg name="ns_prefix" value="$(arg ns_prefix)"/>
+    </include>
+    <!-- Launch robot id=3 -->
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch">
+      <arg name="id" value="3"/>
+      <arg name="material" value="ZincYellow"/>
+      <arg name="mode" value="sitl"/>
+      <arg name="ns_prefix" value="$(arg ns_prefix)"/>
+    </include>
+  </group>
+
+  <!-- Launch UAL server for uav id=1 -->
+  <node pkg="uav_abstraction_layer" type="server" name="server_1" output="screen" args="-uav_id=1 -ns_prefix=$(arg ns_prefix)"/>
+
+  <group if="$(arg multi)">
+    <!-- Launch UAL server for uav id=2 -->
+    <node pkg="uav_abstraction_layer" type="server" name="server_2" output="screen" args="-uav_id=2 -ns_prefix=$(arg ns_prefix)"/>
+    <!-- Launch UAL server for uav id=3 -->
+    <node pkg="uav_abstraction_layer" type="server" name="server_3" output="screen" args="-uav_id=3 -ns_prefix=$(arg ns_prefix)"/>
+  </group>
+
+</launch>
