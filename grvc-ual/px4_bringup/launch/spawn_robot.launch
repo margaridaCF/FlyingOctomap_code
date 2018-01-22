@@ -33,13 +33,13 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
   </node>
 
   <node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="screen">
-    <!-- <param name="odometry_topic" value="ground_truth/state"/>
+    <param name="odometry_topic" value="ground_truth/state"/>
     <param name="frame_id" value="local_origin"/>
-    <param name="child_frame_id" type="string" value="base_link"/> -->
+    <param name="child_frame_id" type="string" value="base_link"/>
   </node>
 
   <!-- robot_description for rviz -->
-  <!-- <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find robots_description)/models/$(arg robot_model)/model.xacro'"/>
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find robots_description)/models/$(arg robot_model)/model.xacro'"/>
 
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <param name="use_gui" value="true"/>
@@ -48,6 +48,6 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 
   <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 /world /map 100"/>
   <node pkg="tf" type="static_transform_publisher" name="uav_1_to_base_link" args="0 0 0 0 0 0 /uav_1 /local_origin 100"/>
-  <node pkg="tf" type="static_transform_publisher" name="local_origin_to_base_link" args="0 0 0 0 0 0 /local_origin /base_link 100"/> -->
+  <node pkg="tf" type="static_transform_publisher" name="local_origin_to_base_link" args="0 0 0 0 0 0 /local_origin /base_link 100"/>
 
 </launch>
