@@ -21,7 +21,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
   <!-- <node name="odom_to_tf" pkg="message_to_tf" type="message_to_tf"></node> -->
 
   <!-- Launch Gazebo simulation TODO: world location? -->
-  <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=/home/pulver/Desktop/FlyingOctomap_code/launch_options)/world/disaster.world"/>
+  <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world"/>
   <!-- DEFAULT WORLD: -world=$(find px4_bringup)/config/empty_light.world -->
 
   <!-- Launch robots. Argument mode can be: - sitl: for software in the loop simulation - serial: for serial connection to px4 - udp: for udp connection to px4 -->
