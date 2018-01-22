@@ -60,4 +60,12 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
     <node pkg="uav_abstraction_layer" type="server" name="server_3" output="screen" args="-uav_id=3 -ns_prefix=$(arg ns_prefix)"/>
   </group>
 
+  <!-- convert depth map to laserscan -->
+  <node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="converter">
+    <remap from="image" to="/camera/depth/image_raw"/>
+    <remap from="camera_info" to="/camera/depth/camera_info"/>
+    <remap from="scan" to="/depth_laser_scan"/>
+    <param name="output_frame_id" value="camera_depth_base_link"/>
+  </node>
+
 </launch>
