@@ -1,0 +1,14 @@
+<launch>
+<node name="vicon_client" pkg="vrpn_client_ros" type="vrpn_client_node" output="screen">
+   <rosparam subst_value="true">
+      server: tcp://10.0.0.2
+      port: 3883
+      update_frequency: 100.0
+      frame_id: vicon
+      use_server_time: false
+      broadcast_tf: true
+      trackers:
+      - F550
+    </rosparam>
+</node>
+</launch>

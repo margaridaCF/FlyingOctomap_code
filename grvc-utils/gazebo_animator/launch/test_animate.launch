@@ -1,0 +1,13 @@
+<launch>
+
+    <!-- Launch Gazebo simulation -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch"/>
+
+    <!-- Spawn model -->
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_model" output="screen"
+    args="-file $(find gazebo_animator)/models/yellow_cylinder.sdf -sdf -x 0 -y 0 -z 0 -model sample_model"/>
+
+    <node pkg="gazebo_animator" type="test_gazebo_animator" name="test_gazebo_animator" output="screen"
+    args="-link_name=sample_model::sample_link"/>
+
+</launch>
