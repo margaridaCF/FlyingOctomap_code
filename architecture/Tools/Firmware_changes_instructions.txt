@@ -1,2 +1,6 @@
 iris.xacro & iris_base.xacro should be moved to Firmware/Tools/sitl_gazebo/models/rotors_description
 posix_sitl_urdf.launch should be moved to Firmware/launch
+
+
+2)[RICK] iris_base.urdf should be moved to Firmware/Tools/sitl_gazebo/models/rotors_description
+while posix_sitl_urd.launch to Firmware/launch

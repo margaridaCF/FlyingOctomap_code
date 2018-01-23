@@ -35,10 +35,13 @@
     </include>
 
     <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
+    
+    
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" type="string" value=""/>
     </node>
+    
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <param name="use_gui" value="true"/>
     </node>
@@ -46,21 +49,21 @@
         args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
 
 
-    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 /world /map 100"/>
-    <node name="local_origin_to_base_link" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /local_origin /base_link 100"/>
+<!--    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 /world /local_origin 100"/>-->
+<!--    <node name="local_origin_to_base_link" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_link 100"/> -->
 
-    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/>
-    
+<!--    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/> -->
+
 
 
 
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robots_description)/config/visualize.rviz" />
 
 
-
+    <!--<node name="odom_to_tf" pkg="message_to_tf" type="message_to_tf"> </node>-->
     <node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="screen">
-        <param name="odometry_topic" value="ground_truth/state"/>
-        <param name="frame_id" value="local_origin"/>
+        <param name="odometry_topic" value="ground_truth_pose"/>
+        <param name="frame_id" value="map"/>
         <param name="child_frame_id" type="string" value="base_link"/>
     </node>
 </launch>
