@@ -50,9 +50,9 @@
 
 
 <!--    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 /world /local_origin 100"/>-->
-<!--    <node name="local_origin_to_base_link" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_link 100"/> -->
-
-<!--    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/> -->
+    <!--<node name="local_origin_to_base_link" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /local_origin /base_link 100"/>-->
+    
+    <!--    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/> -->
 
 
 
@@ -68,4 +68,10 @@
     </node>
 </launch>
 
+<!-- convert pointcloud to laserscan -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan" name="converter">
+    <remap from="cloud_in" to="/velodyne_points"/>
+    <remap from="scan" to="/depth_laser_scan"/>
+  </node>
+  
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->

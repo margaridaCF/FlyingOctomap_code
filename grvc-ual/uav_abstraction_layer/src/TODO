@@ -1,0 +1,70 @@
+# Missing transform between map and robot home frame
+1. Static transform between map and uav_1_home using the spawn position of the UAV
+void BackendMavros::initHomeFrame() {
+
+    uav_home_frame_id_ = "uav_" + std::to_string(robot_id_) + "_home";
+    local_start_pos_ << 0.0, 0.0, 0.0;
+
+    // Get frame from rosparam
+    std::string frame_id;
+    std::string parent_frame;
+    std::string units;
+    std::vector<double> translation;
+    std::string uav_home_text;
+
+    uav_home_text = uav_home_frame_id_;
+
+    if ( ros::param::has(uav_home_text) ) {
+        ros::param::get(uav_home_text + "/home_frame_id", frame_id);
+        ros::param::get(uav_home_text + "/parent_frame", parent_frame);
+        ros::param::get(uav_home_text + "/units", units);
+        ros::param::get(uav_home_text + "/translation",translation);
+
+        geometry_msgs::TransformStamped static_transformStamped;
+
+        static_transformStamped.header.stamp = ros::Time::now();
+        static_transformStamped.header.frame_id = parent_frame;
+        static_transformStamped.child_frame_id = frame_id;
+        static_transformStamped.transform.translation.x = translation[0];
+        static_transformStamped.transform.translation.y = translation[1];
+        static_transformStamped.transform.translation.z = translation[2];
+
+        if(parent_frame == "map" || parent_frame == "") {
+            static_transformStamped.transform.rotation.x = 0;
+            static_transformStamped.transform.rotation.y = 0;
+            static_transformStamped.transform.rotation.z = 0;
+            static_transformStamped.transform.rotation.w = 1;
+        }
+        else {
+            tf2_ros::Buffer tfBuffer;
+            tf2_ros::TransformListener tfListener(tfBuffer);
+            geometry_msgs::TransformStamped transform_to_map;
+            transform_to_map = tfBuffer.lookupTransform(parent_frame, "map", ros::Time(0), ros::Duration(2.0));
+            static_transformStamped.transform.rotation = transform_to_map.transform.rotation;
+        }
+
+        static_tf_broadcaster_ = new tf2_ros::StaticTransformBroadcaster();
+        static_tf_broadcaster_->sendTransform(static_transformStamped);
+    }
+    else {
+        // No param with local frame -> Global control
+        // TODO: Initialization of home frame based on GPS estimation
+        ROS_ERROR("No uav_%d_home_frame found in rosparam. Please define starting position with relate to a common map frame.",robot_id_);
+    }
+}
+2. Transform between the uav_1_home and the bodyframe (this is not static)
+
+
+# If your robot already moves in gazebo you should do the following steps to move your robot in rviz:
+
+    add your robot model in rviz-> add button -> robot model.
+
+    include the p3d plugin in your robotname.gazebo.xacro file:
+
+    <xacro:if value="$(arg ground_truth)"> <gazebo> <plugin name="ground_truth" filename="libgazebo_ros_p3d.so"> <framename>world</framename> <bodyname>base_footprint</bodyname> <topicname>/gazebo/$(arg robot_name)/odom</topicname> <updaterate>100.0</updaterate> </plugin> </gazebo> </xacro:if>
+
+    transform ground truth pose to tf (include this in your main launch file:)
+
+    <node name="odom_to_tf" pkg="message_to_tf" type="message_to_tf"> </node>
+
+    Now launch your project and now you should be able to select in rviz->global options -> fixed frame world.
