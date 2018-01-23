@@ -9,7 +9,7 @@
   -->
   <!-- The following causes segfault with multiple vehicles if defaults to true!!! -->
   <!-- macros for gazebo plugins, sensors -->
-  <!-- Macro to add logging to a bag file. -->F
+  <!-- Macro to add logging to a bag file. -->
   <!-- Macro to add a camera. -->
   <!-- Macro to add the controller interface. -->
   <!-- Macro to add the mavlink interface. -->
@@ -362,11 +362,10 @@
     <material>Gazebo/DarkGrey</material>
   </gazebo>
   <joint name="velodyne_base_mount_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 1"/>
+    <origin rpy="0 0 0" xyz="0 0 0.04"/>
     <parent link="base_link"/>
     <child link="velodyne_base_link"/>
   </joint>
-  
   <link name="velodyne_base_link">
     <inertial>
       <mass value="0.1"/>
@@ -419,11 +418,11 @@
           <horizontal>
             <samples>440</samples>
             <resolution>1</resolution>
-            <min_angle>-3.14159265359</min_angle>
-            <max_angle>3.14159265359</max_angle>
+            <min_angle>-2.35619</min_angle>
+            <max_angle>2.35619</max_angle>
           </horizontal>
           <vertical>
-            <samples>5</samples>
+            <samples>2</samples>
             <resolution>1</resolution>
             <min_angle>-0.261799387799</min_angle>
             <max_angle> 0.261799387799</max_angle>
@@ -602,18 +601,17 @@
       <!-- Accelerometer turn on bias standard deviation [m/s^2] -->
     </plugin>
   </gazebo>
-    
   <gazebo>
-      <plugin name="ground_truth" filename="libgazebo_ros_p3d.so">
-        <alwaysOn>true</alwaysOn>
-        <frameName>map</frameName>
-        <topicName>ground_truth_pose</topicName>
-        <bodyName>base_link</bodyName>
-        <updateRate>100.0</updateRate>
-        <xyzOffsets>5 5 0</xyzOffsets> <!-- initialize odometry for fake localization-->
-        <rpyOffsets>0 0 0</rpyOffsets>
-<!--        <interface:position name="p3d_base_position"/>  -->
-      </plugin>
-    </gazebo>
-    
+    <plugin filename="libgazebo_ros_p3d.so" name="ground_truth">
+      <alwaysOn>true</alwaysOn>
+      <frameName>map</frameName>
+      <topicName>ground_truth_pose</topicName>
+      <bodyName>base_link</bodyName>
+      <updateRate>100.0</updateRate>
+      <xyzOffsets>5 5 0</xyzOffsets>
+      <!-- initialize odometry for fake localization-->
+      <rpyOffsets>0 0 0</rpyOffsets>
+      <!--        <interface:position name="p3d_base_position"/>  -->
+    </plugin>
+  </gazebo>
 </robot>
