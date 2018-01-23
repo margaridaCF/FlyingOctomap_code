@@ -78,7 +78,7 @@ int main(int argc, char **argv)
             }
         }
 
-        pose.pose.position.x+=0.1;
+        pose.pose.position.x+=0.001;
         local_pos_pub.publish(pose);
 
         ros::spinOnce();
