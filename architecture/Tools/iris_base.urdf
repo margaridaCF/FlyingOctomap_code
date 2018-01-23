@@ -362,7 +362,7 @@
     <material>Gazebo/DarkGrey</material>
   </gazebo>
   <joint name="velodyne_base_mount_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 1"/>
+    <origin rpy="0 0 0" xyz="0 0 0.04"/>
     <parent link="base_link"/>
     <child link="velodyne_base_link"/>
   </joint>

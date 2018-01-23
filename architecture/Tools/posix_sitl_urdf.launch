@@ -68,10 +68,10 @@
     </node>
 </launch>
 
-<!-- convert depth map to laserscan -->
+<!-- convert pointcloud to laserscan -->
   <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan" name="converter">
-    <remap from="/cloud_in" to="/velodyne_points"/>
-    <remap from="/scan" to="/depth_laser_scan"/>
+    <remap from="cloud_in" to="/velodyne_points"/>
+    <remap from="scan" to="/depth_laser_scan"/>
   </node>
   
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
