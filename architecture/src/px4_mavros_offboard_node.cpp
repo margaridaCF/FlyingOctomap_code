@@ -9,10 +9,16 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
+#include <std_msgs/Empty.h>
 
 mavros_msgs::State current_state;
+bool enable_stop;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
+}
+
+void stop_cb(const std_msgs::Empty::ConstPtr& msg){
+  enable_stop = true;
 }
 
 int main(int argc, char **argv)
@@ -29,8 +35,10 @@ int main(int argc, char **argv)
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
 
+    ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("/stop_uav", 10, stop_cb);
+
     //the setpoint publishing rate MUST be faster than 2Hz
-    ros::Rate rate(20.0);
+    ros::Rate rate(5);
 
     // wait for FCU connection
     while(ros::ok() && current_state.connected){
@@ -78,7 +86,15 @@ int main(int argc, char **argv)
             }
         }
 
-        pose.pose.position.x+=0.001;
+        if (enable_stop == false){
+          pose.pose.position.x +=0.005;
+        } else {
+          // pose.pose.position.x = 0;
+          // pose.pose.position.y = 0;
+          // pose.pose.position.z = 0;
+          //NOTE: to stop the UAV, you can just send always the current pose, meaning you don't change the message sent
+          ROS_INFO("STOP msg sent!");
+        }
         local_pos_pub.publish(pose);
 
         ros::spinOnce();
