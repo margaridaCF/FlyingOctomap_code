@@ -9,7 +9,7 @@
     <arg name="Y" default="0"/>
     <arg name="est" default="lpe"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/empty.world"/>
+    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/box.world"/>
     <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
 
@@ -54,9 +54,6 @@
 
 <!--    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/> -->
 
-
-
-
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robots_description)/config/visualize.rviz" />
 
 
@@ -67,7 +64,14 @@
         <param name="child_frame_id" type="string" value="base_link"/>
     </node>
 
-   
+
+  <!-- convert depth map to laserscan -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="converter">
+    <remap from="cloud_in" to="/velodyne_points"/>
+    <remap from="scan" to="/depth_laser_scan"/>
+  </node>
+  
+  
 </launch>
 
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
