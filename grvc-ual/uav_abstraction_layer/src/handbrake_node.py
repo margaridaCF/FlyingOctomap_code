@@ -40,12 +40,14 @@ def main():
         rospy.sleep(0.01)
         print "Distance to closest obstacle: " + str(min_distance)
         # If the perceived minimum distance to the obstacles is less then a threshold, send a stopping command
-        if min_distance <= safety_threshold:
+        if min_distance <= safety_threshold and min_distance != 0.0:
             try:
                 stop_pub.publish(emergency_stop_msg)
                 print "Emergency message successfully sent!"
             except rospy.ROSException:
                 print "Error while sending the emergency message"
+        else:
+            print "You're OK so far!"
 
 
 

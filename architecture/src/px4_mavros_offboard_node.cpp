@@ -87,13 +87,16 @@ int main(int argc, char **argv)
         }
 
         if (enable_stop == false){
-          pose.pose.position.x +=0.005;
+          pose.pose.position.x +=0.05;
+          ROS_INFO("UAV proceeding in straight line");
         } else {
           // pose.pose.position.x = 0;
           // pose.pose.position.y = 0;
           // pose.pose.position.z = 0;
-          //NOTE: to stop the UAV, you can just send always the current pose, meaning you don't change the message sent
+          // NOTE: to stop the UAV, you can just send always the current pose, meaning you don't change the message sent
           ROS_INFO("STOP msg sent!");
+          // Allow the UAV to start again moving
+          enable_stop = false;
         }
         local_pos_pub.publish(pose);
 
