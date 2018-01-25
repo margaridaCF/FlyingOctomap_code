@@ -44,13 +44,13 @@ if (CATKIN_ENABLE_TESTING)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   target_link_libraries(gridBenchmark-dataCollection ${catkin_LIBRARIES} gridBenchmark)
 
-  ## Algorithm Tests ##
+  # # Algorithm Tests ##
   # catkin_add_gtest(algorithmTests 
   #   test/algorithm_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(algorithmTests ${catkin_LIBRARIES} gridBenchmark)
 
-  ## Grid Benchmark Tests ##
+  # # Grid Benchmark Tests ##
   # catkin_add_gtest(gridBenchmarkTests 
   #   test/grid_benchmark_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)

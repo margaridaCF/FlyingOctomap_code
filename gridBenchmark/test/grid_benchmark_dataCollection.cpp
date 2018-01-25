@@ -150,7 +150,33 @@ namespace mapper{
 		storage.exportCsv(scenarioOrder, printTables, "experimental");
 	}
 
+	TEST_F(DataCollection, HowToUse)
+	{
+		std::string fileName = "experimentalDataset";
 
+		octomath::Vector3 real_max, real_min, draw_3D_max, draw_3D_min;
+		octomap::OcTree octree ("data/"+fileName+".bt");
+
+		GridBenchmark generic(experimental, fileName, octree);
+
+		float grid_resolution = octree.getResolution();
+		std::tuple<double, double, double> min, max;
+        octree.getMetricMin(std::get<0>(min), std::get<1>(min), std::get<2>(min));
+        octree.getMetricMax(std::get<0>(max), std::get<1>(max), std::get<2>(max));
+		real_max  =octomath::Vector3 (std::get<0>(max), std::get<1>(max), 1);
+		real_min = octomath::Vector3(std::get<0>(min), std::get<1>(min), 0);
+		draw_3D_max  =octomath::Vector3 (real_max.x(), real_max.y(), 1);
+		draw_3D_min = octomath::Vector3(real_min.x(), real_min.y(), 0);
+
+		SparseGrid grid3D("test", Algorithm::sparseGrid_3d, octree, grid_resolution);  
+		ResultSet result_sparse_3D = generic.findFrontierCells(real_max, real_min, threeD, grid3D);
+		ROS_WARN_STREAM("Frontier cells:");
+		for (Voxel frontier : generic.frontierCells)
+		{
+			ROS_WARN_STREAM(frontier);
+		}
+		ROS_WARN_STREAM("==============");
+	}
 }
 
 int main(int argc, char **argv){
