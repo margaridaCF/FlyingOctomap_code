@@ -35,13 +35,13 @@
     </include>
 
     <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
-    
-    
+
+
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" type="string" value=""/>
     </node>
-    
+
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <param name="use_gui" value="true"/>
     </node>
@@ -74,19 +74,20 @@
   <!-- ########################################################################## -->
     <!-- OCTOMAP -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
-                         
-        <param name="frame_id" type="string" value="/world" />   <!--name of the fixed frame -->
+
+        <param name="frame_id" type="string" value="map" />   <!--name of the fixed frame -->
         <!--<param name="sensor_model/max_range" value="100.0" />    max range / depth resolution of the sensor in meter -->
-        <param name="latch" value="false" /> 
+        <remap from="cloud_in" to="/velodyne_points" />
+        <param name="latch" value="false" />
         <param name="resolution" value="0.5" />
         <param name="pointcloud_min" value="0"/>
         <param name="pointcloud_max" value="2"/>
         <param name="occupancy_min" value="0.5"/>
         <param name="occupancy_min" value="1"/>
         <param name="sensor_model/max_range" value="80"/>
-    </node> 
-  
-  
+    </node>
+
+
 </launch>
 
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
