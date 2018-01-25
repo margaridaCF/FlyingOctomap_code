@@ -14,7 +14,9 @@
 #include <geometry_msgs/TwistStamped.h>
 
 mavros_msgs::State current_state;
+geometry_msgs::PoseStamped new_frontier;
 bool enable_stop;
+
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
         current_state = *msg;
 }
@@ -23,23 +25,25 @@ void stop_cb(const std_msgs::Empty::ConstPtr& msg){
         enable_stop = true;
 }
 
+void frontier_cb(const geometry_msgs::PoseStamped::ConstPtr& msg){
+        new_frontier = *msg;
+}
+
 int main(int argc, char **argv)
 {
         ros::init(argc, argv, "offb_node");
         ros::NodeHandle nh;
 
-        ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
-                                            ("mavros/state", 10, state_cb);
-        ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
-                                               ("mavros/setpoint_position/local", 10);
-        ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
-                                                   ("mavros/cmd/arming");
-        ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
-                                                     ("mavros/set_mode");
+        ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, state_cb);
+        ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
+        ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
+        ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
 
         ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("/stop_uav", 10, stop_cb);
-        ros::Publisher stop__velocity_pub = nh.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
+        ros::Publisher stop_velocity_pub = nh.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
         ros::Publisher stop_position_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 10);
+
+        ros::Subscriber waypoints_sub = nh.subscribe<geometry_msgs::PoseStamped>("/new_frontier", 10, frontier_cb);
 
         //the setpoint publishing rate MUST be faster than 2Hz
         ros::Rate rate(20);
@@ -104,16 +108,18 @@ int main(int argc, char **argv)
                                 last_request = ros::Time::now();
                         } else if (current_state.armed) {
                                 if (enable_stop == false) {
-                                        pose.pose.position.x +=0.03;
-                                        ROS_INFO("UAV proceeding in straight line");
+                                        //pose.pose.position.x +=0.03;
+                                        pose = new_frontier;
+                                        ROS_INFO("Approaching the frontier");
                                 } else {
                                         // pose.pose.position.x = 0;
                                         // pose.pose.position.y = 0;
                                         // pose.pose.position.z = 0;
                                         // NOTE: to stop the UAV, you can just send always the current pose, meaning you don't change the message sent
-                                        stop_velocity.header.stamp = ros::Time::now();
-                                        stop_velocity.header.seq=1;
+                                        // stop_velocity.header.stamp = ros::Time::now();
+                                        // stop_velocity.header.seq=1;
                                         // stop_velocity_pub.publish(stop_velocity);
+
                                         stop_position.header.stamp = ros::Time::now();
                                         stop_position.header.seq=1;
                                         stop_position_pub.publish(stop_position);
