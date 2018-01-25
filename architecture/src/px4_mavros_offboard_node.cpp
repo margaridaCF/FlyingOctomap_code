@@ -104,7 +104,7 @@ int main(int argc, char **argv)
                                 last_request = ros::Time::now();
                         } else if (current_state.armed) {
                                 if (enable_stop == false) {
-                                        pose.pose.position.x +=0.1;
+                                        pose.pose.position.x +=0.03;
                                         ROS_INFO("UAV proceeding in straight line");
                                 } else {
                                         // pose.pose.position.x = 0;
