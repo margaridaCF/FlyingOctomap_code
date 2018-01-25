@@ -9,7 +9,7 @@
     <arg name="Y" default="0"/>
     <arg name="est" default="lpe"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/empty.world"/>
+    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/box.world"/>
     <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
 
@@ -25,7 +25,7 @@
         args="$(find px4) $(arg rcS)">
     </node>
 
-    <include file="$(find gazebo_ros)/launch/empty.launch">
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="headless" value="$(arg headless)"/>
         <arg name="gui" value="$(arg gui)"/>
         <arg name="world_name" value="$(arg world)" />
@@ -74,19 +74,20 @@
   <!-- ########################################################################## -->
     <!-- OCTOMAP -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
-                         
-        <param name="frame_id" type="string" value="/world" />   <!--name of the fixed frame -->
+
+        <param name="frame_id" type="string" value="map" />   <!--name of the fixed frame -->
         <!--<param name="sensor_model/max_range" value="100.0" />    max range / depth resolution of the sensor in meter -->
-        <param name="latch" value="false" /> 
+        <remap from="cloud_in" to="/velodyne_points" />
+        <param name="latch" value="false" />
         <param name="resolution" value="0.5" />
         <param name="pointcloud_min" value="0"/>
         <param name="pointcloud_max" value="2"/>
         <param name="occupancy_min" value="0.5"/>
         <param name="occupancy_min" value="1"/>
         <param name="sensor_model/max_range" value="80"/>
-    </node> 
-  
-  
+    </node>
+
+
 </launch>
 
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
