@@ -1,0 +1,531 @@
+<?xml version="1.0" ?>
+<sdf version='1.6'>
+  <world name='default'>
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose frame=''>0 0 10 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <model name='ground_plane'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <surface>
+            <contact>
+              <collide_bitmask>65535</collide_bitmask>
+              <ode/>
+            </contact>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='asphalt_plane'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>200 200 0.1</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>200 200 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://asphalt_plane/materials/scripts</uri>
+              <uri>model://asphalt_plane/materials/textures</uri>
+              <name>vrc/asphalt</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <physics name='default_physics' default='0' type='ode'>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>10</iters>
+          <sor>1.3</sor>
+          <use_dynamic_moi_rescaling>0</use_dynamic_moi_rescaling>
+        </solver>
+        <constraints>
+          <cfm>0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <gravity>0 0 -9.8066</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type='adiabatic'/>
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>1</shadows>
+    </scene>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>0</latitude_deg>
+      <longitude_deg>0</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+    <model name='Big box 2'>
+      <pose frame=''>4.42558 -0.413106 0.75 0 -0 0</pose>
+      <static>0</static>
+      <link name='link'>
+        <inertial>
+          <mass>40</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.8 1.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <contact>
+              <ode>
+                <max_vel>0.1</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://big_box2/meshes/big_box.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='Big box 4'>
+      <pose frame=''>3.57899 -2.02362 0.625 0 -0 0</pose>
+      <static>0</static>
+      <link name='link'>
+        <inertial>
+          <mass>40</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.8 1.25</size>
+            </box>
+          </geometry>
+          <surface>
+            <contact>
+              <ode>
+                <max_vel>0.1</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://big_box4/meshes/big_box.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='Big box 4_0'>
+      <pose frame=''>3.45801 1.10183 0.625 0 -0 0</pose>
+      <static>0</static>
+      <link name='link'>
+        <inertial>
+          <mass>40</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.8 1.25</size>
+            </box>
+          </geometry>
+          <surface>
+            <contact>
+              <ode>
+                <max_vel>0.1</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://big_box4/meshes/big_box.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='big_box3'>
+      <pose frame=''>2.67854 0.111727 0.625 0 -0 0</pose>
+      <static>0</static>
+      <link name='link'>
+        <inertial>
+          <mass>40</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.8 1.25</size>
+            </box>
+          </geometry>
+          <surface>
+            <contact>
+              <ode>
+                <max_vel>0.1</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://big_box3/meshes/big_box.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='Big box'>
+      <pose frame=''>2.69144 2.26367 0.75 0 -0 0</pose>
+      <static>0</static>
+      <link name='link'>
+        <inertial>
+          <mass>40</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.8 1.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <contact>
+              <ode>
+                <max_vel>0.1</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://big_box/meshes/big_box.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <model name='Big box_0'>
+      <pose frame=''>2.10375 -0.011663 0.75 0 -0 0</pose>
+      <static>0</static>
+      <link name='link'>
+        <inertial>
+          <mass>40</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1.2 0.8 1.5</size>
+            </box>
+          </geometry>
+          <surface>
+            <contact>
+              <ode>
+                <max_vel>0.1</max_vel>
+                <min_depth>0.001</min_depth>
+              </ode>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://big_box/meshes/big_box.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <state world_name='default'>
+      <sim_time>162 982000000</sim_time>
+      <real_time>164 354552766</real_time>
+      <wall_time>1516796674 571697848</wall_time>
+      <iterations>81491</iterations>
+      <model name='Big box'>
+        <pose frame=''>2.69015 2.26538 0.799499 -3e-06 -0.000842 -0.003051</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>2.69015 2.26538 0.799499 -3e-06 -0.000842 -0.003051</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>-0.662453 -0.809524 0.406744 1.07928 -0.883085 0.000564</acceleration>
+          <wrench>-26.4981 -32.381 16.2698 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='Big box 2'>
+        <pose frame=''>4.42305 -0.41245 0.799489 -0.000102 -0.000818 -0.003186</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>4.42305 -0.41245 0.799489 -0.000102 -0.000818 -0.003186</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>-2.5791 0.02482 2.18328 -3.09961 0.374945 -3.06529</acceleration>
+          <wrench>-103.164 0.992789 87.3312 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='Big box 4'>
+        <pose frame=''>3.57801 -2.02292 0.674499 -2.2e-05 -0.00084 -0.001287</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>3.57801 -2.02292 0.674499 -2.2e-05 -0.00084 -0.001287</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>-0.339265 -1.95044 -0.080606 3.1212 -0.544864 0.00081</acceleration>
+          <wrench>-13.5706 -78.0175 -3.22424 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='Big box 4_0'>
+        <pose frame=''>3.45744 1.10223 0.674411 0.000726 -0.000247 -0.001371</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>3.45744 1.10223 0.674411 0.000726 -0.000247 -0.001371</pose>
+          <velocity>0.001299 -0.003948 0.001356 0.006878 0.00202 -0.000348</velocity>
+          <acceleration>0.649543 -1.9741 0.677792 -2.84443 1.00996 -0.173918</acceleration>
+          <wrench>25.9817 -78.964 27.1117 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='Big box_0'>
+        <pose frame=''>3.76171 1.04665 2.04881 0.000925 0.000809 -0.000646</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>3.76171 1.04665 2.04881 0.000925 0.000809 -0.000646</pose>
+          <velocity>0.00219 -0.01451 -0.0002 0.007606 -0.000577 -0.001199</velocity>
+          <acceleration>-0.186166 0.169042 0.005233 -0.181438 -0.129536 0.012889</acceleration>
+          <wrench>-7.44665 6.76167 0.209316 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='asphalt_plane'>
+        <pose frame=''>0.236302 0.44076 0 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>0.236302 0.44076 0 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='big_box3'>
+        <pose frame=''>4.30313 -0.409284 2.1739 -3.9e-05 1.8e-05 -9.6e-05</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>4.30313 -0.409284 2.1739 -3.9e-05 1.8e-05 -9.6e-05</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>-0.418972 -1.11767 -1.02682 1.60457 1.43821 0.262139</acceleration>
+          <wrench>-16.7589 -44.7069 -41.0728 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='ground_plane'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <light name='sun'>
+        <pose frame=''>0 0 10 0 -0 0</pose>
+      </light>
+    </state>
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose frame=''>-2.65361 -1.07451 4.33129 0 0.683643 0.216194</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </world>
+</sdf>
