@@ -165,6 +165,7 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 add_executable(test_task_management src/test_task_management.cpp)
 add_executable(test_ual_interfaces src/test_ual_interfaces.cpp)
 add_executable(server src/server.cpp)
+add_executable(frontier_node src/frontier_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -189,6 +190,11 @@ target_link_libraries(test_ual_interfaces
   ${catkin_LIBRARIES}
 )
 target_link_libraries(server
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(frontier_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
