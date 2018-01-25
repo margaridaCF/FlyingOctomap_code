@@ -9,7 +9,7 @@
     <arg name="Y" default="0"/>
     <arg name="est" default="lpe"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/box.world"/>
+    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/empty.world"/>
     <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
 
@@ -25,7 +25,7 @@
         args="$(find px4) $(arg rcS)">
     </node>
 
-    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <include file="$(find gazebo_ros)/launch/empty.launch">
         <arg name="headless" value="$(arg headless)"/>
         <arg name="gui" value="$(arg gui)"/>
         <arg name="world_name" value="$(arg world)" />
@@ -35,13 +35,13 @@
     </include>
 
     <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
-    
-    
+
+
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" type="string" value=""/>
     </node>
-    
+
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <param name="use_gui" value="true"/>
     </node>
