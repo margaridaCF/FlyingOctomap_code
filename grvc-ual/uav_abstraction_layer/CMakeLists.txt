@@ -19,7 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   gazebo_msgs
   sensor_msgs
-  gridBenchmark
 )
 
 ## System dependencies are found with CMake's conventions
@@ -130,7 +129,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES uav_abstraction_layer gridBenchmark
+  LIBRARIES uav_abstraction_layer 
   CATKIN_DEPENDS message_runtime argument_parser geometry_msgs mavros mavros_msgs roscpp std_msgs tf2_ros gazebo_msgs sensor_msgs 
 #  DEPENDS system_lib
 )
@@ -141,7 +140,6 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories("../gridBenchmark/include/")
 include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -152,7 +150,7 @@ include_directories(
 #   src/${PROJECT_NAME}/uav_abstraction_layer.cpp
 # )
 add_library(${PROJECT_NAME}
-  src/backend.cpp src/backend_mavros.cpp src/backend_light.cpp src/ual.cpp src/frontier_node.cpp
+  src/backend.cpp src/backend_mavros.cpp src/backend_light.cpp src/ual.cpp 
 )
 
 ## Add cmake target dependencies of the library
@@ -167,7 +165,6 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 add_executable(test_task_management src/test_task_management.cpp)
 add_executable(test_ual_interfaces src/test_ual_interfaces.cpp)
 add_executable(server src/server.cpp)
-add_executable(frontier_node src/frontier_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -179,7 +176,6 @@ add_executable(frontier_node src/frontier_node.cpp)
 ## same as for the library above
 add_dependencies(test_ual_interfaces ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(frontier_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} gridBenchmark)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -197,10 +193,6 @@ target_link_libraries(server
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(frontier_node
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  gridBenchmark
 )
 
 #############
