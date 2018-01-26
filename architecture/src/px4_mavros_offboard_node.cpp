@@ -27,6 +27,7 @@ void stop_cb(const std_msgs::Empty::ConstPtr& msg){
 
 void frontier_cb(const geometry_msgs::PoseStamped::ConstPtr& msg){
         new_frontier = *msg;
+        printf("new_frontier");
 }
 
 int main(int argc, char **argv)
@@ -55,12 +56,14 @@ int main(int argc, char **argv)
         }
 
 
+        // Flight speed
+        float flight_speed = 0.01;
 
 
         geometry_msgs::PoseStamped pose;
         pose.pose.position.x = 0;
         pose.pose.position.y = 0;
-        pose.pose.position.z = 2;
+        pose.pose.position.z = 1;
 
         geometry_msgs::TwistStamped stop_velocity;
         // stop_velocity.twist.linear.x = 0.0;
@@ -109,8 +112,51 @@ int main(int argc, char **argv)
                         } else if (current_state.armed) {
                                 if (enable_stop == false) {
                                         //pose.pose.position.x +=0.03;
-                                        pose = new_frontier;
-                                        ROS_INFO("Approaching the frontier");
+
+                                        if (pose.pose.position.x != new_frontier.pose.position.x || pose.pose.position.y != new_frontier.pose.position.y || pose.pose.position.z != new_frontier.pose.position.z)
+                                        {
+                                          //ROS_INFO("X");
+                                            if (pose.pose.position.x <= new_frontier.pose.position.x - flight_speed || pose.pose.position.x >= new_frontier.pose.position.x + flight_speed){
+
+                                              if (pose.pose.position.x < new_frontier.pose.position.x)
+                                              {
+                                                pose.pose.position.x += flight_speed;
+                                              } else {
+                                                pose.pose.position.x -= flight_speed;
+                                              }
+
+                                            } else {
+                                              pose.pose.position.x = new_frontier.pose.position.x;
+                                            }
+
+                                            if (pose.pose.position.y <= new_frontier.pose.position.y - flight_speed || pose.pose.position.y >= new_frontier.pose.position.y + flight_speed){
+                                              //ROS_INFO("Y");
+                                              if (pose.pose.position.y < new_frontier.pose.position.y)
+                                              {
+                                                pose.pose.position.y += flight_speed;
+                                              } else {
+                                                pose.pose.position.y -= flight_speed;
+                                              }
+
+                                            } else {
+                                              pose.pose.position.y = new_frontier.pose.position.y;
+                                            }
+
+                                            if (pose.pose.position.z <= new_frontier.pose.position.z - flight_speed || pose.pose.position.z >= new_frontier.pose.position.z + flight_speed){
+                                              //ROS_INFO("Y");
+                                              if (pose.pose.position.z < new_frontier.pose.position.z)
+                                              {
+                                                pose.pose.position.z += flight_speed;
+                                              } else {
+                                                pose.pose.position.z -= flight_speed;
+                                              }
+
+                                            } else {
+                                              pose.pose.position.z = new_frontier.pose.position.z;
+                                            }
+                                        }
+                                        //pose = new_frontier;
+                                      //  ROS_INFO("Approaching the frontier");
                                 } else {
                                         // pose.pose.position.x = 0;
                                         // pose.pose.position.y = 0;
