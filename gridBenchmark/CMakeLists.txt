@@ -28,9 +28,23 @@ add_library(gridBenchmark
   src/grid_benchmark.cpp src/qdbmp.cpp
 )
 
+add_executable(frontier_node src/frontier_node.cpp)
+add_dependencies(frontier_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(gridBenchmark
   ${catkin_LIBRARIES}  
 )
+
+target_link_libraries(frontier_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+
+# ## Install project namespaced headers
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE)
 
 #############
 ## Testing ##
@@ -56,4 +70,3 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(gridBenchmarkTests ${catkin_LIBRARIES} gridBenchmark)
 endif()
-
