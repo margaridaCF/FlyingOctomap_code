@@ -23,10 +23,13 @@ geometry_msgs::PoseStamped frontier_pose;
 octomap::OcTree* octree;
 mavros_msgs::State current_state;
 bool get_frontier_node;
+bool got_first_octomap = false;
 // ======================
 
 void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
   octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
+  got_first_octomap = true;
+  // ROS_INFO("[Frontier] Got first message!");
 }
 
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
@@ -50,9 +53,10 @@ mapper::Voxel findNextFrontier()
   mapper::SparseGrid grid3D("test", mapper::Algorithm::sparseGrid_3d, *octree, grid_resolution);  
   mapper::ResultSet result_sparse_3D = generic.findFrontierCells(real_max, real_min, mapper::Directions::threeD, grid3D);
 
-  // octomath::Vector3 firstFrontier = ;
 
   return generic.frontierCells.front();
+  // mapper::Voxel dummy (0,0,0, 0);
+  // return dummy;
 }
 
 
@@ -63,15 +67,16 @@ void frontierSpin(){
 
 int main(int argc, char **argv)
 {
+  got_first_octomap = false;
   // Initialise a few objects etc.
   ros::init(argc, argv, "frontier_node");
   ros::NodeHandle nh;
-  ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("octomap_binary", 10, octomap_callback);
+  ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, octomap_callback);
   ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, state_cb);
             
 
-  ros::Rate poll_rate(100);
-  ros::Rate frontier_check_rate(100);
+  // ros::Rate poll_rate(100);
+  ros::Rate frontier_check_rate(1);
 
   bool latch_on = 1 ;
 
@@ -85,26 +90,37 @@ int main(int argc, char **argv)
 
   while(local_pos_pub.getNumSubscribers()==0)
  {
-    ROS_ERROR("Waiting for subscibers");
+    ROS_ERROR("[Frontier] Waiting for state subscribers");
     sleep(10);
+    ros::spinOnce();
+
  }
- ROS_ERROR("Got subscriber");
+ ROS_ERROR("[Frontier] Got state subscriber");
  local_pos_pub.publish(frontier_pose);
- ros::spinOnce();
+
+  while(!got_first_octomap)
+ {
+    ROS_ERROR("[Frontier] Waiting for octomap message");
+    sleep(10);
+    ros::spinOnce();
+
+ }
+ ROS_ERROR("[Frontier] Got first octomap message!");
+
 
  //  get_frontier_node = true;
- //  while(ros::ok())
- // {
+  while(ros::ok())
+ {
     mapper::Voxel next_frontier_vector3 = findNextFrontier();
-    ROS_WARN_STREAM("Nest frontier " << next_frontier_vector3);
+    ROS_WARN_STREAM("[Frontier] Next frontier " << next_frontier_vector3);
     frontier_pose.pose.position.x = next_frontier_vector3.x;
     frontier_pose.pose.position.y = next_frontier_vector3.y;
     frontier_pose.pose.position.z = next_frontier_vector3.z;
     local_pos_pub.publish(frontier_pose);
-    get_frontier_node = false;
+    // get_frontier_node = false;
     frontier_check_rate.sleep();
-    ros::spin();
- // }
+    ros::spinOnce();
+ }
 
 
 
