@@ -76,7 +76,7 @@ int main(int argc, char **argv)
             
 
   // ros::Rate poll_rate(100);
-  ros::Rate frontier_check_rate(1);
+  ros::Rate frontier_check_rate(0.5);
 
   bool latch_on = 1 ;
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
   while(ros::ok())
  {
     mapper::Voxel next_frontier_vector3 = findNextFrontier();
-    ROS_WARN_STREAM("[Frontier] Next frontier " << next_frontier_vector3);
+    // ROS_WARN_STREAM("[Frontier] Next frontier " << next_frontier_vector3);
     frontier_pose.pose.position.x = next_frontier_vector3.x;
     frontier_pose.pose.position.y = next_frontier_vector3.y;
     frontier_pose.pose.position.z = next_frontier_vector3.z;
