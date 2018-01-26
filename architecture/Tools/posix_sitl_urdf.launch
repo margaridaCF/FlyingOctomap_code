@@ -35,13 +35,13 @@
     </include>
 
     <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
-
-
+    
+    
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" type="string" value=""/>
     </node>
-
+    
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <param name="use_gui" value="true"/>
     </node>
@@ -86,8 +86,12 @@
         <param name="occupancy_min" value="1"/>
         <param name="sensor_model/max_range" value="80"/>
     </node>
-
-
+  <!-- ########################################################################## -->
+    <!-- Architecture nodes -->
+  
+  <node name="px4_mavros_offboard_node" type="px4_mavros_offboard_node" pkg="architecture"  output="screen" />
+  <node name="handbrake" type="handbrake_node.py" pkg="uav_abstraction_layer"  output="screen" />
+  <node name="frontier_cells" type="frontier_node" pkg="gridBenchmark"  output="screen" />
 </launch>
 
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
