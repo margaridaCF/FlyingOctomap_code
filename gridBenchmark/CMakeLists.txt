@@ -11,8 +11,8 @@ find_package(catkin REQUIRED COMPONENTS roscpp octomap_msgs octomap_ros)
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES thrun
+  INCLUDE_DIRS include
+  LIBRARIES gridBenchmark
   CATKIN_DEPENDS roscpp  octomap_msgs octomap_ros 
 #  DEPENDS system_lib
 )
