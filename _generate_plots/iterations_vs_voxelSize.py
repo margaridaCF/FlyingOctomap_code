@@ -482,6 +482,17 @@ def plot_histogram(for_histogram, title, file_name):
     filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180130_JINT_majorRevision/images/'+file_name+'.html',
     image='png')
 
+def plot_distribution(for_histogram, title, file_name):
+    hist_data = [for_histogram]
+    group_labels = ['iterations']
+
+    fig = ff.create_distplot(hist_data, group_labels)
+    fig['layout'].update(title="Distribution iterations of Lazy Theta*  for "+title+"<br>"+str(len(for_histogram))+" cases analyzed")
+    plotly.offline.plot(
+    fig, 
+    filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180130_JINT_majorRevision/images/'+file_name+'.html',
+    image='png')
+
 # CSV EXTRACTION
 def extract_data_ManyPathsPerFile_iterationDistribution_group(csv_filepath, groups_highToLow):
     iteration_dict = {}
@@ -632,7 +643,8 @@ def analyzeIterationCsvFile(dataset_name, groups_highToLow, dataset_displayName)
 
 def analyzeIterationCsvFile_histogram(dataset_name, dataset_displayName):
     for_histogram = extract_data_ManyPathsPerFile_iterationDistribution('/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20170802_lazyThetaStar/experimental data/'+dataset_name+'.csv')
-    plot_histogram(for_histogram, dataset_displayName, dataset_name+'_raw')
+    # plot_histogram(for_histogram, dataset_displayName, dataset_name+'_histogram')
+    plot_distribution(for_histogram, dataset_displayName, dataset_name+'_distribution')
 
 def run_analyzeIterationCsvFile():
     groups_highToLow_back = [1000000000, 100, 50, 10, 5, 4, 1]
