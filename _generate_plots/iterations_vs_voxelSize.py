@@ -1,6 +1,7 @@
 import csv
 import plotly
 import plotly.plotly as py
+import plotly.figure_factory as ff
 # from plotly.graph_objs import *
 import plotly.graph_objs as go 
 import collections 
@@ -486,8 +487,10 @@ def plot_distribution(for_histogram, title, file_name):
     hist_data = [for_histogram]
     group_labels = ['iterations']
 
-    fig = ff.create_distplot(hist_data, group_labels)
+    fig = ff.create_distplot(hist_data, group_labels, show_curve=False)
     fig['layout'].update(title="Distribution iterations of Lazy Theta*  for "+title+"<br>"+str(len(for_histogram))+" cases analyzed")
+    fig['layout'].update(title="Distribution iterations of Lazy Theta*  for "+title+"<br>"+str(len(for_histogram))+" cases analyzed")
+    font=dict(font=[family='Courier New, monospace', size=18, color='#7f7f7f'])
     plotly.offline.plot(
     fig, 
     filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180130_JINT_majorRevision/images/'+file_name+'.html',
@@ -643,7 +646,7 @@ def analyzeIterationCsvFile(dataset_name, groups_highToLow, dataset_displayName)
 
 def analyzeIterationCsvFile_histogram(dataset_name, dataset_displayName):
     for_histogram = extract_data_ManyPathsPerFile_iterationDistribution('/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20170802_lazyThetaStar/experimental data/'+dataset_name+'.csv')
-    # plot_histogram(for_histogram, dataset_displayName, dataset_name+'_histogram')
+    plot_histogram(for_histogram, dataset_displayName, dataset_name+'_histogram')
     plot_distribution(for_histogram, dataset_displayName, dataset_name+'_distribution')
 
 def run_analyzeIterationCsvFile():
@@ -731,7 +734,8 @@ def run_plot_pointVisualization_longDebug():
 # groups_highToLow_back = [1000000000, 250, 101,  regularGrid_iterations+1, regularGrid_iterations-1,  regularGrid_iterations/2, 0]
 # analyzeIterationCsvFile('10m/iterations_cellDistributionoffShoreOil_2Obst_10m', groups_highToLow_back, 'simulated offshore oil platform')
 
-analyzeIterationCsvFile_histogram('10m/iterations_cellDistributionoffShoreOil_2Obst_10m', 'simulated offshore oil platform')
+analyzeIterationCsvFile_histogram('10m/iterations_cellDistributionoffShoreOil_2Obst_10m', 'simulated offshore oil platform, 10m paths')
+analyzeIterationCsvFile_histogram('1m/iterations_cellDistributionoffShoreOil_2Obst_1m', 'simulated offshore oil platform, 1m paths')
 
 # variables= {}
 # execfile( "iterations_vs_voxelSize.py", variables )
