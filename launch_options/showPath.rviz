@@ -1,0 +1,174 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 78
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /PointCloud21
+        - /Marker1
+      Splitter Ratio: 0.5
+    Tree Height: 878
+  - Class: rviz/Time
+    Experimental: false
+    Name: Time
+    SyncMode: 0
+    SyncSource: PointCloud2
+  - Class: rviz/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+    Name: Tool Properties
+    Splitter Ratio: 0.5
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.03
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 30
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        camera_link_1:
+          Value: true
+        euroc5/base_link:
+          Value: true
+        prop_0:
+          Value: true
+        prop_1:
+          Value: true
+        prop_2:
+          Value: true
+        prop_3:
+          Value: true
+        velodyne_down:
+          Value: true
+        velodyne_down_base_link:
+          Value: true
+        world:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          euroc5/base_link:
+            camera_link_1:
+              {}
+            prop_0:
+              {}
+            prop_1:
+              {}
+            prop_2:
+              {}
+            prop_3:
+              {}
+            velodyne_down_base_link:
+              velodyne_down:
+                {}
+      Update Interval: 0
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 2.5
+        Min Value: -0.5
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: AxisColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.2
+      Style: Boxes
+      Topic: /octomap_point_cloud_centers
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /ltstar_path
+      Name: Marker
+      Namespaces:
+        sol: true
+      Queue Size: 100
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 202; 202; 202
+    Fixed Frame: world
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/SetInitialPose
+      Topic: /euroc5/amcl3d_node/initial_pose
+    - Class: rviz/FocusCamera
+    - Class: rviz/MoveCamera
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 17.9975
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.06
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: 3.98686
+        Y: 2.73702
+        Z: -0.871302
+      Name: Current View
+      Near Clip Distance: 0.01
+      Pitch: 0.3198
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)
+      Yaw: 3.31566
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1154
+  Hide Left Dock: false
+  Hide Right Dock: false
+  QMainWindow State: 000000ff00000000fd0000000200000000000001db000003fdfc0200000007fb000000100044006900730070006c0061007900730100000028000003fd000000dd00fffffffb0000001000460072006f006e007400520047004201000001dd000001150000000000000000fb0000000e004200610063006b005200470042010000027f000001ba0000000000000000fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730000000393000000a60000006400fffffffb0000000c00430061006d006500720061000000030d0000012c0000000000000000fb0000000a0049006d00610067006500000001b8000001360000000000000000fb0000000a0049006d006100670065000000026a000001bb000000000000000000000003000007800000003bfc0100000001fb0000000800540069006d0065010000000000000780000002ab00ffffff0000059f000003fd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Width: 1920
+  X: 1939
+  Y: 200

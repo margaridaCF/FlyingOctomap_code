@@ -1,0 +1,20 @@
+<launch> 
+ 
+  
+ 
+  <!-- ########################################################################## --> 
+  <!-- OCTOMAP --> 
+  <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="/ros_ws/src/path_planning/test/data/fr_campus.bt">    
+    <param name="frame_id" type="str" value="/world" />
+  </node>
+ 
+  
+ 
+ 
+ 
+ 
+ 
+  <!-- ########################################################################## --> 
+  <!-- Lazy theta * --> 
+  <node pkg="path_planning" type="ltStar_dispatcher_node" name="ltstar_printer" output="screen"/>
+</launch>

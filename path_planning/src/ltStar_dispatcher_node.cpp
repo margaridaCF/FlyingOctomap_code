@@ -123,21 +123,21 @@ namespace LazyThetaStarOctree{
     // == run 2 ==
     octomath::Vector3 disc_initial(0, 5, 1.5); 
     octomath::Vector3 disc_final  (2, -5, 1.5); 
-    octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
-    std::string dataset_name = "run 2";
+    octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/fr_campus.bt");
+    std::string dataset_name = "freiburg campus";
 
     // // == LazyThetaStar_CoreDumped_Test ==
-    // octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/offShoreOil_1m.bt");
+    // octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/offShoreOil_1m.bt");
     // octomath::Vector3 disc_initial(-8.3, -8.3, 0.5);
     // octomath::Vector3 disc_final  (-7.3, -8.3, 0.5);
     // std::string dataset_name = "CoreDumped Test with offShoreOil_1m.bt from (-8.3, -8.3, 0.5) to (-7.3, -8.3, 0.5)";
     // // == LazyThetaStar_StraighLine_Test ==
-    // octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/offShoreOil_1m.bt");
+    // octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/offShoreOil_1m.bt");
     // octomath::Vector3 disc_initial(-6.9, -9.7, 0.5);
     // octomath::Vector3 disc_final  (-5.9, -9.7, 0.5);
     // std::string dataset_name = "StraighLine_Test with offShoreOil_1m.bt from (-6.9, -9.7, 0.5) to (-5.9, -9.7, 0.5)";
     // // == DepthSizeTest.hasLineOfSightTest ==
-    // octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/offShoreOil_1m.bt");
+    // octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/offShoreOil_1m.bt");
     // octomath::Vector3 disc_initial(-5.500001, -3.1, 0.5);
     // octomath::Vector3 disc_final  (-5.4, -2.6, 0.6);
     // std::string dataset_name = "hasLineOfSightTest with offShoreOil_1m.bt from (-5.500001, -3.1, 0.5) to (-5.4, -2.6, 0.6)";
