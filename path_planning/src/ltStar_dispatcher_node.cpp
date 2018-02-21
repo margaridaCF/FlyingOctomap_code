@@ -121,8 +121,8 @@ namespace LazyThetaStarOctree{
   void LazyThetaStarDispatcher::chatterCallback(const std_msgs::String::ConstPtr& msg)
   {
     // == run 2 ==
-    octomath::Vector3 disc_initial(0, 5, 1.5); 
-    octomath::Vector3 disc_final  (2, -5, 1.5); 
+    octomath::Vector3 disc_initial(24, 0, 1.5); 
+    octomath::Vector3 disc_final  (60, 0, 1.5); 
     octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/fr_campus.bt");
     std::string dataset_name = "freiburg campus";
 
@@ -149,24 +149,28 @@ namespace LazyThetaStarOctree{
     octomap_pub.publish(octomap);
 
     RVizMarker marker = createMarker(3);
+    marker.header.frame_id = "map";
     geometry_msgs::Point p;
     p.x = disc_initial.x();
     p.y = disc_initial.y();
     p.z = disc_initial.z();
+    ROS_INFO_STREAM(disc_initial);
     marker.points.push_back(p);
     p.x = disc_final.x();
     p.y = disc_final.y();
     p.z = disc_final.z();
     marker.points.push_back(p);
+    ROS_INFO_STREAM(disc_final);
     marker_pub_.publish( marker );
 
-    int max_search_iterations = 1000;
+    int max_search_iterations = 100000;
     std::list<octomath::Vector3> resulting_path = extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
     std::ofstream waypoints_file;
-    waypoints_file.open("/home/mfaria/Margarida/20170802_lazyThetaStar/experimental data/euroc_compare/newImplementation.log", std::ios_base::app);
+    waypoints_file.open("/waypoints.txt", std::ios_base::app);
     waypoints_file << " ===== " << dataset_name << " ===== " << std::endl;
     // waypoints_file << " iterations used: " << statistical_data.iterations_used  << "; Took " << total_nSecs_overall << " nano seconds." << std::endl;
     marker = createMarker(4);
+    marker.header.frame_id = "map";
     marker.color.g = 50;
     marker.color.b = 167;
     marker.ns = "output";
@@ -178,6 +182,7 @@ namespace LazyThetaStarOctree{
       p.y = waypoint.y();
       p.z = waypoint.z();
       marker.points.push_back(p);
+
     }
     marker_pub_.publish( marker );
     waypoints_file << std::endl;
