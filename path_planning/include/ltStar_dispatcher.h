@@ -7,6 +7,7 @@
 #include <octomap_msgs/Octomap.h>
 #include <octomap_msgs/conversions.h>
 #include <geometry_msgs/Point.h>
+#include <path_planning/StartGoal.h>
 
 
 namespace LazyThetaStarOctree{
@@ -18,7 +19,7 @@ namespace LazyThetaStarOctree{
         ~LazyThetaStarDispatcher();
         std::list<octomath::Vector3> extractResults (octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, std::string dataset_name, int max_search_iterations);
         RVizMarker createMarker(int id);
-        void chatterCallback(const std_msgs::String::ConstPtr& msg);
+        void chatterCallback(const path_planning::StartGoal::ConstPtr& msg);
     private:
         ros::Publisher marker_pub_;
         ros::Publisher octomap_pub;

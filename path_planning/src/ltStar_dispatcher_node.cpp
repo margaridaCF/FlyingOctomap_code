@@ -118,11 +118,15 @@ namespace LazyThetaStarOctree{
     // double total_nSecs_overall = diff(time1,time2).tv_nsec;
   }
 
-  void LazyThetaStarDispatcher::chatterCallback(const std_msgs::String::ConstPtr& msg)
+  void LazyThetaStarDispatcher::chatterCallback(const path_planning::StartGoal::ConstPtr& msg)
   {
+
+    octomath::Vector3 disc_initial(msg->s_x, msg->s_y, msg->s_z); 
+    octomath::Vector3 disc_final  (msg->g_x, msg->g_y, msg->g_z); 
+
     // == run 2 ==
-    octomath::Vector3 disc_initial(24, 0, 1.5); 
-    octomath::Vector3 disc_final  (60, 0, 1.5); 
+    // octomath::Vector3 disc_initial(-44, 0, 1.5); 
+    // octomath::Vector3 disc_final  (0, 0, 1.5); 
     octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/fr_campus.bt");
     std::string dataset_name = "freiburg campus";
 
@@ -163,7 +167,7 @@ namespace LazyThetaStarOctree{
     ROS_INFO_STREAM(disc_final);
     marker_pub_.publish( marker );
 
-    int max_search_iterations = 100000;
+    int max_search_iterations = 16000;
     std::list<octomath::Vector3> resulting_path = extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
     std::ofstream waypoints_file;
     waypoints_file.open("/waypoints.txt", std::ios_base::app);
