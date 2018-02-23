@@ -325,7 +325,7 @@ namespace LazyThetaStarOctree{
 		// TODO remove this, for debugging only
 		int used_search_iterations = 0;
 		std::ofstream log_file;
-    	log_file.open("/home/mfaria/ws_mavlink_grvcHal/out.log", std::ios_base::app);
+    	log_file.open("/home/mfaria/out.log", std::ios_base::app);
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
 		while(!open.empty() && !solution_found)
@@ -419,9 +419,13 @@ namespace LazyThetaStarOctree{
 			used_search_iterations++;	
 			if(used_search_iterations > max_search_iterations)
 			{
-				// ROS_ERROR_STREAM("Reached maximum iterations of A*. Breaking out");
+				ROS_ERROR_STREAM("Reached maximum iterations of A*. Breaking out");
 				break;	
 			}
+			// if(used_search_iterations % 1000 == 0)
+			// {
+			// 	ROS_WARN_STREAM("Used "<<used_search_iterations<<" iterations.");
+			// }
 		}
 		resultSet.iterations_used = used_search_iterations;
 		// ROS_WARN_STREAM("Used "<< used_search_iterations << " iterations to find path");
