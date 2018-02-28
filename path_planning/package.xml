@@ -4,7 +4,7 @@
   <version>0.1.0</version>
   <description>A package for path planners on octree</description>
 
-  <maintainer email="mfaria@todo.todo">mfaria</maintainer>
+  <maintainer email="margaridaCostaFaria@gmail.com">mfaria</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
