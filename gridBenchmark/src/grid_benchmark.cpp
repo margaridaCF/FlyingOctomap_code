@@ -467,7 +467,7 @@ namespace mapper {
         }
         it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
 
-        ROS_WARN_STREAM("Bounding box bbx [ " << bbx_min << " - " << bbx_max << "]" );
+        //ROS_WARN_STREAM("Bounding box bbx [ " << bbx_min << " - " << bbx_max << "]" );
         return true;
     }
     
