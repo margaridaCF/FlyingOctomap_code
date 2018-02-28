@@ -23,11 +23,11 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # add_library
 # target_link_libraries(my_lib ${catkin_LIBRARIES}) to link your new library against any catkin libraries you have build depended on in your package.xml
 # does some bookkeeping so that your library target can be implicitly used later
-cs_add_library(my_lib src/my_lib.cpp)
+# cs_add_library(my_lib src/my_lib.cpp)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
-cs_add_executable(my_exec src/main.cpp)
-target_link_libraries(my_exec my_lib)
+# cs_add_executable(my_exec src/main.cpp)
+# target_link_libraries(my_exec my_lib)
 
 # cs_install()
 # cs_install_scripts(scripts/my_script.py)
