@@ -54,7 +54,7 @@
 
 <!--    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/> -->
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robots_description)/config/visualize.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/rviz_velodyne_model.rviz" />
 
 
     <!--<node name="odom_to_tf" pkg="message_to_tf" type="message_to_tf"> </node>-->
@@ -90,7 +90,7 @@
     <!-- Architecture nodes -->
   
   <node name="px4_mavros_offboard_node" type="px4_mavros_offboard_node" pkg="architecture"  output="screen" />
-  <node name="handbrake" type="handbrake_node.py" pkg="uav_abstraction_layer"  output="screen" />
+  <node name="handbrake" type="handbrake_node.py" pkg="architecture"  output="screen" />
   <node name="frontier_cells" type="frontier_node" pkg="gridBenchmark"  output="screen" />
 </launch>
 
