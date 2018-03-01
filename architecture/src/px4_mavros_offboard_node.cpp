@@ -27,7 +27,10 @@ void stop_cb(const std_msgs::Empty::ConstPtr& msg){
 
 void frontier_cb(const geometry_msgs::PoseStamped::ConstPtr& msg){
         new_frontier = *msg;
-        printf("new_frontier");
+        ROS_INFO_STREAM("[Offboard node] New frontier ("
+            <<new_frontier.pose.position.x << ", "
+            <<new_frontier.pose.position.y << ", "
+            <<new_frontier.pose.position.z << ") ");
 }
 
 int main(int argc, char **argv)
@@ -44,7 +47,7 @@ int main(int argc, char **argv)
         ros::Publisher stop_velocity_pub = nh.advertise<geometry_msgs::TwistStamped>("/mavros/setpoint_velocity/cmd_vel", 10);
         ros::Publisher stop_position_pub = nh.advertise<mavros_msgs::PositionTarget>("/mavros/setpoint_raw/local", 10);
 
-        ros::Subscriber waypoints_sub = nh.subscribe<geometry_msgs::PoseStamped>("/new_frontier", 10, frontier_cb);
+        ros::Subscriber waypoints_sub = nh.subscribe<geometry_msgs::PoseStamped>("new_frontier", 10, frontier_cb);
 
         //the setpoint publishing rate MUST be faster than 2Hz
         ros::Rate rate(20);
