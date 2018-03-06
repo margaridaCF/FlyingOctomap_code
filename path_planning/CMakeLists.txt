@@ -4,64 +4,34 @@ project(path_planning)
 add_definitions(-std=c++11 )
 set(CMAKE_BUILD_TYPE Debug)
 
-find_package(catkin REQUIRED COMPONENTS roscpp octomap_msgs octomap_ros 
-   std_msgs
-   message_generation)
+find_package(catkin_simple REQUIRED)
 
-# Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  StartGoal.msg
-)
+###########
+## Build ##
+###########
+include_directories(include ${catkin_INCLUDE_DIRS} )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
 
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
-
-# Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs  # Or other packages containing msgs
-)
-
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES thrun
-  CATKIN_DEPENDS roscpp  octomap_msgs octomap_ros message_runtime
-#  DEPENDS system_lib
-)
+###########################
+## Catkin simple macros  ##
+###########################
+# find_package(...) is called with the QUIET option and witho the REQUIRED option
+# adds the local include folder and any catkin include directories to the include path with CMake's include_directories(...) macro
+# discover and build any ROS messages, services, and actions which reside in the msg, srv, action action folders, respectively
+# needs build_depend's on message_generation and run_depend on message_runtime
+# discovers and builds dynamic_reconfigure config files from the cfg folder
+# needs build_depend's on dynamic_reconfigure
+catkin_simple(ALL_DEPS_REQUIRED)
 
 
 ########### 
 ## Build ##
 ###########
-include_directories(include ${catkin_INCLUDE_DIRS} )
-add_executable(ltStar_dispatcher_node src/ltStar_dispatcher_node.cpp)
-target_link_libraries(ltStar_dispatcher_node
-  ${catkin_LIBRARIES} 
-)
+cs_add_executable(ltStar_dispatcher_node src/ltStar_dispatcher_node.cpp)
 
-## C++ library
-# add_library(ltStarOctree
-#   src/ltStarOctree.cpp 
-# )
+cs_install()
 
-# target_link_libraries(ltStarOctree
-#   ${catkin_LIBRARIES}  
-# )
+cs_export()
 
 #############
 ## Testing ##
