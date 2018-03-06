@@ -37,7 +37,7 @@ cs_add_library(frontiers_lib src/frontiers.cpp)
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
 
-# cs_export()
+cs_export()
 
 #############
 ## Testing ##
@@ -45,9 +45,16 @@ cs_install()
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_frontiers_msgs.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+if(CATKIN_ENABLE_TESTING)
+  get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
+
+
+  catkin_add_gtest(frontiers_tests 
+    test/frontier_lib_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib)
+
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
