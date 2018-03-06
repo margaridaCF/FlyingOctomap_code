@@ -14,11 +14,28 @@ namespace Frontiers
 
 	TEST(FrontiersTest, Ask_one_frontier)
 	{
+		// experimentalDataset.bt
+		// [ INFO] [1520351195.338686653]: OcTree min 
+		// x: -8.9
+		// y: -6.4
+		// z: -0.5
+		// [ INFO] [1520351195.338760768]: OcTree max 
+		// x: 5
+		// y: 8.2
+		// z: 2
+
 		octomap::OcTree octree ("data/experimentalDataset.bt");
 
 		frontiers_msgs::FrontierRequest request;
 		request.header.seq = 1;
 		request.header.frame_id = "request_frame";
+		request.min.x = 0;
+		request.min.y = 0;
+		request.min.z = 0;
+		request.max.x = 6;
+		request.max.y = 9;
+		request.max.z = 2;
+		request.frontier_amount = 10;
 		frontiers_msgs::FrontierReply reply;
 
 		bool outcome = processFrontiersRequest(octree, request, reply);
