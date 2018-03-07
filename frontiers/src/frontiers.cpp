@@ -3,7 +3,7 @@
 
 namespace Frontiers{
 
-    bool processFrontiersRequest(octomap::OcTree& octree, frontiers_msgs::FrontierRequest& request, frontiers_msgs::FrontierReply& reply)
+    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply)
     {
         std::ofstream log;
         log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
@@ -88,7 +88,7 @@ namespace Frontiers{
         return reply.success;
     }
 
-    bool isOccupied(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree& octree)
+    bool isOccupied(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree)
     {
         octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());
         if(result == NULL){
@@ -100,7 +100,7 @@ namespace Frontiers{
         }
     }
     
-    bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree& octree)
+    bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree)
     {
         octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());
         if(result == NULL){
