@@ -7,6 +7,7 @@
   <maintainer email="margaridaCostaFaria@gmail.com">Margarida Faria</maintainer>
   <license>MIT</license>
 
+  <build_depend>catkin_simple</build_depend>
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roscpp</depend>

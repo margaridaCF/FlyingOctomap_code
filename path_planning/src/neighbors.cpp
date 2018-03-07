@@ -1,5 +1,4 @@
-#include <ltStarOctree_common.h>
-#include <chrono>
+#include <neighbors.h>
 
 namespace LazyThetaStarOctree{
 	bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, float x, float y, float z )
@@ -18,7 +17,7 @@ namespace LazyThetaStarOctree{
 	// TODO reduce neighbor number by finding cell center and removing duplicates
 	void generateNeighbors_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
 		octomath::Vector3 const& center_coords, 
-		float node_size, float resolution, bool is3d = true, bool debug_on = false)
+		float node_size, float resolution, bool is3d/* = true*/, bool debug_on/* = false*/)
 	{
 		int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         

@@ -1,4 +1,5 @@
 #include <frontiers.h>
+#include <neighbors.h>
 
 namespace Frontiers{
 

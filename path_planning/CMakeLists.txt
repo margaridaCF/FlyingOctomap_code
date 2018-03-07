@@ -27,7 +27,11 @@ catkin_simple(ALL_DEPS_REQUIRED)
 ########### 
 ## Build ##
 ###########
-cs_add_executable(ltStar_dispatcher_node src/ltStar_dispatcher_node.cpp)
+cs_add_library(neighbors src/neighbors.cpp)
+
+cs_add_executable(ltStar_dispatcher_node src/ltStar_dispatcher_node.cpp )
+
+target_link_libraries(ltStar_dispatcher_node  ${catkin_LIBRARIES} ${neighbors_LIBRARIES} neighbors)
 
 cs_install()
 
@@ -67,13 +71,13 @@ if (CATKIN_ENABLE_TESTING)
   catkin_add_gtest(depthSizeTest 
     test/depth_voxelSide_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(depthSizeTest ${catkin_LIBRARIES} )
+  target_link_libraries(depthSizeTest ${catkin_LIBRARIES} neighbors)
 
   ## Octree @ neighbors ##
   catkin_add_gtest(neighborTests 
     test/neighbor_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(neighborTests ${catkin_LIBRARIES} )
+  target_link_libraries(neighborTests ${catkin_LIBRARIES} neighbors)
 
   ## Lazy Theta Star @ open ##
   catkin_add_gtest(openTests 
@@ -85,11 +89,11 @@ if (CATKIN_ENABLE_TESTING)
   catkin_add_gtest(ltstarTests 
     test/lazyTheta_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(ltstarTests ${catkin_LIBRARIES} )
+  target_link_libraries(ltstarTests ${catkin_LIBRARIES} neighbors)
   catkin_add_gtest(ltstarTestsFixture 
     test/lazyTheta_tests_Fixture.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} )
+  target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} neighbors)
 
 endif()
 

@@ -1,5 +1,5 @@
 #include <ltStarOctree_common.h>
-#include <neighbors_temp.h>
+#include <neighbors.h>
 #include <voxel.h>
 #include <open.h>
 #include <list>
