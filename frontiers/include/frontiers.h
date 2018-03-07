@@ -4,6 +4,8 @@
 #include <vector>
 #include <cmath>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 //#include <math.h>
 #include <ros/ros.h>

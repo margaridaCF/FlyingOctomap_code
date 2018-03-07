@@ -33,7 +33,7 @@ namespace Frontiers
 		request.min.y = 0;
 		request.min.z = 0;
 		request.max.x = 6;
-		request.max.y = 9;
+		request.max.y = 2;
 		request.max.z = 2;
 		request.frontier_amount = 10;
 		frontiers_msgs::FrontierReply reply;
