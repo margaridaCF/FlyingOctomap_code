@@ -5,9 +5,9 @@ namespace Frontiers{
 
     bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply)
     {
-        std::ofstream log;
-        log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
-
+        // std::ofstream log;
+        // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
+        // ROS_INFO_STREAM( "Request for " << static_cast<int16_t>(request.frontier_amount) );
         double resolution = octree.getResolution();
         reply.header.seq = request.header.seq + 1;
         reply.request_id = request.header.seq;
@@ -59,11 +59,8 @@ namespace Frontiers{
                 LazyThetaStarOctree::generateNeighbors_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution);
                 for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
                 {
-                    // log << "[N] " << *n_coordinates << "\n";
                     if(!isOccupied(*n_coordinates, octree))
                     {
-                        // octomath::Vector3 temp_v = *n_coordinates;
-                        // octomath::Vector3 dummy (2, 4, 3);
                         hasUnExploredNeighbors = !isExplored(*n_coordinates, octree) || hasUnExploredNeighbors;
                     }
                 }
@@ -84,7 +81,7 @@ namespace Frontiers{
         }
         reply.frontiers_found = frontiers_count;
         reply.success = true;
-        log.close();
+        // log.close();
         return reply.success;
     }
 

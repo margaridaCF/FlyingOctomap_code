@@ -24,16 +24,12 @@ namespace Frontiers
 
 	void checkFrontiers(octomap::OcTree& octree, frontiers_msgs::FrontierRequest& request, frontiers_msgs::FrontierReply& reply)
 	{
-
-		
-
 		// MetaData
 		ASSERT_EQ(request.header.seq, reply.request_id);
 		ASSERT_EQ(reply.header.seq, request.header.seq+1);
 		ASSERT_EQ(reply.header.frame_id, request.header.frame_id);
 		// Data
-		ASSERT_LE(reply.frontiers_found, 10 );
-
+		ASSERT_LE(reply.frontiers_found, static_cast<int16_t>(request.frontier_amount) );
 		for (int i = 0; i < reply.frontiers_found; ++i)
 		{
 			ASSERT_TRUE(isFrontier(octree, octomath::Vector3 (reply.frontiers[i].xyz_m.x, reply.frontiers[i].xyz_m.y, reply.frontiers[i].xyz_m.z) )   );
@@ -44,15 +40,12 @@ namespace Frontiers
 			ASSERT_GE(reply.frontiers[i].xyz_m.y, request.min.y);
 			ASSERT_GE(reply.frontiers[i].xyz_m.z, request.min.z);
 		}
-
 	}
 
 
 	TEST(FrontiersTest, Ask_one_frontier)
 	{
-
 		octomap::OcTree octree ("data/experimentalDataset.bt");
-
 		frontiers_msgs::FrontierRequest request;
 		request.header.seq = 1;
 		request.header.frame_id = "request_frame";
@@ -64,19 +57,14 @@ namespace Frontiers
 		request.max.z = 2;
 		request.frontier_amount = 1;
 		frontiers_msgs::FrontierReply reply;
-
 		bool outcome = processFrontiersRequest(octree, request, reply);
-
 		checkFrontiers(octree, request, reply);
-
-		
-
 	}
+
 
 	TEST(FrontiersTest, Ask_ten_frontiers)
 	{
 		octomap::OcTree octree ("data/experimentalDataset.bt");
-
 		frontiers_msgs::FrontierRequest request;
 		request.header.seq = 1;
 		request.header.frame_id = "request_frame";
@@ -88,9 +76,46 @@ namespace Frontiers
 		request.max.z = 2;
 		request.frontier_amount = 10;
 		frontiers_msgs::FrontierReply reply;
-
 		bool outcome = processFrontiersRequest(octree, request, reply);
+		ASSERT_EQ(reply.frontiers_found, static_cast<int16_t>(request.frontier_amount) );
+		checkFrontiers(octree, request, reply); 
+	}
 
+	TEST(FrontiersTest, Ask_many_frontiers_push_bounderies)
+	{
+		octomap::OcTree octree ("data/experimentalDataset.bt");
+		frontiers_msgs::FrontierRequest request;
+		request.header.seq = 1;
+		request.header.frame_id = "request_frame";
+		request.min.x = 0;
+		request.min.y = 0;
+		request.min.z = 0;
+		request.max.x = 6;
+		request.max.y = 2;
+		request.max.z = 2;
+		request.frontier_amount = 127;
+		frontiers_msgs::FrontierReply reply;
+		bool outcome = processFrontiersRequest(octree, request, reply);
+		ASSERT_EQ(reply.frontiers_found, static_cast<int16_t>(request.frontier_amount) );
+		checkFrontiers(octree, request, reply); 
+	}
+
+	TEST(FrontiersTest, No_frontiers)
+	{
+		octomap::OcTree octree ("data/experimentalDataset.bt");
+		frontiers_msgs::FrontierRequest request;
+		request.header.seq = 1;
+		request.header.frame_id = "request_frame";
+		request.min.x = 0;
+		request.min.y = 0;
+		request.min.z = 0;
+		request.max.x = 1;
+		request.max.y = 1;
+		request.max.z = 1;
+		request.frontier_amount = 127;
+		frontiers_msgs::FrontierReply reply;
+		bool outcome = processFrontiersRequest(octree, request, reply);
+		ASSERT_EQ(reply.frontiers_found, 0 );
 		checkFrontiers(octree, request, reply); 
 	}
 }
