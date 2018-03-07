@@ -8,11 +8,12 @@ namespace Frontiers{
         std::ofstream log;
         log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
 
-    	reply.header.seq = request.header.seq + 1;
-    	reply.request_id = request.header.seq;
-    	reply.header.frame_id = request.header.frame_id;
-    	octomath::Vector3  max = octomath::Vector3(request.max.x, request.max.y, request.max.z);
-    	octomath::Vector3  min = octomath::Vector3(request.min.x, request.min.y, request.min.z);
+        double resolution = octree.getResolution();
+        reply.header.seq = request.header.seq + 1;
+        reply.request_id = request.header.seq;
+        reply.header.frame_id = request.header.frame_id;
+        octomath::Vector3  max = octomath::Vector3(request.max.x-resolution, request.max.y-resolution, request.max.z-resolution);
+        octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
         int frontiers_count = 0;
 
         const std::array<octomath::Vector3, 6> rayDirections ({
@@ -42,7 +43,6 @@ namespace Frontiers{
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
         octomath::Vector3 bbxMin (currentVoxel.x, currentVoxel.y, currentVoxel.z);
         octomath::Vector3 bbxMax (currentVoxel.x, currentVoxel.y, currentVoxel.z);
-        double resolution = octree.getResolution();
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount)
         {
             octomath::Vector3 coord = it.getCoordinate();
