@@ -382,7 +382,7 @@ namespace LazyThetaStarOctree{
 					// auto res_node = octree.search(*n_coordinates);
 					// if(res_node == NULL)
 					// {
-     //                	throw std::out_of_range("Skipping cases where unknown neighbors are found.");
+     				// 	throw std::out_of_range("Skipping cases where unknown neighbors are found.");
 					// }
 					continue;
 				}
