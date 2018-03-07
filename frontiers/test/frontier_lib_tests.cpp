@@ -45,7 +45,7 @@ namespace Frontiers
 		ASSERT_EQ(reply.header.seq, request.header.seq+1);
 		ASSERT_EQ(reply.header.frame_id, request.header.frame_id);
 		// Data
-		ASSERT_GE(reply.frontiers_found, 1 );
+		ASSERT_LE(reply.frontiers_found, 10 );
 		ASSERT_TRUE(isFrontier(octree, 
 			octomath::Vector3 (reply.frontiers[0].xyz_m.x, reply.frontiers[0].xyz_m.y, reply.frontiers[0].xyz_m.z) )   );
 

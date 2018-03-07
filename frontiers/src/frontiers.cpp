@@ -53,16 +53,17 @@ namespace Frontiers{
                 && !isOccupied(grid_coordinates_curr, octree) ) 
             {
                 hasUnExploredNeighbors = false;
+                // log << "Looking into " << grid_coordinates_curr << "\n";
                 // Gerenate neighbors
                 std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-                // CONTINUE HERE
-                // FREE THE POINTERS
                 LazyThetaStarOctree::generateNeighbors_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution);
                 for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
                 {
-                    log << *n_coordinates << "\n";
+                    // log << "[N] " << *n_coordinates << "\n";
                     if(!isOccupied(*n_coordinates, octree))
                     {
+                        // octomath::Vector3 temp_v = *n_coordinates;
+                        // octomath::Vector3 dummy (2, 4, 3);
                         hasUnExploredNeighbors = !isExplored(*n_coordinates, octree) || hasUnExploredNeighbors;
                     }
                 }
@@ -70,10 +71,12 @@ namespace Frontiers{
                 // Comb through looking for unexplored
                 if(hasUnExploredNeighbors)
                 {
-                    reply.frontiers[frontiers_count].xyz_m.x = currentVoxel.x;
-                    reply.frontiers[frontiers_count].xyz_m.y = currentVoxel.y;
-                    reply.frontiers[frontiers_count].xyz_m.z = currentVoxel.z;
-                    reply.frontiers[frontiers_count].size = currentVoxel.size;
+                    frontiers_msgs::VoxelMsg voxel_msg;
+                    voxel_msg.xyz_m.x = currentVoxel.x;
+                    voxel_msg.xyz_m.y = currentVoxel.y;
+                    voxel_msg.xyz_m.z = currentVoxel.z;
+                    voxel_msg.size = currentVoxel.size;
+                    reply.frontiers.push_back(voxel_msg);
                     frontiers_count++;
                 }
             }
@@ -96,7 +99,7 @@ namespace Frontiers{
             return octree.isNodeOccupied(result);
         }
     }
-
+    
     bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree& octree)
     {
         octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());
@@ -108,4 +111,4 @@ namespace Frontiers{
             return true;
         }
     }
-    }
+}
