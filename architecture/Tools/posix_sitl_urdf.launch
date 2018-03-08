@@ -91,7 +91,7 @@
   
   <node name="px4_mavros_offboard_node" type="px4_mavros_offboard_node" pkg="architecture"  output="screen" />
   <node name="handbrake" type="handbrake_node.py" pkg="architecture"  output="screen" />
-  <node name="frontier_cells" type="frontier_node" pkg="gridBenchmark"  output="screen" />
+  <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers"  output="screen" />
 </launch>
 
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
