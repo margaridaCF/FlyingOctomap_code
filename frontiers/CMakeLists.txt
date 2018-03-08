@@ -31,8 +31,8 @@ cs_add_library(frontiers_lib src/frontiers.cpp)
 # cs_add_targets_to_package(frontiers_msgs)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
-# cs_add_executable(my_exec src/main.cpp)
-# target_link_libraries(my_exec my_lib)
+cs_add_executable(frontiers_async_node src/frontiers_async_node.cpp)
+target_link_libraries(frontiers_async_node frontiers_lib)
 
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
