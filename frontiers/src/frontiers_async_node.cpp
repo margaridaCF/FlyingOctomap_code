@@ -25,7 +25,8 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "frontier_node_async");
 	ros::NodeHandle nh;
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, octomap_callback);
-	local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_found", 10);
+	ros::Subscriber frontiers_sub = nh.subscribe<frontiers_msgs::FrontierRequest>("frontiers_request", 10, frontier_callback);
+	local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_reply", 10);
 
 	ros::spin();
 }

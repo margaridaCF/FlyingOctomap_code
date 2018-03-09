@@ -47,7 +47,7 @@ namespace Frontiers{
         {
             octomath::Vector3 coord = it.getCoordinate();
             currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
-            //ROS_WARN_STREAM("At cell " << currentVoxel);
+            // ROS_WARN_STREAM("Voxel size " << currentVoxel.size);
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
             if( isExplored(grid_coordinates_curr, octree)
                 && !isOccupied(grid_coordinates_curr, octree) ) 
