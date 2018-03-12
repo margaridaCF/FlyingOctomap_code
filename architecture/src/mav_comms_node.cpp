@@ -1,16 +1,19 @@
 #include <ros/ros.h>
-#include <atomic>
+#include <std_msgs/Empty.h>
+#include <architecture_msgs/PositionRequest.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/PositionTarget.h>
+#include <mavros_msgs/ParamSet.h>
 
 namespace mav_comms
 {
 	mavros_msgs::State current_state;
 	ros::Publisher stop_position_pub;
 	struct Position { bool send; int waypoint_sequence; double x; double y; double z;};
-	std::atomic<Position> position_atomic;
+	Position position_state;
+    ros::ServiceClient param_set_client;
 
 	bool disarmed(ros::Time& last_request)
 	{
@@ -28,7 +31,6 @@ namespace mav_comms
 
 	bool set_mavros_param(std::string param_name, double param_value)
 	{
-	    ros::ServiceClient param_set_client = n.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
 	    mavros_msgs::ParamSet set_MPC_XY_CRUISE_srv;
 	    set_MPC_XY_CRUISE_srv.request.param_id = param_name;
 	    set_MPC_XY_CRUISE_srv.request.value.integer = param_value;
@@ -37,9 +39,7 @@ namespace mav_comms
 
 	void stopUAV_cb(const std_msgs::Empty::ConstPtr& msg)
 	{
-		SentPositionFlag temp_position_atomic = position_atomic.load();
-		temp_position_atomic.send = false;
-		position_atomic.store(temp_position_atomic);
+		position_state.send = false;
 		// Command in velocity
 	    mavros_msgs::PositionTarget stop_position;
 	    stop_position.type_mask = 0b0000101111000111;
@@ -51,8 +51,7 @@ namespace mav_comms
 
 	void target_position_cb(const architecture_msgs::PositionRequest::ConstPtr& msg)
 	{
-		SentPositionFlag temp_position_atomic = position_atomic.load();
-		if(!temp_position_atomic.send && msg.waypoint_sequence_id <= temp_position_atomic.waypoint_sequence)
+		if(!position_state.send && msg.waypoint_sequence_id <= position_state.waypoint_sequence)
 		{
 			ROS_WARN_STREAM("[mav_comms] Rejecting position " << msg->point 
 				<< ", seems to be from aborted waypoint sequence (id "
@@ -60,12 +59,11 @@ namespace mav_comms
 		}
 		else
 		{
-			temp_position_atomic.send = true;
-			temp_position_atomic.waypoint_sequence_id = msg->waypoint_sequence_id;
-			temp_position_atomic.x = msg->point.x;
-			temp_position_atomic.y = msg->point.y;
-			temp_position_atomic.z = msg->point.z;
-			position_atomic.store(temp_position_atomic);
+			position_state.send = true;
+			position_state.waypoint_sequence_id = msg->waypoint_sequence_id;
+			position_state.x = msg->point.x;
+			position_state.y = msg->point.y;
+			position_state.z = msg->point.z;
 		}
 	}
 }
@@ -77,13 +75,14 @@ int main(int argc, char **argv)
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, mav_comms_node::state_cb);
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 10, mav_comms_node::stopUAV_cb);
-    ros::Subscriber target_position_sub = nh.subscribe<geometry_msgs::PointStamped>("target_position", 10, stop_cb);
+    ros::Subscriber target_position_sub = nh.subscribe<architecture_msgs::PositionRequest>("target_position", 10, target_position_cb);
 
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
     stop_position_pub = nh.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
     
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
+    param_set_client = nh.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20);
     // === FCU CONNECTION ===
@@ -152,14 +151,13 @@ int main(int argc, char **argv)
             } 
             else
             { 
-            	SentPositionFlag temp_position_atomic = mav_comms_node::position_atomic.load();
-            	if (mav_comms_node::current_state.armed && temp_position_atomic.send) 
+            	if (mav_comms_node::current_state.armed && position_state.send) 
 	            {
 	                // keep sending position
 	                geometry_msgs::PoseStamped point_to_pub;
-	                point_to_pub.pose.position.x = temp_position_atomic.x;
-	                point_to_pub.pose.position.y = temp_position_atomic.y;
-	                point_to_pub.pose.position.z = temp_position_atomic.z;
+	                point_to_pub.pose.position.x = position_state.x;
+	                point_to_pub.pose.position.y = position_state.y;
+	                point_to_pub.pose.position.z = position_state.z;
 	                local_pos_pub.publish();
 	            }
 	        }
