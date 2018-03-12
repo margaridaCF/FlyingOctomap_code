@@ -6,6 +6,7 @@
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/ParamSet.h>
+#include <geometry_msgs/PoseStamped.h>
 
 namespace mav_comms
 {
@@ -51,19 +52,20 @@ namespace mav_comms
 
 	void target_position_cb(const architecture_msgs::PositionRequest::ConstPtr& msg)
 	{
-		if(!position_state.send && msg.waypoint_sequence_id <= position_state.waypoint_sequence)
+		if(!position_state.send 
+            && msg->waypoint_sequence_id <= position_state.waypoint_sequence)
 		{
-			ROS_WARN_STREAM("[mav_comms] Rejecting position " << msg->point 
+			ROS_WARN_STREAM("[mav_comms] Rejecting position " << msg->position 
 				<< ", seems to be from aborted waypoint sequence (id "
 				<< msg->waypoint_sequence_id << ")");
 		}
 		else
 		{
 			position_state.send = true;
-			position_state.waypoint_sequence_id = msg->waypoint_sequence_id;
-			position_state.x = msg->point.x;
-			position_state.y = msg->point.y;
-			position_state.z = msg->point.z;
+			position_state.waypoint_sequence = msg->waypoint_sequence_id;
+			position_state.x = msg->position.x;
+			position_state.y = msg->position.y;
+			position_state.z = msg->position.z;
 		}
 	}
 }
@@ -73,20 +75,20 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "mav_comms");
     ros::NodeHandle nh;
 
-    ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, mav_comms_node::state_cb);
-    ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 10, mav_comms_node::stopUAV_cb);
-    ros::Subscriber target_position_sub = nh.subscribe<architecture_msgs::PositionRequest>("target_position", 10, target_position_cb);
+    ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, mav_comms::state_cb);
+    ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 10, mav_comms::stopUAV_cb);
+    ros::Subscriber target_position_sub = nh.subscribe<architecture_msgs::PositionRequest>("target_position", 10, mav_comms::target_position_cb);
 
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
-    stop_position_pub = nh.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
+    mav_comms::stop_position_pub = nh.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
     
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
-    param_set_client = nh.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
+    mav_comms::param_set_client = nh.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20);
     // === FCU CONNECTION ===
-    while(ros::ok() && current_state.connected) {
+    while(ros::ok() && mav_comms::current_state.connected) {
         ros::spinOnce();
         rate.sleep();
     }
@@ -104,7 +106,7 @@ int main(int argc, char **argv)
     //       integer: 0
     //       real: 7.0" 
     double const flight_speed = 0.01;
-    while(!mav_comms_node::set_mavros_param("MPC_XY_CRUISE", flight_speed))
+    while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed))
     {
         
     }
@@ -118,7 +120,7 @@ int main(int argc, char **argv)
     pose.pose.position.z = 1;
     //send a few setpoints before starting
     for(int i = 20; ros::ok() && i > 0; --i) {
-            mav_comms_node::local_pos_pub.publish(pose);
+            local_pos_pub.publish(pose);
             ros::spinOnce();
             rate.sleep();
     }
@@ -130,7 +132,7 @@ int main(int argc, char **argv)
     ros::Time last_request = ros::Time::now();
     while(ros::ok()) 
     {
-    	if( mav_comms_node::notOffboardMode(last_request)) 
+    	if( mav_comms::notOffboardMode(last_request)) 
         {
             if( set_mode_client.call(offb_set_mode) &&
                 offb_set_mode.response.mode_sent) {
@@ -140,7 +142,7 @@ int main(int argc, char **argv)
         } 
         else 
         {
-            if( mav_comms_node::disarmed(last_request)) 
+            if( mav_comms::disarmed(last_request)) 
             {
                 if( arming_client.call(arm_cmd) &&
                     arm_cmd.response.success) 
@@ -151,14 +153,14 @@ int main(int argc, char **argv)
             } 
             else
             { 
-            	if (mav_comms_node::current_state.armed && position_state.send) 
+            	if (mav_comms::current_state.armed && mav_comms::position_state.send) 
 	            {
 	                // keep sending position
 	                geometry_msgs::PoseStamped point_to_pub;
-	                point_to_pub.pose.position.x = position_state.x;
-	                point_to_pub.pose.position.y = position_state.y;
-	                point_to_pub.pose.position.z = position_state.z;
-	                local_pos_pub.publish();
+	                point_to_pub.pose.position.x = mav_comms::position_state.x;
+	                point_to_pub.pose.position.y = mav_comms::position_state.y;
+	                point_to_pub.pose.position.z = mav_comms::position_state.z;
+	                local_pos_pub.publish(point_to_pub);
 	            }
 	        }
         }
