@@ -89,7 +89,8 @@
   <!-- ########################################################################## -->
     <!-- Architecture nodes -->
   
-  <node name="px4_mavros_offboard_node" type="px4_mavros_offboard_node" pkg="architecture"  output="screen" />
+  <node name="mav_comms" type="mav_comms_node" pkg="architecture"  output="screen" />
+  <node name="state_manager" type="state_manager_node" pkg="architecture"  output="screen" />
   <node name="handbrake" type="handbrake_node.py" pkg="architecture"  output="screen" />
   <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers"  output="screen" />
 </launch>
