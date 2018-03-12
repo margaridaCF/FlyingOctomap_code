@@ -12,8 +12,6 @@
 #include <frontiers_msgs/FrontierReply.h>
 #include <frontiers_msgs/FrontierRequest.h>
 
-#include <state_manager_node.h>
-
 namespace state_manager_node
 {
     int request_count;
