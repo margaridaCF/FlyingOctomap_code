@@ -4,37 +4,59 @@ project(architecture)
 add_definitions(-std=c++11 )
 set(CMAKE_BUILD_TYPE Debug)
 
-find_package(catkin REQUIRED COMPONENTS roscpp )
-include_directories(include ${catkin_INCLUDE_DIRS} )
+find_package(catkin_simple REQUIRED)
 
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES thrun
-  CATKIN_DEPENDS roscpp
-#  DEPENDS system_lib
-)
 
-########### 
+###########
 ## Build ##
 ###########
-add_executable(px4_mavros_offboard_node src/px4_mavros_offboard_node.cpp)
-target_link_libraries(px4_mavros_offboard_node
-  ${catkin_LIBRARIES} 
-)
+include_directories(include ${catkin_INCLUDE_DIRS} )
 
-# #############
-# ## Testing ##
-# #############
-# if (CATKIN_ENABLE_TESTING)
+
+###########################
+## Catkin simple macros  ##
+###########################
+# find_package(...) is called with the QUIET option and witho the REQUIRED option
+# adds the local include folder and any catkin include directories to the include path with CMake's include_directories(...) macro
+# discover and build any ROS messages, services, and actions which reside in the msg, srv, action action folders, respectively
+# needs build_depend's on message_generation and run_depend on message_runtime
+# discovers and builds dynamic_reconfigure config files from the cfg folder
+# needs build_depend's on dynamic_reconfigure
+catkin_simple(ALL_DEPS_REQUIRED)
+
+# add_library
+# target_link_libraries(my_lib ${catkin_LIBRARIES}) to link your new library against any catkin libraries you have build depended on in your package.xml
+# does some bookkeeping so that your library target can be implicitly used later
+# cs_add_library(frontiers_lib src/frontiers.cpp)
+# cs_add_targets_to_package(frontiers_msgs)
+
+ # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
+cs_add_executable(mav_comms_node src/mav_comms_node.cpp)
+target_link_libraries(mav_comms_node)
+
+cs_add_executable(state_manager_node src/state_manager_node.cpp)
+target_link_libraries(state_manager_node)
+
+cs_install()
+# cs_install_scripts(scripts/my_script.py)
+cs_export()
+
+#############
+## Testing ##
+#############
+
+## Add gtest based cpp test target and link libraries
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_frontiers_msgs.cpp)
+# if(CATKIN_ENABLE_TESTING)
 #   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
-  # ## Architecture @ name ##
-  # catkin_add_gtest(name_Tests 
-  #   test/name_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(name_Tests ${catkin_LIBRARIES} )
+
+#   catkin_add_gtest(frontiers_tests 
+#     test/frontier_lib_tests.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib)
 
 # endif()
+
+## Add folders to be run by python nosetests
+# catkin_add_nosetests(test)
