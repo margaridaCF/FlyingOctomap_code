@@ -5,9 +5,10 @@
  */
 #include <ros/ros.h>
 #include <std_msgs/Empty.h>
-#include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <octomap/math/Vector3.h>
+
+#include <architecture_msgs/PositionRequest.h>
 
 #include <frontiers_msgs/FrontierReply.h>
 #include <frontiers_msgs/FrontierRequest.h>
@@ -80,10 +81,9 @@ int main(int argc, char **argv)
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("/stop_uav", 10, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 10, state_manager_node::frontier_cb);
     ros::Publisher frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
-    ros::Publisher target_position_pub = nh.advertise<geometry_msgs::PointStamped>("target_position", 10);
+    ros::Publisher target_position_pub = nh.advertise<architecture_msgs::PositionRequest>("target_position", 10);
     
 
-    geometry_msgs::PointStamped point;
     state_manager_node::StateData state_data;
     state_data.reply_seq_id = 0;
     state_data.fully_explored = false;
@@ -91,7 +91,8 @@ int main(int argc, char **argv)
     state_data.waypoint_list_set = false; 
     // TODO Lazy theta star topics
     octomath::Vector3 geofence_min (0, 0, 0);
-    octomath::Vector3 geofence_max (6, 2, 2);
+    octomath::Vector3 geofence_max (2, 2, 2);
+    state_manager_node::request_count = 1;
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20);
     ros::Time last_request = ros::Time::now();
@@ -115,10 +116,12 @@ int main(int argc, char **argv)
         // }
         else
         {
-            point.point.x = state_data.x;
-            point.point.y = state_data.y;
-            point.point.z = state_data.z;
-            target_position_pub.publish(point);
+            architecture_msgs::PositionRequest position_request;
+            position_request.waypoint_sequence_id = state_data.reply_seq_id;
+            position_request.position.x = state_data.x;
+            position_request.position.y = state_data.y;
+            position_request.position.z = state_data.z;
+            target_position_pub.publish(position_request);
         }    
         
         ros::spinOnce();
