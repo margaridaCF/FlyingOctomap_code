@@ -53,11 +53,17 @@ namespace state_manager_node
         ROS_INFO_STREAM("[State manager] switching to exploration_start");
     }
 
+    enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
+    follow_path_state_t follow_path_state;
+    frontiers_msgs::FrontierReply frontiers_msg;
+    int sequence_progress;
+
     void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg){
         if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
         {
             state_data.reply_seq_id = msg->request_id;
             state_data.exploration_state = generating_path;
+            frontiers_msg = *msg;
             ROS_INFO_STREAM("[State manager] switching to generating_path");
             state_data.x = msg->frontiers[0].xyz_m.x;    
             state_data.y = msg->frontiers[0].xyz_m.y;    
@@ -69,10 +75,6 @@ namespace state_manager_node
         }
     }
 
-    enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
-    follow_path_state_t follow_path_state;
-    frontiers_msgs::FrontierReply frontiers_msg;
-    int sequence_progress;
 
     bool is_goal_reached()
     {
@@ -88,6 +90,7 @@ namespace state_manager_node
                 position_request.position.z = frontiers_msg.frontiers[sequence_progress].xyz_m.z;
                 target_position_pub.publish(position_request);
                 follow_path_state = on_route;
+                ROS_INFO_STREAM("[State manager] Switching path follow state to on_route");
                 break;
             }
             case on_route:
@@ -98,6 +101,7 @@ namespace state_manager_node
             case reached_waypoint:
             {    // TODO - no sequence for the moment so the sequence is finished
                 follow_path_state = finished_sequence;
+                ROS_INFO_STREAM("[State manager] Switching path follow state to finished_sequence");
                 break;
             }
             case finished_sequence:
@@ -114,7 +118,8 @@ namespace state_manager_node
     {
         state_data.request_count = 0;
         state_data.exploration_state = exploration_start;
-        ROS_INFO_STREAM("[State manager] switching to exploration_start");
+        follow_path_state = init;
+        ROS_INFO_STREAM("[State manager] Initializing state to exploration_start and follow path state to init");
     }
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
@@ -134,7 +139,7 @@ namespace state_manager_node
                 }
                 else
                 {
-                    ROS_WARN("Frontier node not accepting requests.");
+                    ROS_WARN("[State manager] Frontier node not accepting requests.");
                 }
                 break;
             }
@@ -142,7 +147,7 @@ namespace state_manager_node
             {
                 // TODO Pick one - this is currently being done as soon as the frontiers arrive
                 state_data.exploration_state = generating_path;
-                ROS_INFO_STREAM("[State manager] switching to generating_path");
+                ROS_INFO_STREAM("[State manager] Switching to generating_path");
                 break;
             }
             case generating_path:
@@ -150,7 +155,7 @@ namespace state_manager_node
                 // TODO Lazy Theta Star - just assume no obstacles
                 follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
-                ROS_INFO_STREAM("[State manager] switching to visit_waypoints");
+                ROS_INFO_STREAM("[State manager] Switching to visit_waypoints and follow path state to init");
                 break;
             }
             case visit_waypoints:
@@ -158,7 +163,7 @@ namespace state_manager_node
                 if (is_goal_reached())
                 {
                     state_data.exploration_state = exploration_start;
-                ROS_INFO_STREAM("[State manager] switching to exploration_start");
+                    ROS_INFO_STREAM("[State manager] switching to exploration_start");
                 }
                 break;
             }
@@ -193,36 +198,4 @@ int main(int argc, char **argv)
         rate.sleep();
     }
     return 0;
-
-    // while(ros::ok() && !all_done) 
-    // {
-    //     // === Is all space explored? ===
-    //     if(state_data._1_exploration_start)
-    //     {
-    //         ROS_INFO_STREAM("[State Manager] Finished exploration!");
-    //         all_done = true;
-    //     }
-    //     // === Is the goal defined? ===
-    //     else if(!state_data._2_choosing_goal)
-    //     {
-    //         state_manager_node::askForGoal(state_manager_node::request_count, geofence_min, geofence_max, frontier_request_pub);
-    //     }
-    //     // else if(!state_data._3_generating_path)
-    //     // {
-    //     //     state_manager_node::askObstacleAvoidingPath();
-    //     // }
-    //     else
-    //     {
-    //         architecture_msgs::PositionRequest position_request;
-    //         position_request.waypoint_sequence_id = state_data.reply_seq_id;
-    //         position_request.position.x = state_data.x;
-    //         position_request.position.y = state_data.y;
-    //         position_request.position.z = state_data.z;
-    //         target_position_pub.publish(position_request);
-    //     }    
-        
-    //     ros::spinOnce();
-    //     rate.sleep();
-    // }
-    // return 0;
 }
