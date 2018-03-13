@@ -13,8 +13,8 @@
     <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
 
-    <arg name="headless" default="false"/>
-    <arg name="gui" default="true"/>
+    <arg name="headless" default="true"/>
+    <arg name="gui" default="false"/>
     <arg name="ns" default="/"/>
 
     <arg name="debug" default="false"/>
@@ -66,33 +66,31 @@
 
 
   <!-- convert depth map to laserscan -->
-  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="converter">
+  <!-- <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="converter">
     <remap from="cloud_in" to="/velodyne_points"/>
     <remap from="scan" to="/depth_laser_scan"/>
-  </node>
+  </node> -->
 
   <!-- ########################################################################## -->
     <!-- OCTOMAP -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
-
-        <param name="frame_id" type="string" value="map" />   <!--name of the fixed frame -->
-        <!--<param name="sensor_model/max_range" value="100.0" />    max range / depth resolution of the sensor in meter -->
+    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+        <param name="frame_id" type="string" value="map" />   
         <remap from="cloud_in" to="/velodyne_points" />
         <param name="latch" value="false" />
         <param name="resolution" value="0.5" />
-        <param name="pointcloud_min" value="0"/>
+        <param name="pointcloud_min" value="-2"/>
         <param name="pointcloud_max" value="2"/>
         <param name="occupancy_min" value="0.5"/>
         <param name="occupancy_min" value="1"/>
         <param name="sensor_model/max_range" value="80"/>
-    </node>
+    </node> -->
   <!-- ########################################################################## -->
     <!-- Architecture nodes -->
   
   <node name="mav_comms" type="mav_comms_node" pkg="architecture"  output="screen" />
-  <node name="state_manager" type="state_manager_node" pkg="architecture"  output="screen" />
-  <node name="handbrake" type="handbrake_node.py" pkg="architecture"  output="screen" />
-  <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers"  output="screen" />
+  <!-- <node name="state_manager" type="state_manager_node" pkg="architecture"  output="screen" />
+  <node name="handbrake" type="handbrake_node.py" pkg="architecture"  output="screen" /> 
+  <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers"  output="screen" /> -->
 </launch>
 
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
