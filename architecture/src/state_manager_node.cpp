@@ -17,14 +17,16 @@
 namespace state_manager_node
 {
     
+    enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
     enum exploration_state_t {exploration_start, choosing_goal, generating_path, visit_waypoints, finished_exploring};
     struct StateData { 
         int reply_seq_id; 
         int request_count;
         exploration_state_t exploration_state;
-        double x; 
-        double y; 
-        double z;};
+        follow_path_state_t follow_path_state;
+        frontiers_msgs::FrontierReply frontiers_msg;
+        int sequence_progress;
+    };  
 
     state_manager_node::StateData state_data;
     ros::Publisher target_position_pub;
@@ -53,43 +55,36 @@ namespace state_manager_node
         ROS_INFO_STREAM("[State manager] switching to exploration_start");
     }
 
-    enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
-    follow_path_state_t follow_path_state;
-    frontiers_msgs::FrontierReply frontiers_msg;
-    int sequence_progress;
 
     void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg){
         if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
         {
             state_data.reply_seq_id = msg->request_id;
             state_data.exploration_state = generating_path;
-            frontiers_msg = *msg;
+            state_data.frontiers_msg = *msg;
             ROS_INFO_STREAM("[State manager] switching to generating_path");
-            state_data.x = msg->frontiers[0].xyz_m.x;    
-            state_data.y = msg->frontiers[0].xyz_m.y;    
-            state_data.z = msg->frontiers[0].xyz_m.z;   
             ROS_INFO_STREAM("[Satate manager node] New frontier ("
-                <<state_data.x << ", "
-                <<state_data.y << ", "
-                <<state_data.z << ") ");
+                <<state_data.frontiers_msg.frontiers[0].xyz_m.x << ", "
+                <<state_data.frontiers_msg.frontiers[0].xyz_m.y << ", "
+                <<state_data.frontiers_msg.frontiers[0].xyz_m.z << ") ");
         }
     }
 
 
     bool is_goal_reached()
     {
-        switch(follow_path_state)
+        switch(state_data.follow_path_state)
         {
             case init:
             {
-                sequence_progress = 0;
+                state_data.sequence_progress = 0;
                 architecture_msgs::PositionRequest position_request;
                 position_request.waypoint_sequence_id = state_data.reply_seq_id;
-                position_request.position.x = frontiers_msg.frontiers[sequence_progress].xyz_m.x;
-                position_request.position.y = frontiers_msg.frontiers[sequence_progress].xyz_m.y;
-                position_request.position.z = frontiers_msg.frontiers[sequence_progress].xyz_m.z;
+                position_request.position.x = state_data.frontiers_msg.frontiers[state_data.sequence_progress].xyz_m.x;
+                position_request.position.y = state_data.frontiers_msg.frontiers[state_data.sequence_progress].xyz_m.y;
+                position_request.position.z = state_data.frontiers_msg.frontiers[state_data.sequence_progress].xyz_m.z;
                 target_position_pub.publish(position_request);
-                follow_path_state = on_route;
+                state_data.follow_path_state = on_route;
                 ROS_INFO_STREAM("[State manager] Switching path follow state to on_route");
                 break;
             }
@@ -100,7 +95,7 @@ namespace state_manager_node
             }
             case reached_waypoint:
             {    // TODO - no sequence for the moment so the sequence is finished
-                follow_path_state = finished_sequence;
+                state_data.follow_path_state = finished_sequence;
                 ROS_INFO_STREAM("[State manager] Switching path follow state to finished_sequence");
                 break;
             }
@@ -118,7 +113,7 @@ namespace state_manager_node
     {
         state_data.request_count = 0;
         state_data.exploration_state = exploration_start;
-        follow_path_state = init;
+        state_data.follow_path_state = init;
         ROS_INFO_STREAM("[State manager] Initializing state to exploration_start and follow path state to init");
     }
 
@@ -131,7 +126,6 @@ namespace state_manager_node
                 frontiers_msgs::FrontierNodeStatus srv;
                 if (frontier_status_client.call(srv))
                 {
-                    // ROS_INFO_STREAM("Is accepting requests?"<< (bool)srv.response.is_accepting_requests);
                     if((bool)srv.response.is_accepting_requests)
                     {
                         askForGoal(state_data.request_count, geofence_min, geofence_max, frontier_request_pub);
@@ -153,7 +147,7 @@ namespace state_manager_node
             case generating_path:
             {
                 // TODO Lazy Theta Star - just assume no obstacles
-                follow_path_state = init;
+                state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
                 ROS_INFO_STREAM("[State manager] Switching to visit_waypoints and follow path state to init");
                 break;
