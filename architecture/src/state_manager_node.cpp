@@ -12,6 +12,7 @@
 
 #include <frontiers_msgs/FrontierReply.h>
 #include <frontiers_msgs/FrontierRequest.h>
+#include <frontiers_msgs/FrontierNodeStatus.h>
 
 namespace state_manager_node
 {
@@ -28,6 +29,7 @@ namespace state_manager_node
     state_manager_node::StateData state_data;
     ros::Publisher target_position_pub;
     ros::Publisher frontier_request_pub;
+    ros::ServiceClient frontier_status_client;
 
     void askForGoal(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)
     {
@@ -52,25 +54,6 @@ namespace state_manager_node
     }
 
     void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg){
-        // if(msg->frontiers_found == 0)
-        // {
-        //     state_data._1_exploration_start = true;
-        //     state_data._2_choosing_goal = false;
-        //     state_data._3_generating_path = false;
-        // }
-        // else
-        // {
-            // state_data.reply_seq_id = msg->request_id;
-            // state_data._2_choosing_goal = true;            // TODO change flags with waypoint sequence
-            // state_data._3_generating_path = true;   // TODO change flags with waypoint sequence
-            // state_data.x = msg->frontiers[0].xyz_m.x;    
-            // state_data.y = msg->frontiers[0].xyz_m.y;    
-            // state_data.z = msg->frontiers[0].xyz_m.z;   
-            // ROS_INFO_STREAM("[Satate manager node] New frontier ("
-            //     <<state_data.x << ", "
-            //     <<state_data.y << ", "
-            //     <<state_data.z << ") ");
-        // }
         if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
         {
             state_data.reply_seq_id = msg->request_id;
@@ -140,7 +123,19 @@ namespace state_manager_node
         {
             case exploration_start:
             {
-                askForGoal(state_data.request_count, geofence_min, geofence_max, frontier_request_pub);
+                frontiers_msgs::FrontierNodeStatus srv;
+                if (frontier_status_client.call(srv))
+                {
+                    // ROS_INFO_STREAM("Is accepting requests?"<< (bool)srv.response.is_accepting_requests);
+                    if((bool)srv.response.is_accepting_requests)
+                    {
+                        askForGoal(state_data.request_count, geofence_min, geofence_max, frontier_request_pub);
+                    }
+                }
+                else
+                {
+                    ROS_WARN("Frontier node not accepting requests.");
+                }
                 break;
             }
             case choosing_goal:
@@ -175,9 +170,12 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "state_manager");
     ros::NodeHandle nh;
+
+    state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
+
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 10, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 10, state_manager_node::frontier_cb);
-    ros::Publisher frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
+    state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
     state_manager_node::target_position_pub = nh.advertise<architecture_msgs::PositionRequest>("target_position", 10);
     
 
@@ -186,8 +184,7 @@ int main(int argc, char **argv)
     // TODO Lazy theta star topics
     octomath::Vector3 geofence_min (0, 0, 0);
     octomath::Vector3 geofence_max (2, 2, 2);
-    ros::Rate rate(20);
-
+    ros::Rate rate(2);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
         state_manager_node::update_state(geofence_min, geofence_max);

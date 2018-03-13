@@ -12,6 +12,7 @@
   <test_depend>gtest</test_depend>
   <depend>roscpp</depend>
   <depend>frontiers_msgs</depend>
+  <depend>frontiers</depend>
   <depend>mavros_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
