@@ -118,26 +118,30 @@ namespace LazyThetaStarOctree{
     // double total_nSecs_overall = diff(time1,time2).tv_nsec;
   }
 
-  void LazyThetaStarDispatcher::chatterCallback(const std_msgs::String::ConstPtr& msg)
+  void LazyThetaStarDispatcher::chatterCallback(const path_planning::StartGoal::ConstPtr& msg)
   {
+
+    octomath::Vector3 disc_initial(msg->s_x, msg->s_y, msg->s_z); 
+    octomath::Vector3 disc_final  (msg->g_x, msg->g_y, msg->g_z); 
+
     // == run 2 ==
-    octomath::Vector3 disc_initial(0, 5, 1.5); 
-    octomath::Vector3 disc_final  (2, -5, 1.5); 
-    octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
-    std::string dataset_name = "run 2";
+    // octomath::Vector3 disc_initial(-44, 0, 1.5); 
+    // octomath::Vector3 disc_final  (0, 0, 1.5); 
+    octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/fr_campus.bt");
+    std::string dataset_name = "freiburg campus";
 
     // // == LazyThetaStar_CoreDumped_Test ==
-    // octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/offShoreOil_1m.bt");
+    // octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/offShoreOil_1m.bt");
     // octomath::Vector3 disc_initial(-8.3, -8.3, 0.5);
     // octomath::Vector3 disc_final  (-7.3, -8.3, 0.5);
     // std::string dataset_name = "CoreDumped Test with offShoreOil_1m.bt from (-8.3, -8.3, 0.5) to (-7.3, -8.3, 0.5)";
     // // == LazyThetaStar_StraighLine_Test ==
-    // octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/offShoreOil_1m.bt");
+    // octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/offShoreOil_1m.bt");
     // octomath::Vector3 disc_initial(-6.9, -9.7, 0.5);
     // octomath::Vector3 disc_final  (-5.9, -9.7, 0.5);
     // std::string dataset_name = "StraighLine_Test with offShoreOil_1m.bt from (-6.9, -9.7, 0.5) to (-5.9, -9.7, 0.5)";
     // // == DepthSizeTest.hasLineOfSightTest ==
-    // octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/offShoreOil_1m.bt");
+    // octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/offShoreOil_1m.bt");
     // octomath::Vector3 disc_initial(-5.500001, -3.1, 0.5);
     // octomath::Vector3 disc_final  (-5.4, -2.6, 0.6);
     // std::string dataset_name = "hasLineOfSightTest with offShoreOil_1m.bt from (-5.500001, -3.1, 0.5) to (-5.4, -2.6, 0.6)";
@@ -149,24 +153,28 @@ namespace LazyThetaStarOctree{
     octomap_pub.publish(octomap);
 
     RVizMarker marker = createMarker(3);
+    marker.header.frame_id = "map";
     geometry_msgs::Point p;
     p.x = disc_initial.x();
     p.y = disc_initial.y();
     p.z = disc_initial.z();
+    ROS_INFO_STREAM(disc_initial);
     marker.points.push_back(p);
     p.x = disc_final.x();
     p.y = disc_final.y();
     p.z = disc_final.z();
     marker.points.push_back(p);
+    ROS_INFO_STREAM(disc_final);
     marker_pub_.publish( marker );
 
-    int max_search_iterations = 1000;
+    int max_search_iterations = 16000;
     std::list<octomath::Vector3> resulting_path = extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
     std::ofstream waypoints_file;
-    waypoints_file.open("/home/mfaria/Margarida/20170802_lazyThetaStar/experimental data/euroc_compare/newImplementation.log", std::ios_base::app);
+    waypoints_file.open("/waypoints.txt", std::ios_base::app);
     waypoints_file << " ===== " << dataset_name << " ===== " << std::endl;
     // waypoints_file << " iterations used: " << statistical_data.iterations_used  << "; Took " << total_nSecs_overall << " nano seconds." << std::endl;
     marker = createMarker(4);
+    marker.header.frame_id = "map";
     marker.color.g = 50;
     marker.color.b = 167;
     marker.ns = "output";
@@ -178,6 +186,7 @@ namespace LazyThetaStarOctree{
       p.y = waypoint.y();
       p.z = waypoint.z();
       marker.points.push_back(p);
+
     }
     marker_pub_.publish( marker );
     waypoints_file << std::endl;

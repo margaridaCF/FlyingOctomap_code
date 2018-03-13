@@ -117,11 +117,11 @@ namespace mapper {
 
         std::string algoName = ResultSecretary::translateAlgorithmName(algorithmSpecification.algorithmEnum);
 
-        ROS_WARN_STREAM("Algorithm "<<algoName);
-        ROS_WARN_STREAM("Explored boundaries "<<bbxMin<<" - "<<bbxMax);
-        ROS_WARN_STREAM("Iterated over "<<gridIterations<<" - "<< total_area <<"m found "<<frontierCells.size()
-            <<" frontier cells that cover "<<frontierArea
-            <<" m. With "<<z_levels.size()<<" z levels. Frontiers found in "<<time_span.count()<<" seconds.");
+        // ROS_WARN_STREAM("Algorithm "<<algoName);
+        // ROS_WARN_STREAM("Explored boundaries "<<bbxMin<<" - "<<bbxMax);
+        // ROS_WARN_STREAM("Iterated over "<<gridIterations<<" - "<< total_area <<"m found "<<frontierCells.size()
+        //     <<" frontier cells that cover "<<frontierArea
+        //     <<" m. With "<<z_levels.size()<<" z levels. Frontiers found in "<<time_span.count()<<" seconds.");
 
         
 
@@ -467,7 +467,7 @@ namespace mapper {
         }
         it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
 
-        ROS_WARN_STREAM("Bounding box bbx [ " << bbx_min << " - " << bbx_max << "]" );
+        //ROS_WARN_STREAM("Bounding box bbx [ " << bbx_min << " - " << bbx_max << "]" );
         return true;
     }
     

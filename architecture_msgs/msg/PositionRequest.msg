@@ -1,0 +1,3 @@
+std_msgs/Header header
+uint32 waypoint_sequence_id
+geometry_msgs/Point position

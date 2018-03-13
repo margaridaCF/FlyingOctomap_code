@@ -11,8 +11,8 @@ find_package(catkin REQUIRED COMPONENTS roscpp octomap_msgs octomap_ros)
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES thrun
+  INCLUDE_DIRS include
+  LIBRARIES gridBenchmark
   CATKIN_DEPENDS roscpp  octomap_msgs octomap_ros 
 #  DEPENDS system_lib
 )
@@ -28,9 +28,23 @@ add_library(gridBenchmark
   src/grid_benchmark.cpp src/qdbmp.cpp
 )
 
+add_executable(frontier_node src/frontier_node.cpp)
+add_dependencies(frontier_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(gridBenchmark
   ${catkin_LIBRARIES}  
 )
+
+target_link_libraries(frontier_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+
+# ## Install project namespaced headers
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN ".svn" EXCLUDE)
 
 #############
 ## Testing ##
@@ -44,16 +58,15 @@ if (CATKIN_ENABLE_TESTING)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   target_link_libraries(gridBenchmark-dataCollection ${catkin_LIBRARIES} gridBenchmark)
 
-  ## Algorithm Tests ##
+  # # Algorithm Tests ##
   # catkin_add_gtest(algorithmTests 
   #   test/algorithm_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(algorithmTests ${catkin_LIBRARIES} gridBenchmark)
 
-  ## Grid Benchmark Tests ##
+  # # Grid Benchmark Tests ##
   # catkin_add_gtest(gridBenchmarkTests 
   #   test/grid_benchmark_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(gridBenchmarkTests ${catkin_LIBRARIES} gridBenchmark)
 endif()
-

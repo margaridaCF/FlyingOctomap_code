@@ -1,6 +1,7 @@
 import csv
 import plotly
 import plotly.plotly as py
+import plotly.figure_factory as ff
 # from plotly.graph_objs import *
 import plotly.graph_objs as go 
 import collections 
@@ -469,6 +470,32 @@ def plot_3Dwaypoint_neighbors_center_goal_start():
             },
             filename= 'plots/3d_neighbors.html')
 
+def plot_histogram(for_histogram, title, file_name):
+    
+    data = [go.Histogram(x=for_histogram)]
+    plotly.offline.plot(
+    {
+        "data": data,
+        "layout": {
+            "title":"Histogram of Lazy Theta* iterations for "+title+"<br>"+str(len(for_histogram))+" cases analyzed",
+        }
+    }, 
+    filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180130_JINT_majorRevision/images/'+file_name+'.html',
+    image='png')
+
+def plot_distribution(for_histogram, title, file_name):
+    hist_data = [for_histogram]
+    group_labels = ['iterations']
+
+    fig = ff.create_distplot(hist_data, group_labels, show_curve=False)
+    fig['layout'].update(title="Distribution iterations of Lazy Theta*  for "+title+"<br>"+str(len(for_histogram))+" cases analyzed")
+    fig['layout'].update(title="Distribution iterations of Lazy Theta*  for "+title+"<br>"+str(len(for_histogram))+" cases analyzed")
+    font=dict(font=[family='Courier New, monospace', size=18, color='#7f7f7f'])
+    plotly.offline.plot(
+    fig, 
+    filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180130_JINT_majorRevision/images/'+file_name+'.html',
+    image='png')
+
 # CSV EXTRACTION
 def extract_data_ManyPathsPerFile_iterationDistribution_group(csv_filepath, groups_highToLow):
     iteration_dict = {}
@@ -495,21 +522,14 @@ def extract_data_ManyPathsPerFile_iterationDistribution_group(csv_filepath, grou
         return iteration_dict
 
 def extract_data_ManyPathsPerFile_iterationDistribution(csv_filepath):
-    iteration_dict = {}
+
+    for_histogram = []
     with open(csv_filepath,"rb") as f:
         reader  = csv.reader(f, quoting=csv.QUOTE_NONNUMERIC)
-        iteration_dict = {}
-        count = 0;
         for row in reader:
-            count +=1;
-            if row[0] in iteration_dict:
-                iteration_dict[row[0]] = iteration_dict[row[0]] + 1;
-            else:
-                iteration_dict[row[0]] = 1;
-        print str(count) + " paths analyzed"
-        iteration_dict["total"] = count
-
-        return iteration_dict
+            for_histogram.append(row[0])
+        print str(len(for_histogram)) + " paths analyzed"
+        return for_histogram
 
 def extract_data_FixedItCount_VoxelSizeDistribution(csv_filepath):
     with open(csv_filepath,"rb") as f:
@@ -624,6 +644,11 @@ def analyzeIterationCsvFile(dataset_name, groups_highToLow, dataset_displayName)
     plot_pie_iteration_distribution(result_dict, dataset_displayName, dataset_name+'_raw', result_dict["total"])
     plot_pie_iteration_distribution(result_dict_group, dataset_displayName, dataset_name+'_group', result_dict["total"])
 
+def analyzeIterationCsvFile_histogram(dataset_name, dataset_displayName):
+    for_histogram = extract_data_ManyPathsPerFile_iterationDistribution('/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20170802_lazyThetaStar/experimental data/'+dataset_name+'.csv')
+    plot_histogram(for_histogram, dataset_displayName, dataset_name+'_histogram')
+    plot_distribution(for_histogram, dataset_displayName, dataset_name+'_distribution')
+
 def run_analyzeIterationCsvFile():
     groups_highToLow_back = [1000000000, 100, 50, 10, 5, 4, 1]
     analyzeIterationCsvFile('iterations_voxelDistributionoffShoreOil_2Obst_1m_back', groups_highToLow_back)
@@ -698,16 +723,19 @@ def run_plot_pointVisualization_longDebug():
     #                                    'center': s39_neighbor_center} # unknown
     plot_pointVisualization_longDebug(X, Y, Z, X_A, Y_A, Z_A, prev_s_coord, current_s_coord, 
         start_coordinates, goal_point_coordinates, s)
-                                                                                
+  
+# def run_analyzeIterationCsvFile_histogram():
+
                                                                        
 # RUN RUN RUN
-line_size = 10
-resolution = 0.2
-regularGrid_iterations = line_size/resolution
-groups_highToLow_back = [1000000000, 250, 101,  regularGrid_iterations+1, regularGrid_iterations-1,  regularGrid_iterations/2, 0]
-analyzeIterationCsvFile('10m/iterations_cellDistributionoffShoreOil_2Obst_10m', groups_highToLow_back, 'simulated offshore oil platform')
+# line_size = 10
+# resolution = 0.2
+# regularGrid_iterations = line_size/resolution
+# groups_highToLow_back = [1000000000, 250, 101,  regularGrid_iterations+1, regularGrid_iterations-1,  regularGrid_iterations/2, 0]
+# analyzeIterationCsvFile('10m/iterations_cellDistributionoffShoreOil_2Obst_10m', groups_highToLow_back, 'simulated offshore oil platform')
 
-
+analyzeIterationCsvFile_histogram('10m/iterations_cellDistributionoffShoreOil_2Obst_10m', 'simulated offshore oil platform, 10m paths')
+analyzeIterationCsvFile_histogram('1m/iterations_cellDistributionoffShoreOil_2Obst_1m', 'simulated offshore oil platform, 1m paths')
 
 # variables= {}
 # execfile( "iterations_vs_voxelSize.py", variables )

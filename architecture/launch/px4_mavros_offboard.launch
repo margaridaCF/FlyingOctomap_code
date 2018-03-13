@@ -5,5 +5,15 @@
 		<arg name="fcu_url" value="udp://:14540@127.0.0.1:14557"/>
 	</include> -->
 
-	<node name="px4_node" pkg="architecture" type="px4_mavros_offboard_node" output="screen"/>
+	<!-- <node name="px4_node" pkg="architecture" type="px4_mavros_offboard_node" output="screen"/> -->
+
+	<!-- robot_description for rviz -->
+
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+	<param name="use_gui" value="true"/>
+	</node>
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find robots_description)/config/visualize.rviz"/>
+
+	<node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 /world /map 100"/>
+	<!-- <node pkg="tf" type="static_transform_publisher" name="uav_1_to_base_link" args="0 0 0 0 0 0 /uav_1 /local_origin 100"/> -->
 </launch>

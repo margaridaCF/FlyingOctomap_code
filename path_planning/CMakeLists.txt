@@ -4,37 +4,38 @@ project(path_planning)
 add_definitions(-std=c++11 )
 set(CMAKE_BUILD_TYPE Debug)
 
-find_package(catkin REQUIRED COMPONENTS roscpp octomap_msgs octomap_ros)
+find_package(catkin_simple REQUIRED)
+
+###########
+## Build ##
+###########
+include_directories(include ${catkin_INCLUDE_DIRS} )
 
 
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES thrun
-  CATKIN_DEPENDS roscpp  octomap_msgs octomap_ros 
-#  DEPENDS system_lib
-)
+###########################
+## Catkin simple macros  ##
+###########################
+# find_package(...) is called with the QUIET option and witho the REQUIRED option
+# adds the local include folder and any catkin include directories to the include path with CMake's include_directories(...) macro
+# discover and build any ROS messages, services, and actions which reside in the msg, srv, action action folders, respectively
+# needs build_depend's on message_generation and run_depend on message_runtime
+# discovers and builds dynamic_reconfigure config files from the cfg folder
+# needs build_depend's on dynamic_reconfigure
+catkin_simple(ALL_DEPS_REQUIRED)
 
 
 ########### 
 ## Build ##
 ###########
-include_directories(include ${catkin_INCLUDE_DIRS} )
-add_executable(ltStar_dispatcher_node src/ltStar_dispatcher_node.cpp)
-target_link_libraries(ltStar_dispatcher_node
-  ${catkin_LIBRARIES} 
-)
+cs_add_library(neighbors src/neighbors.cpp)
 
-## C++ library
-# add_library(ltStarOctree
-#   src/ltStarOctree.cpp 
-# )
+cs_add_executable(ltStar_dispatcher_node src/ltStar_dispatcher_node.cpp )
 
-# target_link_libraries(ltStarOctree
-#   ${catkin_LIBRARIES}  
-# )
+target_link_libraries(ltStar_dispatcher_node  ${catkin_LIBRARIES} ${neighbors_LIBRARIES} neighbors)
+
+cs_install()
+
+cs_export()
 
 #############
 ## Testing ##
@@ -70,13 +71,13 @@ if (CATKIN_ENABLE_TESTING)
   catkin_add_gtest(depthSizeTest 
     test/depth_voxelSide_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(depthSizeTest ${catkin_LIBRARIES} )
+  target_link_libraries(depthSizeTest ${catkin_LIBRARIES} neighbors)
 
   ## Octree @ neighbors ##
   catkin_add_gtest(neighborTests 
     test/neighbor_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(neighborTests ${catkin_LIBRARIES} )
+  target_link_libraries(neighborTests ${catkin_LIBRARIES} neighbors)
 
   ## Lazy Theta Star @ open ##
   catkin_add_gtest(openTests 
@@ -88,11 +89,11 @@ if (CATKIN_ENABLE_TESTING)
   catkin_add_gtest(ltstarTests 
     test/lazyTheta_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(ltstarTests ${catkin_LIBRARIES} )
+  target_link_libraries(ltstarTests ${catkin_LIBRARIES} neighbors)
   catkin_add_gtest(ltstarTestsFixture 
     test/lazyTheta_tests_Fixture.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} )
+  target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} neighbors)
 
 endif()
 

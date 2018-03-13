@@ -1,0 +1,96 @@
+<launch>
+
+    <!-- Posix SITL environment launch script -->
+    <arg name="x" default="0"/>
+    <arg name="y" default="0"/>
+    <arg name="z" default="0"/>
+    <arg name="R" default="0"/>
+    <arg name="P" default="0"/>
+    <arg name="Y" default="0"/>
+    <arg name="est" default="lpe"/>
+    <arg name="vehicle" default="iris"/>
+    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/box.world"/>
+    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
+    <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
+
+    <arg name="headless" default="true"/>
+    <arg name="gui" default="false"/>
+    <arg name="ns" default="/"/>
+
+    <arg name="debug" default="false"/>
+    <arg name="verbose" default="false"/>
+    <arg name="paused" default="false"/>
+
+    <node name="sitl" pkg="px4" type="px4" output="screen"
+        args="$(find px4) $(arg rcS)">
+    </node>
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="headless" value="$(arg headless)"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="world_name" value="$(arg world)" />
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="verbose" value="$(arg verbose)" />
+        <arg name="paused" value="$(arg paused)" />
+    </include>
+
+    <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
+    
+    
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="50.0" />
+        <param name="tf_prefix" type="string" value=""/>
+    </node>
+    
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="true"/>
+    </node>
+    <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
+
+
+<!--    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 /world /local_origin 100"/>-->
+<!--    <node name="local_origin_to_base_link" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_link 100"/> -->
+
+<!--    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/> -->
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/rviz_velodyne_model.rviz" />
+
+
+    <!--<node name="odom_to_tf" pkg="message_to_tf" type="message_to_tf"> </node>-->
+    <node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="screen">
+        <param name="odometry_topic" value="ground_truth_pose"/>
+        <param name="frame_id" value="map"/>
+        <param name="child_frame_id" type="string" value="base_link"/>
+    </node>
+
+
+  <!-- convert depth map to laserscan -->
+  <!-- <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="converter">
+    <remap from="cloud_in" to="/velodyne_points"/>
+    <remap from="scan" to="/depth_laser_scan"/>
+  </node> -->
+
+  <!-- ########################################################################## -->
+    <!-- OCTOMAP -->
+    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+        <param name="frame_id" type="string" value="map" />   
+        <remap from="cloud_in" to="/velodyne_points" />
+        <param name="latch" value="false" />
+        <param name="resolution" value="0.5" />
+        <param name="pointcloud_min" value="-2"/>
+        <param name="pointcloud_max" value="2"/>
+        <param name="occupancy_min" value="0.5"/>
+        <param name="occupancy_min" value="1"/>
+        <param name="sensor_model/max_range" value="80"/>
+    </node> -->
+  <!-- ########################################################################## -->
+    <!-- Architecture nodes -->
+  
+  <node name="mav_comms" type="mav_comms_node" pkg="architecture"  output="screen" />
+  <!-- <node name="state_manager" type="state_manager_node" pkg="architecture"  output="screen" />
+  <node name="handbrake" type="handbrake_node.py" pkg="architecture"  output="screen" /> 
+  <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers"  output="screen" /> -->
+</launch>
+
+<!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->

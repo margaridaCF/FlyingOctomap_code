@@ -1,4 +1,4 @@
-#include <neighbors_temp.h>
+#include <neighbors.h>
 #include <gtest/gtest.h>
 
 namespace LazyThetaStarOctree{
