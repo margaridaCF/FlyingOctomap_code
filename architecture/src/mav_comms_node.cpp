@@ -13,22 +13,10 @@ namespace mav_comms
 	mavros_msgs::State current_state;
 	ros::Publisher stop_position_pub;
 	struct Position { bool send; int waypoint_sequence; 
-        double x; double y; double z; 
-        ros::Time last_offboard_command;};
+        double x; double y; double z; };
 	Position position_state;
     ros::ServiceClient param_set_client;
 
-	bool disarmed(ros::Time& last_request)
-	{
-	    return !current_state.armed && (ros::Time::now() - last_request > ros::Duration(5.0));
-	}
-
-	bool is_sendOffboardMode(ros::Time& last_request)
-	{
-	    return current_state.mode != "OFFBOARD" 
-        // && (ros::Time::now() - position_state.last_offboard_command > ros::Duration(4.0))
-        ;
-	}
 
 	void state_cb(const mavros_msgs::State::ConstPtr& msg){
 	    current_state = *msg;
@@ -77,8 +65,7 @@ namespace mav_comms
     {
         position_state.x = 0;
         position_state.y = 0;
-        position_state.z = 1;
-        position_state.last_offboard_command = ros::Time::now();  
+        position_state.z = 1; 
     }
 }
 
@@ -106,23 +93,11 @@ int main(int argc, char **argv)
         ros::spinOnce();
         rate.sleep();
     }
-    // === VELOCITY ===
-    // LNDMC_XY_VEL_MAX
-    // MPC_ACC_DOWN_MAX
-    // MPC_XY_CRUISE
-    // MPC_XY_VEL_MAX
-    // // param show MPC_XY_CRUISE
-    // //     Symbols: x = used, + = saved, * = unsaved
-    // //     x + MPC_XY_CRUISE [292,580] : 7.0000
-    // //      1055 parameters total, 654 used.
-    // rosservice call /mavros/param/set "param_id: 'MPC_XY_CRUISE'
-    //     value:
-    //       integer: 0
-    //       real: 7.0" 
+    // === px4 PARAM ===
     double const flight_speed = 0.01;
     while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
     ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
-    double const offboard_mode_timeout_sec = 100;
+    double const offboard_mode_timeout_sec = 20;
     while(!mav_comms::set_mavros_param("COM_OF_LOSS_T", offboard_mode_timeout_sec)) { }
     ROS_INFO_STREAM("[mav_comms] Timeout from OFFBOARD mode set to " << offboard_mode_timeout_sec << " sec (COM_OF_LOSS_T)");
     while(!mav_comms::set_mavros_param("COM_RC_IN_MODE", 1)) { }
@@ -131,63 +106,58 @@ int main(int argc, char **argv)
 
     // === SET POSITIONS ===
     geometry_msgs::PoseStamped point_to_pub;
-    //send a few setpoints before starting
-    for(int i = 20; ros::ok() && i > 0; --i) {
+    for(int i = 20; ros::ok() && i > 0; --i) {  //send a few setpoints before starting
             local_pos_pub.publish(point_to_pub);
             ros::spinOnce();
             rate.sleep();
     }
     ROS_INFO_STREAM("[mav_comms] Safety waypoints set to  " << point_to_pub.pose.position);
-
+    // === MAIN LOOP ===
     mavros_msgs::SetMode offb_set_mode;
     offb_set_mode.request.custom_mode = "OFFBOARD";
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
-    ros::Time last_request = ros::Time::now();
+    bool armed = false;
+    bool offboard_on = false;
     while(ros::ok()) 
-    {
+    {// Position is always sent regardeless of the state to keep vehicle in offboard mode
         point_to_pub.pose.position.x = mav_comms::position_state.x;
         point_to_pub.pose.position.y = mav_comms::position_state.y;
         point_to_pub.pose.position.z = mav_comms::position_state.z;
         local_pos_pub.publish(point_to_pub);
-        if(mav_comms::current_state.mode != "OFFBOARD")
+        if( mav_comms::current_state.mode != "OFFBOARD") 
         {
-            ROS_INFO_STREAM("[mav_comms] mode " <<  mav_comms::current_state.mode);
-            ROS_INFO_STREAM("[mav_comms] time since last request " <<  (ros::Time::now() - mav_comms::position_state.last_offboard_command) );
-        }
-        if( mav_comms::is_sendOffboardMode(last_request)) 
-        {
-            if( set_mode_client.call(offb_set_mode) &&
-                offb_set_mode.response.mode_sent) {
+            if(offboard_on)
+            {
+                ROS_INFO_STREAM("[mav_comms] mode " <<  mav_comms::current_state.mode);
             }
-            mav_comms::position_state.last_offboard_command = ros::Time::now();
-            last_request = ros::Time::now();
+            offboard_on = false;
+            set_mode_client.call(offb_set_mode);
         } 
         else 
         {
-            if( mav_comms::disarmed(last_request)) 
+            if(!offboard_on)
             {
-                if( arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success) 
+                ROS_INFO("[mav_comms] mode OFFBOARD");
+                offboard_on = true;
+            }
+            if( !mav_comms::current_state.armed) 
+            {
+                if(armed)
                 {
-                    ROS_INFO("[mav_comms] Vehicle armed");
+                    ROS_INFO("[mav_comms] Vehicle DISarmed");
                 }
-                last_request = ros::Time::now();
+                armed = false;
+                arming_client.call(arm_cmd);
             } 
-         //    else
-         //    { 
-         //    	if (mav_comms::current_state.armed && mav_comms::position_state.send) 
-	        //     {
-         //            ROS_INFO("[mav_comms] Sending postion");
-	        //         // keep sending position
-	                // geometry_msgs::PoseStamped point_to_pub;
-	                // point_to_pub.pose.position.x = mav_comms::position_state.x;
-	                // point_to_pub.pose.position.y = mav_comms::position_state.y;
-	                // point_to_pub.pose.position.z = mav_comms::position_state.z;
-	        //         local_pos_pub.publish(point_to_pub);
-         //            last_request = ros::Time::now();
-	        //     }
-	        // }
+            else
+            {
+                if(!armed)
+                {
+                    ROS_INFO("[mav_comms] Vehicle ARMED");
+                    armed = true;
+                }
+            }
         }
         ros::spinOnce();
         rate.sleep();
