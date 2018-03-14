@@ -6,32 +6,39 @@
 #include <ros/ros.h>
 #include <std_msgs/Empty.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/Point.h>
 #include <octomap/math/Vector3.h>
 
 #include <architecture_msgs/PositionRequest.h>
+#include <architecture_msgs/PositionMiddleMan.h>
 
 #include <frontiers_msgs/FrontierReply.h>
 #include <frontiers_msgs/FrontierRequest.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
+#include <frontiers_msgs/VoxelMsg.h>
 
 namespace state_manager_node
 {
-    
+    // TODO - transform this into parameters at some point
+    double const px4_loiter_radius = 0;   // TODO - checkout where this is set
+    double const odometry_error = 0;      // TODO - since it is simulation none
+    double error_margin = std::max(px4_loiter_radius, odometry_error);
     enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
     enum exploration_state_t {exploration_start, choosing_goal, generating_path, visit_waypoints, finished_exploring};
     struct StateData { 
-        int reply_seq_id; 
-        int request_count;
+        int reply_seq_id;       // id for the request in use
+        int request_count;      // generate id for new frontier requests
+        int sequence_progress;  // id of the waypoint that is currently the waypoint
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierReply frontiers_msg;
-        int sequence_progress;
     };  
 
     state_manager_node::StateData state_data;
     ros::Publisher target_position_pub;
     ros::Publisher frontier_request_pub;
     ros::ServiceClient frontier_status_client;
+    ros::ServiceClient current_position_client;
 
     void askForGoal(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)
     {
@@ -55,7 +62,6 @@ namespace state_manager_node
         ROS_INFO_STREAM("[State manager] switching to exploration_start");
     }
 
-
     void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg){
         if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
         {
@@ -70,6 +76,29 @@ namespace state_manager_node
         }
     }
 
+    bool is_in_target_position(geometry_msgs::Point const& target_waypoint, 
+        geometry_msgs::Point & current_position, double error_margin )
+    {
+        return std::abs(target_waypoint.x - current_position.x) <= error_margin
+            && std::abs(target_waypoint.y - current_position.y) <= error_margin
+            && std::abs(target_waypoint.z - current_position.z) <= error_margin;
+    }
+
+    void reached_waypoint_update(StateData & state_data)
+    {
+        if(state_data.frontiers_msg.frontiers_found == state_data.sequence_progress+1)
+        {
+            // Reached Frontier
+            state_data.sequence_progress = -1;
+            state_data.follow_path_state = finished_sequence;
+            state_data.exploration_state = exploration_start;
+            ROS_INFO_STREAM("[State manager] State now exploration_start && follow path switching to finished_sequence");
+        }
+        else {
+            // TODO - Move to the next waypoit
+            ROS_ERROR_STREAM("[State manager] TODO - Move to the next waypoit");
+        }
+    }
 
     bool is_goal_reached()
     {
@@ -91,6 +120,21 @@ namespace state_manager_node
             case on_route:
             {
                 // TODO figure out how to check if destination was reached
+                architecture_msgs::PositionMiddleMan srv;
+                if (current_position_client.call(srv))
+                {
+                    // compare target with postition allowing for error margin
+                    geometry_msgs::Point target_waypoint = state_data.frontiers_msg.frontiers[state_data.sequence_progress].xyz_m;
+                    geometry_msgs::Point current_position = srv.response.current_position;
+                    if( is_in_target_position(target_waypoint, current_position, error_margin) )
+                    {
+                        reached_waypoint_update(state_data);
+                    }
+                }
+                else
+                {
+                    ROS_WARN("[State manager] Frontier node not accepting requests.");
+                }
                 break;
             }
             case reached_waypoint:
@@ -169,11 +213,13 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "state_manager");
     ros::NodeHandle nh;
-
+    // Service client
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
-
+    state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
+    // Topic subscribers
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 10, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 10, state_manager_node::frontier_cb);
+    // Topic publishers
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
     state_manager_node::target_position_pub = nh.advertise<architecture_msgs::PositionRequest>("target_position", 10);
     

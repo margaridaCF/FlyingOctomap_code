@@ -18,6 +18,5 @@
   <depend>std_msgs</depend>
   <depend>architecture_msgs</depend>
   <depend>octomap_msgs</depend>
-  <depend>nav_msgs</depend>
 
 </package>

@@ -1,14 +1,15 @@
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
-#include <architecture_msgs/GetCurrentPosition.h>
+#include <geometry_msgs/Point.h>
+#include <architecture_msgs/PositionMiddleMan.h>
 
 namespace current_position_provider_node
 {
-	nav_msgs::Odometry current_position;
+	geometry_msgs::Point current_position;
 	bool current_position_init;
 
-	bool get_current_position(architecture_msgs::GetCurrentPosition::Request &req,
-		architecture_msgs::GetCurrentPosition::::Response &res)
+	bool get_current_position(architecture_msgs::PositionMiddleMan::Request &req,
+		architecture_msgs::PositionMiddleMan::Response &res)
 	{
 		if(current_position_init)
 		{
@@ -23,14 +24,14 @@ namespace current_position_provider_node
 
 	void ground_truth_cb(const nav_msgs::Odometry::ConstPtr& new_odometry )
 	{
-		current_position = *new_odometry;
+		current_position = new_odometry->pose.pose.position;
 		current_position_init = true;
 	}
 }
 
 int main(int argc, char **argv)
 {
-	current_position_init = false;
+	current_position_provider_node::current_position_init = false;
 	ros::init(argc, argv, "current_position_provider");
 	ros::NodeHandle nh;
 	ros::ServiceServer service = nh.advertiseService("get_current_position", current_position_provider_node::get_current_position);
