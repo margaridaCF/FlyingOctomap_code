@@ -63,7 +63,13 @@ namespace state_manager_node
     }
 
     void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg){
-        if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
+        if(msg->frontiers_found == 0)
+        {
+            // TODO - go back to base and land
+            ROS_INFO_STREAM("[State manager][Exploration] now finished_exploring");
+            state_data.exploration_state = finished_exploring;
+        }
+        else if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
         {
             state_data.reply_seq_id = msg->request_id;
             state_data.exploration_state = generating_path;
@@ -179,6 +185,7 @@ namespace state_manager_node
                 {
                     if((bool)srv.response.is_accepting_requests)
                     {
+                        // ROS_INFO_STREAM("[State manager] Asking for frontiers.");
                         askForGoal(state_data.request_count, geofence_min, geofence_max, frontier_request_pub);
                     }
                 }
@@ -212,6 +219,11 @@ namespace state_manager_node
                 }
                 break;
             }
+            default:
+            {
+                ROS_ERROR_STREAM("[State manager] Something went very wrong. State is unknown "<< state_data.exploration_state);
+                break;
+            }
         }
     }
 }
@@ -234,9 +246,9 @@ int main(int argc, char **argv)
     
     init_state_variables(state_manager_node::state_data);
     // TODO Lazy theta star topics
-    octomath::Vector3 geofence_min (0, 0, 0);
-    octomath::Vector3 geofence_max (2, 2, 2);
-    ros::Rate rate(2);
+    octomath::Vector3 geofence_min (1, 1, 1);
+    octomath::Vector3 geofence_max (3, 3, 3);
+    ros::Rate rate(0.5);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
         state_manager_node::update_state(geofence_min, geofence_max);
