@@ -14,11 +14,13 @@ namespace current_position_provider_node
 		if(current_position_init)
 		{
 			res.current_position = current_position;
-			return false;
+			// ROS_INFO_STREAM("[Position Middle Man] All good,sending position.");
+			return true;
 		}
 		else
 		{
-			return true;
+			// ROS_ERROR_STREAM("[Position Middle Man] No position received, please try later.");
+			return false;
 		}
 	}
 

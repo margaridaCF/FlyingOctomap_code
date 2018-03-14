@@ -20,7 +20,7 @@
 namespace state_manager_node
 {
     // TODO - transform this into parameters at some point
-    double const px4_loiter_radius = 0;   // TODO - checkout where this is set
+    double const px4_loiter_radius = 0.2;   // TODO - checkout where this is set
     double const odometry_error = 0;      // TODO - since it is simulation none
     double error_margin = std::max(px4_loiter_radius, odometry_error);
     enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
@@ -59,7 +59,7 @@ namespace state_manager_node
     void stop_cb(const std_msgs::Empty::ConstPtr& msg)
     {
         state_data.exploration_state = exploration_start;
-        ROS_INFO_STREAM("[State manager] switching to exploration_start");
+        ROS_INFO_STREAM("[State manager][Exploration] now exploration_start");
     }
 
     void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg){
@@ -68,7 +68,7 @@ namespace state_manager_node
             state_data.reply_seq_id = msg->request_id;
             state_data.exploration_state = generating_path;
             state_data.frontiers_msg = *msg;
-            ROS_INFO_STREAM("[State manager] switching to generating_path");
+            ROS_INFO_STREAM("[State manager][Exploration] now generating_path");
             ROS_INFO_STREAM("[Satate manager node] New frontier ("
                 <<state_data.frontiers_msg.frontiers[0].xyz_m.x << ", "
                 <<state_data.frontiers_msg.frontiers[0].xyz_m.y << ", "
@@ -79,6 +79,10 @@ namespace state_manager_node
     bool is_in_target_position(geometry_msgs::Point const& target_waypoint, 
         geometry_msgs::Point & current_position, double error_margin )
     {
+        ROS_INFO_STREAM("Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
+            << std::abs(target_waypoint.y - current_position.y) << ", "
+            << std::abs(target_waypoint.z - current_position.z) << ") ");
+
         return std::abs(target_waypoint.x - current_position.x) <= error_margin
             && std::abs(target_waypoint.y - current_position.y) <= error_margin
             && std::abs(target_waypoint.z - current_position.z) <= error_margin;
@@ -92,7 +96,8 @@ namespace state_manager_node
             state_data.sequence_progress = -1;
             state_data.follow_path_state = finished_sequence;
             state_data.exploration_state = exploration_start;
-            ROS_INFO_STREAM("[State manager] State now exploration_start && follow path switching to finished_sequence");
+            ROS_INFO_STREAM("[State manager][Exploration] now exploration_start");
+            ROS_INFO_STREAM("[State manager]            [Path follow] now  finished_sequence");
         }
         else {
             // TODO - Move to the next waypoit
@@ -114,14 +119,15 @@ namespace state_manager_node
                 position_request.position.z = state_data.frontiers_msg.frontiers[state_data.sequence_progress].xyz_m.z;
                 target_position_pub.publish(position_request);
                 state_data.follow_path_state = on_route;
-                ROS_INFO_STREAM("[State manager] Switching path follow state to on_route");
+                ROS_INFO_STREAM("[State manager]            [Path follow] now on_route to " << position_request.position);
                 break;
             }
             case on_route:
             {
+                // ROS_INFO_STREAM("[State manager] Service PositionMiddleMan is available? " << current_position_client.exists());
                 // TODO figure out how to check if destination was reached
                 architecture_msgs::PositionMiddleMan srv;
-                if (current_position_client.call(srv))
+                if(current_position_client.call(srv))
                 {
                     // compare target with postition allowing for error margin
                     geometry_msgs::Point target_waypoint = state_data.frontiers_msg.frontiers[state_data.sequence_progress].xyz_m;
@@ -140,7 +146,7 @@ namespace state_manager_node
             case reached_waypoint:
             {    // TODO - no sequence for the moment so the sequence is finished
                 state_data.follow_path_state = finished_sequence;
-                ROS_INFO_STREAM("[State manager] Switching path follow state to finished_sequence");
+                ROS_INFO_STREAM("[State manager]            [Path follow] now finished_sequence");
                 break;
             }
             case finished_sequence:
@@ -158,7 +164,8 @@ namespace state_manager_node
         state_data.request_count = 0;
         state_data.exploration_state = exploration_start;
         state_data.follow_path_state = init;
-        ROS_INFO_STREAM("[State manager] Initializing state to exploration_start and follow path state to init");
+        ROS_INFO_STREAM("[State manager][Exploration] now exploration_start");
+        ROS_INFO_STREAM("[State manager]            [Path follow] now init");
     }
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
@@ -185,7 +192,7 @@ namespace state_manager_node
             {
                 // TODO Pick one - this is currently being done as soon as the frontiers arrive
                 state_data.exploration_state = generating_path;
-                ROS_INFO_STREAM("[State manager] Switching to generating_path");
+                ROS_INFO_STREAM("[State manager][Exploration] now generating_path");
                 break;
             }
             case generating_path:
@@ -193,7 +200,7 @@ namespace state_manager_node
                 // TODO Lazy Theta Star - just assume no obstacles
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
-                ROS_INFO_STREAM("[State manager] Switching to visit_waypoints and follow path state to init");
+                ROS_INFO_STREAM("[State manager][Exploration] now visit_waypoints and follow path state to init");
                 break;
             }
             case visit_waypoints:
@@ -201,7 +208,7 @@ namespace state_manager_node
                 if (is_goal_reached())
                 {
                     state_data.exploration_state = exploration_start;
-                    ROS_INFO_STREAM("[State manager] switching to exploration_start");
+                    ROS_INFO_STREAM("[State manager][Exploration] now exploration_start");
                 }
                 break;
             }
