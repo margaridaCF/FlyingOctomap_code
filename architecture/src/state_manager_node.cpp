@@ -361,8 +361,8 @@ int main(int argc, char **argv)
     
     init_state_variables(state_manager_node::state_data);
     // TODO Lazy theta star topics
-    octomath::Vector3 geofence_min (-3, -3, 1);
-    octomath::Vector3 geofence_max (3, 3, 10);
+    octomath::Vector3 geofence_min (-30, -30, 1);
+    octomath::Vector3 geofence_max (30, 30, 10);
     ros::Rate rate(0.5);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
