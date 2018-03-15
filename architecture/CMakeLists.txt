@@ -37,6 +37,9 @@ target_link_libraries(mav_comms_node)
 cs_add_executable(state_manager_node src/state_manager_node.cpp)
 target_link_libraries(state_manager_node)
 
+cs_add_executable(current_position_provider_node src/current_position_provider_node.cpp)
+target_link_libraries(current_position_provider_node)
+
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
 cs_export()

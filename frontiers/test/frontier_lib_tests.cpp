@@ -4,35 +4,7 @@
 
 namespace Frontiers
 {
-	bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate)
-	{
-		bool is_frontier = isExplored(candidate, octree);
-		is_frontier = !isOccupied(candidate, octree);
-		// ToDo test neighbors
-		std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-		double resolution = octree.getResolution();
-		int tree_depth = octree.getTreeDepth();
-		octomap::OcTreeKey key = octree.coordToKey(candidate);
-		int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, octree);
-		double voxel_size = ((tree_depth + 1) - depth) * resolution;
-        LazyThetaStarOctree::generateNeighbors_pointers(neighbors, candidate, voxel_size, resolution);
-        bool hasUnExploredNeighbors = false;
-        for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
-        {
-            if(!isOccupied(*n_coordinates, octree))
-            {
-                hasUnExploredNeighbors = !isExplored(*n_coordinates, octree) || hasUnExploredNeighbors;
-            }
-        }
-        if(hasUnExploredNeighbors)
-        {
-            return true;
-        }
-        else
-        {
-			return false;
-        }
-	}
+	
 
 
 	// experimentalDataset.bt
@@ -140,6 +112,15 @@ namespace Frontiers
 		bool outcome = processFrontiersRequest(octree, request, reply);
 		ASSERT_EQ(reply.frontiers_found, 0 );
 		checkFrontiers(octree, request, reply); 
+	}
+
+
+	TEST(FrontiersTest, Test_is_frontiers_on_unknown)
+	{
+		octomap::OcTree octree ("data/experimentalDataset.bt");
+
+		ASSERT_TRUE(   isFrontier( octree, octomath::Vector3 (0, 1, 1.85) )   );
+		ASSERT_FALSE(   isFrontier( octree, octomath::Vector3 (1.50, 0.5, 0) )   );
 	}
 }
 

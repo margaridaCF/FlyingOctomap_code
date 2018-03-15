@@ -37,6 +37,7 @@
     <depend>path_planning</depend>
     <depend>octomap_msgs</depend>
     <depend>octomap_ros</depend>
+    <depend>visualization_msgs</depend>
     <build_depend>catkin_simple</build_depend> 
   <!--   Note that this is equivalent to the following: -->
   <!--   <build_depend>roscpp</build_depend> -->
