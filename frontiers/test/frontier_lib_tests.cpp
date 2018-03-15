@@ -113,6 +113,15 @@ namespace Frontiers
 		ASSERT_EQ(reply.frontiers_found, 0 );
 		checkFrontiers(octree, request, reply); 
 	}
+
+
+	TEST(FrontiersTest, Test_is_frontiers_on_unknown)
+	{
+		octomap::OcTree octree ("data/experimentalDataset.bt");
+
+		ASSERT_TRUE(   isFrontier( octree, octomath::Vector3 (0, 1, 1.85) )   );
+		ASSERT_FALSE(   isFrontier( octree, octomath::Vector3 (1.50, 0.5, 0) )   );
+	}
 }
 
 int main(int argc, char **argv){
