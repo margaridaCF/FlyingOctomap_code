@@ -23,8 +23,9 @@ namespace state_manager_node
     double const px4_loiter_radius = 0.2;   // TODO - checkout where this is set
     double const odometry_error = 0;      // TODO - since it is simulation none
     double error_margin = std::max(px4_loiter_radius, odometry_error);
+    double safety_margin = 1.5;
     enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
-    enum exploration_state_t {exploration_start, choosing_goal, generating_path, visit_waypoints, finished_exploring};
+    enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, visit_waypoints, finished_exploring};
     struct StateData { 
         int reply_seq_id;       // id for the request in use
         int request_count;      // generate id for new frontier requests
@@ -145,7 +146,7 @@ namespace state_manager_node
                 }
                 else
                 {
-                    ROS_WARN("[State manager] Frontier node not accepting requests.");
+                    ROS_WARN("[State manager] Current position middle man node not accepting requests.");
                 }
                 break;
             }
@@ -168,9 +169,9 @@ namespace state_manager_node
     void init_state_variables(state_manager_node::StateData& state_data)
     {
         state_data.request_count = 0;
-        state_data.exploration_state = exploration_start;
+        state_data.exploration_state = clear_from_ground;
         state_data.follow_path_state = init;
-        ROS_INFO_STREAM("[State manager][Exploration] now exploration_start");
+        ROS_INFO_STREAM("[State manager][Exploration] now clear_from_ground");
         ROS_INFO_STREAM("[State manager]            [Path follow] now init");
     }
 
@@ -178,6 +179,34 @@ namespace state_manager_node
     {
         switch(state_data.exploration_state)
         {
+            case clear_from_ground:
+            {
+                // Find current position
+                architecture_msgs::PositionMiddleMan srv;
+                if(current_position_client.call(srv))
+                {
+                    geometry_msgs::Point current_position = srv.response.current_position;
+                    state_data.reply_seq_id = -1;
+
+                    frontiers_msgs::VoxelMsg voxel_msg;
+                    voxel_msg.xyz_m.x = current_position.x;
+                    voxel_msg.xyz_m.y = current_position.y;
+                    voxel_msg.xyz_m.z = current_position.z + safety_margin;
+                    voxel_msg.size = -1;
+                    state_data.frontiers_msg.frontiers.push_back(voxel_msg);
+                    state_data.frontiers_msg.frontiers_found = 1;
+                    state_data.exploration_state = visit_waypoints;
+                    state_data.follow_path_state = init;
+                    ROS_INFO_STREAM("[State manager][Exploration] now visit_waypoints");
+                    ROS_INFO_STREAM("[State manager]            [Follow path] now init");
+                }
+                else
+                {
+                    ROS_WARN("[State manager] Current position middle man node not accepting requests.");
+                }
+
+                break;
+            }
             case exploration_start:
             {
                 frontiers_msgs::FrontierNodeStatus srv;
@@ -207,7 +236,8 @@ namespace state_manager_node
                 // TODO Lazy Theta Star - just assume no obstacles
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
-                ROS_INFO_STREAM("[State manager][Exploration] now visit_waypoints and follow path state to init");
+                ROS_INFO_STREAM("[State manager][Exploration] now visit_waypoints");
+                ROS_INFO_STREAM("[State manager]            [Follow path] now init");
                 break;
             }
             case visit_waypoints:
@@ -246,8 +276,8 @@ int main(int argc, char **argv)
     
     init_state_variables(state_manager_node::state_data);
     // TODO Lazy theta star topics
-    octomath::Vector3 geofence_min (1, 1, 1);
-    octomath::Vector3 geofence_max (3, 3, 3);
+    octomath::Vector3 geofence_min (-3, -3, 1);
+    octomath::Vector3 geofence_max (3, 3, 10);
     ros::Rate rate(0.5);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
