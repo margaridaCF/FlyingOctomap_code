@@ -79,7 +79,6 @@ namespace Frontiers{
 
     bool isOccupied(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree);
     bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree);
-
-
+    bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate);
 }
 #endif // FRONTIERS_H

@@ -4,6 +4,9 @@
 #include <octomap_msgs/Octomap.h>
 #include <octomap_msgs/conversions.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
+#include <frontiers_msgs/CheckIsFrontier.h>
+
+#include <geometry_msgs/Point.h>
 
 namespace frontiers_async_node
 {
@@ -16,6 +19,14 @@ namespace frontiers_async_node
 	{
 		res.is_accepting_requests = octomap_init;
 	  	return true;
+	}
+
+	bool check_frontier(frontiers_msgs::CheckIsFrontier::Request  &req,
+		frontiers_msgs::CheckIsFrontier::Response &res)
+	{
+		octomath::Vector3 candidate(req.candidate.x, req.candidate.y, req.candidate.z);
+		res.is_frontier = Frontiers::isFrontier(*octree, candidate);
+		return true;
 	}
 
 	void frontier_callback(const frontiers_msgs::FrontierRequest::ConstPtr& frontier_request)
@@ -45,7 +56,8 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "frontier_node_async");
 	ros::NodeHandle nh;
-	ros::ServiceServer service = nh.advertiseService("frontier_status", frontiers_async_node::check_status);
+	ros::ServiceServer frontier_status_service = nh.advertiseService("frontier_status", frontiers_async_node::check_status);
+	ros::ServiceServer is_frontier_service = nh.advertiseService("is_frontier", frontiers_async_node::check_frontier);
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, frontiers_async_node::octomap_callback);
 	ros::Subscriber frontiers_sub = nh.subscribe<frontiers_msgs::FrontierRequest>("frontiers_request", 10, frontiers_async_node::frontier_callback);
 	frontiers_async_node::local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_reply", 10);
