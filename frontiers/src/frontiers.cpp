@@ -111,8 +111,19 @@ namespace Frontiers{
 
     bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate)
     {
-        bool is_frontier = isExplored(candidate, octree);
-        is_frontier = !isOccupied(candidate, octree);
+        ROS_WARN_STREAM("[fronties] For candidate " << candidate);
+        bool is_explored = isExplored(candidate, octree);
+        if(!is_explored)
+        {
+            ROS_WARN_STREAM("[fronties]   not explored.");
+            return false;
+        }
+        bool is_occupied = isOccupied(candidate, octree);
+        if(is_occupied)
+        {
+            ROS_WARN_STREAM("[fronties]   is occupied.");
+            return false;
+        }
         std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
         double resolution = octree.getResolution();
         int tree_depth = octree.getTreeDepth();
@@ -126,14 +137,20 @@ namespace Frontiers{
             if(!isOccupied(*n_coordinates, octree))
             {
                 hasUnExploredNeighbors = !isExplored(*n_coordinates, octree) || hasUnExploredNeighbors;
+                if(!isExplored(*n_coordinates, octree))
+                {
+                    ROS_WARN_STREAM("[fronties]   Unknown neighbors: (" << n_coordinates->x() << "," << n_coordinates->y() << " ," << n_coordinates->z() << " )");
+                }
             }
         }
         if(hasUnExploredNeighbors)
         {
+            ROS_WARN_STREAM("[fronties]   still has unknown neighbors.");
             return true;
         }
         else
         {
+            ROS_WARN_STREAM("[fronties]   no unknown neighbors.");
             return false;
         }
     }
