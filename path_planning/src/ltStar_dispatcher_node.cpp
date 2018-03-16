@@ -199,7 +199,7 @@ namespace LazyThetaStarOctree{
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "listener");
+  ros::init(argc, argv, "lazy_theta_star");
   ros::NodeHandle nh;
 
   // Init

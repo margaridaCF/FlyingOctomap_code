@@ -14,8 +14,9 @@
   <depend>octomap_msgs</depend>
   <depend>octomap_ros</depend>
   <depend>std_msgs</depend>
+  <depend>path_planning_msgs</depend>
 
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
+  <!-- <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend> -->
 
 </package>
