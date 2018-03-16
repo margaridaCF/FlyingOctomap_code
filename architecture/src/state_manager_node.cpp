@@ -51,7 +51,7 @@ namespace state_manager_node
     ros::ServiceClient current_position_client;
 
     // TODO - transform this into parameters at some point
-    double const px4_loiter_radius = 0.2;   // TODO - checkout where this is set
+    double const px4_loiter_radius = 0.5;   // TODO - checkout where this is set
     double const odometry_error = 0;      // TODO - since it is simulation none
     double error_margin = std::max(px4_loiter_radius, odometry_error);
     double safety_margin = 1.5;
@@ -138,7 +138,7 @@ namespace state_manager_node
                 state_data.ltstar_msg = *msg;
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
-                state_data.sequence_progress = 0;
+                state_data.sequence_progress = 1;
                 ROS_INFO_STREAM("[State manager][Exploration] visit_waypoints");
                 ROS_INFO_STREAM("[State manager]            [Follow path] init");
             }
@@ -173,7 +173,9 @@ namespace state_manager_node
     bool is_in_target_position(geometry_msgs::Point const& target_waypoint, 
         geometry_msgs::Point & current_position, double error_margin )
     {
-        ROS_INFO_STREAM("Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
+        // ROS_INFO_STREAM("[State manager] Target position " << target_waypoint );
+        // ROS_INFO_STREAM("[State manager] Current position " << current_position );
+        ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
             << std::abs(target_waypoint.y - current_position.y) << ", "
             << std::abs(target_waypoint.z - current_position.z) << ") ");
 
@@ -192,9 +194,10 @@ namespace state_manager_node
             ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence A");
         }
         else {
-            ROS_INFO_STREAM("[State manager]  state_data.ltstar_msg " << state_data.ltstar_msg);
+            state_data.sequence_progress++;
+            // ROS_INFO_STREAM("[State manager]  state_data.ltstar_msg " << state_data.ltstar_msg);
             // TODO - Move to the next waypoit
-            ROS_ERROR_STREAM("[State manager] TODO - Move to the next waypoit");
+            ROS_ERROR_STREAM("[State manager] Move to waypoit " << state_data.sequence_progress << " = " << get_current_position());
         }
     }
 
@@ -204,7 +207,7 @@ namespace state_manager_node
         {
             case init:
             {
-                state_data.sequence_progress = 0;
+            //     state_data.sequence_progress = 0;
                 architecture_msgs::PositionRequest position_request;
                 position_request.waypoint_sequence_id = state_data.reply_seq_id;
                 position_request.position = get_current_frontier();
@@ -264,7 +267,7 @@ namespace state_manager_node
             {
                 // This frontier hasn't been explored yet. Let's pick this one
                 state_data.reply_seq_id = state_data.frontiers_msg.request_id;
-                state_data.sequence_progress = 0;
+                state_data.sequence_progress = -1;
                 state_data.frontier_id = i;
                 ROS_INFO_STREAM("[Satate manager node] New frontier ("
                     <<get_current_frontier().x << ", "
@@ -302,7 +305,7 @@ namespace state_manager_node
                     frontiers_msgs::VoxelMsg voxel_msg;
                     voxel_msg.xyz_m.x = current_position.x;
                     voxel_msg.xyz_m.y = current_position.y;
-                    voxel_msg.xyz_m.z = current_position.z + safety_margin;
+                    voxel_msg.xyz_m.z = current_position.z + 10;
                     voxel_msg.size = -1;
                     state_data.frontiers_msg.frontiers.push_back(voxel_msg);
                     state_data.ltstar_msg.waypoint_amount = 1;
