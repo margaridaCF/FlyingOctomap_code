@@ -257,6 +257,18 @@ namespace LazyThetaStarOctree{
 
 	}
 
+	bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree)
+    {
+        octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());
+        if(result == NULL){
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
 	// TODO what about a database like SQLite? Since there is the need for two data structures for open 
 	// TODO 	(one ordered by heuristics and another to access by coordintades) and closed manages the same objects
 	// TODO		And also would solve the problem of ownership of objects
@@ -283,6 +295,20 @@ namespace LazyThetaStarOctree{
 		int const& max_search_iterations,
 		bool print_resulting_path)
 	{
+		std::list<octomath::Vector3> path;
+
+		if (!isExplored(disc_initial, octree))
+		{
+			ROS_ERROR_STREAM("[LTStar] Start " << disc_initial << " is unknown.");
+			return path;	
+		} 
+		if (!isExplored(disc_final, octree))
+		{
+			ROS_ERROR_STREAM("[LTStar] Goal " << disc_final << " is unknown.");
+			return path;	
+		} 
+		
+
 		// GOAL
 		// Init initial and final nodes to have the coordinates of respective cell centers
 		double cell_size_goal = -1;
@@ -425,7 +451,6 @@ namespace LazyThetaStarOctree{
 		resultSet.iterations_used = used_search_iterations;
 		// ROS_WARN_STREAM("Used "<< used_search_iterations << " iterations to find path");
 		// ln 18 return "no path found";
-		std::list<octomath::Vector3> path;
 		if(!solution_found)
 		{
 			// ROS_ERROR_STREAM("No solution found. Giving empty path.");
