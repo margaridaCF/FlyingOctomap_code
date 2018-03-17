@@ -73,14 +73,9 @@ namespace state_manager_node
     state_manager_node::StateData state_data;
 
     // TODO when thre is generation of path these two will be different
-    geometry_msgs::Point& get_current_position()
+    geometry_msgs::Point& get_current_waypoint()
     {
-        // if(state_data.sequence_progress == -1)
-        // {
-        //     ROS_ERROR_STREAM("[State manager] Calling get_current_position, state_data.sequence_progress is " << state_data.sequence_progress);
-        // }
-        // return state_data.ltstar_msg.waypoints[state_data.sequence_progress];
-        return state_data.frontiers_msg.frontiers[state_data.sequence_progress].xyz_m;
+        return state_data.ltstar_msg.waypoints[state_data.sequence_progress];
     }
 
     geometry_msgs::Point get_current_frontier()
@@ -92,8 +87,9 @@ namespace state_manager_node
     {
         architecture_msgs::PositionRequest position_request;
         position_request.waypoint_sequence_id = state_data.reply_seq_id;
-        position_request.position = get_current_position();
+        position_request.position = get_current_waypoint();
         target_position_pub.publish(position_request);
+        ROS_INFO_STREAM("[State manager] Requesting position " << state_data.sequence_progress << " = " << get_current_waypoint());
     }
 
     void askForObstacleAvoidingPath(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& ltstar_request_pub)
@@ -192,21 +188,18 @@ namespace state_manager_node
             && std::abs(target_waypoint.z - current_position.z) <= error_margin;
     }
 
-    void switch_to_finished_sequence()
+    void updateStateUponWaypointArrival()
     {
         if(state_data.ltstar_msg.waypoint_amount == state_data.sequence_progress+1)
         {
             // Reached Frontier
             state_data.sequence_progress = -1;
             state_data.follow_path_state = finished_sequence;
-            ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence A");
+            ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence");
         }
         else {
             state_data.sequence_progress++;
             requestingPostionOfCurrentWaypointSequence();
-            // ROS_INFO_STREAM("[State manager]  state_data.ltstar_msg " << state_data.ltstar_msg);
-            // TODO - Move to the next waypoit
-            ROS_ERROR_STREAM("[State manager] Move to waypoit " << state_data.sequence_progress << " = " << get_current_position());
         }
     }
 
@@ -233,7 +226,7 @@ namespace state_manager_node
             {
                 requestingPostionOfCurrentWaypointSequence();
                 state_data.follow_path_state = on_route;
-                ROS_INFO_STREAM("[State manager]            [Path follow] on_route to " << get_current_position());
+                ROS_INFO_STREAM("[State manager]            [Path follow] on_route to " << get_current_waypoint());
                 break;
             }
             case on_route:
@@ -244,10 +237,10 @@ namespace state_manager_node
                 {
                     // compare target with postition allowing for error margin
                     geometry_msgs::Point target_waypoint;
-                    target_waypoint = get_current_position();
+                    target_waypoint = get_current_waypoint();
                     if( is_in_target_position(target_waypoint, current_position, error_margin) )
                     {
-                        switch_to_finished_sequence();
+                        updateStateUponWaypointArrival();
                     }
                 }
                 break;
@@ -309,23 +302,22 @@ namespace state_manager_node
                 {
                     geometry_msgs::Point current_position = srv.response.current_position;
                     state_data.reply_seq_id = -1;
-
-                    frontiers_msgs::VoxelMsg voxel_msg;
-                    voxel_msg.xyz_m.x = current_position.x;
-                    voxel_msg.xyz_m.y = current_position.y;
-                    voxel_msg.xyz_m.z = current_position.z + 10;
-                    voxel_msg.size = -1;
-                    state_data.frontiers_msg.frontiers.push_back(voxel_msg);
-                    voxel_msg.xyz_m.x = current_position.x;
-                    voxel_msg.xyz_m.y = current_position.y;
-                    voxel_msg.xyz_m.z = 2;
-                    voxel_msg.size = -1;
-                    state_data.frontiers_msg.frontiers.push_back(voxel_msg);
-                    state_data.ltstar_msg.waypoint_amount = 2;
                     state_data.sequence_progress = 0;
-                    state_data.frontiers_msg.frontiers_found = 1;
                     state_data.exploration_state = visit_waypoints;
                     state_data.follow_path_state = init;
+
+                    geometry_msgs::Point waypoint;
+                    waypoint.x = current_position.x;
+                    waypoint.y = current_position.y;
+                    waypoint.z = current_position.z + 5;
+                    state_data.ltstar_msg.waypoints.push_back(waypoint);
+                    waypoint.x = current_position.x;
+                    waypoint.y = current_position.y;
+                    waypoint.z = 2;
+                    state_data.ltstar_msg.waypoints.push_back(waypoint);
+                    state_data.frontiers_msg.frontiers_found = 1;
+                    
+                    state_data.ltstar_msg.waypoint_amount = 2;
                     ROS_INFO_STREAM("[State manager][Exploration] visit_waypoints");
                     ROS_INFO_STREAM("[State manager]            [Follow path] init");
                 }
@@ -397,7 +389,9 @@ namespace state_manager_node
                 updateWaypointSequenceStateMachine();
                 if (state_data.follow_path_state == finished_sequence)
                 {
-                    ROS_INFO_STREAM("[State manager] Reached frontier to explore: " << get_current_frontier());
+                    // ROS_INFO_STREAM("[State manager] Reached frontier to explore: " << get_current_frontier());
+                    ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.sequence_progress << ") of sequence " << state_data.reply_seq_id << ": " << get_current_waypoint());
+
 
                     // Check if the frontier was observerd
                     // geometry_msgs::Point current_position;
@@ -441,7 +435,7 @@ int main(int argc, char **argv)
     state_manager_node::ltstar_status_cliente = nh.serviceClient<path_planning_msgs::LTStarNodeStatus>("ltstar_status");
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
-    state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
+    state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_waypoint");
     // Topic subscribers
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 5, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
