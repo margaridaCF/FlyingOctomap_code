@@ -179,10 +179,10 @@ namespace state_manager_node
     {
         // ROS_INFO_STREAM("[State manager] Target position " << target_waypoint );
         // ROS_INFO_STREAM("[State manager] Current position " << current_position );
-        ROS_INFO_STREAM("[State manager] Position offset");
-        ROS_INFO_STREAM("[State manager] Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
-        ROS_INFO_STREAM("[State manager]  Target (" << target_waypoint.x << ", " << target_waypoint.y << ", " << target_waypoint.z << ");");
-        ROS_INFO_STREAM("[State manager]      == (" << std::abs(target_waypoint.x - current_position.x) << ", "
+        // ROS_INFO_STREAM("[State manager] 3 Position offset");
+        // ROS_INFO_STREAM("[State manager] Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
+        // ROS_INFO_STREAM("[State manager]  Target (" << target_waypoint.x << ", " << target_waypoint.y << ", " << target_waypoint.z << ");");
+        ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
             << std::abs(target_waypoint.y - current_position.y) << ", "
             << std::abs(target_waypoint.z - current_position.z) << ") ");
 
@@ -196,6 +196,7 @@ namespace state_manager_node
         if(state_data.ltstar_msg.waypoint_amount == state_data.sequence_progress+1)
         {
             // Reached Frontier
+            ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.sequence_progress << ") of sequence " << state_data.reply_seq_id << ": " << get_current_waypoint());
             state_data.sequence_progress = -1;
             state_data.follow_path_state = finished_sequence;
             ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence");
@@ -212,6 +213,8 @@ namespace state_manager_node
         if(current_position_client.call(srv))
         {
             current_position = srv.response.current_position;
+
+            // ROS_INFO_STREAM("[State manager] 1 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
             return true;
         }
         else
@@ -238,8 +241,8 @@ namespace state_manager_node
                 geometry_msgs::Point current_position;
                 if(getUavPositionServiceCall(current_position))
                 {
-                    // compare target with postition allowing for error margin
-                    geometry_msgs::Point current_position = current_position; 
+                    // compare target with postition allowing for error margin 
+                    // ROS_INFO_STREAM("[State manager] 2 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
                     geometry_msgs::Point target_waypoint;
                     target_waypoint = get_current_waypoint();
                     if( is_in_target_position(target_waypoint, current_position, error_margin) )
@@ -249,12 +252,12 @@ namespace state_manager_node
                 }
                 break;
             }
-            case reached_waypoint:
-            {    // TODO - no sequence for the moment so the sequence is finished
-                state_data.follow_path_state = finished_sequence;
-                ROS_ERROR_STREAM("[State manager]            [Path follow] finished_sequence");
-                break;
-            }
+            // case reached_waypoint:
+            // {    // TODO - no sequence for the moment so the sequence is finished
+            //     state_data.follow_path_state = finished_sequence;
+            //     ROS_ERROR_STREAM("[State manager]            [Path follow] finished_sequence");
+            //     break;
+            // }
         }
     }
 
@@ -389,7 +392,6 @@ namespace state_manager_node
                 if (state_data.follow_path_state == finished_sequence)
                 {
                     // ROS_INFO_STREAM("[State manager] Reached frontier to explore: " << get_current_frontier());
-                    ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.sequence_progress << ") of sequence " << state_data.reply_seq_id << ": " << get_current_waypoint());
 
 
                     // Check if the frontier was observerd
