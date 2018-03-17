@@ -77,7 +77,7 @@
         <param name="frame_id" type="string" value="map" />   
         <remap from="cloud_in" to="/velodyne_points" />
         <param name="latch" value="false" />
-        <param name="resolution" value="0.5" />
+        <param name="resolution" value="1" />
         <param name="pointcloud_min" value="0"/>
         <param name="pointcloud_max" value="2"/>
         <param name="occupancy_min" value="0.5"/>
