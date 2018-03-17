@@ -179,7 +179,10 @@ namespace state_manager_node
     {
         // ROS_INFO_STREAM("[State manager] Target position " << target_waypoint );
         // ROS_INFO_STREAM("[State manager] Current position " << current_position );
-        ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
+        ROS_INFO_STREAM("[State manager] Position offset");
+        ROS_INFO_STREAM("[State manager] Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
+        ROS_INFO_STREAM("[State manager]  Target (" << target_waypoint.x << ", " << target_waypoint.y << ", " << target_waypoint.z << ");");
+        ROS_INFO_STREAM("[State manager]      == (" << std::abs(target_waypoint.x - current_position.x) << ", "
             << std::abs(target_waypoint.y - current_position.y) << ", "
             << std::abs(target_waypoint.z - current_position.z) << ") ");
 
@@ -213,6 +216,7 @@ namespace state_manager_node
         }
         else
         {
+            ROS_WARN("[State manager] Current position middle man node not accepting requests.");
             return false;
         }
     }
@@ -232,10 +236,10 @@ namespace state_manager_node
             case on_route:
             {
                 geometry_msgs::Point current_position;
-                bool service_call_successfull = getUavPositionServiceCall(current_position);
-                if(service_call_successfull)
+                if(getUavPositionServiceCall(current_position))
                 {
                     // compare target with postition allowing for error margin
+                    geometry_msgs::Point current_position = current_position; 
                     geometry_msgs::Point target_waypoint;
                     target_waypoint = get_current_waypoint();
                     if( is_in_target_position(target_waypoint, current_position, error_margin) )
@@ -285,9 +289,7 @@ namespace state_manager_node
     {
         state_data.request_count = 0;
         state_data.exploration_state = clear_from_ground;
-        state_data.follow_path_state = init;
         ROS_INFO_STREAM("[State manager][Exploration] clear_from_ground");
-        ROS_INFO_STREAM("[State manager]            [Path follow] init");
     }
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
@@ -297,10 +299,12 @@ namespace state_manager_node
             case clear_from_ground:
             {
                 // Find current position
-                architecture_msgs::PositionMiddleMan srv;
-                if(current_position_client.call(srv))
+                // architecture_msgs::PositionMiddleMan srv;
+                // if(current_position_client.call(srv))
+                geometry_msgs::Point current_position;
+                if(getUavPositionServiceCall(current_position))
                 {
-                    geometry_msgs::Point current_position = srv.response.current_position;
+                    // geometry_msgs::Point current_position = srv.response.current_position;
                     state_data.reply_seq_id = -1;
                     state_data.sequence_progress = 0;
                     state_data.exploration_state = visit_waypoints;
@@ -320,10 +324,6 @@ namespace state_manager_node
                     state_data.ltstar_msg.waypoint_amount = 2;
                     ROS_INFO_STREAM("[State manager][Exploration] visit_waypoints");
                     ROS_INFO_STREAM("[State manager]            [Follow path] init");
-                }
-                else
-                {
-                    ROS_WARN("[State manager] Current position middle man node not accepting requests.");
                 }
 
                 break;
@@ -369,8 +369,7 @@ namespace state_manager_node
                     if((bool)srv.response.is_accepting_requests)
                     {
                         geometry_msgs::Point current_position;
-                        bool service_call_successfull = getUavPositionServiceCall(current_position);
-                        if(service_call_successfull)
+                        if(getUavPositionServiceCall(current_position))
                         {
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 goal (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
@@ -435,7 +434,7 @@ int main(int argc, char **argv)
     state_manager_node::ltstar_status_cliente = nh.serviceClient<path_planning_msgs::LTStarNodeStatus>("ltstar_status");
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
-    state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_waypoint");
+    state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
     // Topic subscribers
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 5, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
