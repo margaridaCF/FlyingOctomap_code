@@ -88,6 +88,14 @@ namespace state_manager_node
         return state_data.frontiers_msg.frontiers[state_data.frontier_id].xyz_m;
     }
 
+    void requestingPostionOfCurrentWaypointSequence()
+    {
+        architecture_msgs::PositionRequest position_request;
+        position_request.waypoint_sequence_id = state_data.reply_seq_id;
+        position_request.position = get_current_position();
+        target_position_pub.publish(position_request);
+    }
+
     void askForObstacleAvoidingPath(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& ltstar_request_pub)
     {
         path_planning_msgs::LTStarRequest request;
@@ -195,62 +203,62 @@ namespace state_manager_node
         }
         else {
             state_data.sequence_progress++;
+            requestingPostionOfCurrentWaypointSequence();
             // ROS_INFO_STREAM("[State manager]  state_data.ltstar_msg " << state_data.ltstar_msg);
             // TODO - Move to the next waypoit
             ROS_ERROR_STREAM("[State manager] Move to waypoit " << state_data.sequence_progress << " = " << get_current_position());
         }
     }
 
-    bool followWaypointSequenceStateMachine()
+    bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
+    {
+        architecture_msgs::PositionMiddleMan srv;
+        if(current_position_client.call(srv))
+        {
+            current_position = srv.response.current_position;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
+    bool updateWaypointSequenceStateMachine()
     {
         switch(state_data.follow_path_state)
         {
             case init:
             {
-            //     state_data.sequence_progress = 0;
-                architecture_msgs::PositionRequest position_request;
-                position_request.waypoint_sequence_id = state_data.reply_seq_id;
-                position_request.position = get_current_frontier();
-                target_position_pub.publish(position_request);
+                requestingPostionOfCurrentWaypointSequence();
                 state_data.follow_path_state = on_route;
-                ROS_INFO_STREAM("[State manager]            [Path follow] on_route to " << position_request.position);
+                ROS_INFO_STREAM("[State manager]            [Path follow] on_route to " << get_current_position());
                 break;
             }
             case on_route:
             {
-                // ROS_INFO_STREAM("[State manager] Service PositionMiddleMan is available? " << current_position_client.exists());
-                // TODO figure out how to check if destination was reached
-                architecture_msgs::PositionMiddleMan srv;
-                if(current_position_client.call(srv))
+                geometry_msgs::Point current_position;
+                bool service_call_successfull = getUavPositionServiceCall(current_position);
+                if(service_call_successfull)
                 {
                     // compare target with postition allowing for error margin
                     geometry_msgs::Point target_waypoint;
                     target_waypoint = get_current_position();
-                    geometry_msgs::Point current_position = srv.response.current_position;
                     if( is_in_target_position(target_waypoint, current_position, error_margin) )
                     {
                         switch_to_finished_sequence();
                     }
-                }
-                else
-                {
-                    ROS_WARN("[State manager] Current position middle man node not accepting requests.");
                 }
                 break;
             }
             case reached_waypoint:
             {    // TODO - no sequence for the moment so the sequence is finished
                 state_data.follow_path_state = finished_sequence;
-                ROS_INFO_STREAM("[State manager]            [Path follow] finished_sequence");
-                break;
-            }
-            case finished_sequence:
-            {
-                return true;
+                ROS_ERROR_STREAM("[State manager]            [Path follow] finished_sequence");
                 break;
             }
         }
-        return false;
     }
 
     bool chooseFrontier()
@@ -308,7 +316,12 @@ namespace state_manager_node
                     voxel_msg.xyz_m.z = current_position.z + 10;
                     voxel_msg.size = -1;
                     state_data.frontiers_msg.frontiers.push_back(voxel_msg);
-                    state_data.ltstar_msg.waypoint_amount = 1;
+                    voxel_msg.xyz_m.x = current_position.x;
+                    voxel_msg.xyz_m.y = current_position.y;
+                    voxel_msg.xyz_m.z = 2;
+                    voxel_msg.size = -1;
+                    state_data.frontiers_msg.frontiers.push_back(voxel_msg);
+                    state_data.ltstar_msg.waypoint_amount = 2;
                     state_data.sequence_progress = 0;
                     state_data.frontiers_msg.frontiers_found = 1;
                     state_data.exploration_state = visit_waypoints;
@@ -363,16 +376,13 @@ namespace state_manager_node
                 {
                     if((bool)srv.response.is_accepting_requests)
                     {
-                        architecture_msgs::PositionMiddleMan srv_curr_position;
-                        if(current_position_client.call(srv_curr_position))
+                        geometry_msgs::Point current_position;
+                        bool service_call_successfull = getUavPositionServiceCall(current_position);
+                        if(service_call_successfull)
                         {
-                            octomath::Vector3 start(srv_curr_position.response.current_position.x, srv_curr_position.response.current_position.y, srv_curr_position.response.current_position.z);
+                            octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 goal (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                             askForObstacleAvoidingPath(start, goal, ltstar_request_pub);
-                        }
-                        else
-                        {
-                            ROS_WARN("[State manager] Current position middle man node not accepting requests.");
                         }
                     }
                 }
@@ -384,27 +394,30 @@ namespace state_manager_node
             }
             case visit_waypoints:
             {
-                if (followWaypointSequenceStateMachine())
+                updateWaypointSequenceStateMachine();
+                if (state_data.follow_path_state == finished_sequence)
                 {
                     ROS_INFO_STREAM("[State manager] Reached frontier to explore: " << get_current_frontier());
+
                     // Check if the frontier was observerd
-                    frontiers_msgs::CheckIsFrontier srv;
-                    srv.request.candidate = get_current_frontier();
-                    if (is_frontier_client.call(srv))
-                    {
-                        ROS_INFO_STREAM("[State manager] Frontier node declares this point a frontier? " << (bool)srv.response.is_frontier);
-                        if((bool)srv.response.is_frontier)
-                        {
-                            octomath::Vector3 frontier_vector (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-                            state_data.unobservable_set.insert(frontier_vector);
-                            ROS_WARN("[State manager] Unfortunatly this frontier was not observable, adding to the unobservable set.");
-                        }
-                        ROS_INFO_STREAM("[State manager] unobservable set has now " << state_data.unobservable_set.size() << " elements.");
-                    }
-                    else
-                    {
-                        ROS_WARN("[State manager] Frontier node not accepting requests.");
-                    }
+                    // geometry_msgs::Point current_position;
+                    // bool service_call_successfull = getUavPositionServiceCall(current_position);
+                    // frontiers_msgs::CheckIsFrontier srv;
+                    // srv.request.candidate = get_current_frontier();
+                    // if (service_call_successfull && is_frontier_client.call(srv))
+                    // {
+                    //     ROS_INFO_STREAM("[State manager] Frontier node declares this point a frontier? " << (bool)srv.response.is_frontier);
+                    //     if((bool)srv.response.is_frontier)
+                    //     {
+                    //         octomath::Vector3 frontier_vector (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
+                    //         state_data.unobservable_set.insert(frontier_vector);
+                    //         ROS_WARN("[State manager] Unfortunatly this frontier was not observable, adding to the unobservable set. Size is now " << state_data.unobservable_set.size());
+                    //     }
+                    // }
+                    // else
+                    // {
+                    //     ROS_WARN("[State manager] Frontier node not accepting requests.");
+                    // }
 
                     state_data.exploration_state = exploration_start;
                     ROS_INFO_STREAM("[State manager][Exploration] exploration_start");
