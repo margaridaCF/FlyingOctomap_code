@@ -3,7 +3,7 @@
 
 namespace Frontiers{
 
-    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply)
+    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, double min_distance, octomath::Vector3 current_position)
     {
         // std::ofstream log;
         // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
@@ -50,7 +50,8 @@ namespace Frontiers{
             // ROS_WARN_STREAM("Voxel size " << currentVoxel.size);
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
             if( isExplored(grid_coordinates_curr, octree)
-                && !isOccupied(grid_coordinates_curr, octree) ) 
+                && !isOccupied(grid_coordinates_curr, octree) 
+                && meetsOperationalRequirements(it.getSize(), grid_coordinates_curr, min_distance, current_position)) 
             {
                 hasUnExploredNeighbors = false;
                 // log << "Looking into " << grid_coordinates_curr << "\n";
@@ -68,6 +69,18 @@ namespace Frontiers{
                 // Comb through looking for unexplored
                 if(hasUnExploredNeighbors)
                 {
+
+                    if (isOccupied(coord, octree))
+                    {
+                        ROS_ERROR_STREAM("[LTStar] Frontier " << coord << " is occupied.");
+                        return false;   
+                    } 
+                    if (!isExplored(coord, octree))
+                    {
+                        ROS_ERROR_STREAM("[LTStar] Frontier " << coord << " is unknown.");
+                        return false;   
+                    } 
+
                     frontiers_msgs::VoxelMsg voxel_msg;
                     voxel_msg.xyz_m.x = currentVoxel.x;
                     voxel_msg.xyz_m.y = currentVoxel.y;
@@ -109,7 +122,23 @@ namespace Frontiers{
         }
     }
 
-    bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate)
+    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 current_position)
+    {
+        // Operation restrictions
+        if(voxel_size > 2)
+        {
+            // ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because it's too big " << voxel_size);
+            return false; // the neighbors are so spread out it is bound to have unexplored ones and other voxels will capture more accuratly this frontier
+        }
+        if(candidate.distance(current_position) <= min_distance)
+        {
+            // ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position);
+            return false; // below navigation precision
+        }
+        return true;
+    }
+
+    bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate) 
     {
         ROS_WARN_STREAM("[fronties] For candidate " << candidate);
         bool is_explored = isExplored(candidate, octree);
