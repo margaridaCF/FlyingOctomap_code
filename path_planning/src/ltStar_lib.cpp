@@ -482,7 +482,7 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 disc_final(request.goal.x, request.goal.y, request.goal.z);
 		ROS_INFO_STREAM("[LTStar] Starting to process path from " << disc_initial << " to " << disc_final);
 		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.max_search_iterations);
-		ROS_INFO_STREAM("[LTStar] FINISHED! path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
+		ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
 		if(resulting_path.size()==0)
 		{
 			reply.success = false;
@@ -502,6 +502,7 @@ namespace LazyThetaStarOctree{
 		}
 		reply.waypoint_amount = resulting_path.size();
 		reply.request_id = request.header.seq;
+		reply.frontier_id = request.frontier_id;
 		return true;
 	}
 }

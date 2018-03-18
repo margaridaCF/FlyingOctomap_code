@@ -56,14 +56,16 @@ namespace state_manager_node
     double error_margin = std::max(px4_loiter_radius, odometry_error);
     double safety_margin = 1.5;
     int const max_search_iterations = 500;
+    int const max_cycles_waited_for_path = 3;
     enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
-    enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, visit_waypoints, finished_exploring};
+    enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, waiting_path_response, visit_waypoints, finished_exploring};
     struct StateData { 
         int reply_seq_id;       // id for the request in use
         int request_count;      // generate id for new frontier requests
         int sequence_progress;  // id of the waypoint that is currently the waypoint
         // int sequence_waypoint_count;  // amount of waypoints in sequence
         int frontier_id;        // id of the frontier in use
+        int cycles_waited_for_path;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierReply frontiers_msg;
@@ -97,6 +99,7 @@ namespace state_manager_node
         path_planning_msgs::LTStarRequest request;
         request.header.seq = state_data.request_count;
         request.header.frame_id = "world";
+        request.frontier_id = state_data.frontier_id;
         request.start.x = start.x();
         request.start.y = start.y();
         request.start.z = start.z();
@@ -132,11 +135,12 @@ namespace state_manager_node
     void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
     {
         if(state_data.exploration_state == generating_path 
-            && msg->request_id == state_data.reply_seq_id)
+            && msg->request_id == state_data.reply_seq_id
+            && msg->frontier_id == state_data.frontier_id)
         {
             if(msg->success)
             {
-                ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star " << *msg);
+                // ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star " << *msg);
                 // Update state variables
                 // state_data.sequence_waypoint_count = msg.waypoint_amount;
                 state_data.ltstar_msg = *msg;
@@ -152,7 +156,7 @@ namespace state_manager_node
                 state_data.unobservable_set.insert(unreachable);
                 state_data.exploration_state = choosing_goal;
                 state_data.sequence_progress = -1;
-                ROS_INFO_STREAM("[State manager][Exploration] choosing_goal");
+                ROS_INFO_STREAM("[State manager][Exploration] choosing_goal (Lazy Theta Star exhausted iterations)");
             }
             
         }
@@ -377,12 +381,30 @@ namespace state_manager_node
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 goal (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                             askForObstacleAvoidingPath(start, goal, ltstar_request_pub);
+                            state_data.exploration_state = waiting_path_response;
+                            state_data.cycles_waited_for_path = 0;
                         }
                     }
                 }
                 else
                 {
                     ROS_WARN("[State manager] Lazy Theta Star node not accepting requests.");
+                }
+                break;
+            }
+            case waiting_path_response:
+            {
+                if(state_data.cycles_waited_for_path < max_cycles_waited_for_path)
+                {
+                    state_data.cycles_waited_for_path++;
+                }
+                else
+                {
+                    octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
+                    state_data.unobservable_set.insert(unreachable);
+                    state_data.exploration_state = choosing_goal;
+                    state_data.sequence_progress = -1;
+                    ROS_INFO_STREAM("[State manager][Exploration] choosing_goal (No response from Lazy Theta Star)");
                 }
                 break;
             }
