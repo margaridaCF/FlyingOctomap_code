@@ -134,9 +134,19 @@ namespace state_manager_node
 
     void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
     {
-        if(state_data.exploration_state == generating_path 
-            && msg->request_id == state_data.reply_seq_id
-            && msg->frontier_id == state_data.frontier_id)
+        if(state_data.exploration_state != waiting_path_response)
+        {
+            ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star but the state is not waiting_path_response. Discarding.");
+        }
+        else if(msg->request_id != state_data.reply_seq_id)
+        {
+            ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star with request id " << msg->request_id << " but the current request_id is " << state_data.reply_seq_id << ". Discarding.");
+        }
+        else if(msg->frontier_id != state_data.frontier_id)
+        {
+            ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star with frontier id " << msg->frontier_id << " but the current frontier_id is " << state_data.frontier_id << ". Discarding.");
+        }
+        else
         {
             if(msg->success)
             {
@@ -394,6 +404,7 @@ namespace state_manager_node
             }
             case waiting_path_response:
             {
+                ROS_INFO_STREAM("[State manager] Waited " << state_data.cycles_waited_for_path << " cycles of " << max_cycles_waited_for_path);
                 if(state_data.cycles_waited_for_path < max_cycles_waited_for_path)
                 {
                     state_data.cycles_waited_for_path++;
