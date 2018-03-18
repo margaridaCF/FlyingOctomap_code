@@ -3,7 +3,7 @@
 
 namespace Frontiers{
 
-    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, double min_distance, octomath::Vector3 current_position)
+    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply)
     {
         // std::ofstream log;
         // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
@@ -15,6 +15,7 @@ namespace Frontiers{
         octomath::Vector3  max = octomath::Vector3(request.max.x-resolution, request.max.y-resolution, request.max.z-resolution);
         octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
         int frontiers_count = 0;
+        octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
 
         const std::array<octomath::Vector3, 6> rayDirections ({
                 octomath::Vector3(1, 0, 0), // FRONT
@@ -36,7 +37,7 @@ namespace Frontiers{
         octomap::OcTreeKey bbxMinKey, bbxMaxKey;
         if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
         {
-            ROS_ERROR_STREAM("Problems with the octree");
+            ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
             reply.success = false;
         return reply.success;
         }
@@ -51,7 +52,7 @@ namespace Frontiers{
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
             if( isExplored(grid_coordinates_curr, octree)
                 && !isOccupied(grid_coordinates_curr, octree) 
-                && meetsOperationalRequirements(it.getSize(), grid_coordinates_curr, min_distance, current_position)) 
+                && meetsOperationalRequirements(it.getSize(), grid_coordinates_curr, request.min_distance, current_position)) 
             {
                 hasUnExploredNeighbors = false;
                 // log << "Looking into " << grid_coordinates_curr << "\n";
@@ -122,8 +123,9 @@ namespace Frontiers{
         }
     }
 
-    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 current_position)
+    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position)
     {
+        ROS_INFO_STREAM("[Frontiers] meetsOperationalRequirements - voxel_size: " << voxel_size << "; candidate: " << candidate << "; min_distance: " << min_distance << "; current_position:" << current_position);
         // Operation restrictions
         if(voxel_size > 2)
         {
@@ -135,6 +137,7 @@ namespace Frontiers{
             // ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position);
             return false; // below navigation precision
         }
+        ROS_INFO_STREAM("[Frontiers]meetsOperationalRequirements - Approved");
         return true;
     }
 

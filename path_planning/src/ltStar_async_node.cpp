@@ -28,7 +28,7 @@ namespace LazyThetaStarOctree
 		else
 		{
 			reply.success=false;
-			reply.request_id = path_request->header.seq;
+			reply.request_id = path_request->request_id;
 			reply.waypoint_amount = 0;
 		}
 		ltstar_reply_pub.publish(reply);

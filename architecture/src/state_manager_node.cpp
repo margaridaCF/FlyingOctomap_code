@@ -60,11 +60,11 @@ namespace state_manager_node
     enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
     enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, waiting_path_response, visit_waypoints, finished_exploring};
     struct StateData { 
-        int reply_seq_id;       // id for the request in use
-        int request_count;      // generate id for new frontier requests
-        int sequence_progress;  // id of the waypoint that is currently the waypoint
-        // int sequence_waypoint_count;  // amount of waypoints in sequence
-        int frontier_id;        // id of the frontier in use
+        int frontier_request_id;       // id for the request in use
+        int frontier_request_count;      // generate id for new frontier requests
+        int waypoint_index;  // id of the waypoint that is currently the waypoint
+        int ltstar_request_id;
+        int frontier_index;        // id of the frontier in use
         int cycles_waited_for_path;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
@@ -77,29 +77,46 @@ namespace state_manager_node
     // TODO when thre is generation of path these two will be different
     geometry_msgs::Point& get_current_waypoint()
     {
-        return state_data.ltstar_msg.waypoints[state_data.sequence_progress];
+        return state_data.ltstar_msg.waypoints[state_data.waypoint_index];
     }
 
     geometry_msgs::Point get_current_frontier()
     {
-        return state_data.frontiers_msg.frontiers[state_data.frontier_id].xyz_m;
+        return state_data.frontiers_msg.frontiers[state_data.frontier_index].xyz_m;
+    }
+
+    bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
+    {
+        architecture_msgs::PositionMiddleMan srv;
+        if(current_position_client.call(srv))
+        {
+            current_position = srv.response.current_position;
+
+            // ROS_INFO_STREAM("[State manager] 1 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
+            return true;
+        }
+        else
+        {
+            ROS_WARN("[State manager] Current position middle man node not accepting requests.");
+            return false;
+        }
     }
 
     void requestingPostionOfCurrentWaypointSequence()
     {
         architecture_msgs::PositionRequest position_request;
-        position_request.waypoint_sequence_id = state_data.reply_seq_id;
+        position_request.waypoint_sequence_id = state_data.frontier_request_id;
         position_request.position = get_current_waypoint();
         target_position_pub.publish(position_request);
-        ROS_INFO_STREAM("[State manager] Requesting position " << state_data.sequence_progress << " = " << get_current_waypoint());
+        ROS_INFO_STREAM("[State manager] Requesting position " << state_data.waypoint_index << " = " << get_current_waypoint());
     }
 
     void askForObstacleAvoidingPath(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& ltstar_request_pub)
     {
         path_planning_msgs::LTStarRequest request;
-        request.header.seq = state_data.request_count;
+        state_data.ltstar_request_id++;
+        request.request_id = state_data.ltstar_request_id;
         request.header.frame_id = "world";
-        request.frontier_id = state_data.frontier_id;
         request.start.x = start.x();
         request.start.y = start.y();
         request.start.z = start.z();
@@ -110,10 +127,10 @@ namespace state_manager_node
         ltstar_request_pub.publish(request);
     }
 
-    void askForGoal(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)
+    void askForFrontiers(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)
     {
         frontiers_msgs::FrontierRequest request;
-        request.header.seq = state_data.request_count;
+        request.header.seq = state_data.frontier_request_count;
         request.header.frame_id = "world";
         request.min.x = geofence_min.x();
         request.min.y = geofence_min.y();
@@ -122,8 +139,10 @@ namespace state_manager_node
         request.max.y = geofence_max.y();
         request.max.z = geofence_max.z();
         request.frontier_amount = state_data.unobservable_set.size()+1;
+        request.min_distance = px4_loiter_radius;
+        while(!getUavPositionServiceCall(request.current_position));
         frontier_request_pub.publish(request);
-        state_data.request_count++;
+        state_data.frontier_request_count++;
     }
 
     void stop_cb(const std_msgs::Empty::ConstPtr& msg)
@@ -138,13 +157,9 @@ namespace state_manager_node
         {
             ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star but the state is not waiting_path_response. Discarding.");
         }
-        else if(msg->request_id != state_data.reply_seq_id)
+        else if(msg->request_id != state_data.ltstar_request_id)
         {
-            ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star with request id " << msg->request_id << " but the current request_id is " << state_data.reply_seq_id << ". Discarding.");
-        }
-        else if(msg->frontier_id != state_data.frontier_id)
-        {
-            ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star with frontier id " << msg->frontier_id << " but the current frontier_id is " << state_data.frontier_id << ". Discarding.");
+            ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star with request id " << msg->request_id << " but the current request_id is " << state_data.ltstar_request_id << ". Discarding.");
         }
         else
         {
@@ -156,7 +171,7 @@ namespace state_manager_node
                 state_data.ltstar_msg = *msg;
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
-                state_data.sequence_progress = 1;
+                state_data.waypoint_index = 1;
                 ROS_INFO_STREAM("[State manager][Exploration] visit_waypoints");
                 ROS_INFO_STREAM("[State manager]            [Follow path] init");
             }
@@ -165,7 +180,7 @@ namespace state_manager_node
                 octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                 state_data.unobservable_set.insert(unreachable);
                 state_data.exploration_state = choosing_goal;
-                state_data.sequence_progress = -1;
+                state_data.waypoint_index = -1;
                 ROS_INFO_STREAM("[State manager][Exploration] choosing_goal (Lazy Theta Star exhausted iterations)");
             }
             
@@ -181,7 +196,7 @@ namespace state_manager_node
         }
         else if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
         {
-            state_data.reply_seq_id = msg->request_id;
+            state_data.frontier_request_id = msg->request_id;
             state_data.exploration_state = choosing_goal;
             state_data.frontiers_msg = *msg;
             ROS_INFO_STREAM("[State manager][Exploration] choosing_goal");
@@ -207,37 +222,19 @@ namespace state_manager_node
 
     void updateStateUponWaypointArrival()
     {
-        if(state_data.ltstar_msg.waypoint_amount == state_data.sequence_progress+1)
+        if(state_data.ltstar_msg.waypoint_amount == state_data.waypoint_index+1)
         {
             // Reached Frontier
-            ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.sequence_progress << ") of sequence " << state_data.reply_seq_id << ": " << get_current_waypoint());
-            state_data.sequence_progress = -1;
+            ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.waypoint_index << ") of sequence " << state_data.frontier_request_id << ": " << get_current_waypoint());
+            state_data.waypoint_index = -1;
             state_data.follow_path_state = finished_sequence;
             ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence");
         }
         else {
-            state_data.sequence_progress++;
+            state_data.waypoint_index++;
             requestingPostionOfCurrentWaypointSequence();
         }
     }
-
-    bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
-    {
-        architecture_msgs::PositionMiddleMan srv;
-        if(current_position_client.call(srv))
-        {
-            current_position = srv.response.current_position;
-
-            // ROS_INFO_STREAM("[State manager] 1 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
-            return true;
-        }
-        else
-        {
-            ROS_WARN("[State manager] Current position middle man node not accepting requests.");
-            return false;
-        }
-    }
-
 
     bool updateWaypointSequenceStateMachine()
     {
@@ -288,9 +285,9 @@ namespace state_manager_node
             if ( unobservable_frontier == state_data.unobservable_set.end() )
             {
                 // This frontier hasn't been explored yet. Let's pick this one
-                state_data.reply_seq_id = state_data.frontiers_msg.request_id;
-                state_data.sequence_progress = -1;
-                state_data.frontier_id = i;
+                state_data.frontier_request_id = state_data.frontiers_msg.request_id;
+                state_data.waypoint_index = -1;
+                state_data.frontier_index = i;
                 ROS_INFO_STREAM("[Satate manager node] New frontier ("
                     <<get_current_frontier().x << ", "
                     <<get_current_frontier().y << ", "
@@ -304,7 +301,8 @@ namespace state_manager_node
 
     void init_state_variables(state_manager_node::StateData& state_data)
     {
-        state_data.request_count = 0;
+        state_data.ltstar_request_id = 0;
+        state_data.frontier_request_count = 0;
         state_data.exploration_state = clear_from_ground;
         ROS_INFO_STREAM("[State manager][Exploration] clear_from_ground");
     }
@@ -322,8 +320,8 @@ namespace state_manager_node
                 if(getUavPositionServiceCall(current_position))
                 {
                     // geometry_msgs::Point current_position = srv.response.current_position;
-                    state_data.reply_seq_id = -1;
-                    state_data.sequence_progress = 0;
+                    state_data.frontier_request_id = -1;
+                    state_data.waypoint_index = 0;
                     state_data.exploration_state = visit_waypoints;
                     state_data.follow_path_state = init;
 
@@ -353,7 +351,7 @@ namespace state_manager_node
                     if((bool)srv.response.is_accepting_requests)
                     {
                         // ROS_INFO_STREAM("[State manager] Asking for frontiers.");
-                        askForGoal(state_data.request_count, geofence_min, geofence_max, frontier_request_pub);
+                        askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
                     }
                 }
                 else
@@ -414,7 +412,7 @@ namespace state_manager_node
                     octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                     state_data.unobservable_set.insert(unreachable);
                     state_data.exploration_state = choosing_goal;
-                    state_data.sequence_progress = -1;
+                    state_data.waypoint_index = -1;
                     ROS_INFO_STREAM("[State manager][Exploration] choosing_goal (No response from Lazy Theta Star)");
                 }
                 break;
