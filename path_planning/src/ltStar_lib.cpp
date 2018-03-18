@@ -489,7 +489,6 @@ namespace LazyThetaStarOctree{
 		}
 		else if(resulting_path.size() == 1)
 		{
-			octree.writeBinary("/data/path_with_one_waypoint.bt");
 			ROS_ERROR_STREAM("[LTStar] Unexpected situation. Path with only one waypoint (both start and goal should always be included). Writting octree to file. Request message was " << request);
 
 		}
