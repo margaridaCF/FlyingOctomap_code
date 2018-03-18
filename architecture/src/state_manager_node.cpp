@@ -422,29 +422,6 @@ namespace state_manager_node
                 updateWaypointSequenceStateMachine();
                 if (state_data.follow_path_state == finished_sequence)
                 {
-                    // ROS_INFO_STREAM("[State manager] Reached frontier to explore: " << get_current_frontier());
-
-
-                    // Check if the frontier was observerd
-                    // geometry_msgs::Point current_position;
-                    // bool service_call_successfull = getUavPositionServiceCall(current_position);
-                    // frontiers_msgs::CheckIsFrontier srv;
-                    // srv.request.candidate = get_current_frontier();
-                    // if (service_call_successfull && is_frontier_client.call(srv))
-                    // {
-                    //     ROS_INFO_STREAM("[State manager] Frontier node declares this point a frontier? " << (bool)srv.response.is_frontier);
-                    //     if((bool)srv.response.is_frontier)
-                    //     {
-                    //         octomath::Vector3 frontier_vector (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-                    //         state_data.unobservable_set.insert(frontier_vector);
-                    //         ROS_WARN("[State manager] Unfortunatly this frontier was not observable, adding to the unobservable set. Size is now " << state_data.unobservable_set.size());
-                    //     }
-                    // }
-                    // else
-                    // {
-                    //     ROS_WARN("[State manager] Frontier node not accepting requests.");
-                    // }
-
                     state_data.exploration_state = exploration_start;
                     ROS_INFO_STREAM("[State manager][Exploration] exploration_start");
                 }
@@ -481,8 +458,8 @@ int main(int argc, char **argv)
     
     init_state_variables(state_manager_node::state_data);
     // TODO Lazy theta star topics
-    octomath::Vector3 geofence_min (-30, -30, 1);
-    octomath::Vector3 geofence_max (30, 30, 10);
+    octomath::Vector3 geofence_min (-5, -5, 1);
+    octomath::Vector3 geofence_max (5, 5, 10);
     ros::Rate rate(0.5);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
