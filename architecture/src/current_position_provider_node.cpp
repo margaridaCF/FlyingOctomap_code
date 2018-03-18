@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
 #include <architecture_msgs/PositionMiddleMan.h>
 
@@ -24,9 +24,9 @@ namespace current_position_provider_node
 		}
 	}
 
-	void ground_truth_cb(const nav_msgs::Odometry::ConstPtr& new_odometry )
+	void ground_truth_cb(const geometry_msgs::PoseStamped::ConstPtr& new_odometry )
 	{
-		current_position = new_odometry->pose.pose.position;
+		current_position = new_odometry->pose.position;
 		current_position_init = true;
 	}
 }
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "current_position_provider");
 	ros::NodeHandle nh;
 	ros::ServiceServer service = nh.advertiseService("get_current_position", current_position_provider_node::get_current_position);
-	ros::Subscriber ground_truth_sub = nh.subscribe<nav_msgs::Odometry>("/ground_truth_pose", 1, current_position_provider_node::ground_truth_cb);
+	ros::Subscriber ground_truth_sub = nh.subscribe<geometry_msgs::PoseStamped>("/ground_truth_to_tf/pose", 1, current_position_provider_node::ground_truth_cb);
 	
 	ros::spin();
 }

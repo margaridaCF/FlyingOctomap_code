@@ -28,10 +28,13 @@ catkin_simple(ALL_DEPS_REQUIRED)
 ## Build ##
 ###########
 cs_add_library(neighbors src/neighbors.cpp)
+cs_add_library(ltStar_lib src/ltStar_lib.cpp)
 
-cs_add_executable(ltStar_dispatcher_node src/ltStar_dispatcher_node.cpp )
+# cs_add_executable(ltStar_dispatcher_node src/ltStar_dispatcher_node.cpp )
+# target_link_libraries(ltStar_dispatcher_node  ${catkin_LIBRARIES} ${neighbors_LIBRARIES} neighbors)
 
-target_link_libraries(ltStar_dispatcher_node  ${catkin_LIBRARIES} ${neighbors_LIBRARIES} neighbors)
+cs_add_executable(ltStar_async_node src/ltStar_async_node.cpp )
+target_link_libraries(ltStar_async_node  ${catkin_LIBRARIES} ltStar_lib neighbors)
 
 cs_install()
 

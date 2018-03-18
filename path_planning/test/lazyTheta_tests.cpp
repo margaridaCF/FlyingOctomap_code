@@ -267,7 +267,35 @@ namespace LazyThetaStarOctree{
 	    std::string dataset_name = "run 2";
 	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 1000);
 	}
-	// Test memory leaks in pointers of neighbors
+
+	// TEST(LazyThetaStarTests, QueryDepthOfUnknowVoxel)
+	// {
+
+	// 	octomap::OcTree octree ("data/depth_unknownVoxel.bt");
+	// 	path_planning_msgs::LTStarRequest const& request;
+	// 	geometric_msgs::Point start;
+	// 	start.x = -0.102492;
+	// 	start.x = 0.00635417;
+	// 	start.x = 10.1225;
+	// 	request.start = start;
+	// 	geometric_msgs::Point goal;
+	// 	goal.x = -0.102492;
+	// 	goal.x = 0.00635417;
+	// 	goal.x = 10.1225;
+	// 	request.goal = goal;
+	// 	processLTStarRequest(octomap::OcTree const& octree, request, path_planning_msgs::LTStarReply & reply);
+
+
+
+	// 	// Point found as error case during assessment of find depth for voxel centers
+ //        octomath::Vector3 disc_initial(-0.102492, 0.00635417, 10.1225);
+ //        octomath::Vector3 disc_final(-0.5, -2.5, 2.5);
+ //        int max_search_iterations = 500;
+ //        ResultSet statistical_data;
+ //                                 // LazyThetaStarOctree::lazyThetaStar_(octomap::OcTree const&, octomath::Vector3 const&, octomath::Vector3 const&, LazyThetaStarOctree::ResultSet&, int const&, bool)
+	// 	std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, 				 disc_initial, 			   disc_final, 				 statistical_data, 				  max_search_iterations, true);
+	// 	// std::list<octomath::Vector3>                  lazyThetaStar_(octomap::OcTree const&, octomath::Vector3 const&, octomath::Vector3 const&,                      ResultSet&, int const&, bool )
+	// }
 }
 
 int main(int argc, char **argv){

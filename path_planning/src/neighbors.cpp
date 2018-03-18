@@ -123,7 +123,7 @@ namespace LazyThetaStarOctree{
                     // it is not, search failed
                     //ROS_WARN_STREAM("Failed to find depth ");
                     std::ostringstream oss;
-                    oss << "Failed to find depth, stopped at " << depth << ", tree depth is " << octree.getTreeDepth() << ". @getNodeDepth_Octomap";  
+                    oss << "Failed to find depth, for key " << key[0] << " " << key[1] << " " << key[2] << " stopped at " << depth << ", tree depth is " << octree.getTreeDepth() << ". @getNodeDepth_Octomap";  
                     throw std::out_of_range(oss.str());
                     return -2;
                 }
@@ -138,6 +138,7 @@ namespace LazyThetaStarOctree{
 		// convert to key
 		octomap::OcTreeKey key = octree.coordToKey(point_coordinates);
 		// find depth of cell
+        // ROS_WARN_STREAM("Calling getNodeDepth from 141");
 		double depth = getNodeDepth_Octomap(key, octree);
 		// get center coord of cell center at depth
 		return octree.keyToCoord(key, depth);
@@ -170,6 +171,8 @@ namespace LazyThetaStarOctree{
         // convert to key
         octomap::OcTreeKey key = octree.coordToKey(*coordinates);
         // find depth of cell
+        // ROS_WARN_STREAM("Calling getNodeDepth from 173");
+
         int depth = getNodeDepth_Octomap(key, octree);
         side_length = findSideLenght(octree, depth);
         // get center coord of cell center at depth
@@ -193,6 +196,7 @@ namespace LazyThetaStarOctree{
     {
         // convert to key
         octomap::OcTreeKey key = octree.coordToKey(coordinates);
+        // ROS_WARN_STREAM("Calling getNodeDepth from 199 with key " << key[0] << " " << key[1] << " " << key[2]);
         // find depth of cell
         double depth = getNodeDepth_Octomap(key, octree);
         side_length = findSideLenght(octree, depth);

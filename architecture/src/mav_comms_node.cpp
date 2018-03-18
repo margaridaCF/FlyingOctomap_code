@@ -94,7 +94,7 @@ int main(int argc, char **argv)
         rate.sleep();
     }
     // === px4 PARAM ===
-    double const flight_speed = 0.01;
+    double const flight_speed = 3;
     while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
     ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
     double const offboard_mode_timeout_sec = 20;
@@ -106,6 +106,9 @@ int main(int argc, char **argv)
 
     // === SET POSITIONS ===
     geometry_msgs::PoseStamped point_to_pub;
+    point_to_pub.pose.position.x = 0;
+    point_to_pub.pose.position.y = 0;
+    point_to_pub.pose.position.z = 2;
     for(int i = 20; ros::ok() && i > 0; --i) {  //send a few setpoints before starting
             local_pos_pub.publish(point_to_pub);
             ros::spinOnce();
