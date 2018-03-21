@@ -57,6 +57,8 @@ namespace state_manager_node
     double safety_margin = 1.5;
     int const max_search_iterations = 500;
     int const max_cycles_waited_for_path = 3;
+    octomath::Vector3 const geofence_min (-5, -5, 1);
+    octomath::Vector3 const geofence_max (5, 5, 10);
     enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
     enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, waiting_path_response, visit_waypoints, finished_exploring};
     struct StateData { 
@@ -200,6 +202,16 @@ namespace state_manager_node
             state_data.exploration_state = choosing_goal;
             state_data.frontiers_msg = *msg;
             ROS_INFO_STREAM("[State manager][Exploration] choosing_goal");
+
+            if(get_current_frontier().x < geofence_min.x() 
+                || get_current_frontier().y < geofence_min.y() 
+                || get_current_frontier().x < geofence_min.y() 
+                || get_current_frontier().x > geofence_max.x() 
+                || get_current_frontier().y > geofence_max.y()  
+                || get_current_frontier().z > geofence_max.z())
+            {
+                ROS_ERROR_STREAM("[State manager] Breaching geofence " <<  *msg);
+            }
         }
     }
 
@@ -288,14 +300,15 @@ namespace state_manager_node
                 state_data.frontier_request_id = state_data.frontiers_msg.request_id;
                 state_data.waypoint_index = -1;
                 state_data.frontier_index = i;
-                ROS_INFO_STREAM("[Satate manager node] New frontier ("
+                ROS_INFO_STREAM("[State manager] New frontier ("
                     <<get_current_frontier().x << ", "
                     <<get_current_frontier().y << ", "
                     <<get_current_frontier().z << ") ");
+
                 return true;
             }
         }
-        ROS_INFO_STREAM("[Satate manager node] Could not find an observable frontier.");
+        ROS_INFO_STREAM("[State manager] Could not find an observable frontier.");
         return false;
     }
 
@@ -457,13 +470,10 @@ int main(int argc, char **argv)
 
     
     init_state_variables(state_manager_node::state_data);
-    // TODO Lazy theta star topics
-    octomath::Vector3 geofence_min (-5, -5, 1);
-    octomath::Vector3 geofence_max (5, 5, 10);
-    ros::Rate rate(0.5);
+    ros::Rate rate(2);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
-        state_manager_node::update_state(geofence_min, geofence_max);
+        state_manager_node::update_state(state_manager_node::geofence_min, state_manager_node::geofence_max);
     
         ros::spinOnce();
         rate.sleep();

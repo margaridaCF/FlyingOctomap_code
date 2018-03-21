@@ -11,12 +11,15 @@
   <build_depend>catkin_simple</build_depend> 
   <test_depend>gtest</test_depend>
   <depend>roscpp</depend>
-  <depend>frontiers_msgs</depend>
-  <depend>frontiers</depend>
   <depend>mavros_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
-  <depend>architecture_msgs</depend>
   <depend>octomap_msgs</depend>
+
+  <depend>architecture_msgs</depend>
+  <depend>path_planning</depend>
+  <depend>path_planning_msgs</depend>
+  <depend>frontiers</depend>
+  <depend>frontiers_msgs</depend>
 
 </package>
