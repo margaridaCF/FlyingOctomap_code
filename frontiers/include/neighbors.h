@@ -1,5 +1,13 @@
-#include <ltStarOctree_common.h>
+#ifndef NEIGHBORS_H
+#define NEIGHBORS_H
+
+
 #include <chrono>
+#include <unordered_set>
+#include <octomap/math/Vector3.h>
+#include <octomap/OcTree.h>
+#include <memory>
+#include <ros/ros.h>
 
 namespace LazyThetaStarOctree{
 	bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, float x, float y, float z );
@@ -48,3 +56,4 @@ namespace LazyThetaStarOctree{
 
     double calculateCellSpace(octomap::OcTree const& octree);
 }
+#endif // NEIGHBORS_H
