@@ -181,7 +181,7 @@ namespace LazyThetaStarOctree{
 				return false;
 			}
 
-			ROS_INFO_STREAM("[LTStar] Adding " << current->coordinates);
+			ROS_INFO_STREAM("[LTStar] Adding " << *(current->coordinates));
 			path.push_front( *(current->coordinates) );
 			if(writeToFile)
 			{
@@ -470,19 +470,22 @@ namespace LazyThetaStarOctree{
 		closed.clear();
 		disc_initial_cell_center->parentNode = NULL;
 		disc_initial_cell_center = NULL;
-		// TODO Add path from starting point to center of the first cell
 		return path;
 	}
 	// ln 19 end
 
+
+
 	bool processLTStarRequest(octomap::OcTree const& octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply)
 	{
 		ResultSet statistical_data;
+		std::list<octomath::Vector3> resulting_path;
 		octomath::Vector3 disc_initial(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 disc_final(request.goal.x, request.goal.y, request.goal.z);
 		ROS_INFO_STREAM("[LTStar] Starting to process path from " << disc_initial << " to " << disc_final);
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.max_search_iterations, true);
+		resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.max_search_iterations, true);
 		ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
+		
 		if(resulting_path.size()==0)
 		{
 			reply.success = false;

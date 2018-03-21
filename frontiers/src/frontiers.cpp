@@ -52,7 +52,7 @@ namespace Frontiers{
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
             if( isExplored(grid_coordinates_curr, octree)
                 && !isOccupied(grid_coordinates_curr, octree) 
-                && meetsOperationalRequirements(it.getSize(), grid_coordinates_curr, request.min_distance, current_position)) 
+                && meetsOperationalRequirements(it.getSize(), grid_coordinates_curr, request.min_distance, current_position, octree)) 
             {
                 hasUnExploredNeighbors = false;
                 // log << "Looking into " << grid_coordinates_curr << "\n";
@@ -123,9 +123,9 @@ namespace Frontiers{
         }
     }
 
-    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position)
+    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree)
     {
-        ROS_INFO_STREAM("[Frontiers] meetsOperationalRequirements - voxel_size: " << voxel_size << "; candidate: " << candidate << "; min_distance: " << min_distance << "; current_position:" << current_position);
+        // ROS_INFO_STREAM("[Frontiers] meetsOperationalRequirements - voxel_size: " << voxel_size << "; candidate: " << candidate << "; min_distance: " << min_distance << "; current_position:" << current_position);
         // Operation restrictions
         if(voxel_size > 2)
         {
@@ -137,7 +137,11 @@ namespace Frontiers{
             // ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position);
             return false; // below navigation precision
         }
-        ROS_INFO_STREAM("[Frontiers]meetsOperationalRequirements - Approved");
+        if(LazyThetaStarOctree::getCellCenter(candidate, octree) == LazyThetaStarOctree::getCellCenter(current_position, octree) )
+        {// start and end in same voxel
+            return false;
+        }
+        // ROS_INFO_STREAM("[Frontiers]meetsOperationalRequirements - Approved");
         return true;
     }
 

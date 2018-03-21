@@ -13,7 +13,7 @@ namespace LazyThetaStarOctree
 	bool octomap_init;
 
 	void publish_cube(octomath::Vector3 & candidate, double size, int color, int waypoint_id)
-	{
+	{	
 		uint32_t shape = visualization_msgs::Marker::CUBE;
 		visualization_msgs::Marker marker;
 	    // Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -35,7 +35,7 @@ namespace LazyThetaStarOctree
 	    marker.color.b = color;
 	    marker.color.a = 0.5;
 	    
-	    marker.lifetime = ros::Duration();
+	    marker.lifetime = ros::Duration(5);
 	    marker_pub.publish(marker);
 	}
 
@@ -49,27 +49,27 @@ namespace LazyThetaStarOctree
 	    marker.ns = "path";
     	marker.id = request_id;
     	marker.type = shape;
+    	geometry_msgs::Point goal_point;
+    	goal_point.x = goal.x();
+	    goal_point.y = goal.y();
+	    goal_point.z = goal.z();
+        marker.points.push_back(goal_point);
     	marker.action = visualization_msgs::Marker::ADD;
     	geometry_msgs::Point start_point;
     	start_point.x = start.x();
 	    start_point.y = start.y();
 	    start_point.z = start.z();
         marker.points.push_back(start_point);
-    	geometry_msgs::Point goal_point;
-    	goal_point.x = goal.x();
-	    goal_point.y = goal.y();
-	    goal_point.z = goal.z();
-        marker.points.push_back(goal_point);
 	    marker.pose.orientation.w = 1.0;
-	    marker.scale.x = 1;
-	    marker.scale.y = 1;
-	    marker.scale.z = 1;
+	    marker.scale.x = 0.1;
+	    marker.scale.y = 0.3;
+	    marker.scale.z = 0;
 	    marker.color.r = 200;
-	    marker.color.g = 0;
-	    marker.color.b = 200;
+	    marker.color.g = 100;
+	    marker.color.b = 0;
 	    marker.color.a = 1;
 	    
-	    marker.lifetime = ros::Duration();
+	    marker.lifetime = ros::Duration(5);
 	    marker_pub.publish(marker);
 	}
 
@@ -116,7 +116,7 @@ namespace LazyThetaStarOctree
 	        publish_cube(candidate, voxel_size, (200*i)/reply.waypoint_amount, i );
 	        if(i !=0)
 	        {
-				octomath::Vector3 prev_candidate (reply.waypoints[i].x, reply.waypoints[i].y, reply.waypoints[i].z);
+				octomath::Vector3 prev_candidate (reply.waypoints[i-1].x, reply.waypoints[i-1].y, reply.waypoints[i-1].z);
 	        	publish_arrow(candidate, prev_candidate, path_request->request_id);
 	        }
 		}
