@@ -50,15 +50,16 @@ namespace state_manager_node
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
 
+
     // TODO - transform this into parameters at some point
-    double const px4_loiter_radius = 0.5; // TODO - checkout where this is set
-    double const odometry_error = 0;      // TODO - since it is simulation none
-    double error_margin = std::max(px4_loiter_radius, odometry_error);
-    double safety_margin = 1.5;
-    int const max_search_iterations = 500;
-    int const max_cycles_waited_for_path = 3;
-    octomath::Vector3 const geofence_min (-5, -5, 1);
-    octomath::Vector3 const geofence_max (5, 5, 10);
+    double px4_loiter_radius;
+    double odometry_error;
+    double safety_margin = 3;
+    double error_margin;
+    int max_search_iterations = 500;
+    int max_cycles_waited_for_path = 3;
+    octomath::Vector3 geofence_min (-5, -5, 1);
+    octomath::Vector3 geofence_max (5, 5, 10);
     enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
     enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, waiting_path_response, visit_waypoints, finished_exploring};
     struct StateData { 
@@ -314,6 +315,30 @@ namespace state_manager_node
         ROS_INFO_STREAM("[State manager][Exploration] clear_from_ground");
     }
 
+    void init_param_variables(ros::NodeHandle& nh)
+    {
+        nh.getParam("px4_loiter_radius", px4_loiter_radius);
+        nh.getParam("odometry_error", odometry_error);
+        nh.getParam("safety_margin", safety_margin);
+        error_margin = std::max(px4_loiter_radius, odometry_error);
+        nh.getParam("path/max_search_iterations", max_search_iterations);
+        nh.getParam("path/max_cycles_waited_for_path", max_cycles_waited_for_path);
+
+        float x, y, z;
+        nh.getParam("geofence_min/x", x);
+        nh.getParam("geofence_min/y", y);
+        nh.getParam("geofence_min/z", z);
+        geofence_min = octomath::Vector3  (x, y, z);
+        
+        nh.getParam("geofence_max/x", x);
+        nh.getParam("geofence_max/y", y);
+        nh.getParam("geofence_max/z", z);
+        geofence_max = octomath::Vector3  (x, y, z);
+
+        ROS_ERROR_STREAM("geofence_max " << geofence_max);
+
+    }
+
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
     {
         switch(state_data.exploration_state)
@@ -448,6 +473,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "state_manager");
     ros::NodeHandle nh;
+    state_manager_node::init_param_variables(nh);
     // Service client
     state_manager_node::ltstar_status_cliente = nh.serviceClient<path_planning_msgs::LTStarNodeStatus>("ltstar_status");
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
