@@ -27,12 +27,13 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # add_library
 # target_link_libraries(my_lib ${catkin_LIBRARIES}) to link your new library against any catkin libraries you have build depended on in your package.xml
 # does some bookkeeping so that your library target can be implicitly used later
+cs_add_library(neighbors src/neighbors.cpp)
 cs_add_library(frontiers_lib src/frontiers.cpp)
 # cs_add_targets_to_package(frontiers_msgs)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
 cs_add_executable(frontiers_async_node src/frontiers_async_node.cpp)
-target_link_libraries(frontiers_async_node frontiers_lib)
+target_link_libraries(frontiers_async_node frontiers_lib neighbors)
 
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
@@ -49,10 +50,15 @@ if(CATKIN_ENABLE_TESTING)
   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
 
+  # ## Octree @ neighbors ##
+  # catkin_add_gtest(neighborTests 
+  #   test/neighbor_tests.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(neighborTests ${catkin_LIBRARIES} )
   catkin_add_gtest(frontiers_tests 
     test/frontier_lib_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib)
+  target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
 
 endif()
 

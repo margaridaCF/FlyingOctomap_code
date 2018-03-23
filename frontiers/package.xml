@@ -34,7 +34,6 @@
   <!-- Use depend as a shortcut for packages that are both build and exec dependencies -->
     <depend>roscpp</depend>
     <depend>frontiers_msgs</depend>
-    <depend>path_planning</depend>
     <depend>octomap_msgs</depend>
     <depend>octomap_ros</depend>
     <depend>visualization_msgs</depend>
