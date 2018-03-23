@@ -51,7 +51,7 @@ namespace state_manager_node
     ros::ServiceClient current_position_client;
 
     // TODO - transform this into parameters at some point
-    double const px4_loiter_radius = 0.5;   // TODO - checkout where this is set
+    double const px4_loiter_radius = 0.5; // TODO - checkout where this is set
     double const odometry_error = 0;      // TODO - since it is simulation none
     double error_margin = std::max(px4_loiter_radius, odometry_error);
     double safety_margin = 1.5;
@@ -275,12 +275,6 @@ namespace state_manager_node
                 }
                 break;
             }
-            // case reached_waypoint:
-            // {    // TODO - no sequence for the moment so the sequence is finished
-            //     state_data.follow_path_state = finished_sequence;
-            //     ROS_ERROR_STREAM("[State manager]            [Path follow] finished_sequence");
-            //     break;
-            // }
         }
     }
 
@@ -358,6 +352,7 @@ namespace state_manager_node
             }
             case exploration_start:
             {
+                state_data.waypoint_index = -1;
                 frontiers_msgs::FrontierNodeStatus srv;
                 if (frontier_status_client.call(srv))
                 {
