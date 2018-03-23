@@ -39,7 +39,7 @@ namespace mav_comms
 	    stop_position.header.stamp = ros::Time::now();
 	    stop_position.header.seq = 1;
 	    stop_position_pub.publish(stop_position);
-	    ROS_INFO("[mav_comms] STOP msg sent!");
+	    // ROS_INFO("[mav_comms] STOP msg sent!");
 	}
 
 	void target_position_cb(const architecture_msgs::PositionRequest::ConstPtr& msg)
