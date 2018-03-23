@@ -9,12 +9,12 @@
     <arg name="Y" default="0"/>
     <arg name="est" default="lpe"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/box.world"/>
+    <arg name="world" default="$(find architecture)/worlds/huge_block.world"/>
     <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
 
-    <arg name="headless" default="true"/>
-    <arg name="gui" default="false"/>
+    <arg name="headless" default="false"/>
+    <arg name="gui" default="true"/>
     <arg name="ns" default="/"/>
 
     <arg name="debug" default="false"/>
@@ -54,7 +54,7 @@
 
 <!--    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/> -->
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/rviz_velodyne_model.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" />
 
 
     <!--<node name="odom_to_tf" pkg="message_to_tf" type="message_to_tf"> </node>-->
@@ -66,10 +66,11 @@
 
 
   <!-- convert depth map to laserscan -->
-  <!-- <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="converter">
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="converter">
     <remap from="cloud_in" to="/velodyne_points"/>
     <remap from="scan" to="/depth_laser_scan"/>
-  </node> -->
+    <!-- <param name="range_max" value="3"/> -->
+  </node>
 
   <!-- ########################################################################## -->
     <!-- OCTOMAP -->
@@ -82,6 +83,7 @@
         <param name="pointcloud_max" value="2"/>
         <param name="occupancy_min" value="0.5"/>
         <param name="occupancy_min" value="1"/>
+        <param name="publish_free_space" value="true"/>
         <param name="sensor_model/max_range" value="80"/>
     </node>
   <!-- ########################################################################## -->
