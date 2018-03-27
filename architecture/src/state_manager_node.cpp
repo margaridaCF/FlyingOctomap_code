@@ -12,6 +12,7 @@
 
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/PositionMiddleMan.h>
+#include <architecture_msgs/YawSpin.h>
 
 #include <frontiers_msgs/CheckIsFrontier.h>
 #include <frontiers_msgs/FrontierReply.h>
@@ -49,6 +50,7 @@ namespace state_manager_node
     ros::ServiceClient frontier_status_client;
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
+    ros::ServiceClient yaw_spin_client;
 
 
     // TODO - transform this into parameters at some point
@@ -61,7 +63,7 @@ namespace state_manager_node
     octomath::Vector3 geofence_min (-5, -5, 1);
     octomath::Vector3 geofence_max (5, 5, 10);
     enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
-    enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, waiting_path_response, visit_waypoints, finished_exploring};
+    enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, waiting_path_response, visit_waypoints, finished_exploring, gather_data_maneuver};
     struct StateData { 
         int frontier_request_id;       // id for the request in use
         int frontier_request_count;      // generate id for new frontier requests
@@ -101,6 +103,21 @@ namespace state_manager_node
         else
         {
             ROS_WARN("[State manager] Current position middle man node not accepting requests.");
+            return false;
+        }
+    }
+
+    bool askYawSpinServiceCall()
+    {
+        architecture_msgs::YawSpin yaw_spin_srv;
+        yaw_spin_srv.request.position = get_current_waypoint();
+        if(yaw_spin_client.call(yaw_spin_srv))
+        {
+            return true;
+        }
+        else
+        {
+            ROS_WARN("[State manager] YawSpin node not accepting requests.");
             return false;
         }
     }
@@ -455,9 +472,14 @@ namespace state_manager_node
                 updateWaypointSequenceStateMachine();
                 if (state_data.follow_path_state == finished_sequence)
                 {
-                    state_data.exploration_state = exploration_start;
-                    ROS_INFO_STREAM("[State manager][Exploration] exploration_start");
+                    state_data.exploration_state = gather_data_maneuver;
+                    ROS_INFO_STREAM("[State manager][Exploration] gather_data_maneuver");
                 }
+                break;
+            }
+            case gather_data_maneuver:
+            {
+                askYawSpinServiceCall();
                 break;
             }
             default:
@@ -479,6 +501,7 @@ int main(int argc, char **argv)
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
     state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
+    state_manager_node::yaw_spin_client = nh.serviceClient<architecture_msgs::YawSpin>("yaw_spin");
     // Topic subscribers
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 5, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
