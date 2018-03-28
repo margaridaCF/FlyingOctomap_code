@@ -8,6 +8,7 @@
 #include <mavros_msgs/ParamSet.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <architecture_msgs/YawSpin.h>
+#include <tf/transform_datatypes.h>
 
 namespace mav_comms
 {
@@ -17,8 +18,7 @@ namespace mav_comms
     ros::ServiceServer yaw_spin_service;
     enum movement_state_t {position, stop, yaw_spin};
 	struct Position { movement_state_t movement_state; int waypoint_sequence;
-        double x; double y; double z; 
-        mavros_msgs::PositionTarget yaw_spin_msg;};
+        double x; double y; double z; };
     mavros_msgs::PositionTarget stop_position;
 	Position position_state;
     ros::ServiceClient param_set_client;
@@ -44,19 +44,6 @@ namespace mav_comms
         position_state.y = req.position.y;
         position_state.z = req.position.z;
         position_state.movement_state = yaw_spin;
-
-        // mavros_msgs::PositionTarget yaw_spin_msg;
-        // yaw_spin_msg.coordinate_frame = mavros_msgs::PositionTarget::SET_POSITION_TARGET_LOCAL_NED;
-        // yaw_spin_msg.type_mask = mavros_msgs::PositionTarget::IGNORE_AFX | 
-        //     mavros_msgs::PositionTarget::IGNORE_AFY | 
-        //     mavros_msgs::PositionTarget::IGNORE_AFZ | 
-        //     mavros_msgs::PositionTarget::IGNORE_YAW;
-        position_state.yaw_spin_msg.header.stamp = ros::Time::now();
-        position_state.yaw_spin_msg.position.x = req.position.x;
-        position_state.yaw_spin_msg.position.y = req.position.y;
-        position_state.yaw_spin_msg.position.z = req.position.z;
-        // yaw_spin_msg.yaw_rate = 0.0872665; // 5
-        // setpoint_raw_pub.publish(yaw_spin_msg);
     }
 
 	void stopUAV_cb(const std_msgs::Empty::ConstPtr& msg)
@@ -73,8 +60,12 @@ namespace mav_comms
 
 	void target_position_cb(const architecture_msgs::PositionRequest::ConstPtr& msg)
 	{
-		if(position_state.movement_state == position 
-            && msg->waypoint_sequence_id <= position_state.waypoint_sequence)
+		if(position_state.movement_state != position) 
+        { 
+            ROS_WARN_STREAM("[mav_comms] Rejecting position " << msg->position  
+                << ", wrong movement state"); 
+        } 
+        else if( msg->waypoint_sequence_id != position_state.waypoint_sequence) 
 		{
 			ROS_WARN_STREAM("[mav_comms] Rejecting position " << msg->position 
 				<< ", wrong movement state or request is from aborted waypoint sequence (id "
@@ -92,7 +83,7 @@ namespace mav_comms
 
     void state_variables_init()
     {
-        position_state.movement_state = stop;
+        position_state.movement_state = position;
 
         position_state.x = 0;
         position_state.y = 0;
@@ -100,17 +91,6 @@ namespace mav_comms
 
         stop_position.type_mask = 0b0000101111000111;
         stop_position.header.seq = 1;
-
-        position_state.yaw_spin_msg.coordinate_frame = mavros_msgs::PositionTarget::FRAME_LOCAL_NED;
-        position_state.yaw_spin_msg.type_mask = mavros_msgs::PositionTarget::IGNORE_AFX | 
-            mavros_msgs::PositionTarget::IGNORE_AFY | 
-            mavros_msgs::PositionTarget::IGNORE_AFZ | 
-            mavros_msgs::PositionTarget::IGNORE_YAW;
-        // yaw_spin_msg.header.stamp = ros::Time::now();
-        // yaw_spin_msg.position.x = req.position.x;
-        // yaw_spin_msg.position.y = req.position.y;
-        // yaw_spin_msg.position.z = req.position.z;
-        position_state.yaw_spin_msg.yaw_rate = 0.0872665; // 5
     }
 
     void send_msg_to_px4()
@@ -133,8 +113,16 @@ namespace mav_comms
             }
             case movement_state_t::yaw_spin:
             {
-                position_state.yaw_spin_msg.header.stamp = ros::Time::now();
-                setpoint_raw_pub.publish(position_state.yaw_spin_msg);
+
+                geometry_msgs::PoseStamped msg;
+                msg.header.stamp = ros::Time::now();
+                msg.pose.position.x = position_state.x;
+                msg.pose.position.y = position_state.y;
+                msg.pose.position.z = position_state.z;
+                msg.pose.orientation = tf::createQuaternionMsgFromYaw(0.174533);
+                local_pos_pub.publish(msg);
+
+                position_state.movement_state = position;
                 break;
             }
         }
@@ -199,10 +187,6 @@ int main(int argc, char **argv)
     while(ros::ok()) 
     {// Position is always sent regardeless of the state to keep vehicle in offboard mode
         mav_comms::send_msg_to_px4();
-        //     point_to_pub.pose.position.x = mav_comms::position_state.x;
-        //     point_to_pub.pose.position.y = mav_comms::position_state.y;
-        //     point_to_pub.pose.position.z = mav_comms::position_state.z;
-        //     local_pos_pub.publish(point_to_pub);
         if( mav_comms::current_state.mode != "OFFBOARD") 
         {
             if(offboard_on)

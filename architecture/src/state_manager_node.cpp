@@ -273,7 +273,6 @@ namespace state_manager_node
         {
             // Reached Frontier
             ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.waypoint_index << ") of sequence " << state_data.frontier_request_id << ": " << get_current_waypoint());
-            state_data.waypoint_index = -1;
             state_data.follow_path_state = finished_sequence;
             ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence");
         }
@@ -384,7 +383,7 @@ namespace state_manager_node
                 if(getUavPositionServiceCall(current_position))
                 {
                     // geometry_msgs::Point current_position = srv.response.current_position;
-                    state_data.frontier_request_id = -1;
+                    state_data.frontier_request_id = 0;
                     state_data.waypoint_index = 0;
                     state_data.exploration_state = visit_waypoints;
                     state_data.follow_path_state = init;
