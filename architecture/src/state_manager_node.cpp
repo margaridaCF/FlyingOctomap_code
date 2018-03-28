@@ -13,6 +13,7 @@
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/PositionMiddleMan.h>
 #include <architecture_msgs/YawSpin.h>
+#include <architecture_msgs/EnableHandbrakeTrigger.h>
 
 #include <frontiers_msgs/CheckIsFrontier.h>
 #include <frontiers_msgs/FrontierReply.h>
@@ -51,6 +52,7 @@ namespace state_manager_node
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
     ros::ServiceClient yaw_spin_client;
+    ros::ServiceClient enable_handbrake_trigger_client;
 
 
     // TODO - transform this into parameters at some point
@@ -71,6 +73,7 @@ namespace state_manager_node
         int ltstar_request_id;
         int frontier_index;        // id of the frontier in use
         int cycles_waited_for_path;
+        bool handbrake_enabled;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierReply frontiers_msg;
@@ -163,6 +166,20 @@ namespace state_manager_node
         while(!getUavPositionServiceCall(request.current_position));
         frontier_request_pub.publish(request);
         state_data.frontier_request_count++;
+    }
+
+    bool enableHandbrakeServiceCall()
+    {
+        architecture_msgs::EnableHandbrakeTrigger enable_handbrake_trigger_srv;
+        if(enable_handbrake_trigger_client.call(enable_handbrake_trigger_srv))
+        {
+            return true;
+        }
+        else
+        {
+            ROS_WARN("[State manager] Enable Handbrake trigger node not accepting requests.");
+            return false;
+        }  
     }
 
     void stop_cb(const std_msgs::Empty::ConstPtr& msg)
@@ -326,6 +343,7 @@ namespace state_manager_node
 
     void init_state_variables(state_manager_node::StateData& state_data)
     {
+        state_data.handbrake_enabled = false;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
         state_data.exploration_state = clear_from_ground;
@@ -351,9 +369,6 @@ namespace state_manager_node
         nh.getParam("geofence_max/y", y);
         nh.getParam("geofence_max/z", z);
         geofence_max = octomath::Vector3  (x, y, z);
-
-        ROS_ERROR_STREAM("geofence_max " << geofence_max);
-
     }
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
@@ -394,6 +409,10 @@ namespace state_manager_node
             }
             case exploration_start:
             {
+                if(!state_data.handbrake_enabled)
+                {
+                    state_data.handbrake_enabled = enableHandbrakeServiceCall();
+                }
                 state_data.waypoint_index = -1;
                 frontiers_msgs::FrontierNodeStatus srv;
                 if (frontier_status_client.call(srv))
@@ -502,7 +521,8 @@ int main(int argc, char **argv)
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
     state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
     state_manager_node::yaw_spin_client = nh.serviceClient<architecture_msgs::YawSpin>("yaw_spin");
-    // Topic subscribers
+    state_manager_node::enable_handbrake_trigger_client = nh.serviceClient<architecture_msgs::EnableHandbrakeTrigger>("enable_handbrake_trigger");
+    // Topic subscribers 
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 5, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
     ros::Subscriber ltstar_reply_sub = nh.subscribe<path_planning_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);

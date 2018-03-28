@@ -6,9 +6,14 @@ import numpy as np
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Empty
+from architecture_msgs.srv import *
 import os
 
 min_distance = 0.0
+handbrake_on = False
+
+def handle_enable_handbrake():
+    handbrake_on = True
 
 def callback(data):
     # print str(data.ranges)
@@ -24,6 +29,7 @@ def main():
     # min_distance = None
     rospy.init_node('handbrake_listen')
     safety_threshold = rospy.get_param("safety_margin")
+    # enable_handbrake_s = rospy.Service('enable_handbrake_trigger', EnableHandbrakeTrigger, handle_enable_handbrake)
     rospy.Subscriber('depth_laser_scan', LaserScan, callback)
     stop_state_pub = rospy.Publisher('stop_uav', Empty, queue_size=10)
     emergency_stop_msg = Empty()
@@ -40,7 +46,7 @@ def main():
         rospy.sleep(0.01)
         # print "[Handbrake] Distance to closest obstacle: " + str(min_distance)
         # If the perceived minimum distance to the obstacles is less then a threshold, send a stopping command
-        if min_distance <= safety_threshold and min_distance != 0.0:
+        if handbrake_on and (min_distance <= safety_threshold) and (min_distance != 0.0):
             rospy.logwarn("[Handbrake] Distance to closest obstacle: %s", str(min_distance))
             try:
                 stop_state_pub.publish(emergency_stop_msg)
