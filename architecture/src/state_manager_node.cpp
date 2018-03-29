@@ -44,9 +44,9 @@ namespace state_manager_node
         }
     };
 
-    ros::Publisher target_position_pub;
     ros::Publisher frontier_request_pub;
     ros::Publisher ltstar_request_pub;
+    ros::ServiceClient target_position_client;
     ros::ServiceClient is_frontier_client;
     ros::ServiceClient frontier_status_client;
     ros::ServiceClient ltstar_status_cliente;
@@ -125,13 +125,21 @@ namespace state_manager_node
         }
     }
 
-    void requestingPostionOfCurrentWaypointSequence()
+    bool askPositionServiceCall(geometry_msgs::Point& position)
     {
-        architecture_msgs::PositionRequest position_request;
-        position_request.waypoint_sequence_id = state_data.frontier_request_id;
-        position_request.position = get_current_waypoint();
-        target_position_pub.publish(position_request);
-        ROS_INFO_STREAM("[State manager] Requesting position " << state_data.waypoint_index << " = " << get_current_waypoint());
+        architecture_msgs::PositionRequest position_request_srv;
+        position_request_srv.request.waypoint_sequence_id = state_data.frontier_request_id;
+        position_request_srv.request.position = position;
+        if(target_position_client.call(position_request_srv))
+        {
+            ROS_INFO_STREAM("[State manager] Requesting position " << state_data.waypoint_index << " = " << get_current_waypoint());
+            return position_request_srv.response.is_going_to_position;
+        }
+        else
+        {
+            ROS_WARN("[State manager] YawSpin node not accepting requests.");
+            return false;
+        }
     }
 
     void askForObstacleAvoidingPath(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& ltstar_request_pub)
@@ -278,7 +286,11 @@ namespace state_manager_node
         }
         else {
             state_data.waypoint_index++;
-            requestingPostionOfCurrentWaypointSequence();
+            if(   !askPositionServiceCall( get_current_waypoint() )   )
+            {
+                state_data.waypoint_index--;
+                ROS_WARN_STREAM("[State manager] The position wasn't accepted. Decrementing index to ask again.");
+            }
         }
     }
 
@@ -288,9 +300,15 @@ namespace state_manager_node
         {
             case init:
             {
-                requestingPostionOfCurrentWaypointSequence();
-                state_data.follow_path_state = on_route;
-                ROS_INFO_STREAM("[State manager]            [Path follow] on_route to " << get_current_waypoint());
+                if(askPositionServiceCall(get_current_waypoint()))
+                {
+                    state_data.follow_path_state = on_route;
+                    ROS_INFO_STREAM("[State manager]            [Path follow] on_route to " << get_current_waypoint());
+                }
+                else
+                {
+                    ROS_WARN_STREAM("[State manager] Failed to set next position. Going to keep trying.");
+                }
                 break;
             }
             case on_route:
@@ -520,6 +538,7 @@ int main(int argc, char **argv)
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
     state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
     state_manager_node::yaw_spin_client = nh.serviceClient<architecture_msgs::YawSpin>("yaw_spin");
+    state_manager_node::target_position_client = nh.serviceClient<architecture_msgs::PositionRequest>("target_position");
     state_manager_node::enable_handbrake_trigger_client = nh.serviceClient<architecture_msgs::EnableHandbrakeTrigger>("enable_handbrake_trigger");
     // Topic subscribers 
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 5, state_manager_node::stop_cb);
@@ -528,7 +547,6 @@ int main(int argc, char **argv)
     // Topic publishers
     state_manager_node::ltstar_request_pub = nh.advertise<path_planning_msgs::LTStarRequest>("ltstar_request", 10);
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
-    state_manager_node::target_position_pub = nh.advertise<architecture_msgs::PositionRequest>("target_position", 10);
     
 
     

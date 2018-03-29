@@ -1,14 +1,14 @@
 #include <ros/ros.h>
+#include <tf/transform_datatypes.h>
 #include <std_msgs/Empty.h>
-#include <architecture_msgs/PositionRequest.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/ParamSet.h>
-#include <geometry_msgs/PoseStamped.h>
+#include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/YawSpin.h>
-#include <tf/transform_datatypes.h>
 
 namespace mav_comms
 {
@@ -16,13 +16,14 @@ namespace mav_comms
 	ros::Publisher setpoint_raw_pub;
     ros::Publisher local_pos_pub;
     ros::ServiceServer yaw_spin_service;
+    ros::ServiceServer target_position_service;
     enum movement_state_t {position, stop, yaw_spin};
-	struct Position { movement_state_t movement_state; int waypoint_sequence;
-        double x; double y; double z; };
+    enum yaw_spin_maneuver_state_t {front_facing = 0, half_moon = 180, full_moon = 359};
+    struct Position { movement_state_t movement_state; int waypoint_sequence;
+        double x; double y; double z; yaw_spin_maneuver_state_t yaw_spin_state; ros::Time yaw_spin_last_sent;};
     mavros_msgs::PositionTarget stop_position;
-	Position position_state;
-    ros::ServiceClient param_set_client;
-     // just to avoid creating a variable each time
+    Position position_state;
+    ros::ServiceClient param_set_client; 
 
 
 	void state_cb(const mavros_msgs::State::ConstPtr& msg){
@@ -44,6 +45,8 @@ namespace mav_comms
         position_state.y = req.position.y;
         position_state.z = req.position.z;
         position_state.movement_state = yaw_spin;
+        position_state.yaw_spin_state = front_facing;
+        return true;
     }
 
 	void stopUAV_cb(const std_msgs::Empty::ConstPtr& msg)
@@ -58,27 +61,32 @@ namespace mav_comms
 	    // ROS_INFO("[mav_comms] STOP msg sent!");
 	}
 
-	void target_position_cb(const architecture_msgs::PositionRequest::ConstPtr& msg)
+	bool target_position_cb(architecture_msgs::PositionRequest::Request  &req, 
+        architecture_msgs::PositionRequest::Response &res)
 	{
 		if(position_state.movement_state != position) 
         { 
-            ROS_WARN_STREAM("[mav_comms] Rejecting position " << msg->position  
+            ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.position  
                 << ", wrong movement state"); 
+            res.is_going_to_position = false;
         } 
-        else if( msg->waypoint_sequence_id != position_state.waypoint_sequence) 
+        else if( req.waypoint_sequence_id != position_state.waypoint_sequence) 
 		{
-			ROS_WARN_STREAM("[mav_comms] Rejecting position " << msg->position 
+			ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.position 
 				<< ", wrong movement state or request is from aborted waypoint sequence (id "
-				<< msg->waypoint_sequence_id << ")");
+				<< req.waypoint_sequence_id << ")");
+            res.is_going_to_position = false;
 		}
 		else
 		{
 			position_state.movement_state = position;
-			position_state.waypoint_sequence = msg->waypoint_sequence_id;
-			position_state.x = msg->position.x;
-			position_state.y = msg->position.y;
-			position_state.z = msg->position.z;
+			position_state.waypoint_sequence = req.waypoint_sequence_id;
+			position_state.x = req.position.x;
+			position_state.y = req.position.y;
+			position_state.z = req.position.z;
+            res.is_going_to_position = true;
 		}
+        return true;
 	}
 
     void state_variables_init()
@@ -103,6 +111,7 @@ namespace mav_comms
                 point_to_pub.pose.position.x = position_state.x;
                 point_to_pub.pose.position.y = position_state.y;
                 point_to_pub.pose.position.z = position_state.z;
+                point_to_pub.pose.orientation = tf::createQuaternionMsgFromYaw(front_facing * 0.0174532925);
                 local_pos_pub.publish(point_to_pub);
                 break;
             }
@@ -118,7 +127,34 @@ namespace mav_comms
                 point_to_pub.pose.position.x = position_state.x;
                 point_to_pub.pose.position.y = position_state.y;
                 point_to_pub.pose.position.z = position_state.z;
-                point_to_pub.pose.orientation = tf::createQuaternionMsgFromYaw(90 * 0.0174532925);
+                switch(position_state.yaw_spin_state)
+                {
+                    case front_facing:
+                    {
+                        position_state.yaw_spin_state = half_moon;
+                        break;
+                    }
+                    case half_moon:
+                    {
+                        if(position_state.yaw_spin_last_sent - ros::Time::now() > ros::Duration(2))
+                        {
+                            position_state.yaw_spin_last_sent = ros::Time::now();
+                            position_state.yaw_spin_state = full_moon;
+                        }
+                        break;
+                    }
+                    case full_moon:
+                    {
+                        if(position_state.yaw_spin_last_sent - ros::Time::now() > ros::Duration(2))
+                        {
+                            position_state.yaw_spin_last_sent = ros::Time::now();
+                            position_state.yaw_spin_state = front_facing;
+                            position_state.movement_state = position;
+                        }
+                        break;
+                    }
+                }
+                point_to_pub.pose.orientation = tf::createQuaternionMsgFromYaw(position_state.yaw_spin_state * 0.0174532925);
                 local_pos_pub.publish(point_to_pub);
                 position_state.movement_state = yaw_spin;
                 break;
@@ -134,12 +170,12 @@ int main(int argc, char **argv)
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, mav_comms::state_cb);
     ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 10, mav_comms::stopUAV_cb);
-    ros::Subscriber target_position_sub = nh.subscribe<architecture_msgs::PositionRequest>("target_position", 10, mav_comms::target_position_cb);
 
     mav_comms::local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
     mav_comms::setpoint_raw_pub = nh.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
     
     mav_comms::yaw_spin_service = nh.advertiseService("yaw_spin", mav_comms::yaw_spin_cb);
+    mav_comms::target_position_service = nh.advertiseService("target_position", mav_comms::target_position_cb);
 
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
