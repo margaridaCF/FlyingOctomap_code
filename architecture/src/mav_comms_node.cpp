@@ -114,33 +114,13 @@ namespace mav_comms
             }
             case movement_state_t::yaw_spin:
             {
-
-                mavros_msgs::PositionTarget targetMsg;
-                targetMsg.coordinate_frame = mavros_msgs::PositionTarget::FRAME_BODY_OFFSET_NED;
-                targetMsg.type_mask = mavros_msgs::PositionTarget::IGNORE_AFX |
-                                      mavros_msgs::PositionTarget::IGNORE_AFY |
-                                      mavros_msgs::PositionTarget::IGNORE_AFZ |
-                                      mavros_msgs::PositionTarget::IGNORE_VX |
-                                      mavros_msgs::PositionTarget::IGNORE_VY |
-                                      mavros_msgs::PositionTarget::IGNORE_VZ ;
-                targetMsg.position.x = position_state.x;
-                targetMsg.position.y = position_state.y;
-                targetMsg.position.z = position_state.z;
-                targetMsg.yaw = 30 * 0.0174532925;  //DEG to RAD
-                targetMsg.yaw_rate = 0.0872665;
-                // local_t_pos_pub.publish(targetMsg);
-                setpoint_raw_pub.publish(targetMsg);
-                // ROS_WARN_STREAM("[mav_comms] Publish yaw msg");
-
-                geometry_msgs::PoseStamped msg;
-                msg.header.stamp = ros::Time::now();
-                msg.pose.position.x = position_state.x;
-                msg.pose.position.y = position_state.y;
-                msg.pose.position.z = position_state.z;
-                msg.pose.orientation = tf::createQuaternionMsgFromYaw(0.174533);
-                local_pos_pub.publish(msg);
-
-                position_state.movement_state = position;
+                geometry_msgs::PoseStamped point_to_pub;
+                point_to_pub.pose.position.x = position_state.x;
+                point_to_pub.pose.position.y = position_state.y;
+                point_to_pub.pose.position.z = position_state.z;
+                point_to_pub.pose.orientation = tf::createQuaternionMsgFromYaw(90 * 0.0174532925);
+                local_pos_pub.publish(point_to_pub);
+                position_state.movement_state = yaw_spin;
                 break;
             }
         }
