@@ -60,6 +60,7 @@ namespace state_manager_node
     double odometry_error;
     double safety_margin = 3;
     double error_margin;
+    ros::Duration exploration_maneuver_duration_secs;
     int max_search_iterations = 500;
     int max_cycles_waited_for_path = 3;
     octomath::Vector3 geofence_min (-5, -5, 1);
@@ -74,6 +75,8 @@ namespace state_manager_node
         int frontier_index;        // id of the frontier in use
         int cycles_waited_for_path;
         bool handbrake_enabled;
+        bool exploration_maneuver_started;
+        ros::Time request_exploration_maneuver;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierReply frontiers_msg;
@@ -116,6 +119,7 @@ namespace state_manager_node
         yaw_spin_srv.request.position = get_current_waypoint();
         if(yaw_spin_client.call(yaw_spin_srv))
         {
+            state_data.request_exploration_maneuver = ros::Time::now();
             return true;
         }
         else
@@ -360,6 +364,7 @@ namespace state_manager_node
 
     void init_state_variables(state_manager_node::StateData& state_data)
     {
+        state_data.exploration_maneuver_started = false;
         state_data.handbrake_enabled = false;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
@@ -369,6 +374,9 @@ namespace state_manager_node
 
     void init_param_variables(ros::NodeHandle& nh)
     {
+        double temp;
+        nh.getParam("exploration_maneuver_duration_secs", temp);
+        exploration_maneuver_duration_secs = ros::Duration(temp);
         nh.getParam("px4_loiter_radius", px4_loiter_radius);
         nh.getParam("odometry_error", odometry_error);
         nh.getParam("safety_margin", safety_margin);
@@ -515,7 +523,18 @@ namespace state_manager_node
             }
             case gather_data_maneuver:
             {
-                askYawSpinServiceCall();
+                if (!state_data.exploration_maneuver_started)
+                {
+                    state_data.exploration_maneuver_started = askYawSpinServiceCall();
+                }
+                else
+                {
+                    ros::Duration time_lapse = ros::Time::now() - state_data.request_exploration_maneuver;
+                    if(time_lapse > exploration_maneuver_duration_secs)
+                    {
+                        state_data.exploration_state = exploration_start;
+                    }
+                }
                 break;
             }
             default:

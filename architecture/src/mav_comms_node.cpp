@@ -12,6 +12,7 @@
 
 namespace mav_comms
 {
+    ros::Duration exploration_maneuver_phases_duration_secs;
 	mavros_msgs::State current_state;
 	ros::Publisher setpoint_raw_pub;
     ros::Publisher local_pos_pub;
@@ -89,7 +90,7 @@ namespace mav_comms
         return true;
 	}
 
-    void state_variables_init()
+    void state_variables_init(ros::NodeHandle& nh)
     {
         position_state.movement_state = position;
         position_state.yaw_spin_state = front_facing;
@@ -100,6 +101,10 @@ namespace mav_comms
 
         stop_position.type_mask = 0b0000101111000111;
         stop_position.header.seq = 1;
+
+        int temp;
+        nh.getParam("exploration_maneuver_phases_duration_secs", temp);
+        exploration_maneuver_phases_duration_secs = ros::Duration(temp);
     }
 
     void send_msg_to_px4()
@@ -136,33 +141,35 @@ namespace mav_comms
                         ROS_INFO_STREAM("[mav_comms]        front_facing");
                         position_state.yaw_spin_last_sent = ros::Time::now();
                         position_state.yaw_spin_state = half_moon;
+                        ROS_INFO_STREAM("[mav_comms]        half_moon");
                         break;
                     }
                     case half_moon:
                     {
-                        ROS_INFO_STREAM("[mav_comms]        @ half_moon for " << time_lapse);
-                        if(time_lapse > ros::Duration(2))
+                        // ROS_INFO_STREAM("[mav_comms]        @ half_moon for " << time_lapse);
+                        if(time_lapse > exploration_maneuver_phases_duration_secs)
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = full_moon;
+                            ROS_INFO_STREAM("[mav_comms]        full_moon");
                         }
                         break;
                     }
                     case full_moon:
                     {
-                        ROS_INFO_STREAM("[mav_comms]        @ full_moon for " << time_lapse);
-                        if(time_lapse > ros::Duration(2))
+                        // ROS_INFO_STREAM("[mav_comms]        @ full_moon for " << time_lapse);
+                        if(time_lapse > exploration_maneuver_phases_duration_secs)
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = front_facing;
                             position_state.movement_state = position;
+                            ROS_INFO_STREAM("[mav_comms] position");
                         }
                         break;
                     }
                 }
                 point_to_pub.pose.orientation = tf::createQuaternionMsgFromYaw(position_state.yaw_spin_state * 0.0174532925);
                 local_pos_pub.publish(point_to_pub);
-                position_state.movement_state = yaw_spin;
                 break;
             }
         }
@@ -187,7 +194,7 @@ int main(int argc, char **argv)
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
     mav_comms::param_set_client = nh.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
 
-    mav_comms::state_variables_init();
+    mav_comms::state_variables_init(nh);
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(100);
     // === FCU CONNECTION ===
