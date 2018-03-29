@@ -65,7 +65,7 @@ namespace state_manager_node
     int max_cycles_waited_for_path = 3;
     octomath::Vector3 geofence_min (-5, -5, 1);
     octomath::Vector3 geofence_max (5, 5, 10);
-    enum follow_path_state_t{init, on_route, reached_waypoint, finished_sequence};
+    enum follow_path_state_t{init, on_route, arrived_at_waypoint, finished_sequence};
     enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, waiting_path_response, visit_waypoints, finished_exploring, gather_data_maneuver};
     struct StateData { 
         int frontier_request_id;       // id for the request in use
@@ -132,7 +132,7 @@ namespace state_manager_node
     bool askPositionServiceCall(geometry_msgs::Point& position)
     {
         architecture_msgs::PositionRequest position_request_srv;
-        position_request_srv.request.waypoint_sequence_id = state_data.frontier_request_id;
+        position_request_srv.request.waypoint_sequence_id = state_data.ltstar_request_id;
         position_request_srv.request.position = position;
         if(target_position_client.call(position_request_srv))
         {
@@ -279,25 +279,6 @@ namespace state_manager_node
             && std::abs(target_waypoint.z - current_position.z) <= error_margin;
     }
 
-    void updateStateUponWaypointArrival()
-    {
-        if(state_data.ltstar_msg.waypoint_amount == state_data.waypoint_index+1)
-        {
-            // Reached Frontier
-            ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.waypoint_index << ") of sequence " << state_data.frontier_request_id << ": " << get_current_waypoint());
-            state_data.follow_path_state = finished_sequence;
-            ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence");
-        }
-        else {
-            state_data.waypoint_index++;
-            if(   !askPositionServiceCall( get_current_waypoint() )   )
-            {
-                state_data.waypoint_index--;
-                ROS_WARN_STREAM("[State manager] The position wasn't accepted. Decrementing index to ask again.");
-            }
-        }
-    }
-
     bool updateWaypointSequenceStateMachine()
     {
         switch(state_data.follow_path_state)
@@ -326,8 +307,23 @@ namespace state_manager_node
                     target_waypoint = get_current_waypoint();
                     if( is_in_target_position(target_waypoint, current_position, error_margin) )
                     {
-                        updateStateUponWaypointArrival();
+                        state_data.follow_path_state = arrived_at_waypoint;
                     }
+                }
+                break;
+            }
+            case arrived_at_waypoint:
+            {
+                if(state_data.ltstar_msg.waypoint_amount == state_data.waypoint_index+1)
+                {
+                    // Reached Frontier
+                    ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.waypoint_index << ") of sequence " << state_data.frontier_request_id << ": " << get_current_waypoint());
+                    state_data.follow_path_state = finished_sequence;
+                    ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence");
+                }
+                else {
+                    state_data.waypoint_index++;
+                    state_data.follow_path_state = init;
                 }
                 break;
             }
@@ -434,7 +430,6 @@ namespace state_manager_node
             }
             case exploration_start:
             {
-                ROS_WARN_STREAM("[State manager] handbrake_enabled is " << state_data.handbrake_enabled);
                 if(!state_data.handbrake_enabled)
                 {
                     state_data.handbrake_enabled = enableHandbrakeServiceCall();

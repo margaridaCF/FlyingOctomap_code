@@ -71,7 +71,7 @@ namespace mav_comms
                 << ", wrong movement state"); 
             res.is_going_to_position = false;
         } 
-        else if( req.waypoint_sequence_id != position_state.waypoint_sequence) 
+        else if( req.waypoint_sequence_id < position_state.waypoint_sequence) 
 		{
 			ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.position 
 				<< ", wrong movement state or request is from aborted waypoint sequence (id "
