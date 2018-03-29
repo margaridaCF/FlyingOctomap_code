@@ -12,8 +12,9 @@ import os
 min_distance = 0.0
 handbrake_on = False
 
-def handle_enable_handbrake():
+def handle_enable_handbrake(req):
     handbrake_on = True
+    return []
 
 def callback(data):
     # print str(data.ranges)
@@ -29,7 +30,7 @@ def main():
     # min_distance = None
     rospy.init_node('handbrake_listen')
     safety_threshold = rospy.get_param("safety_margin")
-    # enable_handbrake_s = rospy.Service('enable_handbrake_trigger', EnableHandbrakeTrigger, handle_enable_handbrake)
+    enable_handbrake_s = rospy.Service('enable_handbrake_trigger', EnableHandbrakeTrigger, handle_enable_handbrake)
     rospy.Subscriber('depth_laser_scan', LaserScan, callback)
     stop_state_pub = rospy.Publisher('stop_uav', Empty, queue_size=10)
     emergency_stop_msg = Empty()

@@ -434,23 +434,27 @@ namespace state_manager_node
             }
             case exploration_start:
             {
+                ROS_WARN_STREAM("[State manager] handbrake_enabled is " << state_data.handbrake_enabled);
                 if(!state_data.handbrake_enabled)
                 {
                     state_data.handbrake_enabled = enableHandbrakeServiceCall();
                 }
-                state_data.waypoint_index = -1;
-                frontiers_msgs::FrontierNodeStatus srv;
-                if (frontier_status_client.call(srv))
-                {
-                    if((bool)srv.response.is_accepting_requests)
-                    {
-                        // ROS_INFO_STREAM("[State manager] Asking for frontiers.");
-                        askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
-                    }
-                }
                 else
                 {
-                    ROS_WARN("[State manager] Frontier node not accepting requests.");
+                    state_data.waypoint_index = -1;
+                    frontiers_msgs::FrontierNodeStatus srv;
+                    if (frontier_status_client.call(srv))
+                    {
+                        if((bool)srv.response.is_accepting_requests)
+                        {
+                            // ROS_INFO_STREAM("[State manager] Asking for frontiers.");
+                            askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
+                        }
+                    }
+                    else
+                    {
+                        ROS_WARN("[State manager] Frontier node not accepting requests.");
+                    }
                 }
                 break;
             }
