@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: LaserScan
 Visualization Manager:
   Class: ""
   Displays:
@@ -183,7 +183,7 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 2.5
+        Max Value: 5.5
         Min Value: -0.5
         Value: true
       Axis: Z
@@ -259,25 +259,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.0631345659
+      Distance: 15.5839043
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 4
-        Y: -4
-        Z: 4.63311863
+        X: 0
+        Y: 0
+        Z: 0
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.355397761
+      Pitch: 0.560397983
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.92857313
+      Yaw: 5.70857096
     Saved: ~
 Window Geometry:
   Displays:
