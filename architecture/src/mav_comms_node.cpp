@@ -19,7 +19,7 @@ namespace mav_comms
     ros::ServiceServer yaw_spin_service;
     ros::ServiceServer target_position_service;
     enum movement_state_t {position, stop, yaw_spin};
-    enum yaw_spin_maneuver_state_t {front_facing = 0, half_moon = 90, full_moon = 180};
+    enum yaw_spin_maneuver_state_t {front_facing = 0, half_moon = 180, full_moon = 360};
     struct Position { movement_state_t movement_state; int waypoint_sequence;
         double x; double y; double z; yaw_spin_maneuver_state_t yaw_spin_state; ros::Time yaw_spin_last_sent;};
     mavros_msgs::PositionTarget stop_position;
