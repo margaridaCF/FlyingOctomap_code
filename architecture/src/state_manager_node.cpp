@@ -436,6 +436,7 @@ namespace state_manager_node
                 }
                 else
                 {
+                    state_data.exploration_maneuver_started = false;
                     state_data.waypoint_index = -1;
                     frontiers_msgs::FrontierNodeStatus srv;
                     if (frontier_status_client.call(srv))
