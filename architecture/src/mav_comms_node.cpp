@@ -18,7 +18,7 @@ namespace mav_comms
     ros::ServiceServer yaw_spin_service;
     ros::ServiceServer target_position_service;
     enum movement_state_t {position, stop, yaw_spin};
-    enum yaw_spin_maneuver_state_t {front_facing = 0, half_moon = 180, full_moon = 359};
+    enum yaw_spin_maneuver_state_t {front_facing = 0, half_moon = 90, full_moon = 180};
     struct Position { movement_state_t movement_state; int waypoint_sequence;
         double x; double y; double z; yaw_spin_maneuver_state_t yaw_spin_state; ros::Time yaw_spin_last_sent;};
     mavros_msgs::PositionTarget stop_position;
@@ -45,7 +45,7 @@ namespace mav_comms
         position_state.y = req.position.y;
         position_state.z = req.position.z;
         position_state.movement_state = yaw_spin;
-        position_state.yaw_spin_state = front_facing;
+        ROS_INFO_STREAM("[mav_comms] Receiving yaw spin request " << req);
         return true;
     }
 
@@ -92,6 +92,7 @@ namespace mav_comms
     void state_variables_init()
     {
         position_state.movement_state = position;
+        position_state.yaw_spin_state = front_facing;
 
         position_state.x = 0;
         position_state.y = 0;
@@ -127,16 +128,20 @@ namespace mav_comms
                 point_to_pub.pose.position.x = position_state.x;
                 point_to_pub.pose.position.y = position_state.y;
                 point_to_pub.pose.position.z = position_state.z;
+                ros::Duration time_lapse = ros::Time::now() - position_state.yaw_spin_last_sent;
                 switch(position_state.yaw_spin_state)
                 {
                     case front_facing:
                     {
+                        ROS_INFO_STREAM("[mav_comms]        front_facing");
+                        position_state.yaw_spin_last_sent = ros::Time::now();
                         position_state.yaw_spin_state = half_moon;
                         break;
                     }
                     case half_moon:
                     {
-                        if(position_state.yaw_spin_last_sent - ros::Time::now() > ros::Duration(2))
+                        ROS_INFO_STREAM("[mav_comms]        @ half_moon for " << time_lapse);
+                        if(time_lapse > ros::Duration(2))
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = full_moon;
@@ -145,7 +150,8 @@ namespace mav_comms
                     }
                     case full_moon:
                     {
-                        if(position_state.yaw_spin_last_sent - ros::Time::now() > ros::Duration(2))
+                        ROS_INFO_STREAM("[mav_comms]        @ full_moon for " << time_lapse);
+                        if(time_lapse > ros::Duration(2))
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = front_facing;
