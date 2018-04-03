@@ -58,7 +58,7 @@ namespace Frontiers{
                 // log << "Looking into " << grid_coordinates_curr << "\n";
                 // Gerenate neighbors
                 std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-                LazyThetaStarOctree::generateNeighbors_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution, false);
+                LazyThetaStarOctree::generateNeighbors_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution);
                 for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
                 {
                     if(!isOccupied(*n_coordinates, octree))
@@ -166,7 +166,7 @@ namespace Frontiers{
         octomap::OcTreeKey key = octree.coordToKey(candidate);
         int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, octree);
         double voxel_size = ((tree_depth + 1) - depth) * resolution;
-        LazyThetaStarOctree::generateNeighbors_pointers(neighbors, candidate, voxel_size, resolution, false);
+        LazyThetaStarOctree::generateNeighbors_pointers(neighbors, candidate, voxel_size, resolution);
         bool hasUnExploredNeighbors = false;
         for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
         {
