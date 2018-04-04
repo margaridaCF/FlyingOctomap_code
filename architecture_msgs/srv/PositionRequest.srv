@@ -1,0 +1,4 @@
+uint32 waypoint_sequence_id
+geometry_msgs/Point position
+---
+bool is_going_to_position

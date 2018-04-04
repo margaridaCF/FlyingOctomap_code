@@ -149,7 +149,7 @@
   <xacro:include filename="/opt/ros/kinetic/share/velodyne_description/urdf/VLP-16.urdf.xacro"/>
   <!-- <VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" hz="10" samples="440" lasers="16" min_angle="-2.35619" max_angle="2.35619" max_range="10"> -->
   <VLP-16 parent="base_link" name="velodyne" topic="/velodyne_points" hz="10" samples="440" lasers="16" min_angle="-3.14" max_angle="3.14" max_range="10">
-    <origin xyz="0 0 0.04" rpy="0 0 0" />
+    <origin xyz="0 0 0.05" rpy="0 0.174533 0" />
   </VLP-16>
 
 </robot>
