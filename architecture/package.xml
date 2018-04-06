@@ -21,6 +21,7 @@
   <depend>path_planning_msgs</depend>
   <depend>frontiers</depend>
   <depend>frontiers_msgs</depend>
+  <depend>laser_free_to_cloud</depend>
   <depend>tf</depend>
 
 </package>
