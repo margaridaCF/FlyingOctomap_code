@@ -74,7 +74,10 @@
     <!-- <param name="range_max" value="3"/> -->
   </node>
 
+  
+
   <!-- ########################################################################## -->
+  <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" />
     <!-- OCTOMAP -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
         <param name="frame_id" type="string" value="map" />   
