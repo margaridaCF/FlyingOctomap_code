@@ -31,7 +31,7 @@ def main():
     rospy.init_node('handbrake_listen')
     safety_threshold = rospy.get_param("safety_margin")
     enable_handbrake_s = rospy.Service('enable_handbrake_trigger', EnableHandbrakeTrigger, handle_enable_handbrake)
-    rospy.Subscriber('depth_laser_scan', LaserScan, callback)
+    rospy.Subscriber('cloud_out', LaserScan, callback)
     stop_state_pub = rospy.Publisher('stop_uav', Empty, queue_size=10)
     emergency_stop_msg = Empty()
     # emergency_stop_msg = Twist()
