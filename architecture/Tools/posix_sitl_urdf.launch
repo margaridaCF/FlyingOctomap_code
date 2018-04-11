@@ -74,14 +74,14 @@
     <!-- <param name="range_max" value="3"/> -->
   </node>
 
-  
+  <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" />
 
   <!-- ########################################################################## -->
-  <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" />
     <!-- OCTOMAP -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
         <param name="frame_id" type="string" value="map" />   
         <remap from="cloud_in" to="/velodyne_points" />
+        <remap from="free_cloud_in" to="/free_cloud" />
         <param name="latch" value="false" />
         <param name="resolution" value="1" />
         <param name="pointcloud_min" value="0"/>
