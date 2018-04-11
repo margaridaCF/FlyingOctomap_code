@@ -184,13 +184,14 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star path
       Namespaces:
-        {}
+        path: true
+        "waypoint ": true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /free_cells_vis_array
@@ -216,7 +217,7 @@ Visualization Manager:
       Max Color: 255; 255; 255
       Max Intensity: 999999
       Min Color: 0; 0; 0
-      Min Intensity: 0
+      Min Intensity: 999999
       Name: Hokuyo
       Position Transformer: XYZ
       Queue Size: 10
@@ -241,10 +242,10 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 0
+      Max Intensity: 999999
       Min Color: 0; 0; 0
       Min Intensity: 0
       Name: "Free Cloud "
@@ -258,7 +259,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /occupied_cells_vis_array
@@ -292,25 +293,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 16.336834
+      Distance: 23.9080143
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.33640504
-        Y: -5.30217123
-        Z: 1.02652431
+        X: -4.67233658
+        Y: -1.25984073
+        Z: -0.0573941544
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.409797162
+      Pitch: 0.924798071
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.77358484
+      Yaw: 3.73540425
     Saved: ~
 Window Geometry:
   Displays:
