@@ -156,7 +156,7 @@
 
   <joint name="hokuyo_joint" type="fixed">
     <axis xyz="0 1 0" />
-    <origin xyz=".15 0 .1" rpy="0 0 0"/>
+    <origin xyz="0 0 .1" rpy="0 -0.261799 3.14"/>
     <parent link="base_link"/>
     <child link="hokuyo"/>
   </joint>
@@ -164,14 +164,14 @@
   <!-- Hokuyo Laser -->
   <link name="hokuyo">
     <collision>
-      <origin xyz="0 0 0.05" rpy="0 0.174533 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
     <box size="0.1 0.1 0.1"/>
       </geometry>
     </collision>
 
     <visual>
-      <origin xyz="0 0 0.05" rpy="0 0.174533 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
         <mesh filename="package://architecture/meshes/hokuyo.dae"/>
       </geometry>
