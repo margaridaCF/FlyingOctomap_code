@@ -54,14 +54,17 @@ namespace mav_comms
 
 	void stopUAV_cb(const std_msgs::Empty::ConstPtr& msg)
 	{
-		position_state.movement_state = stop;
-		// Command in velocity
-	    // mavros_msgs::PositionTarget stop_position;
-	    // stop_position.type_mask = 0b0000101111000111;
-	    stop_position.header.stamp = ros::Time::now();
-	    // stop_position.header.seq = 1;
-	    setpoint_raw_pub.publish(stop_position);
-	    ROS_INFO("[mav_comms] STOP msg sent!");
+        if(position_state.movement_state == position)
+        {
+    		position_state.movement_state = stop;
+    		// Command in velocity
+    	    // mavros_msgs::PositionTarget stop_position;
+    	    // stop_position.type_mask = 0b0000101111000111;
+    	    stop_position.header.stamp = ros::Time::now();
+    	    // stop_position.header.seq = 1;
+    	    setpoint_raw_pub.publish(stop_position);
+    	    // ROS_INFO("[mav_comms] STOP msg sent!");
+        }
 	}
 
 	bool target_position_cb(architecture_msgs::PositionRequest::Request  &req, 
@@ -121,13 +124,14 @@ namespace mav_comms
                 point_to_pub.pose.position.z = position_state.z;
                 point_to_pub.pose.orientation = tf::createQuaternionMsgFromYaw(front_facing * 0.0174532925);
                 local_pos_pub.publish(point_to_pub);
+                // ROS_INFO_STREAM("[mav_comms] Sending position " << point_to_pub.pose.position);
                 break;
             }
             case movement_state_t::stop:
             {
                 stop_position.header.stamp = ros::Time::now();
                 setpoint_raw_pub.publish(stop_position);
-                ROS_INFO("[mav_comms] STOP msg sent!");
+                // ROS_INFO("[mav_comms] STOP msg sent!");
                 break;
             }
             case movement_state_t::yaw_spin:
@@ -206,9 +210,23 @@ int main(int argc, char **argv)
         rate.sleep();
     }
     // === px4 PARAM ===
-    double const flight_speed = 3;
+    double flight_speed = 3;
+    nh.getParam("px4/flight_speed", flight_speed);
     while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
     ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
+    double MPC_ACC_HOR = 2; // minimum 1
+    while(!mav_comms::set_mavros_param("MPC_ACC_HOR", MPC_ACC_HOR)) { }
+    ROS_INFO_STREAM("[mav_comms] Acceleration set to " << MPC_ACC_HOR << " m/s (MPC_ACC_HOR)"); 
+    // NAV_ACC_RAD - Acceptance Radius
+    double NAV_ACC_RAD = 2; // minimum 0.01
+    while(!mav_comms::set_mavros_param("NAV_ACC_RAD", NAV_ACC_RAD)) { }
+    ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << NAV_ACC_RAD << " m (NAV_ACC_RAD)"); 
+    // MPC_CRUISE_90 - Cruise speed when angle prev-current/current-next setpoint is 90 degrees.
+    double MPC_CRUISE_90 = 1;   // minimum 1
+    while(!mav_comms::set_mavros_param("MPC_CRUISE_90", MPC_CRUISE_90)) { }
+    ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << MPC_CRUISE_90 << " m/s (MPC_CRUISE_90)");
+
+
     double const offboard_mode_timeout_sec = 20;
     while(!mav_comms::set_mavros_param("COM_OF_LOSS_T", offboard_mode_timeout_sec)) { }
     ROS_INFO_STREAM("[mav_comms] Timeout from OFFBOARD mode set to " << offboard_mode_timeout_sec << " sec (COM_OF_LOSS_T)");
