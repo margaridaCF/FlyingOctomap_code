@@ -22,11 +22,11 @@
     <arg name="paused" default="false"/>
 
     <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
-
+    <!-- #######################  PX4  ############################################ -->
     <node name="sitl" pkg="px4" type="px4" output="screen"
         args="$(find px4) $(arg rcS)">
     </node>
-
+    <!-- #######################  Gazebo  ######################################### -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="headless" value="$(arg headless)"/>
         <arg name="gui" value="$(arg gui)"/>
@@ -35,54 +35,27 @@
         <arg name="verbose" value="$(arg verbose)" />
         <arg name="paused" value="$(arg paused)" />
     </include>
-
     <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
-    
-    
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" type="string" value=""/>
     </node>
-    
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <param name="use_gui" value="true"/>
     </node>
     <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
         args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
-
-
-<!--    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 /world /local_origin 100"/>-->
-<!--    <node name="local_origin_to_base_link" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_link 100"/> -->
-
-<!--    <node pkg="static_tf_publisher" type="static_tf_publisher_node" name="static_tf_publisher"/> -->
-
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" />
-
-
-    <!--<node name="odom_to_tf" pkg="message_to_tf" type="message_to_tf"> </node>-->
     <node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="screen">
         <param name="odometry_topic" value="ground_truth_pose"/>
         <param name="frame_id" value="map"/>
         <param name="child_frame_id" type="string" value="base_link"/>
     </node>
 
-
-  <!-- convert depth map to laserscan -->
-  <!-- <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="converter">
-    <remap from="cloud_in" to="/velodyne_points"/>
-    <remap from="scan" to="/depth_laser_scan"/>
-  </node> -->
-
-  <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" />
-
-  <node pkg="laser_free_to_cloud" type="laser_scan_to_cloud_node" name="laser_scan_to_cloud" />
-
-  <!-- ########################################################################## -->
-    <!-- OCTOMAP -->
+    <!-- #######################  Octomap  ######################################## -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
         <param name="frame_id" type="string" value="map" />   
-        <remap from="cloud_in" to="/cloud_out" />
-        <remap from="free_cloud_in" to="/free_cloud" />
+        <remap from="cloud_in" to="/free_cloud" />
         <param name="latch" value="false" />
         <param name="resolution" value="1" />
         <param name="pointcloud_min" value="0"/>
@@ -90,16 +63,16 @@
         <param name="occupancy_min" value="0.5"/>
         <param name="occupancy_min" value="1"/>
         <param name="publish_free_space" value="true"/>
-        <param name="sensor_model/max_range" value="80"/>
+        <param name="sensor_model/max_range" value="10"/>
     </node>
-  <!-- ########################################################################## -->
-    <!-- Architecture nodes -->
-  <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers"  output="screen" />
-  <node name="lazy_theta_star" type="ltStar_async_node" pkg="path_planning"  output="screen" />
-  <node name="handbrake" type="handbrake_node.py" pkg="architecture"  output="screen" /> 
-  <node name="mav_comms" type="mav_comms_node" pkg="architecture"  output="screen" />
-  <node name="state_manager" type="state_manager_node" pkg="architecture"  output="screen" />
-  <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
+    <!-- #######################  Architecture nodes  ############################# -->
+    <node name="free_cloud"         type="free_cloud_node"      pkg="laser_free_to_cloud"/>
+    <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
+    <node name="handbrake"          type="handbrake_node.py"    pkg="architecture"  output="screen" /> 
+    <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
+    <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
+    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
 </launch>
 
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
