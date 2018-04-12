@@ -4,13 +4,13 @@ px4_loiter_radius: 0.5
 odometry_error: 0 
 safety_margin: 1.5
 
-geofence_min/x: -5
-geofence_min/y: -5
+geofence_min/x: -10
+geofence_min/y: -10
 geofence_min/z: 1
 
-geofence_max/x: 5
-geofence_max/y: 5
-geofence_max/z: 10
+geofence_max/x: 10
+geofence_max/y: 10
+geofence_max/z: 20
 
 path/max_search_iterations: 500
 path/max_cycles_waited_for_path: 3
