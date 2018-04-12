@@ -115,74 +115,14 @@ Visualization Manager:
         {}
       Update Interval: 0
       Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/LaserScan
-      Color: 255; 255; 255
-      Color Transformer: Intensity
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 4096
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: LaserScan
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.100000001
-      Style: Flat Squares
-      Topic: /depth_laser_scan
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: Intensity
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 3.77448687e-37
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: LIDAR
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.0500000007
-      Style: Flat Squares
-      Topic: /velodyne_points
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: /is_frontier_markers
       Name: Frontiers
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /ltstar_path
@@ -209,13 +149,13 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/LaserScan
-      Color: 255; 255; 255
-      Color Transformer: Intensity
+      Color: 155; 255; 255
+      Color Transformer: FlatColor
       Decay Time: 0
       Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 999999
+      Max Intensity: -999999
       Min Color: 0; 0; 0
       Min Intensity: 999999
       Name: Hokuyo
@@ -223,8 +163,8 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.00999999978
-      Style: Flat Squares
+      Size (m): 0.5
+      Style: Points
       Topic: /hokuyo_laser_scan
       Unreliable: false
       Use Fixed Frame: true
@@ -239,13 +179,13 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: Intensity
+      Color: 255; 155; 255
+      Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 999999
+      Max Intensity: 0
       Min Color: 0; 0; 0
       Min Intensity: 0
       Name: "Free Cloud "
@@ -254,7 +194,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.00999999978
-      Style: Flat Squares
+      Style: Points
       Topic: /free_cloud
       Unreliable: false
       Use Fixed Frame: true
@@ -293,25 +233,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 23.9080143
+      Distance: 55.4826241
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -4.67233658
-        Y: -1.25984073
-        Z: -0.0573941544
+        X: -14.0984735
+        Y: 7.57053757
+        Z: -6.13487482
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.924798071
+      Pitch: 0.609797359
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.73540425
+      Yaw: 5.9604187
     Saved: ~
 Window Geometry:
   Displays:
