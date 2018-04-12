@@ -52,7 +52,7 @@ def main():
         if handbrake_on and (min_distance <= safety_threshold) and (min_distance != 0.0):
             try:
                 stop_state_pub.publish(emergency_stop_msg)
-                rospy.loginfo("[Handbrake] Emergency message successfully sent!")
+                rospy.loginfo("[Handbrake] Emergency message successfully sent! Distance %s ", str(min_distance))
             except rospy.ROSException:
                 rospy.logerr("[Handbrake] Error while sending the emergency message")
         # else:
