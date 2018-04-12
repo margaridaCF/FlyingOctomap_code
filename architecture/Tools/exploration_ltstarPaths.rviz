@@ -3,7 +3,8 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /Geofence1
       Splitter Ratio: 0.5
     Tree Height: 740
   - Class: rviz/Selection
@@ -25,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Hokuyo
+    SyncSource: "Free Cloud "
 Visualization Manager:
   Class: ""
   Displays:
@@ -128,8 +129,7 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star path
       Namespaces:
-        path: true
-        "waypoint ": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -206,6 +206,14 @@ Visualization Manager:
       Name: Octomap
       Namespaces:
         map: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /geofence
+      Name: Geofence
+      Namespaces:
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
