@@ -13,7 +13,9 @@ min_distance = 0.0
 handbrake_on = False
 
 def handle_enable_handbrake(req):
+    global handbrake_on
     handbrake_on = True
+    rospy.logwarn("[Handbrake] Enabled")
     return []
 
 def callback(data):
@@ -48,12 +50,11 @@ def main():
         # print "[Handbrake] Distance to closest obstacle: " + str(min_distance)
         # If the perceived minimum distance to the obstacles is less then a threshold, send a stopping command
         if handbrake_on and (min_distance <= safety_threshold) and (min_distance != 0.0):
-            rospy.logwarn("[Handbrake] Distance to closest obstacle: %s", str(min_distance))
             try:
                 stop_state_pub.publish(emergency_stop_msg)
-                # print "Emergency message successfully sent!"
+                rospy.loginfo("[Handbrake] Emergency message successfully sent!")
             except rospy.ROSException:
-                rospy.logerr("Error while sending the emergency message")
+                rospy.logerr("[Handbrake] Error while sending the emergency message")
         # else:
         #     print "[Handbrake] You're OK so far!"
 

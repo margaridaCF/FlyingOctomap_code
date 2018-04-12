@@ -61,7 +61,7 @@ namespace mav_comms
 	    stop_position.header.stamp = ros::Time::now();
 	    // stop_position.header.seq = 1;
 	    setpoint_raw_pub.publish(stop_position);
-	    // ROS_INFO("[mav_comms] STOP msg sent!");
+	    ROS_INFO("[mav_comms] STOP msg sent!");
 	}
 
 	bool target_position_cb(architecture_msgs::PositionRequest::Request  &req, 
@@ -127,6 +127,7 @@ namespace mav_comms
             {
                 stop_position.header.stamp = ros::Time::now();
                 setpoint_raw_pub.publish(stop_position);
+                ROS_INFO("[mav_comms] STOP msg sent!");
                 break;
             }
             case movement_state_t::yaw_spin:
