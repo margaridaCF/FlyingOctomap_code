@@ -9,6 +9,7 @@
 #include <geometry_msgs/Point.h>
 #include <octomap/math/Vector3.h>
 #include <unordered_set>
+#include <visualization_msgs/Marker.h>
 
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/PositionMiddleMan.h>
@@ -24,6 +25,8 @@
 #include <path_planning_msgs/LTStarReply.h>
 #include <path_planning_msgs/LTStarRequest.h>
 #include <path_planning_msgs/LTStarNodeStatus.h>
+
+
 
 
 namespace state_manager_node
@@ -46,6 +49,7 @@ namespace state_manager_node
 
     ros::Publisher frontier_request_pub;
     ros::Publisher ltstar_request_pub;
+    ros::Publisher marker_pub;
     ros::ServiceClient target_position_client;
     ros::ServiceClient is_frontier_client;
     ros::ServiceClient frontier_status_client;
@@ -544,6 +548,62 @@ namespace state_manager_node
             }
         }
     }
+   
+    void init_point(geometry_msgs::Point & point, float x, float y, float z)
+    {
+        point.x = x;
+        point.y = y;
+        point.z = z;
+    }
+
+    void push_segment(visualization_msgs::Marker & marker, geometry_msgs::Point & start, geometry_msgs::Point & end)
+    {
+        marker.points.push_back(start);
+        marker.points.push_back(end);
+    }
+
+    void publish_geofence()
+    {
+        uint32_t shape = visualization_msgs::Marker::LINE_LIST;
+        visualization_msgs::Marker marker;
+        // Set the frame ID and timestamp.  See the TF tutorials for information on these.
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.ns = "geofence";
+        marker.id = 20;
+        marker.type = shape;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.scale.x = 0.2;
+        marker.scale.y = 0.2;
+        marker.scale.z = 0.2;
+        marker.color.r = 0.0f;
+        marker.color.g = 0.0f;
+        marker.color.b = 1.0f;
+        marker.color.a = 1.0;
+        geometry_msgs::Point A, B, C, D, E, F, G, H;
+        init_point( A, geofence_min.x(), geofence_min.y(), geofence_min.z());
+        init_point( B, geofence_max.x(), geofence_min.y(), geofence_min.z());
+        init_point( C, geofence_min.x(), geofence_max.y(), geofence_min.z());
+        init_point( D, geofence_max.x(), geofence_max.y(), geofence_min.z());
+        init_point( E, geofence_min.x(), geofence_max.y(), geofence_max.z());
+        init_point( F, geofence_max.x(), geofence_max.y(), geofence_max.z());
+        init_point( G, geofence_min.x(), geofence_min.y(), geofence_max.z());
+        init_point( H, geofence_max.x(), geofence_min.y(), geofence_max.z());
+        push_segment(marker, A, B);
+        push_segment(marker, A, G);
+        push_segment(marker, A, C);
+        push_segment(marker, B, H);
+        push_segment(marker, B, D);
+        push_segment(marker, G, H);
+        push_segment(marker, H, F);
+        push_segment(marker, C, D);
+        push_segment(marker, C, E);
+        push_segment(marker, F, D);
+        push_segment(marker, G, E);
+        push_segment(marker, E, F);
+        marker.lifetime = ros::Duration();
+        marker_pub.publish(marker);
+    }
 }
 
 int main(int argc, char **argv)
@@ -566,13 +626,15 @@ int main(int argc, char **argv)
     // Topic publishers
     state_manager_node::ltstar_request_pub = nh.advertise<path_planning_msgs::LTStarRequest>("ltstar_request", 10);
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
+    state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("geofence", 1);
     
 
     
-    init_state_variables(state_manager_node::state_data);
+    state_manager_node::init_state_variables(state_manager_node::state_data);
     ros::Rate rate(2);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
+        state_manager_node::publish_geofence();
         state_manager_node::update_state(state_manager_node::geofence_min, state_manager_node::geofence_max);
     
         ros::spinOnce();

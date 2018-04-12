@@ -152,7 +152,7 @@ namespace LazyThetaStarOctree{
     octomap_msgs::binaryMapToMsg(octree, octomap);
     octomap_pub.publish(octomap);
 
-    RVizMarker marker = createMarker(3);
+    RVizMarker marker = createMarker(30);
     marker.header.frame_id = "map";
     geometry_msgs::Point p;
     p.x = disc_initial.x();
@@ -173,7 +173,7 @@ namespace LazyThetaStarOctree{
     waypoints_file.open("/waypoints.txt", std::ios_base::app);
     waypoints_file << " ===== " << dataset_name << " ===== " << std::endl;
     // waypoints_file << " iterations used: " << statistical_data.iterations_used  << "; Took " << total_nSecs_overall << " nano seconds." << std::endl;
-    marker = createMarker(4);
+    marker = createMarker(31);
     marker.header.frame_id = "map";
     marker.color.g = 50;
     marker.color.b = 167;

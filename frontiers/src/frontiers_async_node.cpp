@@ -32,7 +32,7 @@ namespace frontiers_async_node
 	    marker.header.frame_id = "/map";
 	    marker.header.stamp = ros::Time::now();
 	    marker.ns = "frontier_candidate";
-    	marker.id = 0;
+    	marker.id = 10;
     	marker.type = shape;
     	marker.action = visualization_msgs::Marker::ADD;
     	marker.pose.position.x = candidate.x();
