@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rviz_interface</name>
+  <version>0.0.1</version>
+  <description>A package to have all the markers used accross architecture nodes.</description>
+
+  <maintainer email="MargaridaCostaFaria@gmail.com">Margarida Faria</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>MIT</license>
+
+
+  <depend>roscpp</depend>
+  <build_depend>catkin_simple</build_depend> 
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>geometry_msgs</depend>
+  <depend>octomap_msgs</depend>
+  <depend>visualization_msgs</depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

@@ -11,6 +11,8 @@
 #include <unordered_set>
 #include <visualization_msgs/Marker.h>
 
+#include <marker_publishing_utils.h>
+
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/PositionMiddleMan.h>
 #include <architecture_msgs/YawSpin.h>
@@ -56,7 +58,6 @@ namespace state_manager_node
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
     ros::ServiceClient yaw_spin_client;
-    ros::ServiceClient enable_handbrake_trigger_client;
 
 
     // TODO - transform this into parameters at some point
@@ -177,31 +178,12 @@ namespace state_manager_node
         request.max.x = geofence_max.x();
         request.max.y = geofence_max.y();
         request.max.z = geofence_max.z();
+        request.safety_margin = safety_margin;
         request.frontier_amount = state_data.unobservable_set.size()+1;
         request.min_distance = px4_loiter_radius;
         while(!getUavPositionServiceCall(request.current_position));
         frontier_request_pub.publish(request);
         state_data.frontier_request_count++;
-    }
-
-    bool enableHandbrakeServiceCall()
-    {
-        architecture_msgs::EnableHandbrakeTrigger enable_handbrake_trigger_srv;
-        if(enable_handbrake_trigger_client.call(enable_handbrake_trigger_srv))
-        {
-            return true;
-        }
-        else
-        {
-            ROS_WARN("[State manager] Enable Handbrake trigger node not accepting requests.");
-            return false;
-        }  
-    }
-
-    void stop_cb(const std_msgs::Empty::ConstPtr& msg)
-    {
-        state_data.exploration_state = exploration_start;
-        ROS_INFO_STREAM("[State manager][Exploration] exploration_start");
     }
 
     void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
@@ -350,6 +332,7 @@ namespace state_manager_node
                 state_data.frontier_request_id = state_data.frontiers_msg.request_id;
                 state_data.waypoint_index = -1;
                 state_data.frontier_index = i;
+                // publish_marker_safety_margin(get_current_frontier(), safety_margin);
                 ROS_INFO_STREAM("[State manager] New frontier ("
                     <<get_current_frontier().x << ", "
                     <<get_current_frontier().y << ", "
@@ -434,27 +417,20 @@ namespace state_manager_node
             }
             case exploration_start:
             {
-                if(!state_data.handbrake_enabled)
+                state_data.exploration_maneuver_started = false;
+                state_data.waypoint_index = -1;
+                frontiers_msgs::FrontierNodeStatus srv;
+                if (frontier_status_client.call(srv))
                 {
-                    state_data.handbrake_enabled = enableHandbrakeServiceCall();
+                    if((bool)srv.response.is_accepting_requests)
+                    {
+                        // ROS_INFO_STREAM("[State manager] Asking for frontiers.");
+                        askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
+                    }
                 }
                 else
                 {
-                    state_data.exploration_maneuver_started = false;
-                    state_data.waypoint_index = -1;
-                    frontiers_msgs::FrontierNodeStatus srv;
-                    if (frontier_status_client.call(srv))
-                    {
-                        if((bool)srv.response.is_accepting_requests)
-                        {
-                            // ROS_INFO_STREAM("[State manager] Asking for frontiers.");
-                            askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
-                        }
-                    }
-                    else
-                    {
-                        ROS_WARN("[State manager] Frontier node not accepting requests.");
-                    }
+                    ROS_WARN("[State manager] Frontier node not accepting requests.");
                 }
                 break;
             }
@@ -548,62 +524,7 @@ namespace state_manager_node
             }
         }
     }
-   
-    void init_point(geometry_msgs::Point & point, float x, float y, float z)
-    {
-        point.x = x;
-        point.y = y;
-        point.z = z;
-    }
 
-    void push_segment(visualization_msgs::Marker & marker, geometry_msgs::Point & start, geometry_msgs::Point & end)
-    {
-        marker.points.push_back(start);
-        marker.points.push_back(end);
-    }
-
-    void publish_geofence()
-    {
-        uint32_t shape = visualization_msgs::Marker::LINE_LIST;
-        visualization_msgs::Marker marker;
-        // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-        marker.header.frame_id = "/map";
-        marker.header.stamp = ros::Time::now();
-        marker.ns = "geofence";
-        marker.id = 20;
-        marker.type = shape;
-        marker.action = visualization_msgs::Marker::ADD;
-        marker.scale.x = 0.2;
-        marker.scale.y = 0.2;
-        marker.scale.z = 0.2;
-        marker.color.r = 0.0f;
-        marker.color.g = 0.0f;
-        marker.color.b = 1.0f;
-        marker.color.a = 1.0;
-        geometry_msgs::Point A, B, C, D, E, F, G, H;
-        init_point( A, geofence_min.x(), geofence_min.y(), geofence_min.z());
-        init_point( B, geofence_max.x(), geofence_min.y(), geofence_min.z());
-        init_point( C, geofence_min.x(), geofence_max.y(), geofence_min.z());
-        init_point( D, geofence_max.x(), geofence_max.y(), geofence_min.z());
-        init_point( E, geofence_min.x(), geofence_max.y(), geofence_max.z());
-        init_point( F, geofence_max.x(), geofence_max.y(), geofence_max.z());
-        init_point( G, geofence_min.x(), geofence_min.y(), geofence_max.z());
-        init_point( H, geofence_max.x(), geofence_min.y(), geofence_max.z());
-        push_segment(marker, A, B);
-        push_segment(marker, A, G);
-        push_segment(marker, A, C);
-        push_segment(marker, B, H);
-        push_segment(marker, B, D);
-        push_segment(marker, G, H);
-        push_segment(marker, H, F);
-        push_segment(marker, C, D);
-        push_segment(marker, C, E);
-        push_segment(marker, F, D);
-        push_segment(marker, G, E);
-        push_segment(marker, E, F);
-        marker.lifetime = ros::Duration();
-        marker_pub.publish(marker);
-    }
 }
 
 int main(int argc, char **argv)
@@ -618,9 +539,7 @@ int main(int argc, char **argv)
     state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
     state_manager_node::yaw_spin_client = nh.serviceClient<architecture_msgs::YawSpin>("yaw_spin");
     state_manager_node::target_position_client = nh.serviceClient<architecture_msgs::PositionRequest>("target_position");
-    state_manager_node::enable_handbrake_trigger_client = nh.serviceClient<architecture_msgs::EnableHandbrakeTrigger>("enable_handbrake_trigger");
     // Topic subscribers 
-    ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 5, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
     ros::Subscriber ltstar_reply_sub = nh.subscribe<path_planning_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
     // Topic publishers
@@ -634,7 +553,7 @@ int main(int argc, char **argv)
     ros::Rate rate(2);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
-        state_manager_node::publish_geofence();
+        rviz_interface::publish_geofence(state_manager_node::geofence_min, state_manager_node::geofence_max, state_manager_node::marker_pub);
         state_manager_node::update_state(state_manager_node::geofence_min, state_manager_node::geofence_max);
     
         ros::spinOnce();

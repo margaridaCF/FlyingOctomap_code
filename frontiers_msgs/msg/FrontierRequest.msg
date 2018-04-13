@@ -4,3 +4,4 @@ geometry_msgs/Point max
 geometry_msgs/Point current_position
 int8 frontier_amount
 float32 min_distance
+float32 safety_margin

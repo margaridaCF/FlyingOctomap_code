@@ -75,10 +75,11 @@ namespace Frontiers{
 
         };
     const int d3 = 3;
-    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply& reply);
-    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree);
+    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply& reply, ros::Publisher const& marker_pub);
+    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree, double safety_margin, ros::Publisher const& marker_pub);
     bool isOccupied(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree);
     bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree);
     bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate); 
+    bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub);
 }
 #endif // FRONTIERS_H

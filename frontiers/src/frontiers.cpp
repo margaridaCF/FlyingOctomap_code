@@ -1,9 +1,9 @@
 #include <frontiers.h>
 #include <neighbors.h>
+#include <marker_publishing_utils.h>
 
 namespace Frontiers{
-
-    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply)
+    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub)
     {
         // std::ofstream log;
         // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
@@ -42,8 +42,8 @@ namespace Frontiers{
         return reply.success;
         }
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-        octomath::Vector3 bbxMin (currentVoxel.x, currentVoxel.y, currentVoxel.z);
-        octomath::Vector3 bbxMax (currentVoxel.x, currentVoxel.y, currentVoxel.z);
+        // octomath::Vector3 bbxMin (currentVoxel.x, currentVoxel.y, currentVoxel.z);
+        // octomath::Vector3 bbxMax (currentVoxel.x, currentVoxel.y, currentVoxel.z);
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount)
         {
             octomath::Vector3 coord = it.getCoordinate();
@@ -52,7 +52,7 @@ namespace Frontiers{
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
             if( isExplored(grid_coordinates_curr, octree)
                 && !isOccupied(grid_coordinates_curr, octree) 
-                && meetsOperationalRequirements(it.getSize()*2, grid_coordinates_curr, request.min_distance, current_position, octree)) 
+                && meetsOperationalRequirements(it.getSize()*2, grid_coordinates_curr, request.min_distance, current_position, octree, request.safety_margin, marker_pub)) 
             {
                 hasUnExploredNeighbors = false;
                 // log << "Looking into " << grid_coordinates_curr << "\n";
@@ -123,7 +123,45 @@ namespace Frontiers{
         }
     }
 
-    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree)
+    bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub)
+    {
+        rviz_interface::publish_deleteAll(marker_pub);
+        // ROS_WARN_STREAM("[Frontier] Checking neighboring obstacles for candidate frontier " << frontier);
+        geometry_msgs::Point candidate_frontier;
+        rviz_interface::init_point(candidate_frontier, frontier.x(), frontier.y(), frontier.z());
+        rviz_interface::publish_marker_safety_margin(candidate_frontier, safety_margin, marker_pub, 101);
+        octomath::Vector3  min = octomath::Vector3(frontier.x() - safety_margin, frontier.y() - safety_margin, frontier.z() - safety_margin);
+        octomath::Vector3  max = octomath::Vector3(frontier.x() + safety_margin, frontier.y() + safety_margin, frontier.z() + safety_margin);
+        octomap::OcTreeKey bbxMinKey, bbxMaxKey;
+        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
+        {
+            ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
+            return true;
+        }
+        int id = 102;
+        octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);   
+        while( !(it == octree.end_leafs_bbx()) )
+        {
+            octomath::Vector3 coord = it.getCoordinate();
+            if(isOccupied(coord, octree))
+            {
+                // ROS_WARN_STREAM("[Frontiers] " << coord << " is occupied.");
+                rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize());
+                // ROS_WARN_STREAM("[Frontier] Candidate frontier had obstacle as neighbor " << frontier);
+                return true;
+            }
+            else
+            {
+                // ROS_WARN_STREAM("[Frontiers] " << coord << " is free.");
+                rviz_interface::publish_voxel_free_occupied(coord, false, marker_pub, id, it.getSize());
+            }
+            it++;
+            id++;
+        }
+        return false;
+    }
+
+    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree, double safety_distance, ros::Publisher const& marker_pub)
     {
         // ROS_INFO_STREAM("[Frontiers] meetsOperationalRequirements - voxel_size: " << voxel_size << "; candidate: " << candidate << "; min_distance: " << min_distance << "; current_position:" << current_position);
         // Operation restrictions
@@ -139,6 +177,10 @@ namespace Frontiers{
         }
         if(LazyThetaStarOctree::getCellCenter(candidate, octree) == LazyThetaStarOctree::getCellCenter(current_position, octree) )
         {// start and end in same voxel
+            return false;
+        }
+        if(isFrontierTooCloseToObstacles(candidate, safety_distance, octree, marker_pub))
+        {
             return false;
         }
         // ROS_INFO_STREAM("[Frontiers]meetsOperationalRequirements - Approved");
