@@ -28,8 +28,8 @@ namespace rviz_interface
         marker.scale.x = 0.2; 
         marker.scale.y = 0.2; 
         marker.scale.z = 0.2; 
-        marker.color.r = 0.0f; 
-        marker.color.g = 0.0f; 
+        marker.color.r = 1.0f; 
+        marker.color.g = 1.0f; 
         marker.color.b = 1.0f; 
         marker.color.a = 1.0; 
         geometry_msgs::Point A, B, C, D, E, F, G, H; 
