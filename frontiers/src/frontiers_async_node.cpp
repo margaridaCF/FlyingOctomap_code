@@ -77,7 +77,7 @@ namespace frontiers_async_node
 		frontiers_msgs::FrontierReply reply;
 		if(octomap_init)
 		{
-			Frontiers::processFrontiersRequest(*octree, *frontier_request, reply);
+			Frontiers::processFrontiersRequest(*octree, *frontier_request, reply, marker_pub);
 		}
 		else
 		{
