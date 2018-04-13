@@ -126,6 +126,7 @@ namespace Frontiers{
     bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub)
     {
         rviz_interface::publish_deleteAll(marker_pub);
+        // ROS_WARN_STREAM("[Frontier] Checking neighboring obstacles for candidate frontier " << frontier);
         geometry_msgs::Point candidate_frontier;
         rviz_interface::init_point(candidate_frontier, frontier.x(), frontier.y(), frontier.z());
         rviz_interface::publish_marker_safety_margin(candidate_frontier, safety_margin, marker_pub, 101);
@@ -146,6 +147,7 @@ namespace Frontiers{
             {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is occupied.");
                 rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize());
+                // ROS_WARN_STREAM("[Frontier] Candidate frontier had obstacle as neighbor " << frontier);
                 return true;
             }
             else
