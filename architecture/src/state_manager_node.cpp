@@ -11,6 +11,8 @@
 #include <unordered_set>
 #include <visualization_msgs/Marker.h>
 
+#include <marker_publishing_utils.h>
+
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/PositionMiddleMan.h>
 #include <architecture_msgs/YawSpin.h>
@@ -88,62 +90,6 @@ namespace state_manager_node
         std::unordered_set<octomath::Vector3, Vector3Hash> unobservable_set; 
     };  
     state_manager_node::StateData state_data;
-
-    void init_point(geometry_msgs::Point & point, float x, float y, float z)
-    {
-        point.x = x;
-        point.y = y;
-        point.z = z;
-    }
-
-    void push_segment(visualization_msgs::Marker & marker, geometry_msgs::Point & start, geometry_msgs::Point & end)
-    {
-        marker.points.push_back(start);
-        marker.points.push_back(end);
-    }
-
-    void publish_geofence() 
-    { 
-        uint32_t shape = visualization_msgs::Marker::LINE_LIST; 
-        visualization_msgs::Marker marker; 
-        // Set the frame ID and timestamp.  See the TF tutorials for information on these. 
-        marker.header.frame_id = "/map"; 
-        marker.header.stamp = ros::Time::now(); 
-        marker.ns = "geofence"; 
-        marker.id = 20; 
-        marker.type = shape; 
-        marker.action = visualization_msgs::Marker::ADD; 
-        marker.scale.x = 0.2; 
-        marker.scale.y = 0.2; 
-        marker.scale.z = 0.2; 
-        marker.color.r = 0.0f; 
-        marker.color.g = 0.0f; 
-        marker.color.b = 1.0f; 
-        marker.color.a = 1.0; 
-        geometry_msgs::Point A, B, C, D, E, F, G, H; 
-        init_point( A, geofence_min.x(), geofence_min.y(), geofence_min.z()); 
-        init_point( B, geofence_max.x(), geofence_min.y(), geofence_min.z()); 
-        init_point( C, geofence_min.x(), geofence_max.y(), geofence_min.z()); 
-        init_point( D, geofence_max.x(), geofence_max.y(), geofence_min.z()); 
-        init_point( E, geofence_min.x(), geofence_max.y(), geofence_max.z()); 
-        init_point( F, geofence_max.x(), geofence_max.y(), geofence_max.z()); 
-        init_point( G, geofence_min.x(), geofence_min.y(), geofence_max.z()); 
-        init_point( H, geofence_max.x(), geofence_min.y(), geofence_max.z()); 
-        push_segment(marker, A, B); 
-        push_segment(marker, A, G); 
-        push_segment(marker, A, C); 
-        push_segment(marker, B, H); 
-        push_segment(marker, B, D); 
-        push_segment(marker, G, H); 
-        push_segment(marker, H, F); 
-        push_segment(marker, C, D); 
-        push_segment(marker, C, E); 
-        push_segment(marker, F, D); 
-        push_segment(marker, G, E); 
-        push_segment(marker, E, F); 
-        marker.lifetime = ros::Duration(); 
-        marker_pub.publish(marker); 
-    } 
 
     // TODO when thre is generation of path these two will be different
     geometry_msgs::Point& get_current_waypoint()
@@ -653,7 +599,7 @@ int main(int argc, char **argv)
     ros::Rate rate(2);
     while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
     {
-        state_manager_node::publish_geofence();
+        rviz_interface::publish_geofence(state_manager_node::geofence_min, state_manager_node::geofence_max, state_manager_node::marker_pub);
         state_manager_node::update_state(state_manager_node::geofence_min, state_manager_node::geofence_max);
     
         ros::spinOnce();

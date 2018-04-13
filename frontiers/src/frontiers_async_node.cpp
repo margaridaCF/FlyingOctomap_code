@@ -24,7 +24,7 @@ namespace frontiers_async_node
 	  	return true;
 	}
 
-	void publish_marker(octomath::Vector3 & candidate, bool is_frontier)
+	void publish_frontier_marker(octomath::Vector3 & candidate, bool is_frontier)
 	{
 		uint32_t shape = visualization_msgs::Marker::CUBE;
 		visualization_msgs::Marker marker;
@@ -48,15 +48,15 @@ namespace frontiers_async_node
 	    if(is_frontier)
 	    {
 		    marker.color.r = 0.0f;
-		    marker.color.g = 1.0f;
-		    marker.color.b = 0.0f;
+		    marker.color.g = 0.5f;
+		    marker.color.b = 1.0f;
 		    marker.color.a = 1.0;
 	    }
 	    else
 	    {
-		    marker.color.r = 1.0f;
-		    marker.color.g = 0.0f;
-		    marker.color.b = 0.0f;
+		    marker.color.r = 0.0f;
+		    marker.color.g = 0.5f;
+		    marker.color.b = 0.65f;
 		    marker.color.a = 1.0;
 	    }
 	    marker.lifetime = ros::Duration();
@@ -68,7 +68,7 @@ namespace frontiers_async_node
 	{
 		octomath::Vector3 candidate(req.candidate.x, req.candidate.y, req.candidate.z);
 		res.is_frontier = Frontiers::isFrontier(*octree, candidate);
-		publish_marker(candidate, res.is_frontier);
+		publish_frontier_marker(candidate, res.is_frontier);
 		return true;
 	}
 
