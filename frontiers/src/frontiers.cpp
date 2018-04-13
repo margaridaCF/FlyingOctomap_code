@@ -145,13 +145,13 @@ namespace Frontiers{
             if(isOccupied(coord, octree))
             {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is occupied.");
-                rviz_interface::publish_marker(coord, true, marker_pub, id, it.getSize());
+                rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize());
                 return true;
             }
             else
             {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is free.");
-                rviz_interface::publish_marker(coord, false, marker_pub, id, it.getSize());
+                rviz_interface::publish_voxel_free_occupied(coord, false, marker_pub, id, it.getSize());
             }
             it++;
             id++;
