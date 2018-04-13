@@ -58,7 +58,6 @@ namespace state_manager_node
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
     ros::ServiceClient yaw_spin_client;
-    ros::ServiceClient enable_handbrake_trigger_client;
 
 
     // TODO - transform this into parameters at some point
@@ -185,42 +184,6 @@ namespace state_manager_node
         while(!getUavPositionServiceCall(request.current_position));
         frontier_request_pub.publish(request);
         state_data.frontier_request_count++;
-    }
-
-    bool enableHandbrakeServiceCall()
-    {
-        architecture_msgs::EnableHandbrakeTrigger enable_handbrake_trigger_srv;
-        if(enable_handbrake_trigger_client.call(enable_handbrake_trigger_srv))
-        {
-            return true;
-        }
-        else
-        {
-            ROS_WARN("[State manager] Enable Handbrake trigger node not accepting requests.");
-            return false;
-        }  
-    }
-
-    void stop_cb(const std_msgs::Empty::ConstPtr& msg)
-    {
-        // Hacking so that exploration maneuver is based on current position and not unreachable destination
-        // state_data.ltstar_msg.waypoints[state_data.waypoint_index];
-
-        if(state_data.exploration_state != finished_exploring){
-            geometry_msgs::Point current_position;
-            if(getUavPositionServiceCall(current_position))
-            {
-                state_data.ltstar_msg.waypoints[state_data.waypoint_index] = current_position;
-                state_data.exploration_state = gather_data_maneuver;
-                ROS_INFO_STREAM("[State manager][Exploration] gather_data_maneuver after emergency break");
-            }
-            else
-            {
-                state_data.exploration_state = exploration_start;
-                ROS_INFO_STREAM("[State manager][Exploration] exploration_start after emergency break (could not get current position)");
-            }
-        }
-        state_data.exploration_state = finished_exploring;
     }
 
     void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
@@ -454,28 +417,21 @@ namespace state_manager_node
             }
             case exploration_start:
             {
-                // if(!state_data.handbrake_enabled)
-                // {
-                //     state_data.handbrake_enabled = enableHandbrakeServiceCall();
-                // }
-                // else
-                // {
-                    state_data.exploration_maneuver_started = false;
-                    state_data.waypoint_index = -1;
-                    frontiers_msgs::FrontierNodeStatus srv;
-                    if (frontier_status_client.call(srv))
+                state_data.exploration_maneuver_started = false;
+                state_data.waypoint_index = -1;
+                frontiers_msgs::FrontierNodeStatus srv;
+                if (frontier_status_client.call(srv))
+                {
+                    if((bool)srv.response.is_accepting_requests)
                     {
-                        if((bool)srv.response.is_accepting_requests)
-                        {
-                            // ROS_INFO_STREAM("[State manager] Asking for frontiers.");
-                            askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
-                        }
+                        // ROS_INFO_STREAM("[State manager] Asking for frontiers.");
+                        askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
                     }
-                    else
-                    {
-                        ROS_WARN("[State manager] Frontier node not accepting requests.");
-                    }
-                // }
+                }
+                else
+                {
+                    ROS_WARN("[State manager] Frontier node not accepting requests.");
+                }
                 break;
             }
             case choosing_goal:
@@ -583,9 +539,7 @@ int main(int argc, char **argv)
     state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
     state_manager_node::yaw_spin_client = nh.serviceClient<architecture_msgs::YawSpin>("yaw_spin");
     state_manager_node::target_position_client = nh.serviceClient<architecture_msgs::PositionRequest>("target_position");
-    state_manager_node::enable_handbrake_trigger_client = nh.serviceClient<architecture_msgs::EnableHandbrakeTrigger>("enable_handbrake_trigger");
     // Topic subscribers 
-    ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 5, state_manager_node::stop_cb);
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
     ros::Subscriber ltstar_reply_sub = nh.subscribe<path_planning_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
     // Topic publishers
