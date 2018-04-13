@@ -3,7 +3,7 @@ exploration_maneuver_phases_duration_secs: 5
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
 odometry_error: 0 
-safety_margin: 4
+safety_margin: 3
 
 geofence_min/x: -10
 geofence_min/y: -10
