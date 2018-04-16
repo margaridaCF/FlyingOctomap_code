@@ -336,7 +336,7 @@ namespace state_manager_node
                     <<get_current_frontier().x << ", "
                     <<get_current_frontier().y << ", "
                     <<get_current_frontier().z << ") ");
-
+                rviz_interface::publish_frontier_marker(get_current_frontier(), true, marker_pub);
                 return true;
             }
         }
