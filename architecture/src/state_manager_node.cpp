@@ -16,7 +16,6 @@
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/PositionMiddleMan.h>
 #include <architecture_msgs/YawSpin.h>
-#include <architecture_msgs/EnableHandbrakeTrigger.h>
 
 #include <frontiers_msgs/CheckIsFrontier.h>
 #include <frontiers_msgs/FrontierReply.h>
