@@ -13,7 +13,7 @@
 #include <octomap/math/Vector3.h>
 #include <chrono>
 #include <algorithm>
-
+#include <marker_publishing_utils.h>
 #include <geometry_msgs/Point.h>
 
 #include <frontiers_msgs/FrontierReply.h>

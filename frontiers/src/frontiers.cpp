@@ -1,6 +1,5 @@
 #include <frontiers.h>
 #include <neighbors.h>
-#include <marker_publishing_utils.h>
 
 namespace Frontiers{
     bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub)
