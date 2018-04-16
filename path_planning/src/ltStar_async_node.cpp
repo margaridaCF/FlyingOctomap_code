@@ -53,7 +53,7 @@ namespace LazyThetaStarOctree
 	        octomap::OcTreeKey key = octree->coordToKey(candidate);
 	        int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, *octree);
 	        double voxel_size = ((tree_depth + 1) - depth) * resolution;
-	        rviz_interface::publish_waypoint(candidate, voxel_size, (0.3*i)/reply.waypoint_amount, i, marker_pub );
+	        rviz_interface::publish_waypoint(candidate, voxel_size, (0.3*i)/reply.waypoint_amount, i, marker_pub);
 	        if(i !=0)
 	        {
 				octomath::Vector3 prev_candidate (reply.waypoints[i-1].x, reply.waypoints[i-1].y, reply.waypoints[i-1].z);
