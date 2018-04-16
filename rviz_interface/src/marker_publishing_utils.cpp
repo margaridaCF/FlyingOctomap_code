@@ -110,28 +110,35 @@ namespace rviz_interface
             marker.color.r = 1.0f;
             marker.color.g = 0.0f;
             marker.color.b = 0.0f;
-            marker.color.a = 1.0;
+            marker.color.a = 0.8;
         }
         else
         {
             marker.color.r = 0.0f;
             marker.color.g = 1.0f;
             marker.color.b = 0.0f;
-            marker.color.a = 1.0;
+            marker.color.a = 0.8;
         }
         marker.lifetime = ros::Duration(2);
         marker_pub.publish(marker);
     }
 
-    void publish_marker(octomath::Vector3 & candidate, bool is_occupied, ros::Publisher const& marker_pub, int id, double size)
+
+    void publish_frontier_marker(geometry_msgs::Point const& candidate, bool is_frontier, ros::Publisher const& marker_pub)
+    {
+        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
+        publish_frontier_marker(candidate_vec3, is_frontier, marker_pub);
+    }
+    
+    void publish_frontier_marker(octomath::Vector3 const& candidate, bool is_frontier, ros::Publisher const& marker_pub)
     {
         uint32_t shape = visualization_msgs::Marker::CUBE;
         visualization_msgs::Marker marker;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.ns = "neighbor_frontier";
-        marker.id = id;
+        marker.ns = "frontier_candidate";
+        marker.id = 10;
         marker.type = shape;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position.x = candidate.x();
@@ -141,27 +148,27 @@ namespace rviz_interface
         marker.pose.orientation.y = 0.0;
         marker.pose.orientation.z = 0.0;
         marker.pose.orientation.w = 1.0;
-        marker.scale.x = size;
-        marker.scale.y = size;
-        marker.scale.z = size;
-        if(is_occupied)
+        marker.scale.x = 0.2;
+        marker.scale.y = 0.2;
+        marker.scale.z = 0.2;
+        if(is_frontier)
         {
-            marker.color.r = 1.0f;
+            marker.color.r = 0.0f;
             marker.color.g = 0.0f;
-            marker.color.b = 0.0f;
+            marker.color.b = 1.0f;
             marker.color.a = 1.0;
         }
         else
         {
-            marker.color.r = 0.0f;
-            marker.color.g = 1.0f;
-            marker.color.b = 0.0f;
+            marker.color.r = 0.5f;
+            marker.color.g = 0.5f;
+            marker.color.b = 0.75f;
             marker.color.a = 1.0;
         }
-        marker.lifetime = ros::Duration(2);
+        marker.lifetime = ros::Duration();
+        ROS_WARN_STREAM("[RVIZ PUB] Frontier at " << marker.pose.position << ". Color: " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b);
         marker_pub.publish(marker);
     }
-
 
     void publish_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, ros::Publisher const& marker_pub)
     {
@@ -218,7 +225,7 @@ namespace rviz_interface
         marker.color.r = 0.9f;
         marker.color.g = color+0.4;
         marker.color.b = 1.0f;
-        ROS_WARN_STREAM("[RVIZ PUB] color " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b << " i: " << waypoint_id);
+        // ROS_WARN_STREAM("[RVIZ PUB] color " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b << " i: " << waypoint_id);
         marker.color.a = 0.8;
         
         marker.lifetime = ros::Duration(5);
