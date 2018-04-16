@@ -3,6 +3,7 @@
 #include <octomap_msgs/Octomap.h>
 #include <octomap_msgs/conversions.h>
 #include <visualization_msgs/Marker.h>
+#include <marker_publishing_utils.h>
 
 namespace LazyThetaStarOctree
 {
@@ -11,67 +12,6 @@ namespace LazyThetaStarOctree
 	ros::Publisher marker_pub;
 		
 	bool octomap_init;
-
-	void publish_cube(octomath::Vector3 & candidate, double size, int color, int waypoint_id)
-	{	
-		uint32_t shape = visualization_msgs::Marker::CUBE;
-		visualization_msgs::Marker marker;
-	    // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-	    marker.header.frame_id = "/map";
-	    marker.header.stamp = ros::Time::now();
-	    marker.ns = "waypoint ";
-    	marker.id = waypoint_id;
-    	marker.type = shape;
-    	marker.action = visualization_msgs::Marker::ADD;
-    	marker.pose.position.x = candidate.x();
-	    marker.pose.position.y = candidate.y();
-	    marker.pose.position.z = candidate.z();
-	    marker.pose.orientation.w = 1.0;
-	    marker.scale.x = size;
-	    marker.scale.y = size;
-	    marker.scale.z = size;
-	    marker.color.r = color;
-	    marker.color.g = color;
-	    marker.color.b = color;
-	    marker.color.a = 0.5;
-	    
-	    marker.lifetime = ros::Duration(5);
-	    marker_pub.publish(marker);
-	}
-
-	void publish_arrow(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id)
-	{
-		uint32_t shape = visualization_msgs::Marker::ARROW;
-		visualization_msgs::Marker marker;
-	    // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-	    marker.header.frame_id = "/map";
-	    marker.header.stamp = ros::Time::now();
-	    marker.ns = "path";
-    	marker.id = request_id;
-    	marker.type = shape;
-    	geometry_msgs::Point goal_point;
-    	goal_point.x = goal.x();
-	    goal_point.y = goal.y();
-	    goal_point.z = goal.z();
-        marker.points.push_back(goal_point);
-    	marker.action = visualization_msgs::Marker::ADD;
-    	geometry_msgs::Point start_point;
-    	start_point.x = start.x();
-	    start_point.y = start.y();
-	    start_point.z = start.z();
-        marker.points.push_back(start_point);
-	    marker.pose.orientation.w = 1.0;
-	    marker.scale.x = 0.1;
-	    marker.scale.y = 0.3;
-	    marker.scale.z = 0;
-	    marker.color.r = 200;
-	    marker.color.g = 100;
-	    marker.color.b = 0;
-	    marker.color.a = 1;
-	    
-	    marker.lifetime = ros::Duration(5);
-	    marker_pub.publish(marker);
-	}
 
 	bool check_status(path_planning_msgs::LTStarNodeStatus::Request  &req,
         path_planning_msgs::LTStarNodeStatus::Response &res)
@@ -113,11 +53,11 @@ namespace LazyThetaStarOctree
 	        octomap::OcTreeKey key = octree->coordToKey(candidate);
 	        int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, *octree);
 	        double voxel_size = ((tree_depth + 1) - depth) * resolution;
-	        publish_cube(candidate, voxel_size, (200*i)/reply.waypoint_amount, i );
+	        rviz_interface::publish_waypoint(candidate, voxel_size, (0.3*i)/reply.waypoint_amount, i, marker_pub );
 	        if(i !=0)
 	        {
 				octomath::Vector3 prev_candidate (reply.waypoints[i-1].x, reply.waypoints[i-1].y, reply.waypoints[i-1].z);
-	        	publish_arrow(candidate, prev_candidate, path_request->request_id);
+	        	rviz_interface::publish_arrow_path(candidate, prev_candidate, path_request->request_id, marker_pub);
 	        }
 		}
 	}
