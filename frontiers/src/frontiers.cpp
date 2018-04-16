@@ -2,6 +2,20 @@
 #include <neighbors.h>
 
 namespace Frontiers{
+
+    void publish_voxels_free(std::vector<Voxel> explored_space, ros::Publisher const& marker_pub)
+    {
+        // ROS_WARN_STREAM("[Frontiers] publish_voxels_free has " << explored_space.size() << " voxels to publish.");
+        int id = 102;
+        for (std::vector<Voxel>::iterator i = explored_space.begin(); i != explored_space.end(); ++i)
+        {
+            octomath::Vector3 v_temp(i->x, i->y, i->z);
+            rviz_interface::publish_voxel_free_occupied(v_temp, false, marker_pub, id, i->size);
+            // ROS_WARN_STREAM("[Frontiers] Voxel " << v_temp << " is free.");
+            id++;
+        }
+    }
+
     bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub)
     {
         // std::ofstream log;
@@ -72,12 +86,12 @@ namespace Frontiers{
 
                     if (isOccupied(coord, octree))
                     {
-                        ROS_ERROR_STREAM("[LTStar] Frontier " << coord << " is occupied.");
+                        ROS_ERROR_STREAM("[Frontiers] Frontier " << coord << " is occupied.");
                         return false;   
                     } 
                     if (!isExplored(coord, octree))
                     {
-                        ROS_ERROR_STREAM("[LTStar] Frontier " << coord << " is unknown.");
+                        ROS_ERROR_STREAM("[Frontiers] Frontier " << coord << " is unknown.");
                         return false;   
                     } 
 
@@ -90,6 +104,10 @@ namespace Frontiers{
                     frontiers_count++;
                 }
             }
+            // else
+            // {
+            //     ROS_WARN_STREAM("[Frontiers] Discarded frontier " << grid_coordinates_curr);
+            // }
             it++;
         }
         reply.frontiers_found = frontiers_count;
@@ -122,8 +140,10 @@ namespace Frontiers{
         }
     }
 
+    
     bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub)
     {
+        std::vector<Voxel> explored_space;
         rviz_interface::publish_deleteAll(marker_pub);
         // ROS_WARN_STREAM("[Frontier] Checking neighboring obstacles for candidate frontier " << frontier);
         geometry_msgs::Point candidate_frontier;
@@ -142,21 +162,28 @@ namespace Frontiers{
         while( !(it == octree.end_leafs_bbx()) )
         {
             octomath::Vector3 coord = it.getCoordinate();
+            explored_space.push_back(   Voxel ( coord.x(), coord.y(), coord.z(), it.getSize() )   );
             if(isOccupied(coord, octree))
             {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is occupied.");
-                rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize());
+                // rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize());
                 // ROS_WARN_STREAM("[Frontier] Candidate frontier had obstacle as neighbor " << frontier);
                 return true;
             }
-            else
-            {
+            // else
+            // {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is free.");
-                rviz_interface::publish_voxel_free_occupied(coord, false, marker_pub, id, it.getSize());
-            }
+                // rviz_interface::publish_voxel_free_occupied(coord, false, marker_pub, id, it.getSize());
+            // }
             it++;
             id++;
         }
+        if(explored_space.size() != id - 102)
+        {
+            ROS_ERROR_STREAM("[Frontiers] @ isFrontierTooCloseToObstacles There are missing voxels in the free voxel display!");
+            
+        }
+        // publish_voxels_free(explored_space, marker_pub);
         return false;
     }
 

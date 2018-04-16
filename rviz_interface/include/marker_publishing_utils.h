@@ -19,6 +19,7 @@ namespace rviz_interface
 	void publish_voxel_free_occupied(octomath::Vector3 & candidate, bool is_occupied, ros::Publisher const& marker_pub, int id, double size);
 	void publish_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, ros::Publisher const& marker_pub);
 	void publish_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, ros::Publisher const& marker_pub);
+	void publish_current_position(octomath::Vector3 & candidate, ros::Publisher const& marker_pub);
 }
 
 

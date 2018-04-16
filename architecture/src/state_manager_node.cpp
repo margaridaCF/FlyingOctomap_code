@@ -459,6 +459,8 @@ namespace state_manager_node
                         geometry_msgs::Point current_position;
                         if(getUavPositionServiceCall(current_position))
                         {
+                            octomath::Vector3 current_position_v (current_position.x, current_position.y, current_position.z);
+                            rviz_interface::publish_current_position(current_position_v, marker_pub);
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 goal (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                             askForObstacleAvoidingPath(start, goal, ltstar_request_pub);

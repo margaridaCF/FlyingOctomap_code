@@ -3,7 +3,6 @@
 
 namespace rviz_interface
 {
-
     void init_point(geometry_msgs::Point & point, float x, float y, float z)
     {
         point.x = x;
@@ -119,10 +118,39 @@ namespace rviz_interface
             marker.color.b = 0.0f;
             marker.color.a = 0.8;
         }
-        marker.lifetime = ros::Duration(2);
+        marker.lifetime = ros::Duration(4);
         marker_pub.publish(marker);
     }
 
+    void publish_current_position(octomath::Vector3 & candidate, ros::Publisher const& marker_pub)
+    {
+        uint32_t shape = visualization_msgs::Marker::CUBE;
+        visualization_msgs::Marker marker;
+        // Set the frame ID and timestamp.  See the TF tutorials for information on these.
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.ns = "current_position";
+        marker.id = 21;
+        marker.type = shape;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position.x = candidate.x();
+        marker.pose.position.y = candidate.y();
+        marker.pose.position.z = candidate.z();
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = 0.2f;
+        marker.scale.y = 0.2f;
+        marker.scale.z = 0.2f;
+        marker.color.r = 0.0f;
+        marker.color.g = 1.0f;
+        marker.color.b = 1.0f;
+        marker.color.a = 1;
+    
+        marker.lifetime = ros::Duration(7);
+        marker_pub.publish(marker);
+    }
 
     void publish_frontier_marker(geometry_msgs::Point const& candidate, bool is_frontier, ros::Publisher const& marker_pub)
     {
@@ -166,7 +194,7 @@ namespace rviz_interface
             marker.color.a = 1.0;
         }
         marker.lifetime = ros::Duration();
-        ROS_WARN_STREAM("[RVIZ PUB] Frontier at " << marker.pose.position << ". Color: " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b);
+        // ROS_WARN_STREAM("[RVIZ PUB] Frontier at " << marker.pose.position << ". Color: " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b);
         marker_pub.publish(marker);
     }
 
