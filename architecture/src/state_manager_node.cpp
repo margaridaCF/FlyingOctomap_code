@@ -145,7 +145,7 @@ namespace state_manager_node
         }
         else
         {
-            ROS_WARN("[State manager] YawSpin node not accepting requests.");
+            ROS_WARN("[State manager] In YawSpin, node not accepting position requests.");
             return false;
         }
     }
@@ -164,6 +164,9 @@ namespace state_manager_node
         request.goal.z = goal.z();
         request.max_search_iterations = max_search_iterations;
         ltstar_request_pub.publish(request);
+        rviz_interface::publish_start(request.start, marker_pub);
+        rviz_interface::publish_goal(request.goal, marker_pub);
+        ROS_WARN_STREAM("[State manager] Start position is " << request.start);
     }
 
     void askForFrontiers(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)

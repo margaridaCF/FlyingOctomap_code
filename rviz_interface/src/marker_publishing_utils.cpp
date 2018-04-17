@@ -71,7 +71,7 @@ namespace rviz_interface
         octomath::Vector3  max = octomath::Vector3(frontier.x - safety_margin, frontier.y - safety_margin, frontier.z - safety_margin);
         octomath::Vector3  min = octomath::Vector3(frontier.x + safety_margin, frontier.y + safety_margin, frontier.z + safety_margin);
         marker.lifetime = ros::Duration(7);
-        marker.ns = "safety_margin";
+        marker.ns = "frontier_safety_margin";
         marker.id = id;
         publish_cube_wire(marker, min, max, marker_pub);
     }
@@ -122,15 +122,15 @@ namespace rviz_interface
         marker_pub.publish(marker);
     }
 
-    void publish_current_position(octomath::Vector3 & candidate, ros::Publisher const& marker_pub)
+    void publish_small_marker(octomath::Vector3 & candidate, ros::Publisher const& marker_pub, float red, float green, float blue, std::string ns, int id)
     {
         uint32_t shape = visualization_msgs::Marker::CUBE;
         visualization_msgs::Marker marker;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.ns = "current_position";
-        marker.id = 21;
+        marker.ns = ns;
+        marker.id = id;
         marker.type = shape;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position.x = candidate.x();
@@ -143,13 +143,39 @@ namespace rviz_interface
         marker.scale.x = 0.2f;
         marker.scale.y = 0.2f;
         marker.scale.z = 0.2f;
-        marker.color.r = 0.0f;
-        marker.color.g = 1.0f;
-        marker.color.b = 1.0f;
+        marker.color.r = red;
+        marker.color.g = green;
+        marker.color.b = blue;
         marker.color.a = 1;
     
         marker.lifetime = ros::Duration(7);
         marker_pub.publish(marker);
+    }
+
+    void publish_current_position(octomath::Vector3 & candidate, ros::Publisher const& marker_pub)
+    {
+        float red = 0.0f;
+        float green = 1.0f;
+        float blue = 1.0f;
+        publish_small_marker(candidate, marker_pub,red,  green,  blue, "current_position", 21);
+    }
+
+    void publish_start(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
+    {
+        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
+        float red = 1.0f;
+        float green = 1.0f;
+        float blue = 0.0f;
+        publish_small_marker(candidate_vec3, marker_pub,red,  green,  blue, "start", 22);
+    }
+
+    void publish_goal(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
+    {
+        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
+        float red = 1.0f;
+        float green = 0.5f;
+        float blue = 1.0f;
+        publish_small_marker(candidate_vec3, marker_pub,red,  green,  blue, "goal", 23);
     }
 
     void publish_frontier_marker(geometry_msgs::Point const& candidate, bool is_frontier, ros::Publisher const& marker_pub)
@@ -205,7 +231,7 @@ namespace rviz_interface
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.ns = "path";
+        marker.ns = "lazy_theta_star_path";
         marker.id = request_id;
         marker.type = shape;
         geometry_msgs::Point goal_point;
@@ -239,7 +265,7 @@ namespace rviz_interface
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.ns = "waypoint ";
+        marker.ns = "lazy_theta_star_waypoint";
         marker.id = waypoint_id;
         marker.type = shape;
         marker.action = visualization_msgs::Marker::ADD;

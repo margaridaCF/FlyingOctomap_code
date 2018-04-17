@@ -144,7 +144,7 @@ namespace Frontiers{
     bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub)
     {
         std::vector<Voxel> explored_space;
-        rviz_interface::publish_deleteAll(marker_pub);
+        // rviz_interface::publish_deleteAll(marker_pub);
         // ROS_WARN_STREAM("[Frontier] Checking neighboring obstacles for candidate frontier " << frontier);
         geometry_msgs::Point candidate_frontier;
         rviz_interface::init_point(candidate_frontier, frontier.x(), frontier.y(), frontier.z());
