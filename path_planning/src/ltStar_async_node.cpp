@@ -49,15 +49,9 @@ namespace LazyThetaStarOctree
 
 			octomath::Vector3 candidate (reply.waypoints[i].x, reply.waypoints[i].y, reply.waypoints[i].z);
 			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-	        // double resolution = octree->getResolution();
-	        // int tree_depth = octree->getTreeDepth();
-	        // octomap::OcTreeKey key = octree->coordToKey(candidate);
-	        // int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, *octree);
-	        // double voxel_size = ((tree_depth + 1) - depth) * resolution;
 	        octomap::OcTreeKey key = octree->coordToKey(candidate);
 	        double depth = getNodeDepth_Octomap(key, *octree);
 	        double side_length = findSideLenght(*octree, depth);
-			// ROS_WARN_STREAM("[LTStar] Waypoint " << candidate << ". Side " << side_length);
 	        rviz_interface::publish_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i, marker_pub);
 	        if(i !=0)
 	        {

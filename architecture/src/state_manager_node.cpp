@@ -166,7 +166,6 @@ namespace state_manager_node
         ltstar_request_pub.publish(request);
         rviz_interface::publish_start(request.start, marker_pub);
         rviz_interface::publish_goal(request.goal, marker_pub);
-        // ROS_WARN_STREAM("[State manager] Start position is " << request.start);
     }
 
     void askForFrontiers(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)
@@ -202,9 +201,6 @@ namespace state_manager_node
         {
             if(msg->success)
             {
-                // ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star " << *msg);
-                // Update state variables
-                // state_data.sequence_waypoint_count = msg.waypoint_amount;
                 state_data.ltstar_msg = *msg;
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
