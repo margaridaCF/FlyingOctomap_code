@@ -5,13 +5,13 @@ px4/flight_speed: 3
 odometry_error: 0 
 safety_margin: 3
 
-geofence_min/x: -10
-geofence_min/y: -10
+geofence_min/x: -15
+geofence_min/y: -20
 geofence_min/z: 1
 
-geofence_max/x: 10
-geofence_max/y: 10
-geofence_max/z: 20
+geofence_max/x: 12
+geofence_max/y: 20
+geofence_max/z: 4
 
 path/max_search_iterations: 500
 path/max_cycles_waited_for_path: 3
