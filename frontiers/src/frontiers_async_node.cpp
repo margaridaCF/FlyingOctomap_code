@@ -24,51 +24,11 @@ namespace frontiers_async_node
 	  	return true;
 	}
 
-	void publish_frontier_marker(octomath::Vector3 & candidate, bool is_frontier)
-	{
-		uint32_t shape = visualization_msgs::Marker::CUBE;
-		visualization_msgs::Marker marker;
-	    // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-	    marker.header.frame_id = "/map";
-	    marker.header.stamp = ros::Time::now();
-	    marker.ns = "frontier_candidate";
-    	marker.id = 10;
-    	marker.type = shape;
-    	marker.action = visualization_msgs::Marker::ADD;
-    	marker.pose.position.x = candidate.x();
-	    marker.pose.position.y = candidate.y();
-	    marker.pose.position.z = candidate.z();
-	    marker.pose.orientation.x = 0.0;
-	    marker.pose.orientation.y = 0.0;
-	    marker.pose.orientation.z = 0.0;
-	    marker.pose.orientation.w = 1.0;
-	    marker.scale.x = 0.2;
-	    marker.scale.y = 0.2;
-	    marker.scale.z = 0.2;
-	    if(is_frontier)
-	    {
-		    marker.color.r = 0.0f;
-		    marker.color.g = 0.5f;
-		    marker.color.b = 1.0f;
-		    marker.color.a = 1.0;
-	    }
-	    else
-	    {
-		    marker.color.r = 0.0f;
-		    marker.color.g = 0.5f;
-		    marker.color.b = 0.65f;
-		    marker.color.a = 1.0;
-	    }
-	    marker.lifetime = ros::Duration();
-	    marker_pub.publish(marker);
-	}
-
 	bool check_frontier(frontiers_msgs::CheckIsFrontier::Request  &req,
 		frontiers_msgs::CheckIsFrontier::Response &res)
 	{
 		octomath::Vector3 candidate(req.candidate.x, req.candidate.y, req.candidate.z);
 		res.is_frontier = Frontiers::isFrontier(*octree, candidate);
-		publish_frontier_marker(candidate, res.is_frontier);
 		return true;
 	}
 

@@ -16,7 +16,6 @@
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/PositionMiddleMan.h>
 #include <architecture_msgs/YawSpin.h>
-#include <architecture_msgs/EnableHandbrakeTrigger.h>
 
 #include <frontiers_msgs/CheckIsFrontier.h>
 #include <frontiers_msgs/FrontierReply.h>
@@ -146,7 +145,7 @@ namespace state_manager_node
         }
         else
         {
-            ROS_WARN("[State manager] YawSpin node not accepting requests.");
+            ROS_WARN("[State manager] In YawSpin, node not accepting position requests.");
             return false;
         }
     }
@@ -165,6 +164,8 @@ namespace state_manager_node
         request.goal.z = goal.z();
         request.max_search_iterations = max_search_iterations;
         ltstar_request_pub.publish(request);
+        rviz_interface::publish_start(request.start, marker_pub);
+        rviz_interface::publish_goal(request.goal, marker_pub);
     }
 
     void askForFrontiers(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)
@@ -200,9 +201,6 @@ namespace state_manager_node
         {
             if(msg->success)
             {
-                // ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star " << *msg);
-                // Update state variables
-                // state_data.sequence_waypoint_count = msg.waypoint_amount;
                 state_data.ltstar_msg = *msg;
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
@@ -337,7 +335,7 @@ namespace state_manager_node
                     <<get_current_frontier().x << ", "
                     <<get_current_frontier().y << ", "
                     <<get_current_frontier().z << ") ");
-
+                rviz_interface::publish_frontier_marker(get_current_frontier(), true, marker_pub);
                 return true;
             }
         }
@@ -460,6 +458,8 @@ namespace state_manager_node
                         geometry_msgs::Point current_position;
                         if(getUavPositionServiceCall(current_position))
                         {
+                            octomath::Vector3 current_position_v (current_position.x, current_position.y, current_position.z);
+                            rviz_interface::publish_current_position(current_position_v, marker_pub);
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 goal (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                             askForObstacleAvoidingPath(start, goal, ltstar_request_pub);
