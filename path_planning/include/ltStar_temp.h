@@ -25,6 +25,7 @@
 namespace LazyThetaStarOctree{
 	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end);
 	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end);
+	bool freeCorridor(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end, double safety_margin, octomath::Vector3 & rectangle_min, octomath::Vector3 & rectangle_max);
 	bool normalizeToVisibleEndCenter(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.

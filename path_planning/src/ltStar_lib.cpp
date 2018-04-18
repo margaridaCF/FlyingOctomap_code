@@ -50,6 +50,138 @@ namespace LazyThetaStarOctree{
 		return true;
 	}
 
+	bool has_hit_obstacle (octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& direction, octomath::Vector3 & result)
+	{
+		return octree.castRay( start, direction, result, false, direction.norm());
+	}
+
+	bool freeCorridor(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end, double safety_margin, octomath::Vector3 & rectangle_min, octomath::Vector3 & rectangle_max)
+	{
+		// There seems to be a blind spot when the very first node is occupied, so this covers that case
+		octomath::Vector3 mutable_end = end;
+		auto res_node = octree.search(mutable_end);
+		if(res_node == NULL)
+		{
+			return false;
+		}
+		else
+		{
+			if (octree.isNodeOccupied(res_node) )
+			{
+				return false;
+			}
+		}
+		// Calculate each of the for points 
+		octomath::Vector3 direction = end - start;
+		octomath::Vector3 up (0, 0, 1);
+		octomath::Vector3 normal = direction.cross(up);
+		normal.normalize();
+		octomath::Vector3 positive_vec = normal * safety_margin;
+		octomath::Vector3 negative_vec = -positive_vec;
+		octomath::Vector3 D (negative_vec.x(), start.y(),  up.z());
+		octomath::Vector3 E (negative_vec.x(), start.y(), -up.z());
+		octomath::Vector3 G (positive_vec.x(), start.y(),  up.z());
+		octomath::Vector3 F (positive_vec.x(), start.y(), -up.z());
+
+		octomath::Vector3 N (negative_vec.x(), end.y(),  up.z());
+		octomath::Vector3 P (positive_vec.x(), end.y(),  up.z());
+		octomath::Vector3 O (negative_vec.x(), end.y(), -up.z());
+		octomath::Vector3 M (positive_vec.x(), end.y(), -up.z());
+		rectangle_min = E;
+		rectangle_max = P;
+
+		ROS_WARN_STREAM("[LTStar] Direction " << direction);
+		ROS_WARN_STREAM("[LTStar] Normal " << normal);
+		ROS_WARN_STREAM("[LTStar] A " << negative_vec);
+		ROS_WARN_STREAM("[LTStar] B " << positive_vec);
+		ROS_WARN_STREAM("[LTStar] D " << D);
+		ROS_WARN_STREAM("[LTStar] E " << E);
+		ROS_WARN_STREAM("[LTStar] G " << G);
+		ROS_WARN_STREAM("[LTStar] F " << F);
+		ROS_WARN_STREAM("[LTStar] N " << N);
+		ROS_WARN_STREAM("[LTStar] P " << P);
+		ROS_WARN_STREAM("[LTStar] O " << O);
+		ROS_WARN_STREAM("[LTStar] M " << M);
+
+		octomath::Vector3 temp;
+		if(has_hit_obstacle(octree, start, direction, temp)){return false;}
+		if(has_hit_obstacle(octree, D, N-D, temp)){return false;}
+		if(has_hit_obstacle(octree, E, O-E, temp)){return false;}
+		if(has_hit_obstacle(octree, G, P-G, temp)){return false;}
+		if(has_hit_obstacle(octree, F, M-F, temp)){return false;}
+		return free;
+	}
+
+	enum CellStatus { kFree = 0, kOccupied = 1, kUnknown = 2 };
+	CellStatus getLineStatus(
+		octomap::OcTree const& octree_,
+		const octomath::Vector3& start, const octomath::Vector3& end) {
+	// Get all node keys for this line.
+	// This is actually a typedef for a vector of OcTreeKeys.
+	// Can't use the key_ray_ temp member here because this is a const function.
+		octomap::KeyRay key_ray;
+		octree_.computeRayKeys(start, end, key_ray);
+
+	// Now check if there are any unknown or occupied nodes in the ray.
+		for (octomap::OcTreeKey key : key_ray) {
+			octomap::OcTreeNode* node = octree_.search(key);
+			if (node == NULL) {
+				return CellStatus::kUnknown;
+			}
+			else if (octree_.isNodeOccupied(node)) {
+				return CellStatus::kOccupied;
+			}
+		}
+		return CellStatus::kFree;
+	}
+
+	CellStatus getLineStatusBoundingBox(
+		octomap::OcTree const& octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& end,
+		const octomath::Vector3& bounding_box_size) 
+	{
+		// TODO(helenol): Probably best way would be to get all the coordinates along
+		// the line, then make a set of all the OcTreeKeys in all the bounding boxes
+		// around the nodes... and then just go through and query once.
+		const double epsilon = 0.001;  // Small offset
+		CellStatus ret = CellStatus::kFree;
+		const double& resolution = octree_.getResolution();
+
+		// Check corner connections and depending on resolution also interior:
+		// Discretization step is smaller than the octomap resolution, as this way
+		// no cell can possibly be missed
+		double x_disc = bounding_box_size.x() / ceil((bounding_box_size.x() + epsilon) / resolution);
+		double y_disc = bounding_box_size.y() / ceil((bounding_box_size.y() + epsilon) / resolution);
+		double z_disc = bounding_box_size.z() / ceil((bounding_box_size.z() + epsilon) / resolution);
+
+		// Ensure that resolution is not infinit
+		if (x_disc <= 0.0) x_disc = 1.0;
+		if (y_disc <= 0.0) y_disc = 1.0;
+		if (z_disc <= 0.0) z_disc = 1.0;
+
+		const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
+
+		for (double x = -bounding_box_half_size.x(); x <= bounding_box_half_size.x();
+			x += x_disc) 
+		{
+			for (double y = -bounding_box_half_size.y();
+				y <= bounding_box_half_size.y(); y += y_disc) 
+			{
+				for (double z = -bounding_box_half_size.z();
+					z <= bounding_box_half_size.z(); z += z_disc) 
+				{
+					octomath::Vector3 offset(x, y, z);
+					ret = getLineStatus(octree_, start + offset, end + offset);
+					if (ret != CellStatus::kFree) 
+					{
+						return ret;
+					}
+				}
+			}
+		}
+		return CellStatus::kFree;
+	}
+
 	bool normalizeToVisibleEndCenter(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size)
 	{
 		auto res_node = octree.search(end->x(), end->y(), end->z());
