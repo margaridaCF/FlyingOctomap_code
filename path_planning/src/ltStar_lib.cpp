@@ -55,64 +55,6 @@ namespace LazyThetaStarOctree{
 		return octree.castRay( start, direction, result, false, direction.norm());
 	}
 
-	bool freeCorridor(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end, double safety_margin, octomath::Vector3 & rectangle_min, octomath::Vector3 & rectangle_max)
-	{
-		// There seems to be a blind spot when the very first node is occupied, so this covers that case
-		octomath::Vector3 mutable_end = end;
-		auto res_node = octree.search(mutable_end);
-		if(res_node == NULL)
-		{
-			return false;
-		}
-		else
-		{
-			if (octree.isNodeOccupied(res_node) )
-			{
-				return false;
-			}
-		}
-		// Calculate each of the for points 
-		octomath::Vector3 direction = end - start;
-		octomath::Vector3 up (0, 0, 1);
-		octomath::Vector3 normal = direction.cross(up);
-		normal.normalize();
-		octomath::Vector3 positive_vec = normal * safety_margin;
-		octomath::Vector3 negative_vec = -positive_vec;
-		octomath::Vector3 D (negative_vec.x(), start.y(),  up.z());
-		octomath::Vector3 E (negative_vec.x(), start.y(), -up.z());
-		octomath::Vector3 G (positive_vec.x(), start.y(),  up.z());
-		octomath::Vector3 F (positive_vec.x(), start.y(), -up.z());
-
-		octomath::Vector3 N (negative_vec.x(), end.y(),  up.z());
-		octomath::Vector3 P (positive_vec.x(), end.y(),  up.z());
-		octomath::Vector3 O (negative_vec.x(), end.y(), -up.z());
-		octomath::Vector3 M (positive_vec.x(), end.y(), -up.z());
-		rectangle_min = E;
-		rectangle_max = P;
-
-		ROS_WARN_STREAM("[LTStar] Direction " << direction);
-		ROS_WARN_STREAM("[LTStar] Normal " << normal);
-		ROS_WARN_STREAM("[LTStar] A " << negative_vec);
-		ROS_WARN_STREAM("[LTStar] B " << positive_vec);
-		ROS_WARN_STREAM("[LTStar] D " << D);
-		ROS_WARN_STREAM("[LTStar] E " << E);
-		ROS_WARN_STREAM("[LTStar] G " << G);
-		ROS_WARN_STREAM("[LTStar] F " << F);
-		ROS_WARN_STREAM("[LTStar] N " << N);
-		ROS_WARN_STREAM("[LTStar] P " << P);
-		ROS_WARN_STREAM("[LTStar] O " << O);
-		ROS_WARN_STREAM("[LTStar] M " << M);
-
-		octomath::Vector3 temp;
-		if(has_hit_obstacle(octree, start, direction, temp)){return false;}
-		if(has_hit_obstacle(octree, D, N-D, temp)){return false;}
-		if(has_hit_obstacle(octree, E, O-E, temp)){return false;}
-		if(has_hit_obstacle(octree, G, P-G, temp)){return false;}
-		if(has_hit_obstacle(octree, F, M-F, temp)){return false;}
-		return free;
-	}
-
-	enum CellStatus { kFree = 0, kOccupied = 1, kUnknown = 2 };
 	CellStatus getLineStatus(
 		octomap::OcTree const& octree_,
 		const octomath::Vector3& start, const octomath::Vector3& end) {

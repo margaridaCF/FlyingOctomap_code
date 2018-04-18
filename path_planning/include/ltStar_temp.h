@@ -23,9 +23,10 @@
 // }
 
 namespace LazyThetaStarOctree{
+	enum CellStatus { kFree = 0, kOccupied = 1, kUnknown = 2 };
 	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end);
 	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end);
-	bool freeCorridor(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end, double safety_margin, octomath::Vector3 & rectangle_min, octomath::Vector3 & rectangle_max);
+	CellStatus getLineStatusBoundingBox( octomap::OcTree const& octree_, const octomath::Vector3& start, const octomath::Vector3& end,const octomath::Vector3& bounding_box_size);
 	bool normalizeToVisibleEndCenter(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
