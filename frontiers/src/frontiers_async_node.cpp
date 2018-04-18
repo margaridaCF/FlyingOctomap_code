@@ -5,7 +5,7 @@
 #include <octomap_msgs/conversions.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
 #include <frontiers_msgs/CheckIsFrontier.h>
-#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <geometry_msgs/Point.h>
 
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, frontiers_async_node::octomap_callback);
 	ros::Subscriber frontiers_sub = nh.subscribe<frontiers_msgs::FrontierRequest>("frontiers_request", 10, frontiers_async_node::frontier_callback);
 	frontiers_async_node::local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_reply", 10);
-	frontiers_async_node::marker_pub = nh.advertise<visualization_msgs::Marker>("is_frontier_markers", 1);
+	frontiers_async_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("frontiers/known_space", 1);
 
 	ros::spin();
 }
