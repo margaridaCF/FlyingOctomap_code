@@ -10,6 +10,7 @@ Panels:
         - /Lazy Theta Star path1/Namespaces1
         - /Geofence1
         - /Geofence1/Namespaces1
+        - /MarkerArray1
       Splitter Ratio: 0.652941167
     Tree Height: 740
   - Class: rviz/Selection
@@ -126,7 +127,7 @@ Visualization Manager:
       Marker Topic: /is_frontier_markers
       Name: Frontiers
       Namespaces:
-        frontier_safety_margin: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -134,8 +135,7 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star path
       Namespaces:
-        lazy_theta_star_path: true
-        lazy_theta_star_waypoint: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -219,11 +219,15 @@ Visualization Manager:
       Marker Topic: /geofence
       Name: Geofence
       Namespaces:
-        current_position: false
-        frontier_candidate: false
         geofence: true
-        goal: false
-        start: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /frontiers/known_space
+      Name: MarkerArray
+      Namespaces:
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
