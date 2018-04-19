@@ -330,7 +330,6 @@ namespace state_manager_node
                 state_data.frontier_request_id = state_data.frontiers_msg.request_id;
                 state_data.waypoint_index = -1;
                 state_data.frontier_index = i;
-                // publish_marker_safety_margin(get_current_frontier(), safety_margin);
                 ROS_INFO_STREAM("[State manager] New frontier ("
                     <<get_current_frontier().x << ", "
                     <<get_current_frontier().y << ", "

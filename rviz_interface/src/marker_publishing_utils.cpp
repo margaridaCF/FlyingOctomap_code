@@ -70,7 +70,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         octomath::Vector3  max = octomath::Vector3(frontier.x - safety_margin, frontier.y - safety_margin, frontier.z - safety_margin);
         octomath::Vector3  min = octomath::Vector3(frontier.x + safety_margin, frontier.y + safety_margin, frontier.z + safety_margin);
-        marker.lifetime = ros::Duration(7);
+        marker.lifetime = ros::Duration(20);
         marker.ns = "frontier_safety_margin";
         marker.id = id;
         build_cube_wire(marker, min, max, marker_pub);
@@ -81,9 +81,11 @@ namespace rviz_interface
 
     void publish_deleteAll(ros::Publisher const& marker_pub)
     {
+        visualization_msgs::MarkerArray marker_array;
         visualization_msgs::Marker marker;
         marker.action = visualization_msgs::Marker::DELETEALL;
-        marker_pub.publish(marker); 
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array); 
     }
 
     void publish_voxel_free_occupied(octomath::Vector3 & candidate, bool is_occupied, ros::Publisher const& marker_pub, int id, double size, visualization_msgs::Marker & marker)
