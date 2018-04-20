@@ -24,73 +24,42 @@ namespace LazyThetaStarOctree{
         				pow(end.z()-start.z(),2));
 	}
 
-	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end)
-	{
-		// There seems to be a blind spot when the very first node is occupied, so this covers that case
-		octomath::Vector3 mutable_end = end;
-		auto res_node = octree.search(mutable_end);
-		if(res_node == NULL)
-		{
-			return false;
-		}
-		else
-		{
-			if (octree.isNodeOccupied(res_node) )
-			{
-				return false;
-			}
-		}
-		octomath::Vector3 dummy;
-		octomath::Vector3 direction = octomath::Vector3(   end.x() - start.x(),   end.y() - start.y(),   end.z() - start.z()   );
-		bool has_hit_obstacle = octree.castRay( start, direction, dummy, false, direction.norm());
-		if(has_hit_obstacle)
-		{
-			return false;
-		}
-		return true;
-	}
-
-	bool has_hit_obstacle (octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& direction, octomath::Vector3 & result)
-	{
-		return octree.castRay( start, direction, result, false, direction.norm());
-	}
-
 	/*
-	(for getLineStatus and getLineStatusBoundingBox)
-	Copyright (c) 2015, Helen Oleynikova, ETH Zurich, Switzerland
-	You can contact the author at <helen dot oleynikova at mavt dot ethz dot ch>
-	All rights reserved.
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
-	* Redistributions of source code must retain the above copyright
-	notice, this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright
-	notice, this list of conditions and the following disclaimer in the
-	documentation and/or other materials provided with the distribution.
-	* Neither the name of ETHZ-ASL nor the
-	names of its contributors may be used to endorse or promote products
-	derived from this software without specific prior written permission.
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-	DISCLAIMED. IN NO EVENT SHALL ETHZ-ASL BE LIABLE FOR ANY
-	DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-	(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+		(for getLineStatus and getLineStatusBoundingBox)
+		Copyright (c) 2015, Helen Oleynikova, ETH Zurich, Switzerland
+		You can contact the author at <helen dot oleynikova at mavt dot ethz dot ch>
+		All rights reserved.
+		Redistribution and use in source and binary forms, with or without
+		modification, are permitted provided that the following conditions are met:
+		* Redistributions of source code must retain the above copyright
+		notice, this list of conditions and the following disclaimer.
+		* Redistributions in binary form must reproduce the above copyright
+		notice, this list of conditions and the following disclaimer in the
+		documentation and/or other materials provided with the distribution.
+		* Neither the name of ETHZ-ASL nor the
+		names of its contributors may be used to endorse or promote products
+		derived from this software without specific prior written permission.
+		THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+		ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+		WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+		DISCLAIMED. IN NO EVENT SHALL ETHZ-ASL BE LIABLE FOR ANY
+		DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+		(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+		LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+		ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+		(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+		SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	*/
 	CellStatus getLineStatus(
-		octomap::OcTree const& octree_,
+		octomap::OcTree & octree_,
 		const octomath::Vector3& start, const octomath::Vector3& end) {
-	// Get all node keys for this line.
-	// This is actually a typedef for a vector of OcTreeKeys.
-	// Can't use the key_ray_ temp member here because this is a const function.
+		// Get all node keys for this line.
+		// This is actually a typedef for a vector of OcTreeKeys.
+		// Can't use the key_ray_ temp member here because this is a const function.
 		octomap::KeyRay key_ray;
 		octree_.computeRayKeys(start, end, key_ray);
 
-	// Now check if there are any unknown or occupied nodes in the ray.
+		// Now check if there are any unknown or occupied nodes in the ray.
 		for (octomap::OcTreeKey key : key_ray) {
 			octomap::OcTreeNode* node = octree_.search(key);
 			if (node == NULL) {
@@ -104,7 +73,7 @@ namespace LazyThetaStarOctree{
 	}
 
 	CellStatus getLineStatusBoundingBox(
-		octomap::OcTree const& octree_, 
+		octomap::OcTree & octree_, 
 		const octomath::Vector3& start, const octomath::Vector3& end,
 		const octomath::Vector3& bounding_box_size) 
 	{
@@ -140,7 +109,7 @@ namespace LazyThetaStarOctree{
 				{
 					octomath::Vector3 offset(x, y, z);
 					ret = getLineStatus(octree_, start + offset, end + offset);
-					if (ret != CellStatus::kFree) 
+					if(ret != CellStatus::kFree)
 					{
 						return ret;
 					}
@@ -150,7 +119,16 @@ namespace LazyThetaStarOctree{
 		return CellStatus::kFree;
 	}
 
-	bool normalizeToVisibleEndCenter(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size)
+	bool is_flight_corridor_free(
+		octomap::OcTree & octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& end,
+		const double safety_margin)
+	{
+		octomath::Vector3 bounding_box_size(safety_margin, safety_margin, safety_margin);
+		return getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
+	}
+
+	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin)
 	{
 		auto res_node = octree.search(end->x(), end->y(), end->z());
 		if(!res_node)
@@ -162,7 +140,7 @@ namespace LazyThetaStarOctree{
 		// ROS_WARN_STREAM("From  " << *end);
 		updatePointerToCellCenterAndFindSize(end, octree, cell_size);
 		// ROS_WARN_STREAM("to " << *end << ". Size " << cell_size);
-		return hasLineOfSight(octree, *start, *end);
+		return is_flight_corridor_free(octree, *start, *end, safety_margin);
 	}
 
 	
@@ -175,13 +153,14 @@ namespace LazyThetaStarOctree{
 	 * @param      open       The open
 	 * @param[in]  neighbors  The neighbors
 	 */
-	void setVertex(
-		octomap::OcTree 										const& 	octree, 
+	bool setVertex(
+		octomap::OcTree 										& 	octree, 
 		std::shared_ptr<ThetaStarNode> 							& 		s, 
 		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
 		Open 													& 		open, 
 		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
-		std::ofstream & log_file)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
+		std::ofstream & log_file,
+		double safety_margin)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
 	{
 		// // TODO == VERY IMPORTANT == this neighbors are actually the ones calculated before in the main loop so we can just pass that along instead of generating
 		// // There is a choice to be made here, 
@@ -190,7 +169,7 @@ namespace LazyThetaStarOctree{
 		// //  -> will leave this for if implementation is not fast enough
 		// ln 35 if NOT lineofsight(parent(s), s) then
 		// Path 1 by considering the path from s_start to each expanded visible neighbor s′′ of s′
-		if ( !hasLineOfSight(octree, *(s->coordinates), *(s->parentNode->coordinates)))
+		if(    !is_flight_corridor_free( octree, *(s->coordinates), *(s->parentNode->coordinates), safety_margin  )   )
 		{
 			// g(s)		= length of the shortest path from the start vertex to s found so far.
 			// c(s,s') 	= straight line distance between vertices s and s'	
@@ -203,7 +182,7 @@ namespace LazyThetaStarOctree{
 			if(neighbors.empty())
 			{
 				// ROS_WARN_STREAM("No neighbor was found.");
-				return;
+				return true;
 			}
 			double cell_size;
 			// each expanded & visible & neighbor of s'
@@ -211,11 +190,11 @@ namespace LazyThetaStarOctree{
 			{
 				try
 				{
-					bool has_line_of_sight_to_neighbor_center = normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size);	// VISIBLE
-					if(!has_line_of_sight_to_neighbor_center)
+					if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin))
 					{
 						continue;
 					}
+					// VISIBLE
 					// closed.at(*n_coordinates) throws exception when there is no such element
 					std::shared_ptr<ThetaStarNode> neighbor_in_closed = closed.at(*n_coordinates);  											// EXPANDED
 					double candidate_g = neighbor_in_closed->distanceFromInitialPoint;
@@ -251,10 +230,11 @@ namespace LazyThetaStarOctree{
 			{
 				ROS_ERROR_STREAM("No path 1 was found, adding to closed a bad node for " << *(s->coordinates));
 				// log_file << "No path 1 was found, adding to closed a bad node for " << *(s->coordinates) << std::endl;
-
+				return false;
 			}
 		}
 		// ln 39 end
+		return true;
 	}
 
 	/**
@@ -285,7 +265,7 @@ namespace LazyThetaStarOctree{
 			path.push_front( *(current->coordinates) );
 			if(writeToFile)
 			{
-				writeToFileWaypoint(*(current->coordinates), current->cell_size, "final_path");
+				writeToFileWaypoint(*(current->coordinates), current->cell_size, "/data/final_path.txt");
 			}
 			parentAdd = current->parentNode;
 			current = parentAdd;
@@ -299,7 +279,7 @@ namespace LazyThetaStarOctree{
 		path.push_front( *(current->coordinates) );
 		if(writeToFile)
 		{
-			writeToFileWaypoint(*(current->coordinates), current->cell_size, "final_path");
+			writeToFileWaypoint(*(current->coordinates), current->cell_size, "/data/final_path.txt");
 		}
 		return true;
 	}
@@ -357,7 +337,7 @@ namespace LazyThetaStarOctree{
 
 	}
 
-	bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree)
+	bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree & octree)
     {
         octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());
         if(result == NULL){
@@ -388,13 +368,15 @@ namespace LazyThetaStarOctree{
 	 * @return     A list of the ordered waypoints to get from initial to final
 	 */
 	std::list<octomath::Vector3> lazyThetaStar_(
-		octomap::OcTree   const& octree, 
+		octomap::OcTree   & octree, 
 		octomath::Vector3 const& disc_initial, 
 		octomath::Vector3 const& disc_final,
 		ResultSet & resultSet,
+		double safety_margin,
 		int const& max_search_iterations,
 		bool print_resulting_path)
 	{
+		ROS_ERROR_STREAM("Here I am");
 		std::list<octomath::Vector3> path;
 
 		if (!isExplored(disc_initial, octree))
@@ -448,11 +430,12 @@ namespace LazyThetaStarOctree{
 		// TODO remove this, for debugging only
 		int used_search_iterations = 0;
 		std::ofstream log_file;
-    	log_file.open("/home/mfaria/out.log", std::ios_base::app);
+    	log_file.open("/data/out.log", std::ios_base::app);
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
 		while(!open.empty() && !solution_found)
 		{
+
 			// open.printNodes("========= Starting state of open ");
 			// ln 7 s := open.Pop();	
 			// [Footnote] open.Pop() removes a vertex with the smallest key from open and returns it
@@ -468,7 +451,11 @@ namespace LazyThetaStarOctree{
 			// It is it's own parent, this happens on the first node when the initial position is the center of the voxel (by chance)
 			if(s->hasSameCoordinates(s->parentNode, octree.getResolution()) == false)
 			{
-				setVertex(octree, s, closed, open, neighbors, log_file); 
+				if (!setVertex(octree, s, closed, open, neighbors, log_file, safety_margin))
+				{
+					octree.writeBinary("/data/octree_noPath1s.bt");
+					log_file << " no neighbor of " << *s << " had line of sight. Start " << disc_initial << " goal " << disc_final << std::endl;
+				}
 			}
 			// ln 9 if s = s_goal then 
 			if( s->hasSameCoordinates(disc_final_cell_center, octree.getResolution()) )
@@ -500,14 +487,19 @@ namespace LazyThetaStarOctree{
 				// TODO This assumes that line of sight between cell centers is enough
 				// TODO If cell big, the edges of the UAV might need to be taken into account 
 				// TODO resulting in two line of sight checks (edges instead of one (center)
-				if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size))
+				if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin))
 				{
 					// auto res_node = octree.search(*n_coordinates);
 					// if(res_node == NULL)
 					// {
      				// 	throw std::out_of_range("Skipping cases where unknown neighbors are found.");
 					// }
+					log_file << " no line of sight " << *(s->coordinates) << " to " << *n_coordinates << std::endl;
 					continue;
+				}
+				else
+				{
+					log_file << " visible neighbor " << *n_coordinates << std::endl;
 				}
 				// ln 13 if s' !€ closed then
 				bool is_neighbor_in_closed = closed.find(*n_coordinates) != closed.end();
@@ -578,14 +570,14 @@ namespace LazyThetaStarOctree{
 
 
 
-	bool processLTStarRequest(octomap::OcTree const& octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply)
+	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply)
 	{
 		ResultSet statistical_data;
 		std::list<octomath::Vector3> resulting_path;
 		octomath::Vector3 disc_initial(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 disc_final(request.goal.x, request.goal.y, request.goal.z);
 		ROS_INFO_STREAM("[LTStar] Starting to process path from " << disc_initial << " to " << disc_final);
-		resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.max_search_iterations, true);
+		resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.safety_margin, request.max_search_iterations, true);
 		ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
 		
 		if(resulting_path.size()==0)
@@ -601,7 +593,7 @@ namespace LazyThetaStarOctree{
 		{
 			for (std::list<octomath::Vector3>::iterator i = resulting_path.begin(); i != resulting_path.end(); ++i)
 			{
-				ROS_INFO_STREAM(*i);
+				// ROS_INFO_STREAM(*i);
 				geometry_msgs::Point waypoint;
 	            waypoint.x = i->x();
 	            waypoint.y = i->y();

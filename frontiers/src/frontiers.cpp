@@ -3,7 +3,7 @@
 
 namespace Frontiers{
 
-    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub)
+    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
     {
         // std::ofstream log;
         // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
@@ -128,14 +128,20 @@ namespace Frontiers{
     }
 
     
-    bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub)
+    bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub, bool publish)
     {
         std::vector<Voxel> explored_space;
-        rviz_interface::publish_deleteAll(marker_pub);
+        if(publish)
+        { 
+            rviz_interface::publish_deleteAll(marker_pub);
+        }
         // ROS_WARN_STREAM("[Frontier] Checking neighboring obstacles for candidate frontier " << frontier);
         geometry_msgs::Point candidate_frontier;
-        rviz_interface::init_point(candidate_frontier, frontier.x(), frontier.y(), frontier.z());
-        rviz_interface::publish_marker_safety_margin(candidate_frontier, safety_margin, marker_pub, 101);
+        if(publish)
+        {
+            rviz_interface::init_point(candidate_frontier, frontier.x(), frontier.y(), frontier.z());
+            rviz_interface::publish_marker_safety_margin(candidate_frontier, safety_margin, marker_pub, 101);
+        }
         octomath::Vector3  min = octomath::Vector3(frontier.x() - safety_margin, frontier.y() - safety_margin, frontier.z() - safety_margin);
         octomath::Vector3  max = octomath::Vector3(frontier.x() + safety_margin, frontier.y() + safety_margin, frontier.z() + safety_margin);
         octomap::OcTreeKey bbxMinKey, bbxMaxKey;
@@ -156,14 +162,14 @@ namespace Frontiers{
             if(isOccupied(coord, octree))
             {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is occupied.");
-                rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize(), marker);
+                if (publish) rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize(), marker);
                 // ROS_WARN_STREAM("[Frontier] Candidate frontier had obstacle as neighbor " << frontier);
                 return true;
             }
             else
             {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is free.");
-                rviz_interface::publish_voxel_free_occupied(coord, false, marker_pub, id, it.getSize(), marker);
+                if (publish) rviz_interface::publish_voxel_free_occupied(coord, false, marker_pub, id, it.getSize(), marker);
             }
             known_space_markers.markers.push_back(marker);
             it++;
@@ -173,7 +179,7 @@ namespace Frontiers{
         return false;
     }
 
-    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree, double safety_distance, ros::Publisher const& marker_pub)
+    bool meetsOperationalRequirements(double voxel_size, octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree, double safety_distance, ros::Publisher const& marker_pub, bool publish)
     {
         // ROS_INFO_STREAM("[Frontiers] meetsOperationalRequirements - voxel_size: " << voxel_size << "; candidate: " << candidate << "; min_distance: " << min_distance << "; current_position:" << current_position);
         // Operation restrictions
@@ -191,7 +197,7 @@ namespace Frontiers{
         {// start and end in same voxel
             return false;
         }
-        if(isFrontierTooCloseToObstacles(candidate, safety_distance, octree, marker_pub))
+        if(isFrontierTooCloseToObstacles(candidate, safety_distance, octree, marker_pub, publish))
         {
             return false;
         }

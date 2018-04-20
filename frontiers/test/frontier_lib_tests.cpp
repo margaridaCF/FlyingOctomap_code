@@ -40,6 +40,7 @@ namespace Frontiers
 
 	TEST(FrontiersTest, Ask_one_frontier)
 	{
+		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/experimentalDataset.bt");
 		frontiers_msgs::FrontierRequest request;
 		request.header.seq = 1;
@@ -52,13 +53,14 @@ namespace Frontiers
 		request.max.z = 2;
 		request.frontier_amount = 1;
 		frontiers_msgs::FrontierReply reply;
-		bool outcome = processFrontiersRequest(octree, request, reply);
+		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
 		checkFrontiers(octree, request, reply);
 	}
 
 
 	TEST(FrontiersTest, Ask_ten_frontiers)
 	{
+		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/experimentalDataset.bt");
 		frontiers_msgs::FrontierRequest request;
 		request.header.seq = 1;
@@ -71,13 +73,14 @@ namespace Frontiers
 		request.max.z = 2;
 		request.frontier_amount = 10;
 		frontiers_msgs::FrontierReply reply;
-		bool outcome = processFrontiersRequest(octree, request, reply);
+		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
 		ASSERT_EQ(reply.frontiers_found, static_cast<int16_t>(request.frontier_amount) );
 		checkFrontiers(octree, request, reply); 
 	}
 
 	TEST(FrontiersTest, Ask_many_frontiers_push_bounderies)
 	{
+		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/experimentalDataset.bt");
 		frontiers_msgs::FrontierRequest request;
 		request.header.seq = 1;
@@ -90,13 +93,14 @@ namespace Frontiers
 		request.max.z = 2;
 		request.frontier_amount = 127;
 		frontiers_msgs::FrontierReply reply;
-		bool outcome = processFrontiersRequest(octree, request, reply);
+		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
 		ASSERT_EQ(reply.frontiers_found, static_cast<int16_t>(request.frontier_amount) );
 		checkFrontiers(octree, request, reply); 
 	}
 
 	TEST(FrontiersTest, No_frontiers)
 	{
+		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/experimentalDataset.bt");
 		frontiers_msgs::FrontierRequest request;
 		request.header.seq = 1;
@@ -109,7 +113,7 @@ namespace Frontiers
 		request.max.z = 1;
 		request.frontier_amount = 127;
 		frontiers_msgs::FrontierReply reply;
-		bool outcome = processFrontiersRequest(octree, request, reply);
+		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
 		ASSERT_EQ(reply.frontiers_found, 0 );
 		checkFrontiers(octree, request, reply); 
 	}

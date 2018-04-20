@@ -70,7 +70,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         octomath::Vector3  max = octomath::Vector3(frontier.x - safety_margin, frontier.y - safety_margin, frontier.z - safety_margin);
         octomath::Vector3  min = octomath::Vector3(frontier.x + safety_margin, frontier.y + safety_margin, frontier.z + safety_margin);
-        marker.lifetime = ros::Duration(20);
+        marker.lifetime = ros::Duration();
         marker.ns = "frontier_safety_margin";
         marker.id = id;
         build_cube_wire(marker, min, max, marker_pub);
@@ -227,10 +227,9 @@ namespace rviz_interface
         marker_pub.publish(marker);
     }
 
-    void publish_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, ros::Publisher const& marker_pub)
+    void build_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker)
     {
         uint32_t shape = visualization_msgs::Marker::ARROW;
-        visualization_msgs::Marker marker;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
@@ -257,14 +256,12 @@ namespace rviz_interface
         marker.color.b = 0;
         marker.color.a = 1;
         
-        marker.lifetime = ros::Duration(5);
-        marker_pub.publish(marker);
+        marker.lifetime = ros::Duration();
     }
 
-    void publish_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, ros::Publisher const& marker_pub)
+    void build_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker)
     {   
         uint32_t shape = visualization_msgs::Marker::CUBE;
-        visualization_msgs::Marker marker;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
@@ -285,7 +282,6 @@ namespace rviz_interface
         // ROS_WARN_STREAM("[RVIZ PUB] color " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b << " i: " << waypoint_id);
         marker.color.a = 0.8;
         
-        marker.lifetime = ros::Duration(5);
-        marker_pub.publish(marker);
+        marker.lifetime = ros::Duration();
     }
 }

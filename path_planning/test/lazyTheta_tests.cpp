@@ -8,6 +8,7 @@ namespace LazyThetaStarOctree{
 	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_search_iterations = 55)
 	{
+		double safety_margin = 0.1;
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
 		ASSERT_TRUE(originNode);
@@ -23,7 +24,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, max_search_iterations, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, max_search_iterations, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -45,9 +46,9 @@ namespace LazyThetaStarOctree{
 			// Check that there are no redundant parts in the path
 			while(it != resulting_path.end())
 			{
-				// ROS_INFO_STREAM("Step: " << *it);
+				ROS_INFO_STREAM("Step: " << *it);
 				bool dimensions_y_or_z_change = (previous.y() != it->y()) || (previous.z() != it->z());
-				// EXPECT_TRUE(dimensions_y_or_z_change) << "(" << previous.y() << " != " << it->y() << ") || (" << previous.z() << " != " << it->z() << ")";
+				EXPECT_TRUE(dimensions_y_or_z_change) << "(" << previous.y() << " != " << it->y() << ") || (" << previous.z() << " != " << it->z() << ")";
 				EXPECT_TRUE(dimensions_y_or_z_change) << " this should be a straight line. Find out why parent node is being replaced.";
 				previous = *it;
 				++it;
@@ -136,6 +137,8 @@ namespace LazyThetaStarOctree{
         int count_80 = 0;
         int count_over80 = 0;
 
+        double safety_margin = 1;
+
         int memory_leak_initial_count = ThetaStarNode::OustandingObjects();
         // Initial node is not occupied
         octomap::OcTreeNode* originNode = octree.search(disc_initial);
@@ -153,7 +156,7 @@ namespace LazyThetaStarOctree{
 
         // std::cout << "Starting lazy theta from " << disc_initial << " to " << disc_final << std::endl;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, 5);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, 5);
 
 
         if(resulting_path.size() == 0)
@@ -215,18 +218,20 @@ namespace LazyThetaStarOctree{
 		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final, 100);
 	}
 
-	TEST(LazyThetaStarTests, LazyThetaStar_Long_Test)
-	{
-		// (-6.900000095 -2.5 0.5) to (-5.900000095 -2.5 0.5)
-		octomap::OcTree octree ("data/offShoreOil_1m.bt");
-		octomath::Vector3 disc_initial(-6.900000095, -2.5, 0.5);
-		octomath::Vector3 disc_final  (-5.900000095, -2.5, 0.5);
-		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
-	}
+	// // commenting out because checking voxel status by key lookup indentifies more unknown cells and this is not a straight path anymore
+	// TEST(LazyThetaStarTests, LazyThetaStar_Long_Test)
+	// {
+	// 	// (-6.900000095 -2.5 0.5) to (-5.900000095 -2.5 0.5)
+	// 	octomap::OcTree octree ("data/offShoreOil_1m.bt");
+	// 	octomath::Vector3 disc_initial(-6.900000095, -2.5, 0.5);
+	// 	octomath::Vector3 disc_final  (-5.900000095, -2.5, 0.5);
+	// 	testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
+	// }
 	
 	void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_search_iterations = 55)
 	{
+		double safety_margin = 2;
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
 		ASSERT_TRUE(originNode);
@@ -242,7 +247,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, max_search_iterations, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, max_search_iterations, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// 2 waypoints: The center of start voxel & The center of the goal voxel
@@ -263,7 +268,7 @@ namespace LazyThetaStarOctree{
 		
 	    octomath::Vector3 disc_initial(0, 5, 1.5); 
 	    octomath::Vector3 disc_final  (2, -5, 1.5); 
-	    octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
+	    octomap::OcTree octree ("data/run_2.bt");
 	    std::string dataset_name = "run 2";
 	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 1000);
 	}
