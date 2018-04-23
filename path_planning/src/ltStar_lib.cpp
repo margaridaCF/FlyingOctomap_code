@@ -376,7 +376,6 @@ namespace LazyThetaStarOctree{
 		int const& max_search_iterations,
 		bool print_resulting_path)
 	{
-		ROS_ERROR_STREAM("Here I am");
 		std::list<octomath::Vector3> path;
 
 		if (!isExplored(disc_initial, octree))
