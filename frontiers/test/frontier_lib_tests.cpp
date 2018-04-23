@@ -126,6 +126,36 @@ namespace Frontiers
 		ASSERT_TRUE(   isFrontier( octree, octomath::Vector3 (0, 1, 1.85) )   );
 		ASSERT_FALSE(   isFrontier( octree, octomath::Vector3 (1.50, 0.5, 0) )   );
 	}
+
+	TEST(FrontiersTest, Test_no_frontiers)
+	{
+		octomap::OcTree octree ("data/octree_noFrontiers.bt");
+		ros::Publisher marker_pub;
+
+		frontiers_msgs::FrontierRequest request;
+		request.header.seq = 5;
+		geometry_msgs::Point min;
+		min.x = -15;
+		min.y = -20;
+		min.z = 1;
+		request.min = min;
+		geometry_msgs::Point max;
+		max.x = 12;
+		max.y = 20;
+		max.z = 4;
+		request.max = max;
+		geometry_msgs::Point pos;
+		pos.x = -8.66228;
+		pos.y = 17.2551;
+		pos.z = 2.86449;
+		request.current_position = pos;
+		request.frontier_amount = 1;
+		request.min_distance = 0.5;
+		request.safety_margin = 3;
+		frontiers_msgs::FrontierReply reply;
+		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
+		ASSERT_EQ(1, reply.frontiers_found);
+	}
 }
 
 int main(int argc, char **argv){
