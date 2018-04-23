@@ -38,6 +38,12 @@ namespace frontiers_async_node
 		if(octomap_init)
 		{
 			Frontiers::processFrontiersRequest(*octree, *frontier_request, reply, marker_pub);
+
+			if(reply.frontiers_found == 0)
+	        {
+	            ROS_INFO_STREAM("[Frontiers] No frontiers could be found. Writing tree to file. Request was " << *frontier_request);
+	            octree->writeBinary("/ros_ws/src/data/octree_noFrontiers.bt"); 
+	        }
 		}
 		else
 		{
