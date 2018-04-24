@@ -61,6 +61,7 @@ namespace state_manager_node
 
     // TODO - transform this into parameters at some point
     double px4_loiter_radius;
+    double laser_max_range;
     double odometry_error;
     double safety_margin = 3;
     double error_margin;
@@ -182,6 +183,7 @@ namespace state_manager_node
         request.safety_margin = safety_margin;
         request.frontier_amount = state_data.unobservable_set.size()+1;
         request.min_distance = px4_loiter_radius;
+        request.sensing_distance = laser_max_range;
         while(!getUavPositionServiceCall(request.current_position));
         frontier_request_pub.publish(request);
         state_data.frontier_request_count++;
@@ -358,6 +360,7 @@ namespace state_manager_node
         nh.getParam("exploration_maneuver_duration_secs", temp);
         exploration_maneuver_duration_secs = ros::Duration(temp);
         nh.getParam("px4_loiter_radius", px4_loiter_radius);
+        nh.getParam("laser_max_range", laser_max_range);
         nh.getParam("odometry_error", odometry_error);
         nh.getParam("safety_margin", safety_margin);
         error_margin = std::max(px4_loiter_radius, odometry_error);

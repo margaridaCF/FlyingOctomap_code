@@ -2,7 +2,10 @@ exploration_maneuver_duration_secs: 11
 exploration_maneuver_phases_duration_secs: 5
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
-odometry_error: 0 
+laser_max_range: 10
+
+odometry_error: 0
+
 frontier/safety_margin: 3
 
 geofence_min/x: -15
@@ -15,4 +18,4 @@ geofence_max/z: 4
 
 path/max_search_iterations: 500
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 0.5
+path/safety_margin: 3
