@@ -125,7 +125,7 @@ namespace rviz_interface
         marker.lifetime = ros::Duration(4);
     }
 
-    void publish_small_marker(octomath::Vector3 & candidate, ros::Publisher const& marker_pub, float red, float green, float blue, std::string ns, int id)
+    void publish_small_marker(octomath::Vector3 const& candidate, ros::Publisher const& marker_pub, float red, float green, float blue, std::string ns, int id)
     {
         uint32_t shape = visualization_msgs::Marker::CUBE;
         visualization_msgs::Marker marker;
@@ -177,8 +177,16 @@ namespace rviz_interface
         octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
         float red = 1.0f;
         float green = 0.5f;
-        float blue = 1.0f;
+        float blue = 0.0f;
         publish_small_marker(candidate_vec3, marker_pub,red,  green,  blue, "goal", 23);
+    }
+
+    void publish_sensing_position(octomath::Vector3 const& position, ros::Publisher const& marker_pub)
+    {
+        float red = 0.0f;
+        float green = 0.0f;
+        float blue = 0.25f;
+        publish_small_marker(position, marker_pub,red,  green,  blue, "sensing_position", 24);
     }
 
     void publish_frontier_marker(geometry_msgs::Point const& candidate, bool is_frontier, ros::Publisher const& marker_pub)

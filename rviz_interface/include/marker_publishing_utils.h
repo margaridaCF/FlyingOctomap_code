@@ -23,6 +23,7 @@ namespace rviz_interface
 	void publish_current_position(octomath::Vector3 & candidate, ros::Publisher const& marker_pub);
 	void publish_start(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
 	void publish_goal(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
+	void publish_sensing_position(octomath::Vector3 const& position, ros::Publisher const& marker_pub);
 }
 
 
