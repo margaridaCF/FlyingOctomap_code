@@ -3,11 +3,11 @@
 
 namespace Frontiers{
 
-    void calculate_closer_position(octomath::Vector3 & sensing_position, octomath::Vector3 const& n_coordinates, double const sensing_distance, octomath::Vector3 const& voxel_center)
+    void calculate_closer_position(octomath::Vector3 & sensing_position, octomath::Vector3 const& n_coordinates, double const safety_margin, octomath::Vector3 const& voxel_center)
     {
         sensing_position = voxel_center - n_coordinates;
         sensing_position.normalize();
-        sensing_position = sensing_position * sensing_distance;
+        sensing_position = sensing_position * safety_margin;
         sensing_position = n_coordinates + sensing_position;
     }
 
@@ -22,6 +22,7 @@ namespace Frontiers{
         // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
         // ROS_INFO_STREAM( "Request for " << static_cast<int16_t>(request.frontier_amount) );
         double resolution = octree.getResolution();
+        double unknown_neighbor_distance = request.safety_margin + (resolution/2);
         reply.header.seq = request.header.seq + 1;
         reply.request_id = request.header.seq;
         reply.header.frame_id = request.header.frame_id;
@@ -91,10 +92,11 @@ namespace Frontiers{
                             else
                             {
                                 octomath::Vector3 sensing_position;
-                                calculate_closer_position(sensing_position, *n_coordinates, request.sensing_distance, grid_coordinates_curr);
+                                calculate_closer_position(sensing_position, *n_coordinates, unknown_neighbor_distance, grid_coordinates_curr);
                                 voxel_msg.xyz_m.x = sensing_position.x();
                                 voxel_msg.xyz_m.y = sensing_position.y();
                                 voxel_msg.xyz_m.z = sensing_position.z();
+                                rviz_interface::publish_sensing_position(sensing_position, marker_pub);
                             }
                             reply.frontiers.push_back(voxel_msg);
                             frontiers_count++;
