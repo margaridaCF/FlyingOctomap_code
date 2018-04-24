@@ -26,6 +26,7 @@ namespace LazyThetaStarOctree{
 
 	/*
 		(for getLineStatus and getLineStatusBoundingBox)
+		https://github.com/ethz-asl/volumetric_mapping
 		Copyright (c) 2015, Helen Oleynikova, ETH Zurich, Switzerland
 		You can contact the author at <helen dot oleynikova at mavt dot ethz dot ch>
 		All rights reserved.
