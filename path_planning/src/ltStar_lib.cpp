@@ -265,7 +265,7 @@ namespace LazyThetaStarOctree{
 			path.push_front( *(current->coordinates) );
 			if(writeToFile)
 			{
-				writeToFileWaypoint(*(current->coordinates), current->cell_size, "/data/final_path.txt");
+				writeToFileWaypoint(*(current->coordinates), current->cell_size, "/ros_ws/src/data/final_path.txt");
 			}
 			parentAdd = current->parentNode;
 			current = parentAdd;
@@ -279,7 +279,7 @@ namespace LazyThetaStarOctree{
 		path.push_front( *(current->coordinates) );
 		if(writeToFile)
 		{
-			writeToFileWaypoint(*(current->coordinates), current->cell_size, "/data/final_path.txt");
+			writeToFileWaypoint(*(current->coordinates), current->cell_size, "/ros_ws/src/data/final_path.txt");
 		}
 		return true;
 	}
@@ -376,7 +376,6 @@ namespace LazyThetaStarOctree{
 		int const& max_search_iterations,
 		bool print_resulting_path)
 	{
-		ROS_ERROR_STREAM("Here I am");
 		std::list<octomath::Vector3> path;
 
 		if (!isExplored(disc_initial, octree))
@@ -430,7 +429,7 @@ namespace LazyThetaStarOctree{
 		// TODO remove this, for debugging only
 		int used_search_iterations = 0;
 		std::ofstream log_file;
-    	log_file.open("/data/out.log", std::ios_base::app);
+    	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
 		while(!open.empty() && !solution_found)
@@ -453,7 +452,7 @@ namespace LazyThetaStarOctree{
 			{
 				if (!setVertex(octree, s, closed, open, neighbors, log_file, safety_margin))
 				{
-					octree.writeBinary("/data/octree_noPath1s.bt");
+					octree.writeBinary("/ros_ws/src/data/octree_noPath1s.bt");
 					log_file << " no neighbor of " << *s << " had line of sight. Start " << disc_initial << " goal " << disc_final << std::endl;
 				}
 			}
