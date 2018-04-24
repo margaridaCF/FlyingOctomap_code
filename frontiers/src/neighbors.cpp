@@ -138,7 +138,7 @@ namespace LazyThetaStarOctree{
 		// convert to key
 		octomap::OcTreeKey key = octree.coordToKey(point_coordinates);
 		// find depth of cell
-        // ROS_WARN_STREAM("Calling getNodeDepth from 141");
+        // ROS_WARN_STREAM("Calling getNodeDepth from 141 for point coordinates " << point_coordinates);
 		double depth = getNodeDepth_Octomap(key, octree);
 		// get center coord of cell center at depth
 		return octree.keyToCoord(key, depth);
