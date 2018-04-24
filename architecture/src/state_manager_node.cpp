@@ -224,7 +224,7 @@ namespace state_manager_node
         if(msg->frontiers_found == 0)
         {
             // TODO - go back to base and land
-            ROS_INFO_STREAM("[State manager][Exploration] finished_exploring");
+            ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
             state_data.exploration_state = finished_exploring;
         }
         else if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
@@ -232,7 +232,7 @@ namespace state_manager_node
             state_data.frontier_request_id = msg->request_id;
             state_data.exploration_state = choosing_goal;
             state_data.frontiers_msg = *msg;
-            ROS_INFO_STREAM("[State manager][Exploration] choosing_goal");
+            ROS_INFO_STREAM("[State manager][Exploration] choosing_goal from " << msg->frontiers_found << " frontiers.");
 
             if(get_current_frontier().x < geofence_min.x() 
                 || get_current_frontier().y < geofence_min.y() 
@@ -330,7 +330,6 @@ namespace state_manager_node
                 state_data.frontier_request_id = state_data.frontiers_msg.request_id;
                 state_data.waypoint_index = -1;
                 state_data.frontier_index = i;
-                // publish_marker_safety_margin(get_current_frontier(), safety_margin);
                 ROS_INFO_STREAM("[State manager] New frontier ("
                     <<get_current_frontier().x << ", "
                     <<get_current_frontier().y << ", "

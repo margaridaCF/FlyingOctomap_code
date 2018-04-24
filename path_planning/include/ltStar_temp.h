@@ -23,9 +23,12 @@
 // }
 
 namespace LazyThetaStarOctree{
+	enum CellStatus { kFree = 0, kOccupied = 1, kUnknown = 2 };
 	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end);
-	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end);
-	bool normalizeToVisibleEndCenter(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size);
+	CellStatus getLineStatus( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end);
+	CellStatus getLineStatusBoundingBox( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const octomath::Vector3& bounding_box_size);
+	bool is_flight_corridor_free(octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const double safety_margin);
+	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, double safety_margin);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
 	 *
@@ -35,8 +38,8 @@ namespace LazyThetaStarOctree{
 	 * @param      open       The open
 	 * @param[in]  neighbors  The neighbors
 	 */
-	void setVertex(
-		octomap::OcTree 										const& 	octree, 
+	bool setVertex(
+		octomap::OcTree 										& 	octree, 
 		std::shared_ptr<ThetaStarNode> 							& 		s, 
 		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
 		Open 													& 		open, 
@@ -77,12 +80,13 @@ namespace LazyThetaStarOctree{
 	 * @return     A list of the ordered waypoints to get from initial to final
 	 */
 	std::list<octomath::Vector3> lazyThetaStar_(
-		octomap::OcTree   const& octree, 
+		octomap::OcTree   & octree, 
 		octomath::Vector3 const& disc_initial, 
 		octomath::Vector3 const& disc_final,
 		ResultSet & resultSet,
+		double safety_margin,
 		int const& max_search_iterations = 55,
 		bool print_resulting_path = false);
 
-	bool processLTStarRequest(octomap::OcTree const& octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply);
+	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply);
 }

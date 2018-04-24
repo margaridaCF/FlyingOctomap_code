@@ -16,7 +16,7 @@ namespace rviz_interface
         marker.points.push_back(end);
     }
 
-    void publish_cube_wire(visualization_msgs::Marker & marker, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& marker_pub)
+    void build_cube_wire(visualization_msgs::Marker & marker, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& marker_pub, octomath::Vector3 color = octomath::Vector3(1, 1, 1))
     {
         uint32_t shape = visualization_msgs::Marker::LINE_LIST; 
         // Set the frame ID and timestamp.  See the TF tutorials for information on these. 
@@ -27,9 +27,9 @@ namespace rviz_interface
         marker.scale.x = 0.2; 
         marker.scale.y = 0.2; 
         marker.scale.z = 0.2; 
-        marker.color.r = 1.0f; 
-        marker.color.g = 1.0f; 
-        marker.color.b = 1.0f; 
+        marker.color.r = color.x(); 
+        marker.color.g = color.y(); 
+        marker.color.b = color.z(); 
         marker.color.a = 1.0; 
         geometry_msgs::Point A, B, C, D, E, F, G, H; 
         init_point( A, geofence_min.x(), geofence_min.y(), geofence_min.z()); 
@@ -52,7 +52,6 @@ namespace rviz_interface
         push_segment(marker, F, D); 
         push_segment(marker, G, E); 
         push_segment(marker, E, F); 
-        marker_pub.publish(marker); 
     }
 
 	void publish_geofence(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& marker_pub) 
@@ -62,7 +61,8 @@ namespace rviz_interface
         marker.ns = "geofence"; 
         marker.id = 20; 
         marker.lifetime = ros::Duration(); 
-        publish_cube_wire(marker, geofence_min, geofence_max, marker_pub);
+        build_cube_wire(marker, geofence_min, geofence_max, marker_pub);
+        marker_pub.publish(marker); 
     } 
 
     void publish_marker_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id)
@@ -70,27 +70,31 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         octomath::Vector3  max = octomath::Vector3(frontier.x - safety_margin, frontier.y - safety_margin, frontier.z - safety_margin);
         octomath::Vector3  min = octomath::Vector3(frontier.x + safety_margin, frontier.y + safety_margin, frontier.z + safety_margin);
-        marker.lifetime = ros::Duration(7);
+        marker.lifetime = ros::Duration();
         marker.ns = "frontier_safety_margin";
         marker.id = id;
-        publish_cube_wire(marker, min, max, marker_pub);
+        build_cube_wire(marker, min, max, marker_pub);
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array); 
     }
 
     void publish_deleteAll(ros::Publisher const& marker_pub)
     {
+        visualization_msgs::MarkerArray marker_array;
         visualization_msgs::Marker marker;
         marker.action = visualization_msgs::Marker::DELETEALL;
-        marker_pub.publish(marker); 
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array); 
     }
 
-    void publish_voxel_free_occupied(octomath::Vector3 & candidate, bool is_occupied, ros::Publisher const& marker_pub, int id, double size)
+    void publish_voxel_free_occupied(octomath::Vector3 & candidate, bool is_occupied, ros::Publisher const& marker_pub, int id, double size, visualization_msgs::Marker & marker)
     {
         uint32_t shape = visualization_msgs::Marker::CUBE;
-        visualization_msgs::Marker marker;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.ns = "neighbor_frontier";
+        marker.ns = "frontier_neighborhood";
         marker.id = id;
         marker.type = shape;
         marker.action = visualization_msgs::Marker::ADD;
@@ -119,7 +123,6 @@ namespace rviz_interface
             marker.color.a = 0.8;
         }
         marker.lifetime = ros::Duration(4);
-        marker_pub.publish(marker);
     }
 
     void publish_small_marker(octomath::Vector3 & candidate, ros::Publisher const& marker_pub, float red, float green, float blue, std::string ns, int id)
@@ -224,10 +227,9 @@ namespace rviz_interface
         marker_pub.publish(marker);
     }
 
-    void publish_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, ros::Publisher const& marker_pub)
+    void build_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker)
     {
         uint32_t shape = visualization_msgs::Marker::ARROW;
-        visualization_msgs::Marker marker;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
@@ -254,14 +256,12 @@ namespace rviz_interface
         marker.color.b = 0;
         marker.color.a = 1;
         
-        marker.lifetime = ros::Duration(5);
-        marker_pub.publish(marker);
+        marker.lifetime = ros::Duration();
     }
 
-    void publish_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, ros::Publisher const& marker_pub)
+    void build_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker)
     {   
         uint32_t shape = visualization_msgs::Marker::CUBE;
-        visualization_msgs::Marker marker;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
@@ -282,7 +282,6 @@ namespace rviz_interface
         // ROS_WARN_STREAM("[RVIZ PUB] color " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b << " i: " << waypoint_id);
         marker.color.a = 0.8;
         
-        marker.lifetime = ros::Duration(5);
-        marker_pub.publish(marker);
+        marker.lifetime = ros::Duration();
     }
 }
