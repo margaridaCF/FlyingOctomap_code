@@ -8,6 +8,7 @@ namespace Frontiers{
         sensing_position = voxel_center - n_coordinates;
         sensing_position.normalize();
         sensing_position = sensing_position * sensing_distance;
+        sensing_position = n_coordinates + sensing_position;
     }
 
     bool isCenterGoodGoal(double voxel_side, double sensing_distance)

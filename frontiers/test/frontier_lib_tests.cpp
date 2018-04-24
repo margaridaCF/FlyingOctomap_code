@@ -175,7 +175,7 @@ namespace Frontiers
 		ASSERT_EQ(1, reply.frontiers_found);
 	}
 	
-	TEST(WIPFrontiersTest, Test_isCenterGoodGoal_false)
+	TEST(FrontiersTest, Test_isCenterGoodGoal_false)
 	{
 		double voxel_side = 30;
 		double sensing_distance = 10;
@@ -183,7 +183,7 @@ namespace Frontiers
 	}
 
 
-	TEST(WIPFrontiersTest, Test_isCenterGoodGoal_true)
+	TEST(FrontiersTest, Test_isCenterGoodGoal_true)
 	{
 		double voxel_side = 4;
 		double sensing_distance = 10;
@@ -191,11 +191,23 @@ namespace Frontiers
 	}
 
 
-	TEST(WIPFrontiersTest, Test_isCenterGoodGoal_border)
+	TEST(FrontiersTest, Test_isCenterGoodGoal_border)
 	{
 		double voxel_side = 10;
 		double sensing_distance = 10;
 		ASSERT_TRUE(isCenterGoodGoal(voxel_side, sensing_distance));
+	}
+
+	TEST(FrontiersTest, Test_calculateCloserPosition_x)
+	{
+		octomath::Vector3 sensing_position;
+		octomath::Vector3 n_coordinates (3, 0, 0);
+		double sensing_distance = 2;
+		octomath::Vector3 voxel_center(0, 0, 0);
+		calculate_closer_position(sensing_position, n_coordinates, sensing_distance, voxel_center);
+		ASSERT_EQ(sensing_position.x(), 1);
+		ASSERT_EQ(sensing_position.y(), 0);
+		ASSERT_EQ(sensing_position.z(), 0);
 	}
 }
 

@@ -54,7 +54,7 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(workInProgress_frontiers 
     test/work_in_progress_frontiers_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress_frontiers ${catkin_LIBRARIES} )
+  target_link_libraries(workInProgress_frontiers ${catkin_LIBRARIES} frontiers_lib neighbors)
 
   # ## Octree @ neighbors ##
   # catkin_add_gtest(neighborTests 
