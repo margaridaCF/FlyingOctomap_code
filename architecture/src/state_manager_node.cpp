@@ -68,6 +68,7 @@ namespace state_manager_node
     ros::Duration exploration_maneuver_duration_secs;
     int max_search_iterations = 500;
     int max_cycles_waited_for_path = 3;
+    double ltstar_safety_margin;
     octomath::Vector3 geofence_min (-5, -5, 1);
     octomath::Vector3 geofence_max (5, 5, 10);
     enum follow_path_state_t{init, on_route, arrived_at_waypoint, finished_sequence};
@@ -164,6 +165,7 @@ namespace state_manager_node
         request.goal.y = goal.y();
         request.goal.z = goal.z();
         request.max_search_iterations = max_search_iterations;
+        request.safety_margin = ltstar_safety_margin;
         ltstar_request_pub.publish(request);
         rviz_interface::publish_start(request.start, marker_pub);
         rviz_interface::publish_goal(request.goal, marker_pub);
@@ -366,6 +368,7 @@ namespace state_manager_node
         error_margin = std::max(px4_loiter_radius, odometry_error);
         nh.getParam("path/max_search_iterations", max_search_iterations);
         nh.getParam("path/max_cycles_waited_for_path", max_cycles_waited_for_path);
+        nh.getParam("path/safety_margin", ltstar_safety_margin);
 
         float x, y, z;
         nh.getParam("geofence_min/x", x);
