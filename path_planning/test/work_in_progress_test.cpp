@@ -43,63 +43,26 @@ namespace LazyThetaStarOctree{
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 	}
 
-	TEST(LazyThetaStarTests, LazyThetaStar_Long_Test)
+	TEST(LazyThetaStarTests, LazyThetaStar_AddingBadNode)
 	{
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
-		octomap::OcTree octree ("data/octree_noPath1s.bt");
-		octomath::Vector3 disc_initial(0.420435, 0.313896, 1.92169);
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -10.3054;
+		request.start.y = -18.2637;
+		request.start.z = 2.34813;
+		request.goal.x = -8.5;
+		request.goal.y = 6.5;
+		request.goal.z = 3.5;
+		request.max_search_iterations = 500;
+		request.safety_margin = 0;
+		octomath::Vector3 disc_initial(-10.3054, 0.313896, 1.92169);
 		octomath::Vector3 disc_final  (-2.5, -10.5, 3.5);
 		testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final);
 
 	}
-
-
-	/*TEST(WorkInProgressTest, ReverseNormalizedLineOfSight)
-	{
-		double cell_size = 0;
-	    octomath::Vector3 p1(0.7, 3.1, 1.3); 
-	    octomath::Vector3 p2(0.7, 2.9, 1.3); 
-	    std::shared_ptr<octomath::Vector3> p1_ptr = std::make_shared<octomath::Vector3>(p1);
-	    std::shared_ptr<octomath::Vector3> p2_ptr = std::make_shared<octomath::Vector3>(p2);
-		octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
-		bool line_of_sight_A = normalizeToVisibleEndCenter(octree, p1_ptr, p2_ptr, cell_size);
-		bool line_of_sight_B = normalizeToVisibleEndCenter(octree, p2_ptr, p1_ptr, cell_size);
-		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
-	}
-
-	
-	TEST(WorkInProgressTest, ReverseLineOfSight)
-	{
-	    octomath::Vector3 p1(0.7, 3.1, 1.3); 
-	    octomath::Vector3 p2(0.7, 2.9, 1.3); 
-		octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
-
-		auto res_node = octree.search(p1);
-		if(res_node == NULL)
-		{
-			ROS_WARN_STREAM("[1] The coordinates " << p1 << " do not correspond to a node in this octree  ==> this neighbor is unknown");
-		}
-		else
-		{
-			ASSERT_FALSE(octree.isNodeOccupied(res_node));
-		}
-		res_node = octree.search(p2);
-		if(res_node == NULL)
-		{
-			ROS_WARN_STREAM("[1] The coordinates " << p2 << " do not correspond to a node in this octree  ==> this neighbor is unknown");
-		}
-		else
-		{
-			ASSERT_TRUE(octree.isNodeOccupied(res_node));
-		}
-
-
-		bool line_of_sight_A = hasLineOfSight(octree, p1, p2);
-		bool line_of_sight_B = hasLineOfSight(octree, p2, p1);
-		ASSERT_FALSE(line_of_sight_B);
-		ASSERT_FALSE(line_of_sight_A);
-		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
-	}*/
 }
 
 int main(int argc, char **argv){
