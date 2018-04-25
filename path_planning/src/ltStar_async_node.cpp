@@ -28,15 +28,20 @@ namespace LazyThetaStarOctree
 		reply.success = false;
 		if(octomap_init)
 		{
+			std::stringstream ss;
+			std::string path = "/ros_ws/src/data/";
+			ss << path << "(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
+				<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
+			octree->writeBinary(ss.str());
+			ROS_WARN_STREAM("[LTStar] Request message " << *path_request);
 			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply);
-			octree->writeBinary("/ros_ws/src/data/octree_1.bt");
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. It should always have at least start and goal. Here is the request message (the octree was saved to /data) " << *path_request);
 				ROS_ERROR_STREAM("[LTStar] And here is the reply " << reply);
 				octree->writeBinary("/ros_ws/src/data/one_waypointed_path.bt");
 			}
-			octree->writeBinary("/ros_ws/src/data/octree_2.bt");
+			octree->writeBinary("/ros_ws/src/data/octree_after_processing_request.bt");
 		}
 		else
 		{
