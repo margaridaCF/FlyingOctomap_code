@@ -288,8 +288,6 @@ namespace LazyThetaStarOctree{
 		request.goal.z = 3.5;
 		request.max_search_iterations = 500;
 		request.safety_margin = 0;
-		octomath::Vector3 disc_initial(-10.3054, 0.313896, 1.92169);
-		octomath::Vector3 disc_final  (-2.5, -10.5, 3.5);
 		path_planning_msgs::LTStarReply reply;
 		processLTStarRequest(octree, request, reply);
 	// 	ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
