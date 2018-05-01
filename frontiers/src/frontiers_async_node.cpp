@@ -9,11 +9,16 @@
 
 #include <geometry_msgs/Point.h>
 
+#define SAVE_CSV 1
+
 namespace frontiers_async_node
 {
 	octomap::OcTree* octree;
 	ros::Publisher local_pos_pub;
 	ros::Publisher marker_pub;
+#ifdef SAVE_CSV
+	std::ofstream log;
+#endif
 		
 	bool octomap_init;
 
@@ -37,7 +42,18 @@ namespace frontiers_async_node
 		frontiers_msgs::FrontierReply reply;
 		if(octomap_init)
 		{
+#ifdef SAVE_CSV
+				std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+#endif
 			Frontiers::processFrontiersRequest(*octree, *frontier_request, reply, marker_pub);
+
+#ifdef SAVE_CSV
+				std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+				std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+				std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
+				std::chrono::seconds seconds = std::chrono::duration_cast<std::chrono::seconds>(time_span);
+				log << millis.count() << ", " << seconds.count() << "\n";
+#endif
 
 			if(reply.frontiers_found == 0)
 	        {
@@ -63,6 +79,11 @@ namespace frontiers_async_node
 
 int main(int argc, char **argv)
 {
+#ifdef SAVE_CSV
+		frontiers_async_node::log.open ("/ros_ws/src/data/frontiers_computation_time.log");
+		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
+#endif
+
 	ros::init(argc, argv, "frontier_node_async");
 	ros::NodeHandle nh;
 	ros::ServiceServer frontier_status_service = nh.advertiseService("frontier_status", frontiers_async_node::check_status);
