@@ -120,13 +120,26 @@ namespace LazyThetaStarOctree{
 		return CellStatus::kFree;
 	}
 
+	int scale_float(float value)
+	{
+		int scale = 0.0001;
+		return (int)(value / scale) * scale;
+	}
+
 	bool is_flight_corridor_free(
 		octomap::OcTree & octree_, 
 		const octomath::Vector3& start, const octomath::Vector3& end,
 		const double safety_margin)
 	{
+	    octomath::Vector3 scaled_start (   scale_float(start.x()), scale_float(start.y()), scale_float(start.z())   ); 
+	    octomath::Vector3 scaled_end (   scale_float(end.x()), scale_float(end.y()), scale_float(end.z())   ); 
+
+
 		octomath::Vector3 bounding_box_size(safety_margin, safety_margin, safety_margin);
-		return getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
+		bool result = getLineStatusBoundingBox(octree_, scaled_start, scaled_end, bounding_box_size) == CellStatus::kFree;
+		// ROS_WARN_STREAM( "[is_flight_corridor_free] "<<scaled_start << " to " << scaled_end <<" = " << result) ;
+
+		return result;
 	}
 
 	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin)
@@ -193,8 +206,20 @@ namespace LazyThetaStarOctree{
 				{
 					if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin))
 					{
+						// auto res_node = octree.search(*n_coordinates);
+						// if(res_node == NULL)
+						// {
+	     				// 	throw std::out_of_range("Skipping cases where unknown neighbors are found.");
+						// }
+						log_file << "[SetVertex] no line of sight " << *(s->coordinates) << " to " << *n_coordinates << std::endl;
 						continue;
 					}
+					else
+					{
+						log_file << "[SetVertex] visible neighbor " << *n_coordinates << std::endl;
+					}
+
+
 					// VISIBLE
 					// closed.at(*n_coordinates) throws exception when there is no such element
 					std::shared_ptr<ThetaStarNode> neighbor_in_closed = closed.at(*n_coordinates);  											// EXPANDED
@@ -230,6 +255,7 @@ namespace LazyThetaStarOctree{
 			else
 			{
 				ROS_ERROR_STREAM("No path 1 was found, adding to closed a bad node for " << *(s->coordinates));
+				throw std::out_of_range("No path 1 was found, adding to closed a bad node  " );
 				// log_file << "No path 1 was found, adding to closed a bad node for " << *(s->coordinates) << std::endl;
 				return false;
 			}

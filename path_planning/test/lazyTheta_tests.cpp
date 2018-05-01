@@ -273,6 +273,28 @@ namespace LazyThetaStarOctree{
 	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 1000);
 	}
 
+	TEST(LazyThetaStarTests, LazyThetaStar_AddingBadNode)
+	{
+		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -10.3054;
+		request.start.y = -18.2637;
+		request.start.z = 2.34813;
+		request.goal.x = -8.5;
+		request.goal.y = 6.5;
+		request.goal.z = 3.5;
+		request.max_search_iterations = 500;
+		request.safety_margin = 0;
+		octomath::Vector3 disc_initial(-10.3054, 0.313896, 1.92169);
+		octomath::Vector3 disc_final  (-2.5, -10.5, 3.5);
+		path_planning_msgs::LTStarReply reply;
+		processLTStarRequest(octree, request, reply);
+	// 	ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+	}
+
 	// TEST(LazyThetaStarTests, QueryDepthOfUnknowVoxel)
 	// {
 
