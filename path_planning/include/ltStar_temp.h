@@ -27,8 +27,9 @@ namespace LazyThetaStarOctree{
 	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end);
 	CellStatus getLineStatus( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end);
 	CellStatus getLineStatusBoundingBox( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const octomath::Vector3& bounding_box_size);
-	bool is_flight_corridor_free(octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const double safety_margin);
-	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, double safety_margin);
+	bool is_flight_corridor_free(octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const double safety_margin, ros::Publisher const& marker_pub, bool publish = false);
+	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, double safety_margin, ros::Publisher const& marker_pub, bool publish = false);
+	double scale_float(float value);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
 	 *
@@ -44,7 +45,9 @@ namespace LazyThetaStarOctree{
 		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
 		Open 													& 		open, 
 		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
-		std::ofstream & log_file);
+		std::ofstream & log_file,
+		ros::Publisher const& marker_pub, 
+		bool publish = false);
 
 	/**
 	 * @brief      Extracts a sequence of coordinates from the links between nodes starting at the goal node and expanding the connections to the prevuous point through parentNode.
@@ -85,8 +88,10 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 const& disc_final,
 		ResultSet & resultSet,
 		double safety_margin,
+		ros::Publisher const& marker_pub,
 		int const& max_search_iterations = 55,
-		bool print_resulting_path = false);
+		bool print_resulting_path = false,
+		bool publish = false);
 
-	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply);
+	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish = false);
 }

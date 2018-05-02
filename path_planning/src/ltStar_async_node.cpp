@@ -12,6 +12,7 @@ namespace LazyThetaStarOctree
 	ros::Publisher marker_pub;
 		
 	bool octomap_init;
+	bool publish_free_corridor_arrows;
 
 	bool check_status(path_planning_msgs::LTStarNodeStatus::Request  &req,
         path_planning_msgs::LTStarNodeStatus::Response &res)
@@ -34,7 +35,7 @@ namespace LazyThetaStarOctree
 				<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
 			octree->writeBinary(ss.str());
 			ROS_WARN_STREAM("[LTStar] Request message " << *path_request);
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply);
+			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, marker_pub, publish_free_corridor_arrows);
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. It should always have at least start and goal. Here is the request message (the octree was saved to /data) " << *path_request);
@@ -88,6 +89,7 @@ namespace LazyThetaStarOctree
 
 int main(int argc, char **argv)
 {
+	LazyThetaStarOctree::publish_free_corridor_arrows = true;
 	ros::init(argc, argv, "ltstar_async_node");
 	ros::NodeHandle nh;
 	ros::ServiceServer ltstar_status_service = nh.advertiseService("ltstar_status", LazyThetaStarOctree::check_status);
