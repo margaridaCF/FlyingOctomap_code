@@ -8,6 +8,7 @@ namespace LazyThetaStarOctree{
 	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_search_iterations = 55)
 	{
+		ros::Publisher marker_pub;
 		double safety_margin = 0.1;
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
@@ -24,7 +25,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, max_search_iterations, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, marker_pub, max_search_iterations, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -101,6 +102,7 @@ namespace LazyThetaStarOctree{
 
 	TEST(LazyThetaStarTests, LazyThetaStar_StraighLine_NoSolution_MemoryLeak_Test)
 	{
+		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
 		octomath::Vector3 disc_initial(-4.3000001907348633, -4.6999998092651367, 0.5);
 		octomath::Vector3 disc_final  (-3.3000001907348633, -4.6999998092651367, 0.5);
@@ -124,11 +126,12 @@ namespace LazyThetaStarOctree{
         int count_80 = 0;
         int count_over80 = 0;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, 1);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, 1, marker_pub);
         EXPECT_EQ( 0, ThetaStarNode::OustandingObjects()) << "From  " << disc_initial << " to  " << disc_final;
 	}
 	TEST(LazyThetaStarTests, LazyThetaStar_NoSolution_NegativeInstanceCount_Test)
 	{
+		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
 		octomath::Vector3 disc_initial(-6.9000000953674316, -9.6999998092651367, 0.5);
 		octomath::Vector3 disc_final  (-5.9000000953674316, -9.6999998092651367, 0.5);
@@ -156,7 +159,7 @@ namespace LazyThetaStarOctree{
 
         // std::cout << "Starting lazy theta from " << disc_initial << " to " << disc_final << std::endl;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, 5);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, marker_pub, 5);
 
 
         if(resulting_path.size() == 0)
@@ -231,6 +234,7 @@ namespace LazyThetaStarOctree{
 	void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_search_iterations = 55)
 	{
+		ros::Publisher marker_pub;
 		double safety_margin = 2;
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
@@ -247,7 +251,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, max_search_iterations, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, marker_pub, max_search_iterations, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// 2 waypoints: The center of start voxel & The center of the goal voxel
@@ -273,8 +277,31 @@ namespace LazyThetaStarOctree{
 	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 1000);
 	}
 
+	TEST(LazyThetaStarTests, LazyThetaStar_throughWall)
+	{
+		ros::Publisher marker_pub;
+		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+		octomap::OcTree octree ("data/(-11.2177; -18.2778; 2.39616)_(-8.5; 6.5; 3.5)_throughWall.bt");
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -11.2177;
+		request.start.y = -18.2778;
+		request.start.z = 2.39616;
+		request.goal.x = -8.5;
+		request.goal.y = 6.5;
+		request.goal.z = 3.5;
+		request.max_search_iterations = 1000;
+		request.safety_margin = 1;
+		path_planning_msgs::LTStarReply reply;
+		processLTStarRequest(octree, request, reply, marker_pub);
+		ASSERT_FALSE(reply.success);
+		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+	}
+
 	TEST(LazyThetaStarTests, LazyThetaStar_AddingBadNode)
 	{
+		ros::Publisher marker_pub;
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
 		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
 		path_planning_msgs::LTStarRequest request;
@@ -287,10 +314,100 @@ namespace LazyThetaStarOctree{
 		request.goal.y = 6.5;
 		request.goal.z = 3.5;
 		request.max_search_iterations = 500;
-		request.safety_margin = 0;
+		request.safety_margin = 0.5;
 		path_planning_msgs::LTStarReply reply;
-		processLTStarRequest(octree, request, reply);
-	// 	ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+		processLTStarRequest(octree, request, reply, marker_pub);
+		ASSERT_TRUE(reply.success);
+		ASSERT_GT(reply.waypoint_amount, 2);
+		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+	}
+
+	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_2)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		octomath::Vector3 start(-11, -15, 3);
+		octomath::Vector3 end(-11.5, -13.5, 3.5);
+		double safety_margin = 0;
+		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
+		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		ASSERT_EQ(start_to_end, end_to_start);
+	}
+
+	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_3)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		octomath::Vector3 start(-10.5, -13.5, 3.5);
+		octomath::Vector3 end(-11.5, -13.5, 3.5);
+		double safety_margin = 0;
+		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
+		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		ASSERT_EQ(start_to_end, end_to_start);
+	}
+
+	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_4)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		octomath::Vector3 start(-10.5, -13.5, 3.5);
+		octomath::Vector3 end(-10.5, -12.5, 3.5);
+		double safety_margin = 0;
+		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
+		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		ASSERT_EQ(start_to_end, end_to_start);
+	}
+
+	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_merge_1)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		octomath::Vector3 start(-11, -15, 3);
+		octomath::Vector3 end(-11.5, -13.5, 2.5);
+		double safety_margin = 0;
+
+		octomath::Vector3 bounding_box_size(safety_margin, safety_margin, safety_margin);
+		bool start_to_end = getLineStatusBoundingBox(octree, start, end, bounding_box_size) == CellStatus::kFree;
+		ROS_ERROR_STREAM("reverse");
+		bool end_to_start = getLineStatusBoundingBox(octree, end, start, bounding_box_size) == CellStatus::kFree;
+
+		ASSERT_EQ(start_to_end, end_to_start);
+	}
+
+	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_merge_2)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		octomath::Vector3 start(-11, -15, 3);
+		octomath::Vector3 end(-11.5, -13.5, 3.5);
+		double safety_margin = 0;
+		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
+		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		ASSERT_EQ(start_to_end, end_to_start);
+	}
+
+	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_merge_3)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		octomath::Vector3 start(-10.5, -13.5, 3.5);
+		octomath::Vector3 end(-11.5, -13.5, 3.5);
+		double safety_margin = 0;
+		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
+		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		ASSERT_EQ(start_to_end, end_to_start);
+	}
+
+	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_merge_4)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		octomath::Vector3 start(-10.5, -13.5, 3.5);
+		octomath::Vector3 end(-10.5, -12.5, 3.5);
+		double safety_margin = 0;
+		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
+		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
 	// TEST(LazyThetaStarTests, QueryDepthOfUnknowVoxel)
