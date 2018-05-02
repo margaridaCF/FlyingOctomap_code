@@ -127,111 +127,103 @@ namespace LazyThetaStarOctree{
 		return CellStatus::kFree;
 	}
 
-	// void mergeOntoKeysSet(std::unordered_set<octomap::OcTreeKey> keys, octomap::OcTree & octree_,
-	// 	const octomath::Vector3& start, const octomath::Vector3& end)
-	// {
-	// 	octomap::KeyRay key_ray;
-	// 	octree_.computeRayKeys(start, end, key_ray);
-	// 	for (octomap::OcTreeKey key : key_ray) 
-	// 	{
-	// 		keys.insert(key);
-	// 	}
-	// }
-
-	// bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end)
-	// {
-	// 	// There seems to be a blind spot when the very first node is occupied, so this covers that case
-	// 	octomath::Vector3 mutable_end = end;
-	// 	auto res_node = octree.search(mutable_end);
-	// 	if(res_node == NULL)
-	// 	{
-	// 		return false;
-	// 	}
-	// 	else
-	// 	{
-	// 		if (octree.isNodeOccupied(res_node) )
-	// 		{
-	// 			return false;
-	// 		}
-	// 	}
-	// 	octomath::Vector3 dummy;
-	// 	octomath::Vector3 direction = octomath::Vector3(   end.x() - start.x(),   end.y() - start.y(),   end.z() - start.z()   );
-	// 	bool has_hit_obstacle = octree.castRay( start, direction, dummy, false, direction.norm());
-	// 	if(has_hit_obstacle)
-	// 	{
-	// 		return false;
-	// 	}
-	// 	return true;
-	// }
-
-
-	// CellStatus getCorridorOccupancy(
-	// 	octomap::OcTree & octree_, 
-	// 	const octomath::Vector3& start, const octomath::Vector3& end,
-	// 	const octomath::Vector3& bounding_box_size) 
-	// {
-	// 	// TODO(helenol): Probably best way would be to get all the coordinates along
-	// 	// the line, then make a set of all the OcTreeKeys in all the bounding boxes
-	// 	// around the nodes... and then just go through and query once.
-	// 	const double epsilon = 0.001;  // Small offset
-	// 	CellStatus ret_forward = CellStatus::kFree;
-	// 	CellStatus ret_backwards = CellStatus::kFree;
-	// 	const double& resolution = octree_.getResolution();
-
-	// 	// Check corner connections and depending on resolution also interior:
-	// 	// Discretization step is smaller than the octomap resolution, as this way
-	// 	// no cell can possibly be missed
-	// 	double x_disc = bounding_box_size.x() / ceil((bounding_box_size.x() + epsilon) / resolution);
-	// 	double y_disc = bounding_box_size.y() / ceil((bounding_box_size.y() + epsilon) / resolution);
-	// 	double z_disc = bounding_box_size.z() / ceil((bounding_box_size.z() + epsilon) / resolution);
-
-	// 	// Ensure that resolution is not infinit
-	// 	if (x_disc <= 0.0) x_disc = 1.0;
-	// 	if (y_disc <= 0.0) y_disc = 1.0;
-	// 	if (z_disc <= 0.0) z_disc = 1.0;
-
-	// 	// std::unordered_set<octomap::OcTreeKey> keys;
-	// 	const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
-	// 	for (double x = -bounding_box_half_size.x(); x <= bounding_box_half_size.x();
-	// 		x += x_disc) {
-	// 		for (double y = -bounding_box_half_size.y();
-	// 			y <= bounding_box_half_size.y(); y += y_disc) 
-	// 		{
-	// 			for (double z = -bounding_box_half_size.z();
-	// 				z <= bounding_box_half_size.z(); z += z_disc) 
-	// 			{
-	// 				octomath::Vector3 offset(x, y, z);
-	// 				// mergeOntoKeysSet(keys, octree_, start + offset, end + offset);
-	// 				// mergeOntoKeysSet(keys, octree_, end + offset, start + offset);
-	// 				bool start_to_end = hasLineOfSight(octree_, start + offset, end + offset);
-	// 				bool end_to_start = hasLineOfSight(octree_, end + offset, start + offset);
-	// 				if(start_to_end != end_to_start)
-	// 				{
-	// 					ROS_ERROR_STREAM("getCorridorOccupancy for "<<start<<" to "<<end<<" start_to_end: " << start_to_end << " != end_to_start:" << end_to_start);
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	for (std::unordered_set<octomap::OcTreeKey>::iterator i = keys.begin(); i != keys.end(); ++i)
-	// 	{
-	// 		octomap::OcTreeNode* node = octree_.search(*i);
-	// 		if (node == NULL) 
-	// 		{
-	// 			return CellStatus::kUnknown;
-				
-	// 		} 
-	// 		else if (octree_.isNodeOccupied(node)) 
-	// 		{
-	// 			return CellStatus::kOccupied;
-	// 		}
-	// 	}
-	// 	return CellStatus::kFree;
-	// }
-
-	double scale_float(float value)
+	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end)
 	{
-		double scale = 0.0001;
-		return (int)(value / scale) * scale;
+		// There seems to be a blind spot when the very first node is occupied, so this covers that case
+		octomath::Vector3 mutable_end = end;
+		auto res_node = octree.search(mutable_end);
+		if(res_node == NULL)
+		{
+			return false;
+		}
+		else
+		{
+			if (octree.isNodeOccupied(res_node) )
+			{
+				return false;
+			}
+		}
+		octomath::Vector3 dummy;
+		octomath::Vector3 direction = octomath::Vector3(   end.x() - start.x(),   end.y() - start.y(),   end.z() - start.z()   );
+		bool has_hit_obstacle = octree.castRay( start, direction, dummy, false, direction.norm());
+		if(has_hit_obstacle)
+		{
+			return false;
+		}
+		return true;
+	}
+
+
+	CellStatus getCorridorOccupancy(
+		octomap::OcTree & octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& end,
+		const octomath::Vector3& bounding_box_size) 
+	{
+		// TODO(helenol): Probably best way would be to get all the coordinates along
+		// the line, then make a set of all the OcTreeKeys in all the bounding boxes
+		// around the nodes... and then just go through and query once.
+		const double epsilon = 0.001;  // Small offset
+		CellStatus ret_forward = CellStatus::kFree;
+		CellStatus ret_backwards = CellStatus::kFree;
+		const double& resolution = octree_.getResolution();
+
+		// Check corner connections and depending on resolution also interior:
+		// Discretization step is smaller than the octomap resolution, as this way
+		// no cell can possibly be missed
+		double x_disc = bounding_box_size.x() / ceil((bounding_box_size.x() + epsilon) / resolution);
+		double y_disc = bounding_box_size.y() / ceil((bounding_box_size.y() + epsilon) / resolution);
+		double z_disc = bounding_box_size.z() / ceil((bounding_box_size.z() + epsilon) / resolution);
+
+		// Ensure that resolution is not infinit
+		if (x_disc <= 0.0) x_disc = 1.0;
+		if (y_disc <= 0.0) y_disc = 1.0;
+		if (z_disc <= 0.0) z_disc = 1.0;
+
+		// std::unordered_set<octomap::OcTreeKey> keys;
+		const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
+		for (double x = -bounding_box_half_size.x(); x <= bounding_box_half_size.x();
+			x += x_disc) {
+			for (double y = -bounding_box_half_size.y();
+				y <= bounding_box_half_size.y(); y += y_disc) 
+			{
+				for (double z = -bounding_box_half_size.z();
+					z <= bounding_box_half_size.z(); z += z_disc) 
+				{
+					octomath::Vector3 offset(x, y, z);
+					// mergeOntoKeysSet(keys, octree_, start + offset, end + offset);
+					// mergeOntoKeysSet(keys, octree_, end + offset, start + offset);
+					// bool start_to_end_free = hasLineOfSight(octree_, start + offset, end + offset);
+					// bool end_to_start_free = hasLineOfSight(octree_, end + offset, start + offset);
+					// // if(start_to_end_free != end_to_start_free)
+					// // {
+					// // 	ROS_ERROR_STREAM("getCorridorOccupancy for "<<start<<" to "<<end<<" start_to_end_free: " << start_to_end_free << " != end_to_start_free:" << end_to_start_free);
+					// // }
+					// if(!start_to_end_free || !end_to_start_free )
+					// {
+					// 	return CellStatus::kOccupied;
+					// }
+
+
+
+					if(hasLineOfSight(octree_, start + offset, end + offset) == false)	return CellStatus::kOccupied;
+					if(hasLineOfSight(octree_, end + offset, start + offset) == false)	return CellStatus::kOccupied;
+				}
+			}
+		}
+		// for (std::unordered_set<octomap::OcTreeKey>::iterator i = keys.begin(); i != keys.end(); ++i)
+		// {
+		// 	octomap::OcTreeNode* node = octree_.search(*i);
+		// 	if (node == NULL) 
+		// 	{
+		// 		return CellStatus::kUnknown;
+				
+		// 	} 
+		// 	else if (octree_.isNodeOccupied(node)) 
+		// 	{
+		// 		return CellStatus::kOccupied;
+		// 	}
+		// }
+		return CellStatus::kFree;
 	}
 
 	bool is_flight_corridor_free(
@@ -242,7 +234,8 @@ namespace LazyThetaStarOctree{
 		bool publish)
 	{
 		octomath::Vector3 bounding_box_size(safety_margin, safety_margin, safety_margin);
-		bool free = getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
+		// bool free = getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
+		bool free = getCorridorOccupancy(octree_, start, end, bounding_box_size) == CellStatus::kFree;
 		visualization_msgs::Marker marker_temp;
 		if(publish)
 		{
