@@ -1,27 +1,68 @@
-
 import plotly.plotly as py
 from plotly.graph_objs import *
 import plotly
 import numpy as np
 import pandas as pd
 
-# plotly.tools.set_credentials_file(username='kotoko', api_key='')
-
-# pd.set_option('display.mpl_style', 'default') # Make the graphs a bit prettier
-# figsize(15, 5)
-
 def plot_box_plot(data, file_name):
-	print data
 	trace0 = Box(
 	    y=data
 	)
 	data = [trace0]
-	plotly.offline.plot(data)
-	# py.iplot(data, filename='jupyter/basic_bar')
+	layout = go.Layout(
+	    title='Amount of time used for exploration',
+	    # xaxis=dict(
+	    #     title='Time in milli seconds',
+	    #     titlefont=dict(
+	    #         family='Courier New, monospace',
+	    #         size=18,
+	    #         color='#7f7f7f'
+	    #     )
+	    # ),
+	    yaxis=dict(
+	        title='Time in milliseconds',
+	        titlefont=dict(
+	            family='Courier New, monospace',
+	            size=18,
+	            color='#7f7f7f'
+	        )
+	    )
+	)
+	fig=dict(data=[trace0], layout=layout)
 	plotly.offline.plot(
-    data, 
+    fig,
     filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180226_sitl_ethz/plots/'+file_name+'.html',
     image='png')
+
+def plot_volume_exploration_vs_time(csv_filepath, dataset_name):
+	volume = pd.read_csv(csv_filepath)
+	trace0 = go.Scatter(
+	    x = volume['time ellapsed millis'],
+	    y = volume['volume'],
+	    mode = 'lines',
+	    name = dataset_name
+	)
+	layout = go.Layout(
+	    title='Progression of volume of explored space cases analyzed',
+	    xaxis=dict(
+	        title='Time in milli seconds',
+	        titlefont=dict(
+	            family='Courier New, monospace',
+	            size=18,
+	            color='#7f7f7f'
+	        )
+	    ),
+	    yaxis=dict(
+	        title='Explored volume in cubuc meters',
+	        titlefont=dict(
+	            family='Courier New, monospace',
+	            size=18,
+	            color='#7f7f7f'
+	        )
+	    )
+	)
+	fig=dict(data=[trace0], layout=layout)
+	plotly.offline.plot(fig, filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180226_sitl_ethz/plots/volume_exploration_vs_time_'+dataset_name+'.html', image='png')
 
 def extract_computation_time_path(csv_filepath):
     frontiers_computation_time = pd.read_csv(csv_filepath)
@@ -33,6 +74,7 @@ def run_frontiers_computation_time():
 	plot_box_plot(data, "frontiers_computation_time_millis_box")
 
 run_frontiers_computation_time()
+plot_volume_exploration_vs_time('../data/volume_explored.csv', 'some obstacles')
 
 # variables= {}
 # execfile( "compare_box_graphs.py", variables )

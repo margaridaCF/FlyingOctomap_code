@@ -18,4 +18,4 @@ geofence_max/z: 4
 
 path/max_search_iterations: 500
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 3
+path/safety_margin: 0.5
