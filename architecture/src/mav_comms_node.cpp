@@ -145,10 +145,10 @@ namespace mav_comms
                 {
                     case front_facing:
                     {
-                        ROS_INFO_STREAM("[mav_comms]        front_facing");
+                        // ROS_INFO_STREAM("[mav_comms]        front_facing");
                         position_state.yaw_spin_last_sent = ros::Time::now();
                         position_state.yaw_spin_state = half_moon;
-                        ROS_INFO_STREAM("[mav_comms]        half_moon");
+                        // ROS_INFO_STREAM("[mav_comms]        half_moon");
                         break;
                     }
                     case half_moon:
@@ -158,7 +158,7 @@ namespace mav_comms
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = full_moon;
-                            ROS_INFO_STREAM("[mav_comms]        full_moon");
+                            // ROS_INFO_STREAM("[mav_comms]        full_moon");
                         }
                         break;
                     }
@@ -170,7 +170,7 @@ namespace mav_comms
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = front_facing;
                             position_state.movement_state = position;
-                            ROS_INFO_STREAM("[mav_comms] position");
+                            // ROS_INFO_STREAM("[mav_comms] position");
                         }
                         break;
                     }

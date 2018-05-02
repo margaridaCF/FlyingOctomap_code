@@ -258,9 +258,9 @@ namespace state_manager_node
         // ROS_INFO_STREAM("[State manager] 3 Position offset");
         // ROS_INFO_STREAM("[State manager] Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
         // ROS_INFO_STREAM("[State manager]  Target (" << target_waypoint.x << ", " << target_waypoint.y << ", " << target_waypoint.z << ");");
-        ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
-            << std::abs(target_waypoint.y - current_position.y) << ", "
-            << std::abs(target_waypoint.z - current_position.z) << ") ");
+        // ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
+        //     << std::abs(target_waypoint.y - current_position.y) << ", "
+        //     << std::abs(target_waypoint.z - current_position.z) << ") ");
 
         return std::abs(target_waypoint.x - current_position.x) <= error_margin
             && std::abs(target_waypoint.y - current_position.y) <= error_margin

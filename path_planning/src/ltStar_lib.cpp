@@ -237,10 +237,10 @@ namespace LazyThetaStarOctree{
 		// bool free = getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
 		bool free = getCorridorOccupancy(octree_, start, end, bounding_box_size) == CellStatus::kFree;
 		visualization_msgs::Marker marker_temp;
-		if(publish)
-		{
-			rviz_interface::publish_arrow_path_occupancyState(start, end, 500, marker_pub, free);	
-		}
+		// if(publish)
+		// {
+		// 	rviz_interface::publish_arrow_path_occupancyState(start, end, 500, marker_pub, free);	
+		// }
 		return free;
 	}
 
