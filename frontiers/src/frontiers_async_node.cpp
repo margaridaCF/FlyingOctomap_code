@@ -80,7 +80,7 @@ namespace frontiers_async_node
 int main(int argc, char **argv)
 {
 #ifdef SAVE_CSV
-		frontiers_async_node::log.open ("/ros_ws/src/data/frontiers_computation_time.log");
+		frontiers_async_node::log.open ("/ros_ws/src/data/frontiers_computation_time.csv");
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 #endif
 
