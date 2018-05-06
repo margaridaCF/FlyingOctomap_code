@@ -4,6 +4,8 @@ import plotly
 import numpy as np
 import pandas as pd
 
+path = "/ros_ws/src/data/current"
+
 def plot_box_plot(data, file_name):
 	trace0 = Box(
 	    y=data
@@ -31,7 +33,7 @@ def plot_box_plot(data, file_name):
 	fig=dict(data=[trace0], layout=layout)
 	plotly.offline.plot(
     fig,
-    filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180226_sitl_ethz/plots/'+file_name+'.html',
+    filename=path + '/'+file_name+'.html',
     image='png')
 
 def plot_volume_exploration_vs_time(csv_filepath, dataset_name):
@@ -62,7 +64,7 @@ def plot_volume_exploration_vs_time(csv_filepath, dataset_name):
 	    )
 	)
 	fig=dict(data=[trace0], layout=layout)
-	plotly.offline.plot(fig, filename='/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180226_sitl_ethz/plots/volume_exploration_vs_time_'+dataset_name+'.html', image='png')
+	plotly.offline.plot(fig, filename=path + '/volume_exploration_vs_time_'+dataset_name+'.html', image='png')
 
 def extract_computation_time_path(csv_filepath):
     frontiers_computation_time = pd.read_csv(csv_filepath)

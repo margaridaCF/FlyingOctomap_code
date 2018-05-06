@@ -16,10 +16,12 @@ namespace frontiers_async_node
 	octomap::OcTree* octree;
 	ros::Publisher local_pos_pub;
 	ros::Publisher marker_pub;
+	std::string folder_name;
 #ifdef SAVE_CSV
 	std::ofstream log;
 	std::ofstream volume_explored;
 	std::chrono::high_resolution_clock::time_point start_exploration;
+	// std::chrono::hours; 
 #endif
 		
 	bool octomap_init;
@@ -70,7 +72,7 @@ namespace frontiers_async_node
 
 #ifdef SAVE_CSV
 			// Frontier computation time
-			log.open ("/ros_ws/src/data/frontiers_computation_time.csv", std::ofstream::app);
+			log.open (folder_name +"/frontiers_computation_time.csv", std::ofstream::app);
 			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 			std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
@@ -78,7 +80,7 @@ namespace frontiers_async_node
 			log << millis.count() << ", " << seconds.count() << "\n";
 			log.close();
 			// Explored volume
-			volume_explored.open ("/ros_ws/src/data/volume_explored.csv", std::ofstream::app);
+			volume_explored.open (folder_name + "/volume_explored.csv", std::ofstream::app);
 			std::chrono::duration<double> ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start_exploration);
 			std::chrono::milliseconds ellapsed_time_millis = std::chrono::duration_cast<std::chrono::milliseconds>(ellapsed_time);
 			double resolution = octree->getResolution();
@@ -92,7 +94,7 @@ namespace frontiers_async_node
 			if(reply.frontiers_found == 0)
 	        {
 	            ROS_INFO_STREAM("[Frontiers] No frontiers could be found. Writing tree to file. Request was " << *frontier_request);
-	            octree->writeBinary("/ros_ws/src/data/octree_noFrontiers.bt"); 
+	            octree->writeBinary(folder_name + "/octree_noFrontiers.bt"); 
 	        }
 		}
 		else
@@ -114,11 +116,11 @@ namespace frontiers_async_node
 int main(int argc, char **argv)
 {
 #ifdef SAVE_CSV
-		frontiers_async_node::log.open ("/ros_ws/src/data/frontiers_computation_time.csv");
+		frontiers_async_node::folder_name = "/ros_ws/src/data/current";
+		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/frontiers_computation_time.csv");
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
-		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
-		frontiers_async_node::volume_explored.open ("/ros_ws/src/data/volume_explored.csv");
+		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/volume_explored.csv");
 		frontiers_async_node::volume_explored << "time ellapsed millis,volume\n";
 		frontiers_async_node::volume_explored.close();
 #endif

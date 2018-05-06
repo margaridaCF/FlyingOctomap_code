@@ -15,6 +15,7 @@ namespace std
 }
 
 namespace LazyThetaStarOctree{
+	std::string folder_name = "/ros_ws/src/data/current";
 	// TODO The old version was using vertex, cell centers or something else? --> nobody knows....
 	/// TODO figure some weights!
 	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end)
@@ -406,7 +407,7 @@ namespace LazyThetaStarOctree{
 			path.push_front( *(current->coordinates) );
 			if(writeToFile)
 			{
-				writeToFileWaypoint(*(current->coordinates), current->cell_size, "/ros_ws/src/data/final_path.txt");
+				writeToFileWaypoint(*(current->coordinates), current->cell_size, folder_name + "/final_path.txt");
 			}
 			parentAdd = current->parentNode;
 			current = parentAdd;
@@ -420,7 +421,7 @@ namespace LazyThetaStarOctree{
 		path.push_front( *(current->coordinates) );
 		if(writeToFile)
 		{
-			writeToFileWaypoint(*(current->coordinates), current->cell_size, "/ros_ws/src/data/final_path.txt");
+			writeToFileWaypoint(*(current->coordinates), current->cell_size, folder_name + "/final_path.txt");
 		}
 		return true;
 	}
@@ -572,7 +573,7 @@ namespace LazyThetaStarOctree{
 		// TODO remove this, for debugging only
 		int used_search_iterations = 0;
 		std::ofstream log_file;
-    	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
+    	log_file.open(folder_name + "/out.log", std::ios_base::app);
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
 		while(!open.empty() && !solution_found)
@@ -595,7 +596,7 @@ namespace LazyThetaStarOctree{
 			{
 				if (!setVertex(octree, s, closed, open, neighbors, log_file, safety_margin, marker_pub, publish))
 				{
-					octree.writeBinary("/ros_ws/src/data/octree_noPath1s.bt");
+					octree.writeBinary(folder_name + "/octree_noPath1s.bt");
 					log_file << " no neighbor of " << *s << " had line of sight. Start " << disc_initial << " goal " << disc_final << std::endl;
 				}
 			}
