@@ -93,5 +93,5 @@ namespace LazyThetaStarOctree{
 		bool print_resulting_path = false,
 		bool publish = false);
 
-	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish = false);
+	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, ros::ServiceClient const& pauseGazebo, ros::ServiceClient const& unpauseGazebo, bool publish = false);
 }

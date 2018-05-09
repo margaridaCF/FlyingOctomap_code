@@ -1,4 +1,5 @@
 #include <ltStar_temp.h>
+#include <std_srvs/Empty.h>
 
 namespace std
 {
@@ -15,6 +16,14 @@ namespace std
 }
 
 namespace LazyThetaStarOctree{
+
+
+	std::ofstream log_file;
+	ros::Publisher marker_pub_;
+	// ros::ServiceClient pauseGazebo_;
+	// ros::ServiceClient unpauseGazebo_;
+
+
 	// TODO The old version was using vertex, cell centers or something else? --> nobody knows....
 	/// TODO figure some weights!
 	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end)
@@ -153,11 +162,22 @@ namespace LazyThetaStarOctree{
 		return true;
 	}
 
+	bool is_target(octomath::Vector3 & target, octomath::Vector3 & point_B)
+	{
+		bool same = false;
+
+		same = target.x() == point_B.x();
+		same = same || (target.y() == point_B.y()); 
+		same = same || (target.z() == point_B.z()); 
+		return same;
+	}
 
 	CellStatus getCorridorOccupancy(
 		octomap::OcTree & octree_, 
 		const octomath::Vector3& start, const octomath::Vector3& end,
-		const octomath::Vector3& bounding_box_size) 
+		const octomath::Vector3& bounding_box_size,
+		ros::Publisher const& marker_pub,
+		bool publish) 
 	{
 		// TODO(helenol): Probably best way would be to get all the coordinates along
 		// the line, then make a set of all the OcTreeKeys in all the bounding boxes
@@ -204,9 +224,25 @@ namespace LazyThetaStarOctree{
 					// }
 
 
+					if(hasLineOfSight(octree_, start + offset, end + offset) == false)
+					{
+						if(publish)
+						{
+							log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset ;
+							rviz_interface::publish_arrow_path_occupancyState(start + offset, end + offset, marker_pub, false);	
+						}
+						return CellStatus::kOccupied;
+					}	
+					if(hasLineOfSight(octree_, end + offset, start + offset) == false)
+					{
+						if(publish)
+						{
+							log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset + offset ;
+							rviz_interface::publish_arrow_path_occupancyState(end + offset, start + offset, marker_pub, false);	
+						}
+						return CellStatus::kOccupied;
+					}	
 
-					if(hasLineOfSight(octree_, start + offset, end + offset) == false)	return CellStatus::kOccupied;
-					if(hasLineOfSight(octree_, end + offset, start + offset) == false)	return CellStatus::kOccupied;
 				}
 			}
 		}
@@ -235,12 +271,8 @@ namespace LazyThetaStarOctree{
 	{
 		octomath::Vector3 bounding_box_size(safety_margin, safety_margin, safety_margin);
 		// bool free = getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
-		bool free = getCorridorOccupancy(octree_, start, end, bounding_box_size) == CellStatus::kFree;
+		bool free = getCorridorOccupancy(octree_, start, end, bounding_box_size, marker_pub, publish) == CellStatus::kFree;
 		visualization_msgs::Marker marker_temp;
-		if(publish)
-		{
-			rviz_interface::publish_arrow_path_occupancyState(start, end, 500, marker_pub, free);	
-		}
 		return free;
 	}
 
@@ -474,8 +506,13 @@ namespace LazyThetaStarOctree{
 			s_neighbour->distanceFromInitialPoint = cost;
 			// ln 26 open.Insert(s', g(s') + h(s'));
 			open.insert(s_neighbour);
+			log_file << "[N]          inserting " << *(s_neighbour->coordinates) << " into open " << std::endl;
+			rviz_interface::publish_arrow_path_father(*(s.parentNode->coordinates), *(s_neighbour->coordinates), marker_pub_);
 		}
-
+		else
+		{
+			log_file << "[N]      " << *s_neighbour << " found better path previously " << std::endl;
+		}
 	}
 
 	bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree & octree)
@@ -546,8 +583,17 @@ namespace LazyThetaStarOctree{
 		double cell_size_start = -1;
 		updateToCellCenterAndFindSize(cell_center_coordinates_start, octree, cell_size_start);
 
-		// ROS_WARN_STREAM("[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start);
-		// ROS_WARN_STREAM("[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal);
+		log_file << "[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start;
+		log_file << "[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal;
+		geometry_msgs::Point start_point, goal_point;
+		start_point.x = cell_center_coordinates_start.x();
+		start_point.y = cell_center_coordinates_start.y();
+		start_point.z = cell_center_coordinates_start.z();
+		goal_point.x = cell_center_coordinates_goal.x();
+		goal_point.y = cell_center_coordinates_goal.y();
+		goal_point.z = cell_center_coordinates_goal.z();
+		rviz_interface::publish_start_voxel(start_point, marker_pub, cell_size_start);
+		rviz_interface::publish_goal_voxel(goal_point, marker_pub, cell_size_goal);
 
 		// ln 1 Main()
 		// ln 2 open := closed := 0
@@ -571,10 +617,11 @@ namespace LazyThetaStarOctree{
 		double resolution = octree.getResolution();
 		// TODO remove this, for debugging only
 		int used_search_iterations = 0;
-		std::ofstream log_file;
+		// std::ofstream log_file;
     	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
+		ros::Rate r(10);
 		while(!open.empty() && !solution_found)
 		{
 
@@ -586,6 +633,10 @@ namespace LazyThetaStarOctree{
 				open.printNodes(" ========== Before pop ========== ", log_file);
 			}
 			s = open.pop();
+			if(print_resulting_path)
+			{
+				log_file << "[START] s is " << s << std::endl;
+			}
 			resultSet.addOcurrance(s->cell_size);
 			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
 			generateNeighbors_pointers(neighbors, *(s->coordinates), s->cell_size, resolution);
@@ -614,7 +665,12 @@ namespace LazyThetaStarOctree{
 			if(print_resulting_path)
 			{
 				log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
-				// writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
+				geometry_msgs::Point s_point;
+				s_point.x = s->coordinates->x();
+				s_point.y = s->coordinates->y();
+				s_point.z = s->coordinates->z();
+				rviz_interface::publish_s(s_point, marker_pub);
+				writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
 			}
 
 			// TODO check code repetition to go over the neighbors of s
@@ -626,9 +682,6 @@ namespace LazyThetaStarOctree{
 				// ROS_WARN_STREAM("Existing Node objects " << ThetaStarNode::OustandingObjects());
 				// Find minimum value for those with visibility and that it is in closed
 				// TODO for neighbor pointd that belong to the same cell, the  calculations are duplicated it shouldn't be too hard to optimize this to skip all subsequent calculations (with a list of something)
-				// TODO This assumes that line of sight between cell centers is enough
-				// TODO If cell big, the edges of the UAV might need to be taken into account 
-				// TODO resulting in two line of sight checks (edges instead of one (center)
 				if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, publish))
 				{
 					// auto res_node = octree.search(*n_coordinates);
@@ -636,12 +689,12 @@ namespace LazyThetaStarOctree{
 					// {
      				// 	throw std::out_of_range("Skipping cases where unknown neighbors are found.");
 					// }
-					log_file << " no line of sight " << *(s->coordinates) << " to " << *n_coordinates << std::endl;
+					log_file << "[N] no line of sight " << *(s->coordinates) << " to " << *n_coordinates << ". Distance to goal " << weightedDistance(*(s->coordinates), *n_coordinates) << std::endl;
 					continue;
 				}
 				else
 				{
-					log_file << " visible neighbor " << *n_coordinates << std::endl;
+					log_file << "[N] visible neighbor " << *n_coordinates << ". Distance to goal " << weightedDistance(*(s->coordinates), *n_coordinates) << std::endl;
 				}
 				// ln 13 if s' !€ closed then
 				bool is_neighbor_in_closed = closed.find(*n_coordinates) != closed.end();
@@ -668,10 +721,10 @@ namespace LazyThetaStarOctree{
 					// ln 17 UpdateVertex(s, s');
 					UpdateVertex(*s, s_neighbour, open);
 				}
-				// else
-				// {
-				// 	ROS_WARN_STREAM("[N] " << *n_coordinates << " is already in closed");
-				// }
+				else
+				{
+					log_file << "[N]     " << *n_coordinates << " is already in closed" << std::endl;
+				}
 			}
 			used_search_iterations++;	
 			if(used_search_iterations > max_search_iterations)
@@ -683,6 +736,15 @@ namespace LazyThetaStarOctree{
 			// {
 			// 	ROS_WARN_STREAM("Used "<<used_search_iterations<<" iterations.");
 			// }
+			// if(publish)
+			// {
+			// 	std_srvs::Empty emptySrv;
+			// 	pauseGazebo_.call(emptySrv);
+			// 	ros::Duration(1).sleep();
+			// 	unpauseGazebo_.call(emptySrv);
+			// }
+			ros::spinOnce();
+  			r.sleep();
 		}
 		resultSet.iterations_used = used_search_iterations;
 		// ROS_WARN_STREAM("Used "<< used_search_iterations << " iterations to find path");
@@ -712,8 +774,12 @@ namespace LazyThetaStarOctree{
 
 
 
-	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish)
+	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, ros::ServiceClient const& pauseGazebo, ros::ServiceClient const& unpauseGazebo, bool publish)
 	{
+		// pauseGazebo_ = pauseGazebo;
+		// unpauseGazebo_ = unpauseGazebo;
+		marker_pub_ = marker_pub;
+		std::srand(std::time(0));
 		ResultSet statistical_data;
 		std::list<octomath::Vector3> resulting_path;
 		octomath::Vector3 disc_initial(request.start.x, request.start.y, request.start.z);
