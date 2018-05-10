@@ -22,52 +22,22 @@
     <arg name="paused" default="false"/>
 
     <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
-    <!-- #######################  PX4  ############################################ -->
-    <node name="sitl" pkg="px4" type="px4" output="screen"
-        args="$(find px4) $(arg rcS)">
-    </node>
-    <!-- #######################  Gazebo  ######################################### -->
-    <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="headless" value="$(arg headless)"/>
-        <arg name="gui" value="$(arg gui)"/>
-        <arg name="world_name" value="$(arg world)" />
-        <arg name="debug" value="$(arg debug)" />
-        <arg name="verbose" value="$(arg verbose)" />
-        <arg name="paused" value="$(arg paused)" />
-    </include>
-    <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
-        <param name="publish_frequency" type="double" value="50.0" />
-        <param name="tf_prefix" type="string" value=""/>
-    </node>
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-        <param name="use_gui" value="true"/>
-    </node>
-    <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
-        args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
+
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" />
-    <node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="screen">
-        <param name="odometry_topic" value="ground_truth_pose"/>
-        <param name="frame_id" value="map"/>
-        <param name="child_frame_id" type="string" value="base_link"/>
-    </node>
 
-
-  <!-- ########################################################################## -->
-    <!-- OCTOMAP -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="/ros_ws/src/path_planning/test/data/d.bt">
-
-        <param name="frame_id" type="string" value="map" />   <!--name of the fixed frame -->
-        <!--<param name="sensor_model/max_range" value="100.0" />    max range / depth resolution of the sensor in meter -->
-        <remap from="cloud_in" to="/velodyne_points" />
+    <!-- #######################  Octomap  ######################################## -->
+    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="/ros_ws/src/path_planning/test/data/d.bt">
+        <param name="frame_id" type="string" value="map" />   
+        <remap from="cloud_in" to="/free_cloud" />
         <param name="latch" value="false" />
-        <param name="resolution" value="0.5" />
+        <param name="resolution" value="1" />
         <param name="pointcloud_min" value="0"/>
         <param name="pointcloud_max" value="2"/>
         <param name="occupancy_min" value="0.5"/>
         <param name="occupancy_min" value="1"/>
-        <param name="sensor_model/max_range" value="80"/>
-    </node> 
+        <param name="publish_free_space" value="true"/>
+        <param name="sensor_model/max_range" value="laser_max_range"/>
+    </node> -->
     <!-- ########################################################################## --> 
   <!-- Lazy theta * --> 
   <node pkg="path_planning" type="ltStar_debug_node" name="ltstar_printer" output="screen"/>

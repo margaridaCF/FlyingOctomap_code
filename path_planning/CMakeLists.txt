@@ -32,7 +32,7 @@ cs_add_library(ltStar_lib src/ltStar_lib.cpp)
 cs_add_executable(ltStar_async_node src/ltStar_async_node.cpp )
 target_link_libraries(ltStar_async_node  ${catkin_LIBRARIES} ltStar_lib)
 
-cs_add_executable(ltStar_debug_node src/ltStar_async_node.cpp )
+cs_add_executable(ltStar_debug_node src/ltStar_debug_node.cpp )
 target_link_libraries(ltStar_debug_node  ${catkin_LIBRARIES} ltStar_lib)
 
 cs_install()

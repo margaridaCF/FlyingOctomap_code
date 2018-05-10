@@ -621,7 +621,7 @@ namespace LazyThetaStarOctree{
     	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
-		ros::Rate r(10);
+		ros::Rate r(60);
 		while(!open.empty() && !solution_found)
 		{
 
@@ -692,9 +692,11 @@ namespace LazyThetaStarOctree{
 					log_file << "[N] no line of sight " << *(s->coordinates) << " to " << *n_coordinates << ". Distance to goal " << weightedDistance(*(s->coordinates), *n_coordinates) << std::endl;
 					continue;
 				}
-				else
+				else if(publish)
 				{
+
 					log_file << "[N] visible neighbor " << *n_coordinates << ". Distance to goal " << weightedDistance(*(s->coordinates), *n_coordinates) << std::endl;
+					rviz_interface::publish_visible_neighbor(*n_coordinates, marker_pub);
 				}
 				// ln 13 if s' !€ closed then
 				bool is_neighbor_in_closed = closed.find(*n_coordinates) != closed.end();
@@ -744,7 +746,7 @@ namespace LazyThetaStarOctree{
 			// 	unpauseGazebo_.call(emptySrv);
 			// }
 			ros::spinOnce();
-  			r.sleep();
+  			ros::Duration(10).sleep();
 		}
 		resultSet.iterations_used = used_search_iterations;
 		// ROS_WARN_STREAM("Used "<< used_search_iterations << " iterations to find path");

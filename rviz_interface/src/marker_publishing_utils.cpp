@@ -235,6 +235,42 @@ namespace rviz_interface
         marker_pub.publish(marker_array);   
     }
 
+    void publish_visible_neighbor(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub)
+    {
+        float red = 1.f;
+        float green = 1.f;
+        float blue = 0.f;
+        float size = 0.1f;
+        int id = 30000 + ( std::rand() % ( 9999 + 1 ) );
+        uint32_t shape = visualization_msgs::Marker::SPHERE;
+        visualization_msgs::Marker marker;
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.ns = "visible neighbor";
+        marker.id = id;
+        marker.type = shape;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position.x = candidate_vec3.x();
+        marker.pose.position.y = candidate_vec3.y();
+        marker.pose.position.z = candidate_vec3.z();
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = size;
+        marker.scale.y = size;
+        marker.scale.z = size;
+        marker.color.r = red;
+        marker.color.g = green;
+        marker.color.b = blue;
+        marker.color.a = 1;
+        marker.lifetime = ros::Duration();
+
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);   
+    }
+
     void publish_frontier_marker(geometry_msgs::Point const& candidate, bool is_frontier, ros::Publisher const& marker_pub)
     {
         octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
