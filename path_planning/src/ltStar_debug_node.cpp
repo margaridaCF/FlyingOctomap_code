@@ -81,14 +81,18 @@ namespace LazyThetaStarOctree
 		path_planning_msgs::LTStarRequest request;
 		request.header.seq = 2;
 		request.request_id = 3;
-		request.start.x = 1.38375;
-		request.start.y = -0.677482;
-		request.start.z = 2.88732;
+		// request.start.x = 1.38375;
+		// request.start.y = -0.677482;
+		// request.start.z = 2.88732;
+		// 9.5, -4.5, 1.5
+		request.start.x = 9.5;
+		request.start.y = -4.5;
+		request.start.z = 1.5;
 		request.goal.x = 10.5;
 		request.goal.y = -5.5;
 		request.goal.z = 2.5;
 		request.max_search_iterations = 5000;
-		request.safety_margin = 1;
+		request.safety_margin = 1.1;
 		runLazyThetaStar(request);
 	}
 }

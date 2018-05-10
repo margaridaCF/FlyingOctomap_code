@@ -527,6 +527,18 @@ namespace LazyThetaStarOctree{
         }
     }
 
+
+    bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 
+		const double theta = 0.00000000000000000001) 
+	{
+
+		bool is_x_equal = abs(a.x() - b.x()) < theta;
+		bool is_y_equal = abs(a.y() - b.y()) < theta;
+		bool is_z_equal = abs(a.z() - b.z()) < theta;
+
+		return is_x_equal && is_y_equal && is_z_equal;
+	}
+
 	// TODO what about a database like SQLite? Since there is the need for two data structures for open 
 	// TODO 	(one ordered by heuristics and another to access by coordintades) and closed manages the same objects
 	// TODO		And also would solve the problem of ownership of objects
@@ -556,6 +568,8 @@ namespace LazyThetaStarOctree{
 		bool print_resulting_path,
 		bool publish)
 	{
+		octomath::Vector3 target_n(10.5, -5.5, 2.5);
+
 		std::list<octomath::Vector3> path;
 
 		if (!isExplored(disc_initial, octree))
@@ -636,6 +650,10 @@ namespace LazyThetaStarOctree{
 			if(print_resulting_path)
 			{
 				log_file << "[START] s is " << s << std::endl;
+				if(equal(*(s->coordinates), target_n, 2))
+				{
+					ROS_ERROR_STREAM(*s);
+				}
 			}
 			resultSet.addOcurrance(s->cell_size);
 			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
