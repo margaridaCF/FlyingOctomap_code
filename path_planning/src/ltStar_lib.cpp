@@ -233,7 +233,7 @@ namespace LazyThetaStarOctree{
 						}
 						return CellStatus::kOccupied;
 					}	
-					if(hasLineOfSight(octree_, end + offset, start + offset) == false)
+					else if(hasLineOfSight(octree_, end + offset, start + offset) == false)
 					{
 						if(publish)
 						{
@@ -242,7 +242,14 @@ namespace LazyThetaStarOctree{
 						}
 						return CellStatus::kOccupied;
 					}	
-
+					else
+					{
+						if(publish)
+						{
+							log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset ;
+							rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
+						}
+					}
 				}
 			}
 		}
