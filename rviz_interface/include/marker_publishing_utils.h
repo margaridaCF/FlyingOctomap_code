@@ -23,6 +23,7 @@ namespace rviz_interface
 	void publish_arrow_path_occupied(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
 	void publish_arrow_path_father(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
 	void publish_arrow_corridor(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
+	void publish_arrow_corridor_center(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
 	void build_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker);
 	void publish_current_position(octomath::Vector3 & candidate, ros::Publisher const& marker_pub);
 	void publish_start(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);

@@ -92,7 +92,7 @@ namespace LazyThetaStarOctree
 		request.goal.y = -5.5;
 		request.goal.z = 2.5;
 		request.max_search_iterations = 5000;
-		request.safety_margin = 1.1;
+		request.safety_margin = 2;
 		runLazyThetaStar(request);
 	}
 }

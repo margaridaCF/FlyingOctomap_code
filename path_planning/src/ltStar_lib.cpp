@@ -179,6 +179,11 @@ namespace LazyThetaStarOctree{
 		ros::Publisher const& marker_pub,
 		bool publish) 
 	{
+		if(publish)
+		{
+			log_file << "getCorridorOccupancy from " << start << " to " << end << std::endl;
+			rviz_interface::publish_arrow_corridor_center(start, end, marker_pub);
+		}
 		// TODO(helenol): Probably best way would be to get all the coordinates along
 		// the line, then make a set of all the OcTreeKeys in all the bounding boxes
 		// around the nodes... and then just go through and query once.
@@ -201,15 +206,32 @@ namespace LazyThetaStarOctree{
 
 		// std::unordered_set<octomap::OcTreeKey> keys;
 		const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
+		if(publish)
+		{
+			log_file << x_disc << " = " << bounding_box_size.x() << " / " << "ceil((" << bounding_box_size.x() << " + " << epsilon << ") / " << resolution << ")" << std::endl;
+			log_file << x_disc << " = " << bounding_box_size.x() << " / " << ceil((bounding_box_size.x() + epsilon) / resolution) << std::endl;
+  			ros::Duration(20).sleep();
+			log_file << "double x = " << -bounding_box_half_size.x() << "; x <= " << bounding_box_half_size.x() << "; x += " << x_disc << std::endl;
+		}
 		for (double x = -bounding_box_half_size.x(); x <= bounding_box_half_size.x();
 			x += x_disc) {
+			// log_file << "double y = " << -bounding_box_half_size.y() << "; y <= " << bounding_box_half_size.y() << "; y += " << y_disc << std::endl;
 			for (double y = -bounding_box_half_size.y();
 				y <= bounding_box_half_size.y(); y += y_disc) 
 			{
+				// log_file << "double z = " << -bounding_box_half_size.z() << "; z <= " << bounding_box_half_size.z() << "; z += " << z_disc << std::endl;
 				for (double z = -bounding_box_half_size.z();
 					z <= bounding_box_half_size.z(); z += z_disc) 
 				{
 					octomath::Vector3 offset(x, y, z);
+					if(publish)
+					{
+						log_file << "offset " << offset << std::endl;
+						// log_file << "final position start " << start << " + " << offset << " = " << start + offset << std::endl;
+						// log_file << "final position end " << end << " + " << offset << " = " << end + offset << std::endl;
+						log_file << start + offset << " to " << end + offset << std::endl;
+					}
+
 					// mergeOntoKeysSet(keys, octree_, start + offset, end + offset);
 					// mergeOntoKeysSet(keys, octree_, end + offset, start + offset);
 					// bool start_to_end_free = hasLineOfSight(octree_, start + offset, end + offset);
@@ -228,7 +250,7 @@ namespace LazyThetaStarOctree{
 					{
 						if(publish)
 						{
-							log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset ;
+							// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset ;
 							rviz_interface::publish_arrow_path_occupancyState(start + offset, end + offset, marker_pub, false);	
 						}
 						return CellStatus::kOccupied;
@@ -237,7 +259,7 @@ namespace LazyThetaStarOctree{
 					{
 						if(publish)
 						{
-							log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset + offset ;
+							// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset + offset ;
 							rviz_interface::publish_arrow_path_occupancyState(end + offset, start + offset, marker_pub, false);	
 						}
 						return CellStatus::kOccupied;
@@ -246,12 +268,26 @@ namespace LazyThetaStarOctree{
 					{
 						if(publish)
 						{
-							log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset ;
+							// log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
 							rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
 						}
 					}
 				}
+				if(publish)
+				{
+					log_file << std::endl;
+				}
 			}
+
+			if(publish)
+			{
+				log_file << std::endl;
+			}
+		}
+
+		if(publish)
+		{
+			log_file << std::endl;
 		}
 		// for (std::unordered_set<octomap::OcTreeKey>::iterator i = keys.begin(); i != keys.end(); ++i)
 		// {

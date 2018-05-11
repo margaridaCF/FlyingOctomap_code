@@ -506,6 +506,42 @@ namespace rviz_interface
         marker_pub.publish(marker_array);
     }
 
+    void publish_arrow_corridor_center(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub)
+    {
+        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
+        visualization_msgs::Marker marker;
+        uint32_t shape = visualization_msgs::Marker::ARROW;
+        // Set the frame ID and timestamp.  See the TF tutorials for information on these.
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.id = 60000 + ( std::rand() % ( 9999 + 1 ) );;
+        marker.ns = "corridor_center";
+        marker.type = shape;
+        geometry_msgs::Point goal_point;
+        goal_point.x = goal.x();
+        goal_point.y = goal.y();
+        goal_point.z = goal.z();
+        marker.points.push_back(goal_point);
+        marker.action = visualization_msgs::Marker::ADD;
+        geometry_msgs::Point start_point;
+        start_point.x = start.x();
+        start_point.y = start.y();
+        start_point.z = start.z();
+        marker.points.push_back(start_point);
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = 0.01;
+        marker.scale.y = 0.03;
+        marker.scale.z = 0;
+        marker.color.r = 255;
+        marker.color.g = 255;   
+        marker.color.b = 0;
+        marker.color.a = 1;
+        marker.lifetime = ros::Duration();
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);
+    }
+
     void build_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker)
     {   
         uint32_t shape = visualization_msgs::Marker::CUBE;
