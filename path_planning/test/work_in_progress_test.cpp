@@ -6,100 +6,142 @@
 #include <rosbag/view.h>
 #include <visualization_msgs/Marker.h>
 
+
 namespace LazyThetaStarOctree{
-	
-	void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_search_iterations = 10000)
-	{
-		double safety_margin = 2;
-		// Initial node is not occupied
-		octomap::OcTreeNode* originNode = octree.search(disc_initial);
-		ASSERT_TRUE(originNode);
-		ASSERT_FALSE(octree.isNodeOccupied(originNode));
-		// Final node is not occupied
-		octomap::OcTreeNode* finalNode = octree.search(disc_final);
-		ASSERT_TRUE(finalNode);
-		ASSERT_FALSE(octree.isNodeOccupied(finalNode));
-		// The path is clear from start to finish
-		octomath::Vector3 direction (1, 0, 0);
-		octomath::Vector3 end;
-		bool isOccupied = octree.castRay(disc_initial, direction, end, false, weightedDistance(disc_initial, disc_final));
-		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
-		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, max_search_iterations, true);
-		// NO PATH
-		ASSERT_NE(resulting_path.size(), 0);
-		// 2 waypoints: The center of start voxel & The center of the goal voxel
-		double cell_size_goal = -1;
-		octomath::Vector3 cell_center_coordinates_goal = disc_final;
-		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal);
-		ASSERT_LT(      resulting_path.back().distance( cell_center_coordinates_goal ),  cell_size_goal   );
-		double cell_size_start = -1;
-		octomath::Vector3 cell_center_coordinates_start = disc_initial;
-		updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start);
-		ASSERT_LT(      resulting_path.begin()->distance( cell_center_coordinates_start ),  cell_size_start   );
+	// TEST(LazyThetaStarTests, LazyThetaStar_NoSolutionFound)
+	// {
+	// 	ros::Publisher marker_pub;
+	// 	// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+	// 	octomap::OcTree octree ("data/(10.9653; -14.8729; 3.00539)_(-8.5; 6.5; 2.5)_SolutionNotFound.bt");
+	// 	path_planning_msgs::LTStarRequest request;
+	// 	request.header.seq = 6;
+	// 	request.request_id = 7;
+	// 	request.start.x = 10.9653;
+	// 	request.start.y = -14.8729;
+	// 	request.start.z = 3.00539;
+	// 	request.goal.x = -8.5;
+	// 	request.goal.y = 6.5;
+	// 	request.goal.z = 2.5;
+	// 	request.max_search_iterations = 5000;
+	// 	request.safety_margin = 1;
+	// 	path_planning_msgs::LTStarReply reply;
+	// 	processLTStarRequest(octree, request, reply, marker_pub);
+	// 	ASSERT_TRUE(reply.success);
+	// 	ASSERT_GT(reply.waypoint_amount, 2);
+	// 	ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+	// }
+
+	bool isOccupied(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree)
+    {
+        octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());
+        if(result == NULL){
+            return false;
+        }
+        else
+        {
+            return octree.isNodeOccupied(result);
+        }
+    }
+    
+    bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree)
+    {
+        octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());
+        if(result == NULL){
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+	// TEST(LazyThetaStarTests, LazyThetaStar_visibility)
+	// {
+	// 	ros::Publisher marker_pub;
+	// 	// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+	// 	octomap::OcTree octree ("data/d.bt");
+	// 	std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
+
+	// 	octomath::Vector3 point_coordinates (10.5, -5.5, 2.5);
+	// 	octomap::OcTreeKey point_key = octree.coordToKey(point_coordinates);
+	// 	int depth = getNodeDepth_Octomap(point_key, octree);
+	// 	double node_size = octree.getNodeSize(depth); // in meters
+	// 	double resolution = octree.getResolution();
+	// 	// ACT
+	// 	octomath::Vector3 cell_center_coordinates = getCellCenter(point_coordinates, octree);
+	// 	ROS_INFO_STREAM("Goal " << point_coordinates << " cell center " << cell_center_coordinates << " size " << node_size);
+	// 	generateNeighbors_pointers(neighbors, point_coordinates, node_size, resolution);
+	// 	for (std::unordered_set<std::shared_ptr<octomath::Vector3>>::iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+	// 	{
+	// 		if(isExplored)
+	// 		{
+	// 			if(isOccupied(**it, octree))
+	// 			{
+	// 				ROS_INFO_STREAM(**it << " is occupied.");
+	// 			}
+	// 			else
+	// 			{
+	// 				ROS_INFO_STREAM(**it << " is free.");
+	// 			}
+	// 		}
+	// 		else
+	// 		{
+	// 			ROS_INFO_STREAM(**it << " is unknown.");
+	// 		}
+	// 	}
+
+	// }
+
+	
+
+	TEST(LazyThetaStarTests, ValidPathCloseToTheGoal)
+	{
+		int has_line_of_sight_count = 0;
+
+		std::ostream &  log_file = std::cout;
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/d.bt");
+		double resolution = octree.getResolution();
+		double safety_margin = 1.1;
+		// Closer than 2m
+		// (9.500000; -4.500000; 1.500000 ) @ 1.000000; g = 9.359971; to final = 1.732051; parent is 0xdd3930
+		// (9.000000; -5.000000; 3.000000 ) @ 2.000000; g = 8.944272; to final = 1.658312; parent is 0xda2090
+
+		std::shared_ptr<ThetaStarNode> s = std::make_shared<ThetaStarNode>(std::make_shared<octomath::Vector3>(9.5, -4.5, 1.5), 1);
+
+		log_file << "[START] s is " << s << std::endl;
 		
-		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
-	}
+		std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
+		generateNeighbors_pointers(neighbors, *(s->coordinates), s->cell_size, resolution);
 
-	TEST(LazyThetaStarTests, LazyThetaStar_Long_Test)
-	{
-		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
-		octomap::OcTree octree ("data/octree_noPath1s.bt");
-		octomath::Vector3 disc_initial(0.420435, 0.313896, 1.92169);
-		octomath::Vector3 disc_final  (-2.5, -10.5, 3.5);
-		testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final);
-
-	}
-
-
-	/*TEST(WorkInProgressTest, ReverseNormalizedLineOfSight)
-	{
+		// TODO check code repetition to go over the neighbors of s
 		double cell_size = 0;
-	    octomath::Vector3 p1(0.7, 3.1, 1.3); 
-	    octomath::Vector3 p2(0.7, 2.9, 1.3); 
-	    std::shared_ptr<octomath::Vector3> p1_ptr = std::make_shared<octomath::Vector3>(p1);
-	    std::shared_ptr<octomath::Vector3> p2_ptr = std::make_shared<octomath::Vector3>(p2);
-		octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
-		bool line_of_sight_A = normalizeToVisibleEndCenter(octree, p1_ptr, p2_ptr, cell_size);
-		bool line_of_sight_B = normalizeToVisibleEndCenter(octree, p2_ptr, p1_ptr, cell_size);
-		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
+		// ln 12 foreach s' € nghbr_vis(s) do
+		for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
+		{
+			// ROS_WARN_STREAM("@"<< used_search_iterations << "  Analyzing neighbor " << *n_coordinates);
+			// ROS_WARN_STREAM("Existing Node objects " << ThetaStarNode::OustandingObjects());
+			// Find minimum value for those with visibility and that it is in closed
+			// TODO for neighbor pointd that belong to the same cell, the  calculations are duplicated it shouldn't be too hard to optimize this to skip all subsequent calculations (with a list of something)
+			if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, false))
+			{
+				// auto res_node = octree.search(*n_coordinates);
+				// if(res_node == NULL)
+				// {
+ 				// 	throw std::out_of_range("Skipping cases where unknown neighbors are found.");
+				// }
+				log_file << "[N] no line of sight " << *(s->coordinates) << " to " << *n_coordinates << ". Distance to goal " << weightedDistance(*(s->coordinates), *n_coordinates) << std::endl;
+				continue;
+			}
+			else 
+			{
+				has_line_of_sight_count++;
+				log_file << "[N] visible neighbor " << *n_coordinates << ". Distance to goal " << weightedDistance(*(s->coordinates), *n_coordinates) << std::endl;
+			}
+		}
+		ASSERT_GT(has_line_of_sight_count, 0);
 	}
-
-	
-	TEST(WorkInProgressTest, ReverseLineOfSight)
-	{
-	    octomath::Vector3 p1(0.7, 3.1, 1.3); 
-	    octomath::Vector3 p2(0.7, 2.9, 1.3); 
-		octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
-
-		auto res_node = octree.search(p1);
-		if(res_node == NULL)
-		{
-			ROS_WARN_STREAM("[1] The coordinates " << p1 << " do not correspond to a node in this octree  ==> this neighbor is unknown");
-		}
-		else
-		{
-			ASSERT_FALSE(octree.isNodeOccupied(res_node));
-		}
-		res_node = octree.search(p2);
-		if(res_node == NULL)
-		{
-			ROS_WARN_STREAM("[1] The coordinates " << p2 << " do not correspond to a node in this octree  ==> this neighbor is unknown");
-		}
-		else
-		{
-			ASSERT_TRUE(octree.isNodeOccupied(res_node));
-		}
-
-
-		bool line_of_sight_A = hasLineOfSight(octree, p1, p2);
-		bool line_of_sight_B = hasLineOfSight(octree, p2, p1);
-		ASSERT_FALSE(line_of_sight_B);
-		ASSERT_FALSE(line_of_sight_A);
-		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
-	}*/
 }
 
 int main(int argc, char **argv){

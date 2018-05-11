@@ -3,12 +3,26 @@
 
 namespace Frontiers{
 
+    void calculate_closer_position(octomath::Vector3 & sensing_position, octomath::Vector3 const& n_coordinates, double const safety_margin, octomath::Vector3 const& voxel_center)
+    {
+        sensing_position = voxel_center - n_coordinates;
+        sensing_position.normalize();
+        sensing_position = sensing_position * safety_margin;
+        sensing_position = n_coordinates + sensing_position;
+    }
+
+    bool isCenterGoodGoal(double voxel_side, double sensing_distance)
+    {
+        return (voxel_side/sensing_distance) <= 1;
+    }
+
     bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
     {
         // std::ofstream log;
         // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
         // ROS_INFO_STREAM( "Request for " << static_cast<int16_t>(request.frontier_amount) );
         double resolution = octree.getResolution();
+        double unknown_neighbor_distance = request.safety_margin + (resolution/2);
         reply.header.seq = request.header.seq + 1;
         reply.request_id = request.header.seq;
         reply.header.frame_id = request.header.frame_id;
@@ -46,6 +60,7 @@ namespace Frontiers{
         // octomath::Vector3 bbxMax (currentVoxel.x, currentVoxel.y, currentVoxel.z);
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount)
         {
+            bool use_center_as_goal = isCenterGoodGoal(it.getSize(), request.sensing_distance);
             octomath::Vector3 coord = it.getCoordinate();
             currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
             // ROS_WARN_STREAM("Voxel size " << currentVoxel.size);
@@ -64,31 +79,29 @@ namespace Frontiers{
                     if(!isOccupied(*n_coordinates, octree))
                     {
                         hasUnExploredNeighbors = !isExplored(*n_coordinates, octree) || hasUnExploredNeighbors;
+                        if(hasUnExploredNeighbors)
+                        {
+                            frontiers_msgs::VoxelMsg voxel_msg;
+                            voxel_msg.size = currentVoxel.size;
+                            if(use_center_as_goal)
+                            {
+                                voxel_msg.xyz_m.x = currentVoxel.x;
+                                voxel_msg.xyz_m.y = currentVoxel.y;
+                                voxel_msg.xyz_m.z = currentVoxel.z;
+                            }
+                            else
+                            {
+                                octomath::Vector3 sensing_position;
+                                calculate_closer_position(sensing_position, *n_coordinates, unknown_neighbor_distance, grid_coordinates_curr);
+                                voxel_msg.xyz_m.x = sensing_position.x();
+                                voxel_msg.xyz_m.y = sensing_position.y();
+                                voxel_msg.xyz_m.z = sensing_position.z();
+                                rviz_interface::publish_sensing_position(sensing_position, marker_pub);
+                            }
+                            reply.frontiers.push_back(voxel_msg);
+                            frontiers_count++;
+                        }
                     }
-                }
-
-                // Comb through looking for unexplored
-                if(hasUnExploredNeighbors)
-                {
-
-                    if (isOccupied(coord, octree))
-                    {
-                        ROS_ERROR_STREAM("[Frontiers] Frontier " << coord << " is occupied.");
-                        return false;   
-                    } 
-                    if (!isExplored(coord, octree))
-                    {
-                        ROS_ERROR_STREAM("[Frontiers] Frontier " << coord << " is unknown.");
-                        return false;   
-                    } 
-
-                    frontiers_msgs::VoxelMsg voxel_msg;
-                    voxel_msg.xyz_m.x = currentVoxel.x;
-                    voxel_msg.xyz_m.y = currentVoxel.y;
-                    voxel_msg.xyz_m.z = currentVoxel.z;
-                    voxel_msg.size = currentVoxel.size;
-                    reply.frontiers.push_back(voxel_msg);
-                    frontiers_count++;
                 }
             }
             // else
@@ -226,6 +239,7 @@ namespace Frontiers{
         double resolution = octree.getResolution();
         int tree_depth = octree.getTreeDepth();
         octomap::OcTreeKey key = octree.coordToKey(candidate);
+        // ROS_WARN_STREAM("Calling getNodeDepth from frontiers@isFrontier()");
         int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, octree);
         double voxel_size = ((tree_depth + 1) - depth) * resolution;
         LazyThetaStarOctree::generateNeighbors_pointers(neighbors, candidate, voxel_size, resolution);

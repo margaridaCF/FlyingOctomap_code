@@ -10,6 +10,9 @@
 #include <sstream>
 #include <vector>
 
+#include <visualization_msgs/Marker.h>
+#include <marker_publishing_utils.h>
+
 #include <cmath>
 #include <limits>
 
@@ -51,7 +54,7 @@ namespace LazyThetaStarOctree{
 	{
 	    std::size_t operator()(const octomath::Vector3 & v) const 
 	    {
-	    	int scale = 0.0001;
+	    	double scale = 0.0001;
 	        std::size_t hx = std::hash<float>{}( (int)(v.x() / scale) * scale );
 	        std::size_t hy = std::hash<float>{}( (int)(v.y() / scale) * scale );
 	        std::size_t hz = std::hash<float>{}( (int)(v.z() / scale) * scale );
