@@ -28,6 +28,7 @@ namespace rviz_interface
 	void publish_current_position(octomath::Vector3 & candidate, ros::Publisher const& marker_pub);
 	void publish_start(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
 	void publish_goal(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
+	void publish_random_important_cube(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
 	void publish_s(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
 	void publish_visible_neighbor(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
 	void publish_sensing_position(octomath::Vector3 const& position, ros::Publisher const& marker_pub);

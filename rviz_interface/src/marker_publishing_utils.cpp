@@ -221,6 +221,18 @@ namespace rviz_interface
         marker_pub.publish(marker_array);
     }
 
+    void publish_random_important_cube(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub)
+    {
+        visualization_msgs::Marker marker;
+        float red = 0.0f;
+        float green = 0.0f;
+        float blue = 1.0f;
+        build_small_marker(candidate_vec3, marker, red, green,  blue, "random_important_cube", 27, 0.2, 0.8 );
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);
+    }
+
     void publish_s(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
     {
         octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);

@@ -11,9 +11,7 @@ namespace LazyThetaStarOctree
     octomap::OcTree* octree;
 	ros::Publisher ltstar_reply_pub;
 	ros::Publisher marker_pub;
-	ros::ServiceClient pauseGazebo;
-	ros::ServiceClient unpauseGazebo;
-		
+
 	bool octomap_init;
 	bool publish_free_corridor_arrows;
 
@@ -28,6 +26,7 @@ namespace LazyThetaStarOctree
 	void runLazyThetaStar(path_planning_msgs::LTStarRequest const& path_request)
 	{	
 		rviz_interface::publish_deleteAll(marker_pub);
+		rviz_interface::publish_random_important_cube(octomath::Vector3(1.38375, -0.677482, 2.88732), marker_pub);
 		path_planning_msgs::LTStarReply reply;
 		reply.waypoint_amount = 0;
 		reply.success = false;
@@ -36,9 +35,9 @@ namespace LazyThetaStarOctree
 		std::string path = "/ros_ws/src/data/";
 		ss << path << "(" << path_request.start.x << "; " << path_request.start.y << "; " << path_request.start.z << ")_(" 
 			<<  path_request.goal.x << "; " << path_request.goal.y << "; " << path_request.goal.z << ").bt";
-		octree->writeBinary(ss.str());
-		ROS_WARN_STREAM("[LTStar] Request message " << path_request);
-		LazyThetaStarOctree::processLTStarRequest(*octree, path_request, reply, marker_pub, pauseGazebo, unpauseGazebo, true);
+		// octree->writeBinary(ss.str());
+		// ROS_WARN_STREAM("[LTStar] Request message " << path_request);
+		LazyThetaStarOctree::processLTStarRequest(*octree, path_request, reply, marker_pub, false);
 		if(reply.waypoint_amount == 1)
 		{
 			ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. It should always have at least start and goal. Here is the request message (the octree was saved to /data) " << path_request);
@@ -81,13 +80,13 @@ namespace LazyThetaStarOctree
 		path_planning_msgs::LTStarRequest request;
 		request.header.seq = 2;
 		request.request_id = 3;
-		// request.start.x = 1.38375;
-		// request.start.y = -0.677482;
-		// request.start.z = 2.88732;
-		// 9.5, -4.5, 1.5
-		request.start.x = 9.5;
-		request.start.y = -4.5;
-		request.start.z = 1.5;
+		request.start.x = 1.38375;
+		request.start.y = -0.677482;
+		request.start.z = 2.88732;
+		// // 9.5, -4.5, 1.5
+		// request.start.x = 9.5;
+		// request.start.y = -4.5;
+		// request.start.z = 1.5;
 		request.goal.x = 10.5;
 		request.goal.y = -5.5;
 		request.goal.z = 2.5;

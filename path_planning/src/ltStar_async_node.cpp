@@ -11,8 +11,6 @@ namespace LazyThetaStarOctree
     octomap::OcTree* octree;
 	ros::Publisher ltstar_reply_pub;
 	ros::Publisher marker_pub;
-	ros::ServiceClient pauseGazebo;
-	ros::ServiceClient unpauseGazebo;
 		
 	bool octomap_init;
 	bool publish_free_corridor_arrows;
@@ -46,7 +44,7 @@ namespace LazyThetaStarOctree
 			{
 				publish_free_corridor_arrows = false;
 			}
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, marker_pub, pauseGazebo, unpauseGazebo, publish_free_corridor_arrows);
+			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, marker_pub, publish_free_corridor_arrows);
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. It should always have at least start and goal. Here is the request message (the octree was saved to /data) " << *path_request);
@@ -108,8 +106,6 @@ int main(int argc, char **argv)
 	ros::Subscriber ltstars_sub = nh.subscribe<path_planning_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
 	LazyThetaStarOctree::ltstar_reply_pub = nh.advertise<path_planning_msgs::LTStarReply>("ltstar_reply", 10);
 	LazyThetaStarOctree::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("ltstar_path", 1);
-	LazyThetaStarOctree::pauseGazebo = nh.serviceClient<std_srvs::Empty>("/gazebo/pause_physics");
-	LazyThetaStarOctree::unpauseGazebo = nh.serviceClient<std_srvs::Empty>("/gazebo/unpause_physics");
 
 	ros::spin();
 }
