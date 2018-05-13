@@ -35,7 +35,7 @@ namespace LazyThetaStarOctree
 		if(octomap_init)
 		{
 			std::stringstream ss;
-			ss << folder_name << "(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
+			ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
 				<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
 			octree->writeBinary(ss.str());
 			ROS_WARN_STREAM("[LTStar] Request message " << *path_request);

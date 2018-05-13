@@ -11,7 +11,10 @@
 #include <unordered_set>
 #include <visualization_msgs/Marker.h>
 
-#include "boost/filesystem.hpp"
+#include <sstream>
+#include <string>
+#include <chrono>
+#include <boost/filesystem.hpp>
 
 #include <marker_publishing_utils.h>
 
@@ -538,12 +541,14 @@ int main(int argc, char **argv)
 {
     auto timestamp_chrono = std::chrono::high_resolution_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
-    std::string timestamp (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::string folder_name = "/ros_ws/src/data/" + timestamp;
+    // std::string timestamp (std::put_time(std::localtime(&now_c), "%F %T") );
+    std::stringstream folder_name_stream;
+    folder_name_stream << "/ros_ws/src/data/" << (std::put_time(std::localtime(&now_c), "%F %T") );
+    // std::string folder_name = "/ros_ws/src/data/" + (std::put_time(std::localtime(&now_c), "%F %T") );
     std::string sym_link_name = "/ros_ws/src/data/current";
 
-    fs::create_directories(folder_name);
-    fs::create_directory_symlink(folder_name, sym_link_name);
+    boost::filesystem::create_directories(folder_name_stream.str());
+    boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
 
 
     ros::init(argc, argv, "state_manager");
