@@ -71,7 +71,7 @@ namespace state_manager_node
     double safety_margin = 3;
     double error_margin;
     ros::Duration exploration_maneuver_duration_secs;
-    int max_search_iterations = 500;
+    int max_search_iterations =5000;
     int max_cycles_waited_for_path = 3;
     double ltstar_safety_margin;
     octomath::Vector3 geofence_min (-5, -5, 1);
@@ -91,7 +91,8 @@ namespace state_manager_node
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierReply frontiers_msg;
-        path_planning_msgs::LTStarReply ltstar_msg;
+        path_planning_msgs::LTStarRequest ltstar_request;
+        path_planning_msgs::LTStarReply ltstar_reply;
         std::unordered_set<octomath::Vector3, Vector3Hash> unobservable_set; 
     };  
     state_manager_node::StateData state_data;
@@ -99,7 +100,7 @@ namespace state_manager_node
     // TODO when thre is generation of path these two will be different
     geometry_msgs::Point& get_current_waypoint()
     {
-        return state_data.ltstar_msg.waypoints[state_data.waypoint_index];
+        return state_data.ltstar_reply.waypoints[state_data.waypoint_index];
     }
 
     geometry_msgs::Point get_current_frontier()
@@ -172,6 +173,7 @@ namespace state_manager_node
         request.max_search_iterations = max_search_iterations;
         request.safety_margin = ltstar_safety_margin;
         ltstar_request_pub.publish(request);
+        state_data.ltstar_request = request;
         rviz_interface::publish_start(request.start, marker_pub);
         rviz_interface::publish_goal(request.goal, marker_pub);
     }
@@ -210,7 +212,7 @@ namespace state_manager_node
         {
             if(msg->success)
             {
-                state_data.ltstar_msg = *msg;
+                state_data.ltstar_reply = *msg;
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
                 state_data.waypoint_index = 1;
@@ -223,7 +225,9 @@ namespace state_manager_node
                 state_data.unobservable_set.insert(unreachable);
                 state_data.exploration_state = choosing_goal;
                 state_data.waypoint_index = -1;
-                ROS_INFO_STREAM("[State manager][Exploration] choosing_goal (Lazy Theta Star exhausted iterations)");
+                ROS_WARN_STREAM("[State manager][Exploration] no path found to " << state_data.ltstar_request.start << " to " << state_data.ltstar_request.goal << ". Adding to unobservable set.");
+                octomath::Vector3 start (state_data.ltstar_request.start.x, state_data.ltstar_request.start.y, state_data.ltstar_request.start.z);
+                rviz_interface::publish_arrow_path_occupied(start, unreachable, marker_pub);
             }
             
         }
@@ -307,7 +311,7 @@ namespace state_manager_node
             }
             case arrived_at_waypoint:
             {
-                if(state_data.ltstar_msg.waypoint_amount == state_data.waypoint_index+1)
+                if(state_data.ltstar_reply.waypoint_amount == state_data.waypoint_index+1)
                 {
                     // Reached Frontier
                     ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.waypoint_index << ") of sequence " << state_data.frontier_request_id << ": " << get_current_waypoint());
@@ -409,14 +413,14 @@ namespace state_manager_node
                     waypoint.x = current_position.x;
                     waypoint.y = current_position.y;
                     waypoint.z = current_position.z + 5;
-                    state_data.ltstar_msg.waypoints.push_back(waypoint);
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.x = current_position.x;
                     waypoint.y = current_position.y;
-                    waypoint.z = 2;
-                    state_data.ltstar_msg.waypoints.push_back(waypoint);
+                    waypoint.z = 4;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
                     state_data.frontiers_msg.frontiers_found = 1;
                     
-                    state_data.ltstar_msg.waypoint_amount = 2;
+                    state_data.ltstar_reply.waypoint_amount = 2;
                     ROS_INFO_STREAM("[State manager][Exploration] visit_waypoints");
                     ROS_INFO_STREAM("[State manager]            [Follow path] init");
                 }
