@@ -8,6 +8,9 @@
 #include <visualization_msgs/MarkerArray.h>
 
 #include <geometry_msgs/Point.h>
+// RAM
+#include "sys/types.h"
+#include "sys/sysinfo.h"
 
 #define SAVE_CSV 1
 
@@ -18,6 +21,7 @@ namespace frontiers_async_node
 	ros::Publisher marker_pub;
 	std::string folder_name;
 #ifdef SAVE_CSV
+	struct sysinfo memInfo;
 	std::ofstream log;
 	std::ofstream volume_explored;
 	std::chrono::high_resolution_clock::time_point start_exploration;
@@ -87,7 +91,11 @@ namespace frontiers_async_node
 	        octomath::Vector3  max = octomath::Vector3(frontier_request->max.x-resolution, frontier_request->max.y-resolution, frontier_request->max.z-resolution);
 	        octomath::Vector3  min = octomath::Vector3(frontier_request->min.x+resolution, frontier_request->min.y+resolution, frontier_request->min.z+resolution);
 			double explored_volume_meters = calculate_volume_explored(min, max);
-			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << "\n";
+			// Measure RAM
+			sysinfo (&memInfo);
+			long long totalPhysMem = memInfo.totalram;
+			totalPhysMem *= memInfo.mem_unit;//Multiply in next statement to avoid int overflow on right hand side...
+			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << "," << totalPhysMem << std::endl;
 			volume_explored.close();
 #endif
 
