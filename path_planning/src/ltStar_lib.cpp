@@ -1,6 +1,9 @@
 #include <ltStar_temp.h>
 #include <std_srvs/Empty.h>
 
+#define SAVE_CSV 1
+
+
 namespace std
 {
     template <>
@@ -863,7 +866,31 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 disc_initial(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 disc_final(request.goal.x, request.goal.y, request.goal.z);
 		ROS_INFO_STREAM("[LTStar] Starting to process path from " << disc_initial << " to " << disc_final);
+#ifdef SAVE_CSV
+		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+#endif
 		resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.safety_margin, marker_pub, request.max_search_iterations, true, publish);
+#ifdef SAVE_CSV
+			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+			double distance_total = 0;
+			std::list<octomath::Vector3>::iterator i = resulting_path.begin();
+			octomath::Vector3 prev_waypoint = *i;
+			++i;
+			for (; i != resulting_path.end(); ++i)
+			{
+				distance_total += weightedDistance(prev_waypoint, *i);
+				prev_waypoint = *i;
+			}
+			std::ofstream csv_file;
+			csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+			std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+			std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
+			csv_file << millis.count();
+			csv_file << "," << weightedDistance(disc_initial, disc_final);
+			csv_file << "," << distance_total;
+			csv_file << "," << is_flight_corridor_free(octree, disc_initial, disc_final, request.safety_margin, marker_pub, false, false) << std::endl;
+			csv_file.close();
+#endif
 		ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
 		
 		if(resulting_path.size()==0)

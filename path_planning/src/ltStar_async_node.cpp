@@ -103,6 +103,12 @@ namespace LazyThetaStarOctree
 int main(int argc, char **argv)
 {
 	LazyThetaStarOctree::folder_name = "/ros_ws/src/data/current";
+#ifdef SAVE_CSV
+	std::ofstream csv_file;
+	csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+	csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle" << std::endl;
+	csv_file.close();
+#endif
 	LazyThetaStarOctree::publish_free_corridor_arrows = true;
 	ros::init(argc, argv, "ltstar_async_node");
 	ros::NodeHandle nh;
