@@ -6,8 +6,13 @@
 #include <marker_publishing_utils.h>
 #include <std_srvs/Empty.h>
 
+#define SAVE_CSV 1
+
 namespace LazyThetaStarOctree
 {
+	std::string folder_name;
+
+
     octomap::OcTree* octree;
 	ros::Publisher ltstar_reply_pub;
 	ros::Publisher marker_pub;
@@ -31,27 +36,25 @@ namespace LazyThetaStarOctree
 		if(octomap_init)
 		{
 			std::stringstream ss;
-			std::string path = "/ros_ws/src/data/";
-			ss << path << "(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
+			ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
 				<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
 			octree->writeBinary(ss.str());
 			ROS_WARN_STREAM("[LTStar] Request message " << *path_request);
-			if(path_request->request_id > 5)
-			{
-				publish_free_corridor_arrows = true;
-			}
-			else
-			{
-				publish_free_corridor_arrows = false;
-			}
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, marker_pub, publish_free_corridor_arrows);
+			// if(path_request->request_id > 5)
+			// {
+			// 	publish_free_corridor_arrows = true;
+			// }
+			// else
+			// {
+			// 	publish_free_corridor_arrows = false;
+			// }
+			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, marker_pub, false);
 			if(reply.waypoint_amount == 1)
 			{
-				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. It should always have at least start and goal. Here is the request message (the octree was saved to /data) " << *path_request);
-				ROS_ERROR_STREAM("[LTStar] And here is the reply " << reply);
-				octree->writeBinary("/ros_ws/src/data/one_waypointed_path.bt");
+				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
+				ROS_ERROR_STREAM("[LTStar] Reply " << reply);
 			}
-			octree->writeBinary("/ros_ws/src/data/octree_after_processing_request.bt");
+			// octree->writeBinary(folder_name + "/octree_after_processing_request.bt");
 		}
 		else
 		{
@@ -98,6 +101,13 @@ namespace LazyThetaStarOctree
 
 int main(int argc, char **argv)
 {
+	LazyThetaStarOctree::folder_name = "/ros_ws/src/data/current";
+#ifdef SAVE_CSV
+	std::ofstream csv_file;
+	csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+	csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle" << std::endl;
+	csv_file.close();
+#endif
 	LazyThetaStarOctree::publish_free_corridor_arrows = true;
 	ros::init(argc, argv, "ltstar_async_node");
 	ros::NodeHandle nh;

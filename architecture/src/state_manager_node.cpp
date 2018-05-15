@@ -11,6 +11,12 @@
 #include <unordered_set>
 #include <visualization_msgs/Marker.h>
 
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <chrono>
+#include <boost/filesystem.hpp>
+
 #include <marker_publishing_utils.h>
 
 #include <architecture_msgs/PositionRequest.h>
@@ -27,7 +33,7 @@
 #include <path_planning_msgs/LTStarRequest.h>
 #include <path_planning_msgs/LTStarNodeStatus.h>
 
-
+#define SAVE_CSV 1
 
 
 namespace state_manager_node
@@ -57,6 +63,10 @@ namespace state_manager_node
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
     ros::ServiceClient yaw_spin_client;
+
+    ros::Timer timer;
+    std::chrono::high_resolution_clock::time_point start;
+    bool is_successfull_exploration = false;
 
 
     // TODO - transform this into parameters at some point
@@ -233,6 +243,7 @@ namespace state_manager_node
         {
             // TODO - go back to base and land
             ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
+            is_successfull_exploration = true;
             state_data.exploration_state = finished_exploring;
         }
         else if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
@@ -262,9 +273,9 @@ namespace state_manager_node
         // ROS_INFO_STREAM("[State manager] 3 Position offset");
         // ROS_INFO_STREAM("[State manager] Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
         // ROS_INFO_STREAM("[State manager]  Target (" << target_waypoint.x << ", " << target_waypoint.y << ", " << target_waypoint.z << ");");
-        ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
-            << std::abs(target_waypoint.y - current_position.y) << ", "
-            << std::abs(target_waypoint.z - current_position.z) << ") ");
+        // ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
+        //     << std::abs(target_waypoint.y - current_position.y) << ", "
+        //     << std::abs(target_waypoint.z - current_position.z) << ") ");
 
         return std::abs(target_waypoint.x - current_position.x) <= error_margin
             && std::abs(target_waypoint.y - current_position.y) <= error_margin
@@ -534,10 +545,51 @@ namespace state_manager_node
         }
     }
 
+
+    void main_loop(const ros::TimerEvent&)
+    {
+        if( state_data.exploration_state != finished_exploring) 
+        {
+            rviz_interface::publish_geofence(geofence_min, geofence_max, marker_pub);
+            update_state(geofence_min, geofence_max);
+        }
+        else
+        {
+            timer.stop();
+#ifdef SAVE_CSV
+            // TIME
+            std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+            std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
+            // VOLUME
+            double x = geofence_max.x() - geofence_min.x();
+            double y = geofence_max.y() - geofence_min.y();
+            double z = geofence_max.z() - geofence_min.z();
+            double volume_meters = x * y * z;
+            // WRITE
+            std::ofstream csv_file;
+            csv_file.open ("/ros_ws/src/data/exploration_time.csv", std::ofstream::app);
+            csv_file << millis.count() << "," << volume_meters << "," << is_successfull_exploration << std::endl; 
+            csv_file.close();
+#endif
+        }
+    }
 }
 
 int main(int argc, char **argv)
 {
+    auto timestamp_chrono = std::chrono::high_resolution_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
+    // std::string timestamp (std::put_time(std::localtime(&now_c), "%F %T") );
+    std::stringstream folder_name_stream;
+    folder_name_stream << "/ros_ws/src/data/" << (std::put_time(std::localtime(&now_c), "%F %T") );
+    // std::string folder_name = "/ros_ws/src/data/" + (std::put_time(std::localtime(&now_c), "%F %T") );
+    std::string sym_link_name = "/ros_ws/src/data/current";
+
+    boost::filesystem::create_directories(folder_name_stream.str());
+    boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
+
+
     ros::init(argc, argv, "state_manager");
     ros::NodeHandle nh;
     state_manager_node::init_param_variables(nh);
@@ -555,18 +607,17 @@ int main(int argc, char **argv)
     state_manager_node::ltstar_request_pub = nh.advertise<path_planning_msgs::LTStarRequest>("ltstar_request", 10);
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
     state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("geofence", 1);
-    
 
-    
     state_manager_node::init_state_variables(state_manager_node::state_data);
-    ros::Rate rate(2);
-    while(ros::ok() && state_manager_node::state_data.exploration_state != state_manager_node::finished_exploring) 
-    {
-        rviz_interface::publish_geofence(state_manager_node::geofence_min, state_manager_node::geofence_max, state_manager_node::marker_pub);
-        state_manager_node::update_state(state_manager_node::geofence_min, state_manager_node::geofence_max);
-    
-        ros::spinOnce();
-        rate.sleep();
-    }
+
+#ifdef SAVE_CSV
+    std::ofstream csv_file;
+    csv_file.open ("/ros_ws/src/data/exploration_time.csv", std::ofstream::app);
+    // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
+    csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
+    csv_file.close();state_manager_node::start = std::chrono::high_resolution_clock::now();
+#endif
+    state_manager_node::timer = nh.createTimer(ros::Duration(1), state_manager_node::main_loop);
+    ros::spin();
     return 0;
 }

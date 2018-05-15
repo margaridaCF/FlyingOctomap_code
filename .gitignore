@@ -27,6 +27,7 @@ qtcreator-*
 /planning/docs
 /planning/src
 /path_planning/html
+/_generate_plots/*.html
 
 *~
 

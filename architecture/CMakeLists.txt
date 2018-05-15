@@ -4,8 +4,8 @@ project(architecture)
 add_definitions(-std=c++11 )
 set(CMAKE_BUILD_TYPE Debug)
 
+find_package(Boost REQUIRED)
 find_package(catkin_simple REQUIRED)
-
 
 ###########
 ## Build ##
@@ -35,7 +35,7 @@ cs_add_executable(mav_comms_node src/mav_comms_node.cpp)
 target_link_libraries(mav_comms_node)
 
 cs_add_executable(state_manager_node src/state_manager_node.cpp)
-target_link_libraries(state_manager_node)
+target_link_libraries(state_manager_node )
 
 cs_add_executable(current_position_provider_node src/current_position_provider_node.cpp)
 target_link_libraries(current_position_provider_node)

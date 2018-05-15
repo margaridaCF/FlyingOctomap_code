@@ -15,7 +15,7 @@
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>octomap_msgs</depend>
-
+  <!-- <run_depend>boost</run_depend> -->
   <depend>architecture_msgs</depend>
   <depend>path_planning</depend>
   <depend>path_planning_msgs</depend>

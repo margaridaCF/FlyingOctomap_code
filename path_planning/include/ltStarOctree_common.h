@@ -69,10 +69,10 @@ namespace LazyThetaStarOctree{
 
 
 
-    void writeToFileWaypoint(octomath::Vector3 waypoint, double size, std::string waypointType)
+    void writeToFileWaypoint(octomath::Vector3 waypoint, double size, std::string path)
     {
         std::ofstream pathWaypoints;
-        pathWaypoints.open ("/ros_ws/src/data/waypoints_" + waypointType + ".csv", std::ofstream::out | std::ofstream::app);
+        pathWaypoints.open (path, std::ofstream::out | std::ofstream::app);
         
         pathWaypoints << std::setprecision(5) << waypoint.x() << ", " << waypoint.y() << ", " << waypoint.z() << ", " << size << std::endl;
         

@@ -8,6 +8,9 @@
 #include <visualization_msgs/MarkerArray.h>
 
 #include <geometry_msgs/Point.h>
+// RAM
+#include "sys/types.h"
+#include "sys/sysinfo.h"
 
 #define SAVE_CSV 1
 
@@ -16,11 +19,35 @@ namespace frontiers_async_node
 	octomap::OcTree* octree;
 	ros::Publisher local_pos_pub;
 	ros::Publisher marker_pub;
+	std::string folder_name;
 #ifdef SAVE_CSV
+	struct sysinfo memInfo;
 	std::ofstream log;
+	std::ofstream volume_explored;
+	std::chrono::high_resolution_clock::time_point start_exploration;
+	// std::chrono::hours; 
 #endif
 		
 	bool octomap_init;
+
+	double calculate_volume_explored(octomath::Vector3 const& min, octomath::Vector3 const& max)
+	{
+        int frontiers_count = 0;
+		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
+        if(!octree->coordToKeyChecked(min, bbxMinKey) || !octree->coordToKeyChecked(max, bbxMaxKey))
+        {
+            ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
+        	return 0;
+        }
+		octomap::OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbxMinKey,bbxMaxKey);
+		double volume = 0;
+		while( !(it == octree->end_leafs_bbx()) )
+		{
+			volume += pow(it.getSize(), 3);
+            it++;
+		}
+		return volume;
+	}
 
 	bool check_status(frontiers_msgs::FrontierNodeStatus::Request  &req,
         frontiers_msgs::FrontierNodeStatus::Response &res)
@@ -43,22 +70,35 @@ namespace frontiers_async_node
 		if(octomap_init)
 		{
 #ifdef SAVE_CSV
-				std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+			std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 #endif
 			Frontiers::processFrontiersRequest(*octree, *frontier_request, reply, marker_pub);
 
 #ifdef SAVE_CSV
-				std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-				std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-				std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
-				std::chrono::seconds seconds = std::chrono::duration_cast<std::chrono::seconds>(time_span);
-				log << millis.count() << ", " << seconds.count() << "\n";
+			// Frontier computation time
+			log.open (folder_name +"/frontiers_computation_time.csv", std::ofstream::app);
+			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+			std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
+			std::chrono::seconds seconds = std::chrono::duration_cast<std::chrono::seconds>(time_span);
+			log << millis.count() << ", " << seconds.count() << "\n";
+			log.close();
+			// Explored volume
+			volume_explored.open (folder_name + "/volume_explored.csv", std::ofstream::app);
+			std::chrono::duration<double> ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start_exploration);
+			std::chrono::milliseconds ellapsed_time_millis = std::chrono::duration_cast<std::chrono::milliseconds>(ellapsed_time);
+			double resolution = octree->getResolution();
+	        octomath::Vector3  max = octomath::Vector3(frontier_request->max.x-resolution, frontier_request->max.y-resolution, frontier_request->max.z-resolution);
+	        octomath::Vector3  min = octomath::Vector3(frontier_request->min.x+resolution, frontier_request->min.y+resolution, frontier_request->min.z+resolution);
+			double explored_volume_meters = calculate_volume_explored(min, max);
+			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << std::endl;
+			volume_explored.close();
 #endif
 
 			if(reply.frontiers_found == 0)
 	        {
 	            ROS_INFO_STREAM("[Frontiers] No frontiers could be found. Writing tree to file. Request was " << *frontier_request);
-	            octree->writeBinary("/ros_ws/src/data/octree_noFrontiers.bt"); 
+	            octree->writeBinary(folder_name + "/octree_noFrontiers.bt"); 
 	        }
 		}
 		else
@@ -80,8 +120,14 @@ namespace frontiers_async_node
 int main(int argc, char **argv)
 {
 #ifdef SAVE_CSV
-		frontiers_async_node::log.open ("/ros_ws/src/data/frontiers_computation_time.csv");
+		frontiers_async_node::folder_name = "/ros_ws/src/data/current";
+		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/frontiers_computation_time.csv", std::ofstream::app);
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
+		frontiers_async_node::log.close();
+		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/volume_explored.csv", std::ofstream::app);
+		frontiers_async_node::volume_explored << "time ellapsed millis,volume,RAM\n";
+		frontiers_async_node::volume_explored.close();
+		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
 #endif
 
 	ros::init(argc, argv, "frontier_node_async");
