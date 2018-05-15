@@ -851,6 +851,16 @@ namespace LazyThetaStarOctree{
 			// return the found path 
 			extractPath(path, *disc_initial_cell_center, *solution_end_node, print_resulting_path);
 		}
+		if(path.size() == 1)
+		{
+			ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. It should always have at least start and goal. Path: ");
+			for (auto v : path)
+			{
+        		ROS_ERROR_STREAM("[LTStar]" << v );
+			}
+			ROS_ERROR_STREAM("[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start);
+			ROS_ERROR_STREAM("[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal);
+		}
 		if(publish)
 		{
 			log_file.close();
@@ -905,11 +915,6 @@ namespace LazyThetaStarOctree{
 		if(resulting_path.size()==0)
 		{
 			reply.success = false;
-		}
-		else if(resulting_path.size() == 1)
-		{
-			ROS_ERROR_STREAM("[LTStar] Unexpected situation. Path with only one waypoint (both start and goal should always be included). Writting octree to file. Request message was " << request);
-
 		}
 		else
 		{

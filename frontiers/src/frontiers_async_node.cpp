@@ -96,7 +96,7 @@ namespace frontiers_async_node
 			// long long totalPhysMem = memInfo.totalram;
 			long long physMemUsed = memInfo.totalram - memInfo.freeram;
 			physMemUsed *= memInfo.mem_unit;//Multiply in next statement to avoid int overflow on right hand side...
-			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << "," << physMemUsed/ << std::endl;
+			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << "," << physMemUsed/1024 << std::endl;
 			volume_explored.close();
 #endif
 
@@ -126,12 +126,13 @@ int main(int argc, char **argv)
 {
 #ifdef SAVE_CSV
 		frontiers_async_node::folder_name = "/ros_ws/src/data/current";
-		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/frontiers_computation_time.csv");
+		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/frontiers_computation_time.csv", std::ofstream::app);
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
-		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/volume_explored.csv");
+		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/volume_explored.csv", std::ofstream::app);
 		frontiers_async_node::volume_explored << "time ellapsed millis,volume,RAM\n";
 		frontiers_async_node::volume_explored.close();
+		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
 #endif
 
 	ros::init(argc, argv, "frontier_node_async");

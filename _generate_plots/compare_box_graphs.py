@@ -34,16 +34,7 @@ def plot_volume_exploration_vs_time(data):
 	keys = data.keys()
 	traces = []
 	for k in keys:
-		traces.append(Scatter(x = data[k]['time ellapsed millis'], y=data[k]['time ellapsed millis'], name=k, mode = 'lines'))
-
-
-
-	# trace0 = go.Scatter(
-	#     x = data[k]['time ellapsed millis'],
-	#     y = data[k]['volume'],
-	#     mode = 'lines',
-	#     name = k
-	# )
+		traces.append(Scatter(x = data[k]['time ellapsed millis'], y=data[k]['volume'], name=k, mode = 'lines'))
 	layout = go.Layout(
 	    title='Progression of volume of explored space cases analyzed',
 	    xaxis=dict(
@@ -65,6 +56,35 @@ def plot_volume_exploration_vs_time(data):
 	)
 	fig=dict(data=traces, layout=layout)
 	plotly.offline.plot(fig, filename='./volume_exploration_vs_time.html', image='png')
+
+
+def plot_ram_vs_time(data):
+	keys = data.keys()
+	traces = []
+	for k in keys:
+		traces.append(Scatter(x = data[k]['time ellapsed millis'], y=data[k]['RAM'], name=k, mode = 'lines'))
+
+	layout = go.Layout(
+	    title='Progression of RAM used',
+	    xaxis=dict(
+	        title='Time in milli seconds',
+	        titlefont=dict(
+	            family='Courier New, monospace',
+	            size=18,
+	            color='#7f7f7f'
+	        )
+	    ),
+	    yaxis=dict(
+	        title='RAM used in megabytes',
+	        titlefont=dict(
+	            family='Courier New, monospace',
+	            size=18,
+	            color='#7f7f7f'
+	        )
+	    )
+	)
+	fig=dict(data=traces, layout=layout)
+	plotly.offline.plot(fig, filename='./ram_vs_time.html', image='png')
 
 def extract_volume_data(csv_filepath):
 	volume_data = pd.read_csv(csv_filepath)
