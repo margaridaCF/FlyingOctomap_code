@@ -93,9 +93,10 @@ namespace frontiers_async_node
 			double explored_volume_meters = calculate_volume_explored(min, max);
 			// Measure RAM
 			sysinfo (&memInfo);
-			long long totalPhysMem = memInfo.totalram;
-			totalPhysMem *= memInfo.mem_unit;//Multiply in next statement to avoid int overflow on right hand side...
-			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << "," << totalPhysMem << std::endl;
+			// long long totalPhysMem = memInfo.totalram;
+			long long physMemUsed = memInfo.totalram - memInfo.freeram;
+			physMemUsed *= memInfo.mem_unit;//Multiply in next statement to avoid int overflow on right hand side...
+			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << "," << physMemUsed/ << std::endl;
 			volume_explored.close();
 #endif
 
@@ -129,7 +130,7 @@ int main(int argc, char **argv)
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
 		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/volume_explored.csv");
-		frontiers_async_node::volume_explored << "time ellapsed millis,volume\n";
+		frontiers_async_node::volume_explored << "time ellapsed millis,volume,RAM\n";
 		frontiers_async_node::volume_explored.close();
 #endif
 
