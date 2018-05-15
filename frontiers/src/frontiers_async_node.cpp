@@ -91,12 +91,7 @@ namespace frontiers_async_node
 	        octomath::Vector3  max = octomath::Vector3(frontier_request->max.x-resolution, frontier_request->max.y-resolution, frontier_request->max.z-resolution);
 	        octomath::Vector3  min = octomath::Vector3(frontier_request->min.x+resolution, frontier_request->min.y+resolution, frontier_request->min.z+resolution);
 			double explored_volume_meters = calculate_volume_explored(min, max);
-			// Measure RAM
-			sysinfo (&memInfo);
-			// long long totalPhysMem = memInfo.totalram;
-			long long physMemUsed = memInfo.totalram - memInfo.freeram;
-			physMemUsed *= memInfo.mem_unit;//Multiply in next statement to avoid int overflow on right hand side...
-			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << "," << physMemUsed/1024 << std::endl;
+			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << std::endl;
 			volume_explored.close();
 #endif
 
