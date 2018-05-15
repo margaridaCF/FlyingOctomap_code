@@ -664,16 +664,27 @@ namespace LazyThetaStarOctree{
 		{
 			log_file << "[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start << std::endl;
 			log_file << "[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal << std::endl;
+			geometry_msgs::Point start_point, goal_point;
+			start_point.x = cell_center_coordinates_start.x();
+			start_point.y = cell_center_coordinates_start.y();
+			start_point.z = cell_center_coordinates_start.z();
+			goal_point.x = cell_center_coordinates_goal.x();
+			goal_point.y = cell_center_coordinates_goal.y();
+			goal_point.z = cell_center_coordinates_goal.z();
+			rviz_interface::publish_start_voxel(start_point, marker_pub, cell_size_start);
+			rviz_interface::publish_goal_voxel(goal_point, marker_pub, cell_size_goal);
 		}
-		geometry_msgs::Point start_point, goal_point;
-		start_point.x = cell_center_coordinates_start.x();
-		start_point.y = cell_center_coordinates_start.y();
-		start_point.z = cell_center_coordinates_start.z();
-		goal_point.x = cell_center_coordinates_goal.x();
-		goal_point.y = cell_center_coordinates_goal.y();
-		goal_point.z = cell_center_coordinates_goal.z();
-		rviz_interface::publish_start_voxel(start_point, marker_pub, cell_size_start);
-		rviz_interface::publish_goal_voxel(goal_point, marker_pub, cell_size_goal);
+
+		if(equal(cell_center_coordinates_start, cell_center_coordinates_goal, octree.getResolution()/2))
+		{
+			ROS_WARN_STREAM("[LTStar] Start and goal in the same voxel - flying straight.");
+			ROS_WARN_STREAM("[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start);
+			ROS_WARN_STREAM("[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal);
+			path.push_front( disc_final );
+			path.push_front( disc_initial );
+			return path;
+		}
+
 
 		// ln 1 Main()
 		// ln 2 open := closed := 0
@@ -704,7 +715,6 @@ namespace LazyThetaStarOctree{
 		}
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
-		ros::Rate r(60);
 		while(!open.empty() && !solution_found)
 		{
 
