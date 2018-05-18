@@ -3,9 +3,9 @@
 
 namespace Frontiers{
 
-    void calculate_closer_position(octomath::Vector3 & sensing_position, octomath::Vector3 const& n_coordinates, double const safety_margin, octomath::Vector3 const& voxel_center)
+    void calculate_closer_position(octomath::Vector3 & sensing_position, octomath::Vector3 const& n_coordinates, double const safety_margin)
     {
-        sensing_position = voxel_center - n_coordinates;
+        sensing_position = sensing_position - n_coordinates;
         sensing_position.normalize();
         sensing_position = sensing_position * safety_margin;
         sensing_position = n_coordinates + sensing_position;
@@ -63,7 +63,7 @@ namespace Frontiers{
             bool use_center_as_goal = isCenterGoodGoal(it.getSize(), request.sensing_distance);
             octomath::Vector3 coord = it.getCoordinate();
             currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
-            // ROS_WARN_STREAM("Voxel size " << currentVoxel.size);
+            // ROS_WARN_STREAM("Voxel " << it.getCoordinate() << " size: " << currentVoxel.size);
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
             if( isExplored(grid_coordinates_curr, octree)
                 && !isOccupied(grid_coordinates_curr, octree) 
@@ -83,23 +83,23 @@ namespace Frontiers{
                         {
                             frontiers_msgs::VoxelMsg voxel_msg;
                             voxel_msg.size = currentVoxel.size;
-                            if(use_center_as_goal)
+                            if(!use_center_as_goal)
                             {
-                                voxel_msg.xyz_m.x = currentVoxel.x;
-                                voxel_msg.xyz_m.y = currentVoxel.y;
-                                voxel_msg.xyz_m.z = currentVoxel.z;
+                                // ROS_WARN_STREAM("neighbor " << *n_coordinates);
+                                // ROS_WARN_STREAM(grid_coordinates_curr << " has size of " << it.getSize() << " sensing range is only " << request.sensing_distance);
+                                calculate_closer_position(grid_coordinates_curr, *n_coordinates, unknown_neighbor_distance);
+                                // ROS_WARN_STREAM(" changed to " << grid_coordinates_curr);
                             }
-                            else
-                            {
-                                octomath::Vector3 sensing_position;
-                                calculate_closer_position(sensing_position, *n_coordinates, unknown_neighbor_distance, grid_coordinates_curr);
-                                voxel_msg.xyz_m.x = sensing_position.x();
-                                voxel_msg.xyz_m.y = sensing_position.y();
-                                voxel_msg.xyz_m.z = sensing_position.z();
-                                rviz_interface::publish_sensing_position(sensing_position, marker_pub);
-                            }
+                            voxel_msg.xyz_m.x = grid_coordinates_curr.x();
+                            voxel_msg.xyz_m.y = grid_coordinates_curr.y();
+                            voxel_msg.xyz_m.z = grid_coordinates_curr.z();
+                            // rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
                             reply.frontiers.push_back(voxel_msg);
                             frontiers_count++;
+                            if( frontiers_count == request.frontier_amount)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -196,11 +196,6 @@ namespace Frontiers{
     {
         // ROS_INFO_STREAM("[Frontiers] meetsOperationalRequirements - voxel_size: " << voxel_size << "; candidate: " << candidate << "; min_distance: " << min_distance << "; current_position:" << current_position);
         // Operation restrictions
-        if(voxel_size > 4)
-        {
-            ROS_WARN_STREAM("[Frontiers] Rejected " << candidate << " because it's too big " << voxel_size);
-            return false; // the neighbors are so spread out it is bound to have unexplored ones and other voxels will capture more accuratly this frontier
-        }
         if(candidate.distance(current_position) <= min_distance)
         {
             ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position);
@@ -216,7 +211,6 @@ namespace Frontiers{
             // ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because goal is too close to obstacles");
             return false;
         }
-        // ROS_INFO_STREAM("[Frontiers]meetsOperationalRequirements - Approved");
         return true;
     }
 

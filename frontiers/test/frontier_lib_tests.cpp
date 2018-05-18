@@ -204,7 +204,7 @@ namespace Frontiers
 		octomath::Vector3 n_coordinates (3, 0, 0);
 		double sensing_distance = 2;
 		octomath::Vector3 voxel_center(0, 0, 0);
-		calculate_closer_position(sensing_position, n_coordinates, sensing_distance, voxel_center);
+		calculate_closer_position(voxel_center, n_coordinates, sensing_distance);
 		ASSERT_EQ(sensing_position.x(), 1);
 		ASSERT_EQ(sensing_position.y(), 0);
 		ASSERT_EQ(sensing_position.z(), 0);
