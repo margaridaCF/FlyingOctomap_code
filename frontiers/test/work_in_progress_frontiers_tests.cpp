@@ -4,6 +4,25 @@
 
 namespace Frontiers
 {
+	void checkFrontiers(octomap::OcTree& octree, frontiers_msgs::FrontierRequest& request, frontiers_msgs::FrontierReply& reply)
+	{
+		// MetaData
+		ASSERT_EQ(request.header.seq, reply.request_id);
+		ASSERT_EQ(reply.header.seq, request.header.seq+1);
+		ASSERT_EQ(reply.header.frame_id, request.header.frame_id);
+		// Data
+		ASSERT_LE(reply.frontiers_found, static_cast<int16_t>(request.frontier_amount) );
+		for (int i = 0; i < reply.frontiers_found; ++i)
+		{
+			ASSERT_TRUE(isFrontier(octree, octomath::Vector3 (reply.frontiers[i].xyz_m.x, reply.frontiers[i].xyz_m.y, reply.frontiers[i].xyz_m.z) )   );
+			ASSERT_LE(reply.frontiers[i].xyz_m.x, request.max.x+octree.getResolution());
+			ASSERT_LE(reply.frontiers[i].xyz_m.y, request.max.y+octree.getResolution());
+			ASSERT_LE(reply.frontiers[i].xyz_m.z, request.max.z+octree.getResolution());
+			ASSERT_GE(reply.frontiers[i].xyz_m.x, request.min.x-octree.getResolution());
+			ASSERT_GE(reply.frontiers[i].xyz_m.y, request.min.y-octree.getResolution());
+			ASSERT_GE(reply.frontiers[i].xyz_m.z, request.min.z-octree.getResolution());
+		}
+	}
     
 	TEST(WIPFrontiersTest, Test_frontierAmount_NeighborToFarToSense)
 	{
@@ -24,16 +43,8 @@ namespace Frontiers
 		request.sensing_distance = 2;
 		frontiers_msgs::FrontierReply reply;
 		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
-		ASSERT_EQ(reply.frontiers_found, 1);
+		checkFrontiers(octree, request, reply);
 		// ROS_INFO_STREAM(reply);
-		double diff = std::abs(reply.frontiers[0].xyz_m.x - (-12.7287));
-		ASSERT_LE(diff, 0.1) << reply.frontiers[0].xyz_m.x << " and " << -12.7287;
-
-		diff = std::abs(reply.frontiers[0].xyz_m.y - (-16.7287));
-		ASSERT_LE(diff, 0.1) << reply.frontiers[0].xyz_m.y << " and " << -16.7287 << " diff = " << diff;
-
-		diff = std::abs(reply.frontiers[0].xyz_m.z - (8.11875));
-		ASSERT_LE(diff, 0.1) << reply.frontiers[0].xyz_m.z << " and " << 8.11875 << " diff = " << diff;
 	}
 
 	TEST(WIPFrontiersTest, Test_frontierAmount_1)
@@ -57,6 +68,7 @@ namespace Frontiers
 		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
 		ASSERT_EQ(reply.frontiers_found, 1);
 		// ROS_INFO_STREAM(reply);
+		checkFrontiers(octree, request, reply);
 		double diff = std::abs(reply.frontiers[0].xyz_m.x - (-14));
 		ASSERT_LE(diff, 0.1) << reply.frontiers[0].xyz_m.x << " and " << -14;
 
