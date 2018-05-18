@@ -15,12 +15,12 @@ namespace Frontiers
 		for (int i = 0; i < reply.frontiers_found; ++i)
 		{
 			ASSERT_TRUE(isFrontier(octree, octomath::Vector3 (reply.frontiers[i].xyz_m.x, reply.frontiers[i].xyz_m.y, reply.frontiers[i].xyz_m.z) )   );
-			ASSERT_LE(reply.frontiers[i].xyz_m.x, request.max.x);
-			ASSERT_LE(reply.frontiers[i].xyz_m.y, request.max.y);
-			ASSERT_LE(reply.frontiers[i].xyz_m.z, request.max.z);
-			ASSERT_GE(reply.frontiers[i].xyz_m.x, request.min.x);
-			ASSERT_GE(reply.frontiers[i].xyz_m.y, request.min.y);
-			ASSERT_GE(reply.frontiers[i].xyz_m.z, request.min.z);
+			ASSERT_LE(reply.frontiers[i].xyz_m.x, request.max.x+octree.getResolution());
+			ASSERT_LE(reply.frontiers[i].xyz_m.y, request.max.y+octree.getResolution());
+			ASSERT_LE(reply.frontiers[i].xyz_m.z, request.max.z+octree.getResolution());
+			ASSERT_GE(reply.frontiers[i].xyz_m.x, request.min.x-octree.getResolution());
+			ASSERT_GE(reply.frontiers[i].xyz_m.y, request.min.y-octree.getResolution());
+			ASSERT_GE(reply.frontiers[i].xyz_m.z, request.min.z-octree.getResolution());
 		}
 	}
 
@@ -44,6 +44,25 @@ namespace Frontiers
 		checkFrontiers(octree, request, reply);
 	}
 
+
+	TEST(FrontiersTest, Ask_ten_frontiers_calculated )
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/experimentalDataset.bt");
+		frontiers_msgs::FrontierRequest request;
+		request.header.seq = 1;
+		request.header.frame_id = "request_frame";
+		request.min.x = 2.7;
+		request.min.y = 0.1;
+		request.min.z = 0.3;
+		request.max.x = 3.2;
+		request.max.y = 0.4;
+		request.max.z = 0.7;
+		request.frontier_amount = 8;
+		frontiers_msgs::FrontierReply reply;
+		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
+		checkFrontiers(octree, request, reply);
+	}
 
 	TEST(FrontiersTest, Ask_ten_frontiers)
 	{
@@ -200,14 +219,14 @@ namespace Frontiers
 
 	TEST(FrontiersTest, Test_calculateCloserPosition_x)
 	{
-		octomath::Vector3 sensing_position;
 		octomath::Vector3 n_coordinates (3, 0, 0);
 		double sensing_distance = 2;
 		octomath::Vector3 voxel_center(0, 0, 0);
 		calculate_closer_position(voxel_center, n_coordinates, sensing_distance);
-		ASSERT_EQ(sensing_position.x(), 1);
-		ASSERT_EQ(sensing_position.y(), 0);
-		ASSERT_EQ(sensing_position.z(), 0);
+		ASSERT_EQ(voxel_center.x(), 1);
+		ASSERT_EQ(voxel_center.y(), 0);
+		ASSERT_EQ(voxel_center.z(), 0);
+	}
 	}
 }
 

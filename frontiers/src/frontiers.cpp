@@ -20,7 +20,6 @@ namespace Frontiers{
     {
         // std::ofstream log;
         // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
-        // ROS_INFO_STREAM( "Request for " << static_cast<int16_t>(request.frontier_amount) );
         double resolution = octree.getResolution();
         double unknown_neighbor_distance = request.safety_margin + (resolution/2);
         reply.header.seq = request.header.seq + 1;
@@ -53,7 +52,7 @@ namespace Frontiers{
         {
             ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
             reply.success = false;
-        return reply.success;
+            return reply.success;
         }
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
         // octomath::Vector3 bbxMin (currentVoxel.x, currentVoxel.y, currentVoxel.z);
@@ -63,7 +62,6 @@ namespace Frontiers{
             bool use_center_as_goal = isCenterGoodGoal(it.getSize(), request.sensing_distance);
             octomath::Vector3 coord = it.getCoordinate();
             currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
-            // ROS_WARN_STREAM("Voxel " << it.getCoordinate() << " size: " << currentVoxel.size);
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
             if( isExplored(grid_coordinates_curr, octree)
                 && !isOccupied(grid_coordinates_curr, octree) 
@@ -78,8 +76,8 @@ namespace Frontiers{
                 {
                     if(!isOccupied(*n_coordinates, octree))
                     {
-                        hasUnExploredNeighbors = !isExplored(*n_coordinates, octree) || hasUnExploredNeighbors;
                         if(hasUnExploredNeighbors)
+                        hasUnExploredNeighbors = !isExplored(*n_coordinates, octree); //|| hasUnExploredNeighbors;
                         {
                             frontiers_msgs::VoxelMsg voxel_msg;
                             voxel_msg.size = currentVoxel.size;
@@ -87,7 +85,7 @@ namespace Frontiers{
                             {
                                 // ROS_WARN_STREAM("neighbor " << *n_coordinates);
                                 // ROS_WARN_STREAM(grid_coordinates_curr << " has size of " << it.getSize() << " sensing range is only " << request.sensing_distance);
-                                calculate_closer_position(grid_coordinates_curr, *n_coordinates, unknown_neighbor_distance);
+                                calculate_closer_position(grid_coordinates_curr, *n_coordinates, (currentVoxel.size/2) + (resolution/10) );
                                 // ROS_WARN_STREAM(" changed to " << grid_coordinates_curr);
                             }
                             voxel_msg.xyz_m.x = grid_coordinates_curr.x();
@@ -235,8 +233,9 @@ namespace Frontiers{
         octomap::OcTreeKey key = octree.coordToKey(candidate);
         // ROS_WARN_STREAM("Calling getNodeDepth from frontiers@isFrontier()");
         int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, octree);
+        octomath::Vector3 cell_center = octree.keyToCoord(key, depth);
         double voxel_size = ((tree_depth + 1) - depth) * resolution;
-        LazyThetaStarOctree::generateNeighbors_pointers(neighbors, candidate, voxel_size, resolution);
+        LazyThetaStarOctree::generateNeighbors_pointers(neighbors, cell_center, voxel_size, resolution);
         bool hasUnExploredNeighbors = false;
         for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
         {
