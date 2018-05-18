@@ -31,10 +31,10 @@ namespace LazyThetaStarOctree
 		reply.waypoint_amount = 0;
 		reply.success = false;
 
-		std::stringstream ss;
-		std::string path = "/ros_ws/src/data/";
-		ss << path << "(" << path_request.start.x << "; " << path_request.start.y << "; " << path_request.start.z << ")_(" 
-			<<  path_request.goal.x << "; " << path_request.goal.y << "; " << path_request.goal.z << ").bt";
+		// std::stringstream ss;
+		// std::string path = "/ros_ws/src/data/";
+		// ss << path << "(" << path_request.start.x << "; " << path_request.start.y << "; " << path_request.start.z << ")_(" 
+		// 	<<  path_request.goal.x << "; " << path_request.goal.y << "; " << path_request.goal.z << ").bt";
 		// octree->writeBinary(ss.str());
 		// ROS_WARN_STREAM("[LTStar] Request message " << path_request);
 		LazyThetaStarOctree::processLTStarRequest(*octree, path_request, reply, marker_pub, false);
