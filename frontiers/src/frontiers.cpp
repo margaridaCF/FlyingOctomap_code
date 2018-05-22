@@ -67,6 +67,7 @@ namespace Frontiers{
                 && !isOccupied(grid_coordinates_curr, octree) 
                 && meetsOperationalRequirements(it.getSize()*2, grid_coordinates_curr, request.min_distance, current_position, octree, request.safety_margin, marker_pub, publish)) 
             {
+                // ROS_WARN_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal);
                 hasUnExploredNeighbors = false;
                 // log << "Looking into " << grid_coordinates_curr << "\n";
                 // Gerenate neighbors
@@ -76,6 +77,9 @@ namespace Frontiers{
                 {
                     if(!isOccupied(*n_coordinates, octree))
                     {
+                        ROS_WARN_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << ". Unknown neighbor is " << *n_coordinates);
+                        rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
+
                         if(hasUnExploredNeighbors)
                         hasUnExploredNeighbors = !isExplored(*n_coordinates, octree); //|| hasUnExploredNeighbors;
                         {
@@ -83,15 +87,14 @@ namespace Frontiers{
                             voxel_msg.size = currentVoxel.size;
                             if(!use_center_as_goal)
                             {
-                                // ROS_WARN_STREAM("neighbor " << *n_coordinates);
-                                // ROS_WARN_STREAM(grid_coordinates_curr << " has size of " << it.getSize() << " sensing range is only " << request.sensing_distance);
+                                ROS_WARN_STREAM("neighbor " << *n_coordinates);
+                                ROS_WARN_STREAM(grid_coordinates_curr << " has size of " << it.getSize() << " sensing range is only " << request.sensing_distance);
                                 calculate_closer_position(grid_coordinates_curr, *n_coordinates, (currentVoxel.size/2) + (resolution/10) );
-                                // ROS_WARN_STREAM(" changed to " << grid_coordinates_curr);
+                                ROS_WARN_STREAM(" changed to " << grid_coordinates_curr);
                             }
                             voxel_msg.xyz_m.x = grid_coordinates_curr.x();
                             voxel_msg.xyz_m.y = grid_coordinates_curr.y();
                             voxel_msg.xyz_m.z = grid_coordinates_curr.z();
-                            // rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
                             reply.frontiers.push_back(voxel_msg);
                             frontiers_count++;
                             if( frontiers_count == request.frontier_amount)

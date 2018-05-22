@@ -495,7 +495,7 @@ namespace LazyThetaStarOctree{
 				return false;
 			}
 
-			ROS_INFO_STREAM("[LTStar] Adding " << *(current->coordinates));
+			// ROS_INFO_STREAM("[LTStar] Adding " << *(current->coordinates));
 			path.push_front( *(current->coordinates) );
 			if(writeToFile)
 			{
@@ -894,7 +894,7 @@ namespace LazyThetaStarOctree{
 		std::list<octomath::Vector3> resulting_path;
 		octomath::Vector3 disc_initial(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 disc_final(request.goal.x, request.goal.y, request.goal.z);
-		ROS_INFO_STREAM("[LTStar] Starting to process path from " << disc_initial << " to " << disc_final);
+		// ROS_INFO_STREAM("[LTStar] Starting to process path from " << disc_initial << " to " << disc_final);
 #ifdef SAVE_CSV
 		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 #endif
@@ -920,7 +920,7 @@ namespace LazyThetaStarOctree{
 			csv_file << "," << is_flight_corridor_free(octree, disc_initial, disc_final, request.safety_margin, marker_pub, false, false) << std::endl;
 			csv_file.close();
 #endif
-		ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
+		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
 		
 		if(resulting_path.size()==0)
 		{

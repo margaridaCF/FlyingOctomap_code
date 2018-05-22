@@ -192,7 +192,12 @@ namespace rviz_interface
         float red = 0.0f;
         float green = 0.0f;
         float blue = 0.25f;
-        publish_small_marker(position, marker_pub,red,  green,  blue, "sensing_position", 24);
+        // publish_small_marker(position, marker_pub,red,  green,  blue, "unknown_neighbor", 24);
+        visualization_msgs::Marker marker;
+        build_small_marker(position, marker, red, green, blue, "unknown_neighbor", 24);
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);
     }
 
     void publish_start_voxel(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size)

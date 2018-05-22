@@ -48,7 +48,7 @@ namespace mav_comms
         position_state.y = req.position.y;
         position_state.z = req.position.z;
         position_state.movement_state = yaw_spin;
-        ROS_INFO_STREAM("[mav_comms] Receiving yaw spin request " << req);
+        // ROS_INFO_STREAM("[mav_comms] Receiving yaw spin request " << req);
         return true;
     }
 
