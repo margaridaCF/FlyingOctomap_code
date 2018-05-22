@@ -39,7 +39,7 @@ namespace Frontiers{
                 octomath::Vector3(0, 0, 1), // DOWN
             });
 
-        bool hasUnExploredNeighbors;
+        bool is_frontier;
         octomath::Vector3 grid_coordinates_curr, grid_coordinates_toTest;
         int i;
 
@@ -68,7 +68,7 @@ namespace Frontiers{
                 && meetsOperationalRequirements(it.getSize()*2, grid_coordinates_curr, request.min_distance, current_position, octree, request.safety_margin, marker_pub, publish)) 
             {
                 // ROS_WARN_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal);
-                hasUnExploredNeighbors = false;
+                is_frontier = false;
                 // log << "Looking into " << grid_coordinates_curr << "\n";
                 // Gerenate neighbors
                 std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
@@ -77,12 +77,11 @@ namespace Frontiers{
                 {
                     if(!isOccupied(*n_coordinates, octree))
                     {
-                        ROS_WARN_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << ". Unknown neighbor is " << *n_coordinates);
                         rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
-
-                        if(hasUnExploredNeighbors)
-                        hasUnExploredNeighbors = !isExplored(*n_coordinates, octree); //|| hasUnExploredNeighbors;
+                        if(!isExplored(*n_coordinates, octree))
                         {
+                            ROS_WARN_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << ". Unknown neighbor is " << *n_coordinates);
+                            is_frontier = true;
                             frontiers_msgs::VoxelMsg voxel_msg;
                             voxel_msg.size = currentVoxel.size;
                             if(!use_center_as_goal)
@@ -217,49 +216,33 @@ namespace Frontiers{
 
     bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate) 
     {
-        // ROS_WARN_STREAM("[fronties] For candidate " << candidate);
-        bool is_explored = isExplored(candidate, octree);
-        if(!is_explored)
+        double resolution = octree.getResolution(); 
+        int tree_depth = octree.getTreeDepth(); 
+        octomap::OcTreeKey key = octree.coordToKey(candidate); 
+        int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, octree); 
+        octomath::Vector3 cell_center = octree.keyToCoord(key, depth); 
+        double voxel_size = ((tree_depth + 1) - depth) * resolution; 
+
+
+        bool is_frontier = false;
+        if( isExplored(cell_center, octree)
+            && !isOccupied(cell_center, octree) ) 
         {
-            // ROS_WARN_STREAM("[fronties]   not explored.");
-            return false;
-        }
-        bool is_occupied = isOccupied(candidate, octree);
-        if(is_occupied)
-        {
-            // ROS_WARN_STREAM("[fronties]   is occupied.");
-            return false;
-        }
-        std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-        double resolution = octree.getResolution();
-        int tree_depth = octree.getTreeDepth();
-        octomap::OcTreeKey key = octree.coordToKey(candidate);
-        // ROS_WARN_STREAM("Calling getNodeDepth from frontiers@isFrontier()");
-        int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, octree);
-        octomath::Vector3 cell_center = octree.keyToCoord(key, depth);
-        double voxel_size = ((tree_depth + 1) - depth) * resolution;
-        LazyThetaStarOctree::generateNeighbors_pointers(neighbors, cell_center, voxel_size, resolution);
-        bool hasUnExploredNeighbors = false;
-        for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
-        {
-            if(!isOccupied(*n_coordinates, octree))
+            // Generate neighbors
+            std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
+            LazyThetaStarOctree::generateNeighbors_pointers(neighbors, cell_center, voxel_size, resolution);
+            for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
             {
-                hasUnExploredNeighbors = !isExplored(*n_coordinates, octree) || hasUnExploredNeighbors;
-                if(!isExplored(*n_coordinates, octree))
+                if(!isOccupied(*n_coordinates, octree))
                 {
-                    // ROS_WARN_STREAM("[fronties]   Unknown neighbors: (" << n_coordinates->x() << "," << n_coordinates->y() << " ," << n_coordinates->z() << " )");
+                    if(!isExplored(*n_coordinates, octree))
+                    {
+                        ROS_WARN_STREAM("[isFrontier] Unknown neighbor is " << *n_coordinates);
+                        is_frontier = true;
+                    }
                 }
             }
         }
-        if(hasUnExploredNeighbors)
-        {
-            // ROS_WARN_STREAM("[fronties]   still has unknown neighbors.");
-            return true;
-        }
-        else
-        {
-            // ROS_WARN_STREAM("[fronties]   no unknown neighbors.");
-            return false;
-        }
+        return is_frontier;
     }
 }

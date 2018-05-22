@@ -584,8 +584,8 @@ namespace state_manager_node
                     if(time_lapse > exploration_maneuver_duration_secs)
                     {
                         state_data.exploration_state = exploration_start;
-                        bool was_frontier_explored = askIsFrontierServiceCall(get_current_frontier());
-                        if(!was_frontier_explored)
+                        bool is_frontier = askIsFrontierServiceCall(get_current_frontier());
+                        if(is_frontier)
                         {
                             ROS_ERROR_STREAM("[State manager] " << get_current_frontier() << " is still a frontier.");
                         }
