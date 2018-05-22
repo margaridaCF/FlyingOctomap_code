@@ -203,6 +203,21 @@ namespace state_manager_node
         state_data.frontier_request_count++;
     }
 
+    bool askIsFrontierServiceCall(geometry_msgs::Point candidate) 
+    { 
+        frontiers_msgs::CheckIsFrontier is_frontier_msg; 
+        is_frontier_msg.request.candidate = candidate; 
+        if(is_frontier_client.call(is_frontier_msg)) 
+        { 
+            return is_frontier_msg.response.is_frontier; 
+        } 
+        else 
+        { 
+            ROS_WARN("[State manager] Frontier node not accepting is frontier requests."); 
+            return false; 
+        } 
+    } 
+
     void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
     {
         if(state_data.exploration_state != waiting_path_response)
@@ -453,6 +468,10 @@ namespace state_manager_node
                     log_file << "[State manager][Exploration] visit_waypoints 2" << std::endl;
                     log_file << "[State manager]            [Follow path] init" << std::endl;
 #endif
+                    frontiers_msgs::VoxelMsg fake_frontier;
+                    fake_frontier.xyz_m = current_position;
+                    state_data.frontiers_msg.frontiers.push_back(fake_frontier);
+                    state_data.frontier_index = 0;
                 }
 
                 break;
@@ -565,6 +584,11 @@ namespace state_manager_node
                     if(time_lapse > exploration_maneuver_duration_secs)
                     {
                         state_data.exploration_state = exploration_start;
+                        bool was_frontier_explored = askIsFrontierServiceCall(get_current_frontier());
+                        if(!was_frontier_explored)
+                        {
+                            ROS_ERROR_STREAM("[State manager] " << get_current_frontier() << " is still a frontier.");
+                        }
                     }
                 }
                 break;
