@@ -39,7 +39,7 @@ namespace LazyThetaStarOctree
 			ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
 				<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
 			octree->writeBinary(ss.str());
-			ROS_INFO_STREAM("[LTStar] Request message " << *path_request);
+			// ROS_INFO_STREAM("[LTStar] Request message " << *path_request);
 			// if(path_request->request_id > 5)
 			// {
 			// 	publish_free_corridor_arrows = true;
@@ -53,7 +53,7 @@ namespace LazyThetaStarOctree
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
 			}
-			ROS_INFO_STREAM("[LTStar] Reply " << reply);
+			// ROS_INFO_STREAM("[LTStar] Reply " << reply);
 
 			// octree->writeBinary(folder_name + "/octree_after_processing_request.bt");
 		}
