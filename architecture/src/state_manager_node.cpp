@@ -1,8 +1,4 @@
-/**
- * @file offb_node.cpp
- * @brief Offboard control example node, written with MAVROS version 0.19.x, PX4 Pro Flight
- * Stack and tested in Gazebo SITL
- */
+
 #include <ros/ros.h>
 #include <std_msgs/Empty.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -34,6 +30,7 @@
 #include <path_planning_msgs/LTStarNodeStatus.h>
 
 #define SAVE_CSV 1
+#define SAVE_LOG 1
 
 
 namespace state_manager_node
@@ -67,7 +64,7 @@ namespace state_manager_node
     ros::Timer timer;
     std::chrono::high_resolution_clock::time_point start;
     bool is_successfull_exploration = false;
-
+    std::ofstream log_file;
 
     // TODO - transform this into parameters at some point
     double px4_loiter_radius;
@@ -153,7 +150,10 @@ namespace state_manager_node
         position_request_srv.request.position = position;
         if(target_position_client.call(position_request_srv))
         {
-            ROS_INFO_STREAM("[State manager] Requesting position " << state_data.waypoint_index << " = " << get_current_waypoint());
+
+#ifdef SAVE_LOG
+        log_file << "[State manager] Requesting position " << state_data.waypoint_index << " = " << get_current_waypoint() << std::endl;
+#endif
             return position_request_srv.response.is_going_to_position;
         }
         else
@@ -207,11 +207,15 @@ namespace state_manager_node
     {
         if(state_data.exploration_state != waiting_path_response)
         {
-            ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star but the state is not waiting_path_response. Discarding.");
+#ifdef SAVE_LOG
+            log_file << "[State manager] Received path from Lazy Theta Star but the state is not waiting_path_response. Discarding." << std::endl;
+#endif
         }
         else if(msg->request_id != state_data.ltstar_request_id)
         {
-            ROS_INFO_STREAM("[State manager] Received path from Lazy Theta Star with request id " << msg->request_id << " but the current request_id is " << state_data.ltstar_request_id << ". Discarding.");
+#ifdef SAVE_LOG
+            log_file << "[State manager] Received path from Lazy Theta Star with request id " << msg->request_id << " but the current request_id is " << state_data.ltstar_request_id << ". Discarding." << std::endl;
+#endif
         }
         else
         {
@@ -221,8 +225,10 @@ namespace state_manager_node
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
                 state_data.waypoint_index = 1;
-                ROS_INFO_STREAM("[State manager][Exploration] visit_waypoints");
-                ROS_INFO_STREAM("[State manager]            [Follow path] init");
+#ifdef SAVE_LOG
+            log_file << "[State manager][Exploration] visit_waypoints 3" << std::endl;
+            log_file << "[State manager]            [Follow path] init" << std::endl;
+#endif
             }
             else
             {
@@ -238,11 +244,14 @@ namespace state_manager_node
         }
     }
 
-    void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg){
+    void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg)
+    {
         if(msg->frontiers_found == 0)
         {
             // TODO - go back to base and land
-            ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
+#ifdef SAVE_LOG
+            log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
+#endif
             is_successfull_exploration = true;
             state_data.exploration_state = finished_exploring;
         }
@@ -251,8 +260,9 @@ namespace state_manager_node
             state_data.frontier_request_id = msg->request_id;
             state_data.exploration_state = choosing_goal;
             state_data.frontiers_msg = *msg;
-            ROS_INFO_STREAM("[State manager][Exploration] choosing_goal from " << msg->frontiers_found << " frontiers.");
-
+#ifdef SAVE_LOG
+            log_file << "[State manager][Exploration] choosing_goal from " << msg->frontiers_found << " frontiers." << std::endl;
+#endif
             if(get_current_frontier().x < geofence_min.x() 
                 || get_current_frontier().y < geofence_min.y() 
                 || get_current_frontier().x < geofence_min.y() 
@@ -291,11 +301,15 @@ namespace state_manager_node
                 if(askPositionServiceCall(get_current_waypoint()))
                 {
                     state_data.follow_path_state = on_route;
-                    ROS_INFO_STREAM("[State manager]            [Path follow] on_route to " << get_current_waypoint());
+#ifdef SAVE_LOG
+            log_file << "[State manager]            [Path follow] on_route to " << get_current_waypoint() << std::endl;
+#endif
                 }
                 else
                 {
-                    ROS_WARN_STREAM("[State manager] Failed to set next position. Going to keep trying.");
+#ifdef SAVE_LOG
+            log_file << "[State manager] Failed to set next position. Going to keep trying." << std::endl;
+#endif
                 }
                 break;
             }
@@ -320,9 +334,11 @@ namespace state_manager_node
                 if(state_data.ltstar_reply.waypoint_amount == state_data.waypoint_index+1)
                 {
                     // Reached Frontier
-                    ROS_INFO_STREAM("[State manager] Reached final waypoint (" << state_data.waypoint_index << ") of sequence " << state_data.frontier_request_id << ": " << get_current_waypoint());
+#ifdef SAVE_LOG
+            log_file << "[State manager] Reached final waypoint (" << state_data.waypoint_index << ") of sequence " << state_data.frontier_request_id << ": " << get_current_waypoint() << std::endl;
+            log_file << "[State manager]            [Path follow]  finished_sequence" << std::endl;
+#endif
                     state_data.follow_path_state = finished_sequence;
-                    ROS_INFO_STREAM("[State manager]            [Path follow]  finished_sequence");
                 }
                 else {
                     state_data.waypoint_index++;
@@ -349,14 +365,19 @@ namespace state_manager_node
                 state_data.frontier_request_id = state_data.frontiers_msg.request_id;
                 state_data.waypoint_index = -1;
                 state_data.frontier_index = i;
-                ROS_INFO_STREAM("[State manager] New frontier ("
+#ifdef SAVE_LOG
+            log_file << "[State manager] New frontier ("
                     <<get_current_frontier().x << ", "
                     <<get_current_frontier().y << ", "
-                    <<get_current_frontier().z << ") ");
+                    <<get_current_frontier().z << ") " << std::endl;
+#endif
                 rviz_interface::publish_frontier_marker(get_current_frontier(), true, marker_pub);
                 return true;
             }
         }
+#ifdef SAVE_LOG
+            log_file << "[State manager] Could not find an observable frontier." << std::endl;
+#endif
         ROS_INFO_STREAM("[State manager] Could not find an observable frontier.");
         return false;
     }
@@ -368,7 +389,9 @@ namespace state_manager_node
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
         state_data.exploration_state = clear_from_ground;
-        ROS_INFO_STREAM("[State manager][Exploration] clear_from_ground");
+#ifdef SAVE_LOG
+            log_file << "[State manager][Exploration] clear_from_ground" << std::endl;
+#endif
     }
 
     void init_param_variables(ros::NodeHandle& nh)
@@ -425,10 +448,11 @@ namespace state_manager_node
                     waypoint.z = 4;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     state_data.frontiers_msg.frontiers_found = 1;
-                    
                     state_data.ltstar_reply.waypoint_amount = 2;
-                    ROS_INFO_STREAM("[State manager][Exploration] visit_waypoints");
-                    ROS_INFO_STREAM("[State manager]            [Follow path] init");
+#ifdef SAVE_LOG
+                    log_file << "[State manager][Exploration] visit_waypoints 2" << std::endl;
+                    log_file << "[State manager]            [Follow path] init" << std::endl;
+#endif
                 }
 
                 break;
@@ -457,12 +481,16 @@ namespace state_manager_node
                 if(chooseFrontier()) 
                 {
                     state_data.exploration_state = generating_path;
-                    ROS_INFO_STREAM("[State manager][Exploration] generating_path");
+#ifdef SAVE_LOG
+                    log_file << "[State manager][Exploration] generating_path" << std::endl;
+#endif
                 }
                 else
                 {
-                    ROS_ERROR_STREAM("[State manager] Huston, we have a problem - all " 
-                        << state_data.frontiers_msg.frontiers_found << " frontiers are unobservable.");
+#ifdef SAVE_LOG
+                    log_file << "[State manager] Huston, we have a problem - all " 
+                        << state_data.frontiers_msg.frontiers_found << " frontiers are unobservable." << std::endl;
+#endif
                     state_data.exploration_state = finished_exploring;                
                 }
 
@@ -507,7 +535,9 @@ namespace state_manager_node
                     state_data.unobservable_set.insert(unreachable);
                     state_data.exploration_state = choosing_goal;
                     state_data.waypoint_index = -1;
-                    ROS_INFO_STREAM("[State manager][Exploration] choosing_goal (No response from Lazy Theta Star)");
+#ifdef SAVE_LOG
+                    log_file << "[State manager][Exploration] choosing_goal (No response from Lazy Theta Star)" << std::endl;
+#endif
                 }
                 break;
             }
@@ -517,7 +547,9 @@ namespace state_manager_node
                 if (state_data.follow_path_state == finished_sequence)
                 {
                     state_data.exploration_state = gather_data_maneuver;
-                    ROS_INFO_STREAM("[State manager][Exploration] gather_data_maneuver");
+#ifdef SAVE_LOG
+                    log_file << "[State manager][Exploration] gather_data_maneuver" << std::endl;
+#endif
                 }
                 break;
             }
@@ -572,6 +604,10 @@ namespace state_manager_node
             csv_file << millis.count() << "," << volume_meters << "," << is_successfull_exploration << std::endl; 
             csv_file.close();
 #endif
+
+#ifdef SAVE_LOG
+    state_manager_node::log_file.close();
+#endif
         }
     }
 }
@@ -608,6 +644,9 @@ int main(int argc, char **argv)
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
     state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("geofence", 1);
 
+#ifdef SAVE_LOG
+    state_manager_node::log_file.open ("/ros_ws/src/data/current/state_manager.log", std::ofstream::app);
+#endif
     state_manager_node::init_state_variables(state_manager_node::state_data);
 
 #ifdef SAVE_CSV
@@ -615,7 +654,8 @@ int main(int argc, char **argv)
     csv_file.open ("/ros_ws/src/data/exploration_time.csv", std::ofstream::app);
     // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
     csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
-    csv_file.close();state_manager_node::start = std::chrono::high_resolution_clock::now();
+    csv_file.close();
+    state_manager_node::start = std::chrono::high_resolution_clock::now();
 #endif
     state_manager_node::timer = nh.createTimer(ros::Duration(1), state_manager_node::main_loop);
     ros::spin();
