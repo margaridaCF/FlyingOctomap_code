@@ -207,11 +207,6 @@ namespace Frontiers{
             ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position);
             return false; // below navigation precision
         }
-        if(LazyThetaStarOctree::getCellCenter(candidate, octree) == LazyThetaStarOctree::getCellCenter(current_position, octree) )
-        {
-            ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because start and end in same voxel");
-            return false;
-        }
         if(isFrontierTooCloseToObstacles(candidate, safety_distance, octree, marker_pub, publish))
         {
             // ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because goal is too close to obstacles");
