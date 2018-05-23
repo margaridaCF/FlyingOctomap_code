@@ -1,7 +1,11 @@
 #include <frontiers.h>
 #include <neighbors.h>
 
+#define SAVE_LOG 1
+
 namespace Frontiers{
+
+    std::ofstream log_file;
 
     void calculate_closer_position(octomath::Vector3 & sensing_position, octomath::Vector3 const& n_coordinates, double const safety_margin)
     {
@@ -11,9 +15,9 @@ namespace Frontiers{
         sensing_position = n_coordinates + sensing_position;
     }
 
-    bool isCenterGoodGoal(double voxel_side, double sensing_distance)
+    bool isCenterGoodGoal(double voxel_side, double octree_resolution, double sensing_distance)
     {
-        return (voxel_side/sensing_distance) <= 1;
+        return voxel_side/2 + octree_resolution/2 < sensing_distance ;
     }
 
     bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
@@ -59,7 +63,7 @@ namespace Frontiers{
         // octomath::Vector3 bbxMax (currentVoxel.x, currentVoxel.y, currentVoxel.z);
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount)
         {
-            bool use_center_as_goal = isCenterGoodGoal(it.getSize(), request.sensing_distance);
+            bool use_center_as_goal = isCenterGoodGoal(it.getSize(), resolution, request.sensing_distance);
             octomath::Vector3 coord = it.getCoordinate();
             currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
@@ -80,7 +84,7 @@ namespace Frontiers{
                         rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
                         if(!isExplored(*n_coordinates, octree))
                         {
-                            ROS_WARN_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << ". Unknown neighbor is " << *n_coordinates);
+                            ROS_INFO_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << ". Unknown neighbor is " << *n_coordinates);
                             is_frontier = true;
                             frontiers_msgs::VoxelMsg voxel_msg;
                             voxel_msg.size = currentVoxel.size;
@@ -88,7 +92,7 @@ namespace Frontiers{
                             {
                                 ROS_WARN_STREAM("neighbor " << *n_coordinates);
                                 ROS_WARN_STREAM(grid_coordinates_curr << " has size of " << it.getSize() << " sensing range is only " << request.sensing_distance);
-                                calculate_closer_position(grid_coordinates_curr, *n_coordinates, (currentVoxel.size/2) + (resolution/10) );
+                                calculate_closer_position(grid_coordinates_curr, *n_coordinates, request.sensing_distance );
                                 ROS_WARN_STREAM(" changed to " << grid_coordinates_curr);
                             }
                             voxel_msg.xyz_m.x = grid_coordinates_curr.x();
@@ -112,7 +116,9 @@ namespace Frontiers{
         }
         reply.frontiers_found = frontiers_count;
         reply.success = true;
-        // log.close();
+#ifdef SAVE_LOG
+        log_file.close();
+#endif
         return reply.success;
     }
 
@@ -216,6 +222,9 @@ namespace Frontiers{
 
     bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate) 
     {
+#ifdef SAVE_LOG
+        log_file.open ("/ros_ws/src/data/current/frontiers.log", std::ofstream::app);
+#endif
         double resolution = octree.getResolution(); 
         int tree_depth = octree.getTreeDepth(); 
         octomap::OcTreeKey key = octree.coordToKey(candidate); 
@@ -233,16 +242,25 @@ namespace Frontiers{
             LazyThetaStarOctree::generateNeighbors_pointers(neighbors, cell_center, voxel_size, resolution);
             for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
             {
+#ifdef SAVE_LOG
+                log_file << "[isFrontier] Neighbor " << *n_coordinates << std::endl;
+#endif
                 if(!isOccupied(*n_coordinates, octree))
                 {
                     if(!isExplored(*n_coordinates, octree))
                     {
-                        ROS_WARN_STREAM("[isFrontier] Unknown neighbor is " << *n_coordinates);
+#ifdef SAVE_LOG
+                        log_file << "[isFrontier] Unknown neighbor is " << *n_coordinates << std::endl;
+#endif
+                        ROS_ERROR_STREAM("[isFrontier] Unknown neighbor is " << *n_coordinates);
                         is_frontier = true;
                     }
                 }
             }
         }
+#ifdef SAVE_LOG
+        log_file.close();
+#endif
         return is_frontier;
     }
 }

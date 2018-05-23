@@ -859,6 +859,7 @@ namespace LazyThetaStarOctree{
 			// 	ROS_WARN_STREAM( "Closed node: " << it->second << ": " << *(it->second) << ": " << *(it->second->parentNode) );
 			// }
 			// return the found path 
+			path.push_front( disc_final );
 			extractPath(path, *disc_initial_cell_center, *solution_end_node, print_resulting_path);
 		}
 		if(path.size() == 1)

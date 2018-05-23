@@ -68,7 +68,7 @@ namespace state_manager_node
 
     // TODO - transform this into parameters at some point
     double px4_loiter_radius;
-    double laser_max_range;
+    double laser_range_xy;
     double odometry_error;
     double safety_margin = 3;
     double error_margin;
@@ -177,6 +177,9 @@ namespace state_manager_node
         request.goal.z = goal.z();
         request.max_search_iterations = max_search_iterations;
         request.safety_margin = ltstar_safety_margin;
+#ifdef SAVE_LOG
+        log_file << "[State manager] Requesting path " << request << std::endl;
+#endif
         ltstar_request_pub.publish(request);
         state_data.ltstar_request = request;
         rviz_interface::publish_start(request.start, marker_pub);
@@ -197,8 +200,11 @@ namespace state_manager_node
         request.safety_margin = safety_margin;
         request.frontier_amount = state_data.unobservable_set.size()+1;
         request.min_distance = px4_loiter_radius;
-        request.sensing_distance = laser_max_range;
+        request.sensing_distance = laser_range_xy;
         while(!getUavPositionServiceCall(request.current_position));
+#ifdef SAVE_LOG
+        log_file << "[State manager] Requesting frontier " << request << std::endl;
+#endif
         frontier_request_pub.publish(request);
         state_data.frontier_request_count++;
     }
@@ -241,8 +247,9 @@ namespace state_manager_node
                 state_data.exploration_state = visit_waypoints;
                 state_data.waypoint_index = 1;
 #ifdef SAVE_LOG
-            log_file << "[State manager][Exploration] visit_waypoints 3" << std::endl;
-            log_file << "[State manager]            [Follow path] init" << std::endl;
+                log_file << "[State manager] Path reply " << *msg << std::endl;
+                log_file << "[State manager][Exploration] visit_waypoints 3" << std::endl;
+                log_file << "[State manager]            [Follow path] init" << std::endl;
 #endif
             }
             else
@@ -276,6 +283,7 @@ namespace state_manager_node
             state_data.exploration_state = choosing_goal;
             state_data.frontiers_msg = *msg;
 #ifdef SAVE_LOG
+            log_file << "[State manager]Frontier reply " << *msg << std::endl;
             log_file << "[State manager][Exploration] choosing_goal from " << msg->frontiers_found << " frontiers." << std::endl;
 #endif
             if(get_current_frontier().x < geofence_min.x() 
@@ -415,7 +423,12 @@ namespace state_manager_node
         nh.getParam("exploration_maneuver_duration_secs", temp);
         exploration_maneuver_duration_secs = ros::Duration(temp);
         nh.getParam("px4_loiter_radius", px4_loiter_radius);
-        nh.getParam("laser_max_range", laser_max_range);
+        double laser_range;
+        nh.getParam("laser_range", laser_range);
+        double laser_angle;
+        nh.getParam("laser_angle", laser_angle);
+        laser_range_xy = std::cos(laser_angle)*laser_range;
+        ROS_INFO_STREAM("[architecture] Laser xy range: " << laser_range_xy);
         nh.getParam("odometry_error", odometry_error);
         nh.getParam("safety_margin", safety_margin);
         error_margin = std::max(px4_loiter_radius, odometry_error);
@@ -588,6 +601,9 @@ namespace state_manager_node
                         if(is_frontier)
                         {
                             ROS_ERROR_STREAM("[State manager] " << get_current_frontier() << " is still a frontier.");
+#ifdef SAVE_LOG
+                            log_file << "[State manager] " << get_current_frontier() << " is still a frontier." << std::endl;
+#endif
                         }
                     }
                 }

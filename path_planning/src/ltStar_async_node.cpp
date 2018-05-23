@@ -77,8 +77,12 @@ namespace LazyThetaStarOctree
 	        octomap::OcTreeKey key = octree->coordToKey(candidate);
 	        double depth = getNodeDepth_Octomap(key, *octree);
 	        double side_length = findSideLenght(*octree, depth);
-	        rviz_interface::build_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i, marker_temp);
-	        waypoint_array.markers.push_back( marker_temp );
+	        octomath::Vector3 cell_center = octree->keyToCoord(key, depth);
+	        if( cell_center.distance(candidate) < 0.001 )
+	        {
+		        rviz_interface::build_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i, marker_temp);
+		        waypoint_array.markers.push_back( marker_temp );
+	        }
 	        if(i !=0)
 	        {
 
