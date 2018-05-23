@@ -274,6 +274,7 @@ namespace state_manager_node
 #ifdef SAVE_LOG
             log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
 #endif
+            ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
             is_successfull_exploration = true;
             state_data.exploration_state = finished_exploring;
         }
