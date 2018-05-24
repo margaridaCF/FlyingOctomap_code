@@ -400,7 +400,7 @@ namespace state_manager_node
             }
         }
 #ifdef SAVE_LOG
-            log_file << "[State manager] Could not find an observable frontier." << std::endl;
+            log_file << "[State manager] Among the frontiers supplied, all are unobservable." << std::endl;
 #endif
         ROS_INFO_STREAM("[State manager] Could not find an observable frontier.");
         return false;

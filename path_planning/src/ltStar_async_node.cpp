@@ -35,10 +35,10 @@ namespace LazyThetaStarOctree
 		reply.success = false;
 		if(octomap_init)
 		{
-			std::stringstream ss;
-			ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
-				<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
-			octree->writeBinary(ss.str());
+			// std::stringstream ss;
+			// ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
+			// 	<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
+			// octree->writeBinary(ss.str());
 			// ROS_INFO_STREAM("[LTStar] Request message " << *path_request);
 			// if(path_request->request_id > 5)
 			// {
