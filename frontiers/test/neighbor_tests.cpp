@@ -944,6 +944,28 @@ namespace LazyThetaStarOctree{
 			EXPECT_FALSE(cell_center== *(point) );
 		}
 	}
+
+	TEST(WIPFrontiersTest, Test_isInsideBlindR_in)
+	{
+		double n_x = 0; 
+		double n_y = 0.1; 
+		double c_x = 0; 
+		double c_y = 0;
+		double z = 1;
+		double blind_r = z / std::tan(0.349066);
+		ASSERT_TRUE(LazyThetaStarOctree::isInsideBlindR( n_x,  n_y,  c_x,  c_y, blind_r));
+	}
+
+	TEST(WIPFrontiersTest, Test_isInsideBlindR_out)
+	{
+		double n_x = 10; 
+		double n_y = 10; 
+		double c_x = 0; 
+		double c_y = 0;
+		double z = 1;
+		double blind_r = z / std::tan(0.349066);
+		ASSERT_FALSE(LazyThetaStarOctree::isInsideBlindR( n_x,  n_y,  c_x,  c_y, blind_r));
+	}
 }
 
 int main(int argc, char **argv){

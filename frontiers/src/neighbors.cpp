@@ -75,6 +75,25 @@ namespace LazyThetaStarOctree{
         }
 	}
 
+    double distanceCalculate(double x1, double y1, double x2, double y2)
+    {
+        double x = x1 - x2; //calculating number to square in next step
+        double y = y1 - y2;
+        double dist;
+
+        dist = pow(x, 2) + pow(y, 2);       //calculating Euclidean distance
+        dist = sqrt(dist);                  
+
+        return dist;
+    }
+
+    bool isInsideBlindR(double n_x, double n_y, double c_x, double c_y, double blind_perimeter)
+    {
+        double distance = distanceCalculate(n_x, n_y, c_x, c_y);
+        // ROS_WARN_STREAM("[neighbors] (" << n_x << ", " << n_y << ") - distance " << distance << " < " << blind_perimeter << " (blind_perimeter)");
+        return distance < blind_perimeter;
+    }
+
     void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, bool is3d/* = true*/, bool debug_on/* = false*/)
@@ -82,7 +101,6 @@ namespace LazyThetaStarOctree{
         int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         
         int i;
-        // int neighbor_index = 0;
         float extra = resolution / 2.f;     
 
         float x_start  = center_coords.x() - frontier_offset + extra;
@@ -108,6 +126,8 @@ namespace LazyThetaStarOctree{
         }
 
 
+        double blind_perimeter = (frontier_offset + extra) / std::tan(1.0472);
+
         // optimized
         octomath::Vector3* toInsert;
         bool isInserted;
@@ -125,12 +145,17 @@ namespace LazyThetaStarOctree{
                 addIfUnique(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution));
 
                 if(is3d) {
-                    // Up Down
-                    addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
-                    addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
-                }
+                    // No neighbors in blind spot
+                    double n_x = x_start + (i * resolution);
+                    double n_y = y_start + (j * resolution);
 
-                // neighbor_index++;
+                    if(!isInsideBlindR(n_x, n_y, center_coords.x(), center_coords.y(), blind_perimeter))
+                    {
+                        // Up Down
+                        addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
+                        addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
+                    }
+                }
             }
         }
     }
