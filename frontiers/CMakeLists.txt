@@ -35,6 +35,9 @@ cs_add_library(frontiers_lib src/frontiers.cpp)
 cs_add_executable(frontiers_async_node src/frontiers_async_node.cpp)
 target_link_libraries(frontiers_async_node frontiers_lib neighbors)
 
+cs_add_executable(frontiers_debug_node src/frontiers_debug_node.cpp)
+target_link_libraries(frontiers_debug_node frontiers_lib neighbors)
+
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
 
@@ -49,23 +52,22 @@ cs_export()
 if(CATKIN_ENABLE_TESTING)
   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
-
-  ## Frontiers @ work in progress ##
-  catkin_add_gtest(workInProgress_frontiers 
-    test/work_in_progress_frontiers_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress_frontiers ${catkin_LIBRARIES} frontiers_lib neighbors)
+  # ## Frontiers @ work in progress ##
+  # catkin_add_gtest(workInProgress_frontiers 
+  #   test/work_in_progress_frontiers_tests.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(workInProgress_frontiers ${catkin_LIBRARIES} frontiers_lib neighbors)
 
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # ## Octree @ neighbors ##
-  catkin_add_gtest(neighborTests 
-    test/neighbor_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(neighborTests ${catkin_LIBRARIES} frontiers_lib neighbors)
-  catkin_add_gtest(frontiers_tests 
-    test/frontier_lib_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
+  # # ## Octree @ neighbors ##
+  # catkin_add_gtest(neighborTests 
+  #   test/neighbor_tests.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(neighborTests ${catkin_LIBRARIES} frontiers_lib neighbors)
+  # catkin_add_gtest(frontiers_tests 
+  #   test/frontier_lib_tests.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
 
 endif()
 
