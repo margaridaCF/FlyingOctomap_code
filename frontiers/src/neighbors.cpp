@@ -96,7 +96,7 @@ namespace LazyThetaStarOctree{
 
     void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
         octomath::Vector3 const& center_coords, 
-        float node_size, float resolution, bool is3d/* = true*/, bool debug_on/* = false*/)
+        float node_size, float resolution, double sensor_angle_rad, bool is3d/* = true*/, bool debug_on/* = false*/)
     {
         int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         
@@ -126,7 +126,7 @@ namespace LazyThetaStarOctree{
         }
 
 
-        double blind_perimeter = (frontier_offset + extra) / std::tan(1.0472);
+        double blind_perimeter = (frontier_offset + extra) / std::tan(sensor_angle_rad);
 
         // optimized
         octomath::Vector3* toInsert;

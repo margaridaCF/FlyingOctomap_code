@@ -9,10 +9,11 @@ namespace frontiers_debug_node
 	ros::Publisher marker_pub;
 	void neighbor_callback (const frontiers_msgs::VoxelMsg::ConstPtr& voxel)
 	{
+		double sensor_angle_rad = 1.0472;
 		std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
 		octomath::Vector3 center_coords(voxel->xyz_m.x, voxel->xyz_m.y, voxel->xyz_m.z);
 		float resolution = 0.5;
-		LazyThetaStarOctree::generateNeighbors_frontiers_pointers( neighbors, center_coords, voxel->size, resolution);
+		LazyThetaStarOctree::generateNeighbors_frontiers_pointers( neighbors, center_coords, voxel->size, resolution, sensor_angle_rad);
 		visualization_msgs::MarkerArray marker_array;
 		rviz_interface::build_neighbor_array(neighbors, marker_array);
 

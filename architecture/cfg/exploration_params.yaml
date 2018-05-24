@@ -3,7 +3,7 @@ exploration_maneuver_phases_duration_secs: 5
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
 laser_range: 6
-laser_angle: 0.872665
+laser_angle: 1.0472
 
 odometry_error: 0
 

@@ -4,6 +4,7 @@
 
 namespace Frontiers
 {
+	// This might be affected because of blind spot calculation, put in 90º angle which is the closest to no blind spot
 	void checkFrontiers(octomap::OcTree& octree, frontiers_msgs::FrontierRequest& request, frontiers_msgs::FrontierReply& reply)
 	{
 		// MetaData
@@ -14,7 +15,7 @@ namespace Frontiers
 		ASSERT_LE(reply.frontiers_found, static_cast<int16_t>(request.frontier_amount) );
 		for (int i = 0; i < reply.frontiers_found; ++i)
 		{
-			ASSERT_TRUE(isFrontier(octree, octomath::Vector3 (reply.frontiers[i].xyz_m.x, reply.frontiers[i].xyz_m.y, reply.frontiers[i].xyz_m.z) )   );
+			ASSERT_TRUE(isFrontier(octree, octomath::Vector3 (reply.frontiers[i].xyz_m.x, reply.frontiers[i].xyz_m.y, reply.frontiers[i].xyz_m.z), 1.5708 )   );
 			ASSERT_LE(reply.frontiers[i].xyz_m.x, request.max.x+octree.getResolution());
 			ASSERT_LE(reply.frontiers[i].xyz_m.y, request.max.y+octree.getResolution());
 			ASSERT_LE(reply.frontiers[i].xyz_m.z, request.max.z+octree.getResolution());
@@ -125,12 +126,12 @@ namespace Frontiers
 	}
 
 
-	TEST(FrontiersTest, Test_is_frontiers_on_unknown)
+	TEST(FrontiersTest, Test_is_frontiers_on_unknown)	// This might be affected due to blind spot calculation, put in 90º angle which is the closest to no blind spot
 	{
 		octomap::OcTree octree ("data/experimentalDataset.bt");
 
-		ASSERT_TRUE(   isFrontier( octree, octomath::Vector3 (0, 1, 1.85) )   );
-		ASSERT_FALSE(   isFrontier( octree, octomath::Vector3 (1.50, 0.5, 0) )   );
+		ASSERT_TRUE(   isFrontier( octree, octomath::Vector3 (0, 1, 1.85) ), 1.5708   );
+		ASSERT_FALSE(   isFrontier( octree, octomath::Vector3 (1.50, 0.5, 0) ), 1.5708   );
 	}
 
 	// TEST(FrontiersTest, Test_no_frontiers_velodyne) // failing - did not solve yet

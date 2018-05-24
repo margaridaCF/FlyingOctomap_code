@@ -83,7 +83,7 @@ namespace Frontiers{
 #endif
                 // Generate neighbors
                 std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-                LazyThetaStarOctree::generateNeighbors_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution);
+                LazyThetaStarOctree::generateNeighbors_frontiers_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution, request.sensor_angle);
                 for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
                 {
                     if(!isOccupied(*n_coordinates, octree))
@@ -263,7 +263,7 @@ namespace Frontiers{
         return true;
     }
 
-    bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate) 
+    bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate, double sensor_angle) 
     {
         double resolution = octree.getResolution(); 
         int tree_depth = octree.getTreeDepth(); 
@@ -284,7 +284,7 @@ namespace Frontiers{
         {
             // Generate neighbors
             std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-            LazyThetaStarOctree::generateNeighbors_pointers(neighbors, cell_center, voxel_size, resolution);
+            LazyThetaStarOctree::generateNeighbors_frontiers_pointers(neighbors, cell_center, voxel_size, resolution, sensor_angle);
             for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
             {
                 if(!isOccupied(*n_coordinates, octree))
