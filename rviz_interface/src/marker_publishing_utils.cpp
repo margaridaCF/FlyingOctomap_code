@@ -584,4 +584,37 @@ namespace rviz_interface
         
         marker.lifetime = ros::Duration();
     }
+
+    void build_neighbor_array(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, visualization_msgs::MarkerArray & marker_array)
+    {
+        visualization_msgs::Marker marker;
+        int id = 6000;
+        for (std::unordered_set<std::shared_ptr<octomath::Vector3>>::iterator i = neighbors.begin(); i != neighbors.end(); ++i)
+        {
+            double size = 0.5;
+            // Set the frame ID and timestamp.  See the TF tutorials for information on these.
+            marker.header.frame_id = "/map";
+            marker.header.stamp = ros::Time::now();
+            marker.ns = "neighbor";
+            marker.id =  id;
+            marker.type = visualization_msgs::Marker::CUBE;
+            marker.action = visualization_msgs::Marker::ADD;
+            marker.pose.position.x = (*i)->x();
+            marker.pose.position.y = (*i)->y();
+            marker.pose.position.z = (*i)->z();
+            marker.pose.orientation.w = 1.0;
+            marker.scale.x = size;
+            marker.scale.y = size;
+            marker.scale.z = size;
+            marker.color.r = 0.9f;
+            marker.color.g = 0.4;
+            marker.color.b = 1.0f;
+            // ROS_WARN_STREAM("[RVIZ PUB] color " << marker.pose.position.x << ", " << marker.pose.position.y << ", " << marker.pose.position.z );
+            marker.color.a = 0.8;
+            
+            marker.lifetime = ros::Duration();
+            marker_array.markers.push_back(marker);
+            id++;
+        }
+    }
 }

@@ -7,6 +7,7 @@
 #include <geometry_msgs/Point.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <unordered_set>
 
 namespace rviz_interface
 {
@@ -34,6 +35,7 @@ namespace rviz_interface
 	void publish_sensing_position(octomath::Vector3 const& position, ros::Publisher const& marker_pub);
 	void publish_start_voxel(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
 	void publish_goal_voxel(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
+	void build_neighbor_array(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, visualization_msgs::MarkerArray & marker_array);
 }
 
 
