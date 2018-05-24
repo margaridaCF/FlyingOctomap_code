@@ -482,6 +482,9 @@ namespace LazyThetaStarOctree{
 	 */
 	bool extractPath(std::list<octomath::Vector3> & path, ThetaStarNode const& start, ThetaStarNode & end, bool writeToFile)
 	{
+		bool success = true;
+		std::ofstream pathWaypoints;
+        pathWaypoints.open (folder_name + "/final_path.txt", std::ofstream::out | std::ofstream::app);
 		std::shared_ptr<ThetaStarNode> current = std::make_shared<ThetaStarNode>(end);
 		std::shared_ptr<ThetaStarNode> parentAdd;
 		int safety_count = 0;
@@ -499,7 +502,8 @@ namespace LazyThetaStarOctree{
 			path.push_front( *(current->coordinates) );
 			if(writeToFile)
 			{
-				writeToFileWaypoint(*(current->coordinates), current->cell_size, folder_name + "/final_path.txt");
+				// writeToFileWaypoint(*(current->coordinates), current->cell_size, folder_name + "/final_path.txt");
+        		pathWaypoints << std::setprecision(5) << current->coordinates->x() << ", " << current->coordinates->y() << ", " << current->coordinates->z() << ", " << current->cell_size << std::endl;
 			}
 			parentAdd = current->parentNode;
 			current = parentAdd;
@@ -507,15 +511,19 @@ namespace LazyThetaStarOctree{
 			if(safety_count >= max_steps_count)
 			{
 				ROS_ERROR_STREAM("Possible recursion in generated path detected while extracted path. Full path trunkated at node "<< max_steps_count);
-				return false;
+				success = false;
+				break;
 			}
 		}
 		path.push_front( *(current->coordinates) );
 		if(writeToFile)
 		{
-			writeToFileWaypoint(*(current->coordinates), current->cell_size, folder_name + "/final_path.txt");
+        	pathWaypoints << std::setprecision(5) << current->coordinates->x() << ", " << current->coordinates->y() << ", " << current->coordinates->z() << ", " << current->cell_size << std::endl;
+			// writeToFileWaypoint(*(current->coordinates), current->cell_size, folder_name + "/final_path.txt");
 		}
-		return true;
+        pathWaypoints << std::endl;
+		pathWaypoints.close();
+		return success;
 	}
 
 	/**
