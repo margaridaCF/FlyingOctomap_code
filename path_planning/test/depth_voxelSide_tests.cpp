@@ -315,14 +315,16 @@ namespace LazyThetaStarOctree{
 
 	TEST(DepthSizeTest, ReverseNormalizedLineOfSight)
 	{
+		ros::Publisher marker_pub;
 		double cell_size = 0;
+		double safety_margin = 0;
 	    octomath::Vector3 p1(0.7, 3.1, 1.3); 
 	    octomath::Vector3 p2(0.7, 2.9, 1.3); 
 	    std::shared_ptr<octomath::Vector3> p1_ptr = std::make_shared<octomath::Vector3>(p1);
 	    std::shared_ptr<octomath::Vector3> p2_ptr = std::make_shared<octomath::Vector3>(p2);
-		octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
-		bool line_of_sight_A = normalizeToVisibleEndCenter(octree, p1_ptr, p2_ptr, cell_size);
-		bool line_of_sight_B = normalizeToVisibleEndCenter(octree, p2_ptr, p1_ptr, cell_size);
+		octomap::OcTree octree ("data/run_2.bt");
+		bool line_of_sight_A = normalizeToVisibleEndCenter(octree, p1_ptr, p2_ptr, cell_size, safety_margin, marker_pub);
+		bool line_of_sight_B = normalizeToVisibleEndCenter(octree, p2_ptr, p1_ptr, cell_size, safety_margin, marker_pub);
 		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
 	}
 
@@ -331,7 +333,7 @@ namespace LazyThetaStarOctree{
 	{
 	    octomath::Vector3 p1(0.7, 3.1, 1.3); 
 	    octomath::Vector3 p2(0.7, 2.9, 1.3); 
-		octomap::OcTree octree ("/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt");
+		octomap::OcTree octree ("data/run_2.bt");
 
 		auto res_node = octree.search(p1);
 		// if(res_node == NULL)

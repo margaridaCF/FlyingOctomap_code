@@ -277,7 +277,7 @@ namespace LazyThetaStarOctree{
 	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 1000);
 	}
 
-	TEST(LazyThetaStarTests, LazyThetaStar_throughWall)
+	TEST(LazyThetaStarTests, LazyThetaStar_avoidWall)
 	{
 		ros::Publisher marker_pub;
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
@@ -295,7 +295,7 @@ namespace LazyThetaStarOctree{
 		request.safety_margin = 1;
 		path_planning_msgs::LTStarReply reply;
 		processLTStarRequest(octree, request, reply, marker_pub);
-		ASSERT_FALSE(reply.success);
+		ASSERT_TRUE(reply.success);
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 	}
 
