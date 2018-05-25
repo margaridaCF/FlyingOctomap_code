@@ -35,11 +35,11 @@ namespace LazyThetaStarOctree
 		reply.success = false;
 		if(octomap_init)
 		{
-			std::stringstream ss;
-			ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
-				<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
-			octree->writeBinary(ss.str());
-			ROS_WARN_STREAM("[LTStar] Request message " << *path_request);
+			// std::stringstream ss;
+			// ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
+			// 	<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
+			// octree->writeBinary(ss.str());
+			// ROS_INFO_STREAM("[LTStar] Request message " << *path_request);
 			// if(path_request->request_id > 5)
 			// {
 			// 	publish_free_corridor_arrows = true;
@@ -52,8 +52,9 @@ namespace LazyThetaStarOctree
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
-				ROS_ERROR_STREAM("[LTStar] Reply " << reply);
 			}
+			// ROS_INFO_STREAM("[LTStar] Reply " << reply);
+
 			// octree->writeBinary(folder_name + "/octree_after_processing_request.bt");
 		}
 		else
@@ -76,8 +77,12 @@ namespace LazyThetaStarOctree
 	        octomap::OcTreeKey key = octree->coordToKey(candidate);
 	        double depth = getNodeDepth_Octomap(key, *octree);
 	        double side_length = findSideLenght(*octree, depth);
-	        rviz_interface::build_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i, marker_temp);
-	        waypoint_array.markers.push_back( marker_temp );
+	        octomath::Vector3 cell_center = octree->keyToCoord(key, depth);
+	        if( cell_center.distance(candidate) < 0.001 )
+	        {
+		        rviz_interface::build_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i, marker_temp);
+		        waypoint_array.markers.push_back( marker_temp );
+	        }
 	        if(i !=0)
 	        {
 

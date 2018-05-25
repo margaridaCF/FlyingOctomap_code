@@ -4,6 +4,7 @@ project(path_planning)
 add_definitions(-std=c++11 )
 set(CMAKE_BUILD_TYPE Debug)
 
+find_package(Boost REQUIRED)
 find_package(catkin_simple REQUIRED)
 
 ###########
@@ -63,7 +64,7 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(collectResults ${catkin_LIBRARIES} )
 
-  ## Octree @ work in progress ##
+  # ## Octree @ work in progress ##
   catkin_add_gtest(workInProgress 
     test/work_in_progress_test.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
@@ -73,24 +74,24 @@ if (CATKIN_ENABLE_TESTING)
   # catkin_add_gtest(depthSizeTest 
   #   test/depth_voxelSide_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(depthSizeTest ${catkin_LIBRARIES} )
+  # target_link_libraries(depthSizeTest ${catkin_LIBRARIES} ltStar_lib)
 
 
-  # ## Lazy Theta Star @ open ##
-  # catkin_add_gtest(openTests 
-  #   test/open_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(openTests ${catkin_LIBRARIES} )
+  ## Lazy Theta Star @ open ##
+  catkin_add_gtest(openTests 
+    test/open_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(openTests ${catkin_LIBRARIES} ltStar_lib)
 
   # # Lazy Theta Star ##
-  # catkin_add_gtest(ltstarTests 
-  #   test/lazyTheta_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarTests ${catkin_LIBRARIES} ltStar_lib)
-  # catkin_add_gtest(ltstarTestsFixture 
-  #   test/lazyTheta_tests_Fixture.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
+  catkin_add_gtest(ltstarTests 
+    test/lazyTheta_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarTests ${catkin_LIBRARIES} ltStar_lib)
+  catkin_add_gtest(ltstarTestsFixture 
+    test/lazyTheta_tests_Fixture.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
 
 endif()
 

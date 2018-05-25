@@ -2,7 +2,8 @@ exploration_maneuver_duration_secs: 11
 exploration_maneuver_phases_duration_secs: 5
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
-laser_max_range: 10
+laser_range: 6
+laser_angle: 1.0472
 
 odometry_error: 0
 
@@ -14,7 +15,7 @@ geofence_min/z: 1
 
 geofence_max/x: 12
 geofence_max/y: 20
-geofence_max/z: 4
+geofence_max/z: 14
 
 path/max_search_iterations: 5000
 path/max_cycles_waited_for_path: 50

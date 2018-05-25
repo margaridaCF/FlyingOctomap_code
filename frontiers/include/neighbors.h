@@ -16,7 +16,9 @@ namespace LazyThetaStarOctree{
 	void generateNeighbors_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
 		octomath::Vector3 const& center_coords, 
 		float node_size, float resolution, bool is3d = true, bool debug_on = false);
-
+    void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution, double sensor_angle_rad, bool is3d = true, bool debug_on = false);
 
     // Other way to find the depth based on the search code of the octree
     int getNodeDepth_Octomap (const octomap::OcTreeKey& key, 
@@ -55,5 +57,6 @@ namespace LazyThetaStarOctree{
 	void findDifferentSizeCells_ptr_3D(octomap::OcTree const& octree);
 
     double calculateCellSpace(octomap::OcTree const& octree);
+    bool isInsideBlindR(double n_x, double n_y, double c_x, double c_y, double blind_perimeter);
 }
 #endif // NEIGHBORS_H

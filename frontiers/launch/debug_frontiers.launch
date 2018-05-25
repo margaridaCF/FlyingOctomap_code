@@ -40,7 +40,7 @@
     </node> -->
     <!-- ########################################################################## --> 
   <!-- Lazy theta * --> 
-  <node pkg="path_planning" type="ltStar_debug_node" name="ltstar_printer" output="screen"/>
+  <node pkg="frontiers" type="frontiers_debug_node" name="frontiers_debug" output="screen"/>
   <!-- ########################################################################## -->
     <!-- Architecture nodes -->
 

@@ -75,6 +75,91 @@ namespace LazyThetaStarOctree{
         }
 	}
 
+    double distanceCalculate(double x1, double y1, double x2, double y2)
+    {
+        double x = x1 - x2; //calculating number to square in next step
+        double y = y1 - y2;
+        double dist;
+
+        dist = pow(x, 2) + pow(y, 2);       //calculating Euclidean distance
+        dist = sqrt(dist);                  
+
+        return dist;
+    }
+
+    bool isInsideBlindR(double n_x, double n_y, double c_x, double c_y, double blind_perimeter)
+    {
+        double distance = distanceCalculate(n_x, n_y, c_x, c_y);
+        // ROS_WARN_STREAM("[neighbors] (" << n_x << ", " << n_y << ") - distance " << distance << " < " << blind_perimeter << " (blind_perimeter)");
+        return distance < blind_perimeter;
+    }
+
+    void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution, double sensor_angle_rad, bool is3d/* = true*/, bool debug_on/* = false*/)
+    {
+        int neighbor_sequence_cell_count = node_size / resolution;
+        float frontier_offset = (node_size/2.f);         
+        int i;
+        float extra = resolution / 2.f;     
+
+        float x_start  = center_coords.x() - frontier_offset + extra;
+        float y_start  = center_coords.y() - frontier_offset + extra;     
+        float z_start  = center_coords.z() - frontier_offset + extra;                      
+        // Left right
+        float right_x = center_coords.x() + frontier_offset + extra; 
+        float left_x  = center_coords.x() - frontier_offset - extra; 
+        // Front back
+        float front_y  = center_coords.y() + frontier_offset + extra; 
+        float back_y   = center_coords.y() - frontier_offset - extra; 
+        // Up down      
+        float up_z     = center_coords.z() + frontier_offset + extra; 
+        float down_z   = center_coords.z() - frontier_offset - extra;
+
+        
+        // 2d - 3d
+        int neighbor_sequence_cell_count_j = neighbor_sequence_cell_count;
+        if(!is3d)
+        {
+            neighbor_sequence_cell_count_j = 1;
+            z_start = center_coords.z();
+        }
+
+
+        double blind_perimeter = (frontier_offset + extra) / std::tan(sensor_angle_rad);
+
+        // optimized
+        octomath::Vector3* toInsert;
+        bool isInserted;
+        for(int i = 0; i < neighbor_sequence_cell_count; i++)
+        {
+            // int j = 0;
+            for(int j = 0; j < neighbor_sequence_cell_count_j; j++)
+            {
+                // Left Right
+                addIfUnique(neighbors, left_x,                      y_start + (i * resolution),  z_start + (j * resolution));
+                addIfUnique(neighbors, right_x,                     y_start + (i * resolution),  z_start + (j * resolution));
+
+                // Front Back
+                addIfUnique(neighbors, x_start + (i * resolution),  front_y,                     z_start + (j * resolution));
+                addIfUnique(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution));
+
+                if(is3d) {
+                    // No neighbors in blind spot
+                    double n_x = x_start + (i * resolution);
+                    double n_y = y_start + (j * resolution);
+
+                    if(!isInsideBlindR(n_x, n_y, center_coords.x(), center_coords.y(), blind_perimeter))
+                    {
+                        // Up Down
+                        addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
+                        addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
+                    }
+                }
+            }
+        }
+    }
+
 
     // Other way to find the depth based on the search code of the octree
     int getNodeDepth_Octomap (const octomap::OcTreeKey& key, 
