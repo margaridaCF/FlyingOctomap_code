@@ -945,7 +945,7 @@ namespace LazyThetaStarOctree{
 		}
 	}
 
-	TEST(WIPFrontiersTest, Test_isInsideBlindR_in)
+	TEST(OctreeNeighborTest, Test_isInsideBlindR_in)
 	{
 		double n_x = 0; 
 		double n_y = 0.1; 
@@ -956,7 +956,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_TRUE(LazyThetaStarOctree::isInsideBlindR( n_x,  n_y,  c_x,  c_y, blind_r));
 	}
 
-	TEST(WIPFrontiersTest, Test_isInsideBlindR_out)
+	TEST(OctreeNeighborTest, Test_isInsideBlindR_out)
 	{
 		double n_x = 10; 
 		double n_y = 10; 

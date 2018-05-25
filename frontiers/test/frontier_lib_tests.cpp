@@ -130,8 +130,8 @@ namespace Frontiers
 	{
 		octomap::OcTree octree ("data/experimentalDataset.bt");
 
-		ASSERT_TRUE(   isFrontier( octree, octomath::Vector3 (0, 1, 1.85) ), 1.5708   );
-		ASSERT_FALSE(   isFrontier( octree, octomath::Vector3 (1.50, 0.5, 0) ), 1.5708   );
+		ASSERT_TRUE(   isFrontier( octree, octomath::Vector3 (0, 1, 1.85) , 1.5708)   );
+		ASSERT_FALSE(   isFrontier( octree, octomath::Vector3 (1.50, 0.5, 0) , 1.5708)   );
 	}
 
 	// TEST(FrontiersTest, Test_no_frontiers_velodyne) // failing - did not solve yet
@@ -199,7 +199,8 @@ namespace Frontiers
 	{
 		double voxel_side = 30;
 		double sensing_distance = 10;
-		ASSERT_FALSE(isCenterGoodGoal(voxel_side, sensing_distance));
+		double octree_resolution = 0.5;
+		ASSERT_FALSE(isCenterGoodGoal(voxel_side, octree_resolution, sensing_distance));
 	}
 
 
@@ -207,7 +208,8 @@ namespace Frontiers
 	{
 		double voxel_side = 4;
 		double sensing_distance = 10;
-		ASSERT_TRUE(isCenterGoodGoal(voxel_side, sensing_distance));
+		double octree_resolution = 0.5;
+		ASSERT_FALSE(isCenterGoodGoal(voxel_side, octree_resolution, sensing_distance));
 	}
 
 
@@ -215,7 +217,8 @@ namespace Frontiers
 	{
 		double voxel_side = 10;
 		double sensing_distance = 10;
-		ASSERT_TRUE(isCenterGoodGoal(voxel_side, sensing_distance));
+		double octree_resolution = 0.5;
+		ASSERT_FALSE(isCenterGoodGoal(voxel_side, octree_resolution, sensing_distance));
 	}
 
 	TEST(FrontiersTest, Test_calculateCloserPosition_x)
@@ -229,7 +232,7 @@ namespace Frontiers
 		ASSERT_EQ(voxel_center.z(), 0);
 	}
 
-	TEST(WIPFrontiersTest, Test_frontierAmount_NeighborToFarToSense)
+	TEST(FrontiersTest, Test_frontierAmount_NeighborToFarToSense)
 	{
 		// -10_-18_6__8__frontierTooBig.bt
 		octomath::Vector3 frontier (-10,-18,6);
@@ -252,7 +255,7 @@ namespace Frontiers
 		// ROS_INFO_STREAM(reply);
 	}
 
-	TEST(WIPFrontiersTest, Test_frontierAmount_1)
+	TEST(FrontiersTest, Test_frontierAmount_1)
 	{
 		// -10_-18_6__8__frontierTooBig.bt
 		octomath::Vector3 frontier (-10,-18,6);
