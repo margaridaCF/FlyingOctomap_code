@@ -862,6 +862,14 @@ namespace LazyThetaStarOctree{
 				path.push_front( disc_final );
 			}
 			extractPath(path, *disc_initial_cell_center, *solution_end_node, print_resulting_path);
+			bool initial_pos_far_from_initial_voxel_center = equal(disc_initial, cell_center_coordinates_start, octree.getResolution()/2) == false;
+			std::list<octomath::Vector3>::iterator it= path.begin();
+			it++;
+			bool free_path_from_current_to_second_waypoint = is_flight_corridor_free(octree, disc_initial, *it, safety_margin, marker_pub, false, publish);
+			if(initial_pos_far_from_initial_voxel_center && !free_path_from_current_to_second_waypoint)
+			{
+				path.push_front( disc_initial );
+			}
 		}
 		if(path.size() == 1)
 		{
