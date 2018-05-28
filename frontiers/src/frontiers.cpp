@@ -94,7 +94,7 @@ namespace Frontiers{
 #ifdef SAVE_LOG
                                     log_file <<  "[N] " << *n_coordinates << " UNKNOWN!! " << std::endl;
 #endif
-                            ROS_INFO_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << ". Unknown neighbor is " << *n_coordinates);
+                            // ROS_INFO_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << ". Unknown neighbor is " << *n_coordinates);
                             is_frontier = true;
                             frontiers_msgs::VoxelMsg voxel_msg;
                             voxel_msg.size = currentVoxel.size;
@@ -102,10 +102,10 @@ namespace Frontiers{
                             bool approved_frontier = false;
                             if(!use_center_as_goal)
                             {
-                                ROS_WARN_STREAM("neighbor " << *n_coordinates);
-                                ROS_WARN_STREAM(grid_coordinates_curr << " has size of " << it.getSize() << " sensing range is only " << request.sensing_distance);
+                                // ROS_WARN_STREAM("neighbor " << *n_coordinates);
+                                // ROS_WARN_STREAM(grid_coordinates_curr << " has size of " << it.getSize() << " sensing range is only " << request.sensing_distance);
                                 calculate_closer_position(grid_coordinates_curr, *n_coordinates, request.sensing_distance );
-                                ROS_WARN_STREAM(" changed to " << grid_coordinates_curr);
+                                // ROS_WARN_STREAM(" changed to " << grid_coordinates_curr);
 
                                 approved_frontier = meetsOperationalRequirements(grid_coordinates_curr, request.min_distance, current_position, octree, request.safety_margin, request.min, request.max, marker_pub, publish);
 
@@ -127,7 +127,7 @@ namespace Frontiers{
                                 frontiers_count++;
                                 if( frontiers_count == request.frontier_amount)
                                 {
-                                    ROS_INFO_STREAM("[Frontiers] Selecting as frontier " << grid_coordinates_curr << ". Distance to current position " << current_position << " is " << grid_coordinates_curr.distance(current_position));
+                                    // ROS_INFO_STREAM("[Frontiers] Selecting as frontier " << grid_coordinates_curr << ". Distance to current position " << current_position << " is " << grid_coordinates_curr.distance(current_position));
                                     break;
                                 }
                             }
