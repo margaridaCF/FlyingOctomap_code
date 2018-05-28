@@ -431,7 +431,7 @@ namespace state_manager_node
         laser_range_xy = std::cos(laser_angle)*laser_range;
         ROS_INFO_STREAM("[architecture] Laser xy range: " << laser_range_xy);
         nh.getParam("odometry_error", odometry_error);
-        nh.getParam("safety_margin", safety_margin);
+        nh.getParam("frontier/safety_margin", safety_margin);
         error_margin = std::max(px4_loiter_radius, odometry_error);
         nh.getParam("path/max_search_iterations", max_search_iterations);
         nh.getParam("path/max_cycles_waited_for_path", max_cycles_waited_for_path);
