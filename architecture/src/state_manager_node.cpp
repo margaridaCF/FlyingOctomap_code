@@ -92,6 +92,7 @@ namespace state_manager_node
         ros::Time request_exploration_maneuver;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
+        frontiers_msgs::FrontierRequest frontiers_request;
         frontiers_msgs::FrontierReply frontiers_msg;
         path_planning_msgs::LTStarRequest ltstar_request;
         path_planning_msgs::LTStarReply ltstar_reply;
@@ -205,6 +206,7 @@ namespace state_manager_node
 #ifdef SAVE_LOG
         log_file << "[State manager] Requesting frontier " << request << std::endl;
 #endif
+        state_data.frontiers_request = request;
         frontier_request_pub.publish(request);
         state_data.frontier_request_count++;
     }
@@ -399,10 +401,6 @@ namespace state_manager_node
                 return true;
             }
         }
-#ifdef SAVE_LOG
-            log_file << "[State manager] Among the frontiers supplied, all are unobservable." << std::endl;
-#endif
-        ROS_INFO_STREAM("[State manager] Could not find an observable frontier.");
         return false;
     }
 
@@ -414,7 +412,7 @@ namespace state_manager_node
         state_data.frontier_request_count = 0;
         state_data.exploration_state = clear_from_ground;
 #ifdef SAVE_LOG
-            log_file << "[State manager][Exploration] clear_from_ground" << std::endl;
+        log_file << "[State manager][Exploration] clear_from_ground" << std::endl;
 #endif
     }
 
@@ -470,11 +468,11 @@ namespace state_manager_node
                     geometry_msgs::Point waypoint;
                     waypoint.x = current_position.x;
                     waypoint.y = current_position.y;
-                    waypoint.z = current_position.z + 5;
+                    waypoint.z = current_position.z + geofence_max.z() - 0.5;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.x = current_position.x;
                     waypoint.y = current_position.y;
-                    waypoint.z = 4;
+                    waypoint.z = (geofence_max.z()- geofence_min.z()) / 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     state_data.frontiers_msg.frontiers_found = 1;
                     state_data.ltstar_reply.waypoint_amount = 2;
@@ -520,13 +518,23 @@ namespace state_manager_node
                 }
                 else
                 {
+                    if(state_data.frontiers_msg.frontiers_found < state_data.frontiers_request.frontier_amount)
+                    {
 #ifdef SAVE_LOG
-                    log_file << "[State manager] Huston, we have a problem - all " 
-                        << state_data.frontiers_msg.frontiers_found << " frontiers are unobservable." << std::endl;
+                        log_file << "[State manager] Exausted all possible frontiers. All are unobservable." << std::endl;
 #endif
-                    state_data.exploration_state = finished_exploring;                
+                        ROS_ERROR_STREAM("[State manager] Exausted all possible frontiers. All are unobservable.");
+                        state_data.exploration_state = finished_exploring;                
+                    }
+                    else
+                    {
+#ifdef SAVE_LOG
+                        log_file << "[State manager] Could not find an observable frontier. Asking for more options." << std::endl;
+#endif
+                        ROS_INFO_STREAM("[State manager] Could not find an observable frontier. Asking for more options.");
+                        state_data.exploration_state = exploration_start;
+                    }
                 }
-
                 break;
             }
             case generating_path:
