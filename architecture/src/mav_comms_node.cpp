@@ -14,7 +14,7 @@ namespace mav_comms
 {
     ros::Duration exploration_maneuver_phases_duration_secs;
 	mavros_msgs::State current_state;
-	ros::Publisher setpoint_raw_pub;
+	// ros::Publisher setpoint_raw_pub;
     ros::Publisher local_pos_pub;
     ros::ServiceServer yaw_spin_service;
     ros::ServiceServer target_position_service;
@@ -24,7 +24,7 @@ namespace mav_comms
         double x; double y; double z; 
         yaw_spin_maneuver_state_t yaw_spin_state; 
         ros::Time yaw_spin_last_sent;};
-    mavros_msgs::PositionTarget stop_position;
+    // mavros_msgs::PositionTarget stop_position;
     Position position_state;
     ros::ServiceClient param_set_client; 
 
@@ -52,20 +52,20 @@ namespace mav_comms
         return true;
     }
 
-	void stopUAV_cb(const std_msgs::Empty::ConstPtr& msg)
-	{
-        if(position_state.movement_state == position)
-        {
-    		position_state.movement_state = stop;
-    		// Command in velocity
-    	    // mavros_msgs::PositionTarget stop_position;
-    	    // stop_position.type_mask = 0b0000101111000111;
-    	    stop_position.header.stamp = ros::Time::now();
-    	    // stop_position.header.seq = 1;
-    	    setpoint_raw_pub.publish(stop_position);
-    	    // ROS_INFO("[mav_comms] STOP msg sent!");
-        }
-	}
+	// void stopUAV_cb(const std_msgs::Empty::ConstPtr& msg)
+	// {
+ //        if(position_state.movement_state == position)
+ //        {
+ //    		position_state.movement_state = stop;
+ //    		// Command in velocity
+ //    	    mavros_msgs::PositionTarget stop_position;
+ //    	    stop_position.type_mask = 0b0000101111000111;
+ //    	    stop_position.header.stamp = ros::Time::now();
+ //    	    stop_position.header.seq = 1;
+ //    	    setpoint_raw_pub.publish(stop_position);
+ //    	    // ROS_INFO("[mav_comms] STOP msg sent!");
+ //        }
+	// }
 
 	bool target_position_cb(architecture_msgs::PositionRequest::Request  &req, 
         architecture_msgs::PositionRequest::Response &res)
@@ -104,8 +104,8 @@ namespace mav_comms
         position_state.y = 0;
         position_state.z = 1;
 
-        stop_position.type_mask = 0b0000101111000111;
-        stop_position.header.seq = 1;
+        // stop_position.type_mask = 0b0000101111000111;
+        // stop_position.header.seq = 1;
 
         int temp;
         nh.getParam("exploration_maneuver_phases_duration_secs", temp);
@@ -127,13 +127,13 @@ namespace mav_comms
                 // ROS_INFO_STREAM("[mav_comms] Sending position " << point_to_pub.pose.position);
                 break;
             }
-            case movement_state_t::stop:
-            {
-                stop_position.header.stamp = ros::Time::now();
-                setpoint_raw_pub.publish(stop_position);
-                // ROS_INFO("[mav_comms] STOP msg sent!");
-                break;
-            }
+            // case movement_state_t::stop:
+            // {
+            //     stop_position.header.stamp = ros::Time::now();
+            //     setpoint_raw_pub.publish(stop_position);
+            //     // ROS_INFO("[mav_comms] STOP msg sent!");
+            //     break;
+            // }
             case movement_state_t::yaw_spin:
             {
                 geometry_msgs::PoseStamped point_to_pub;
@@ -189,10 +189,10 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>("mavros/state", 10, mav_comms::state_cb);
-    ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 10, mav_comms::stopUAV_cb);
+    // ros::Subscriber stop_sub = nh.subscribe<std_msgs::Empty>("stop_uav", 10, mav_comms::stopUAV_cb);
 
     mav_comms::local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
-    mav_comms::setpoint_raw_pub = nh.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
+    // mav_comms::setpoint_raw_pub = nh.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
     
     mav_comms::yaw_spin_service = nh.advertiseService("yaw_spin", mav_comms::yaw_spin_cb);
     mav_comms::target_position_service = nh.advertiseService("target_position", mav_comms::target_position_cb);
