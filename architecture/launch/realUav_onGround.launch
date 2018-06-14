@@ -8,14 +8,8 @@
     <arg name="P" default="0"/>
     <arg name="Y" default="0"/>
     <arg name="est" default="lpe"/>
-    <arg name="vehicle" default="iris"/>
-    <!-- <arg name="world" default="$(find architecture)/worlds/force_waypoint_sequence.world"/> -->
-    <arg name="world" default="$(find architecture)/worlds/big_maze_adjustPhysics.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
-    <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
+    <!-- <arg name="vehicle" default="iris"/> -->
 
-    <arg name="headless" default="false"/>
-    <arg name="gui" default="true"/>
     <arg name="ns" default="/"/>
 
     <arg name="debug" default="false"/>
@@ -23,28 +17,21 @@
     <arg name="paused" default="false"/>
 
     <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
-    <!-- #######################  PX4  ############################################ -->
-    <node name="sitl" pkg="px4" type="px4" output="screen"
-        args="$(find px4) $(arg rcS)">
-    </node>
+    
     <!-- #######################  Gazebo  ######################################### -->
     
-    <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <!-- <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" /> -->
+    <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" type="string" value=""/>
-    </node>
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-        <param name="use_gui" value="true"/>
-    </node>
-    <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
-        args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" />
-    <!-- <node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="screen">
-        <param name="odometry_topic" value="ground_truth_pose"/>
-        <param name="frame_id" value="map"/>
-        <param name="child_frame_id" type="string" value="base_link"/>
     </node> -->
+    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="true"/>
+    </node> -->
+    <!-- <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/> -->
+        
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" /> -->
 
     <!-- #######################  Octomap  ######################################## -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
