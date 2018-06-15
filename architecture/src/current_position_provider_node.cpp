@@ -33,11 +33,16 @@ namespace current_position_provider_node
 
 int main(int argc, char **argv)
 {
+
 	current_position_provider_node::current_position_init = false;
 	ros::init(argc, argv, "current_position_provider");
 	ros::NodeHandle nh;
+
+	std::string current_position_topic;
+	nh.getParam("current_position_topic", current_position_topic);
+	
 	ros::ServiceServer service = nh.advertiseService("get_current_position", current_position_provider_node::get_current_position);
-	ros::Subscriber ground_truth_sub = nh.subscribe<geometry_msgs::PoseStamped>("/ground_truth_to_tf/pose", 1, current_position_provider_node::ground_truth_cb);
+	ros::Subscriber ground_truth_sub = nh.subscribe<geometry_msgs::PoseStamped>(current_position_topic, 1, current_position_provider_node::ground_truth_cb);
 	
 	ros::spin();
 }
