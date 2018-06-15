@@ -16,7 +16,7 @@
     <arg name="verbose" default="false"/>
     <arg name="paused" default="false"/>
 
-    <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
+    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
     
     <!-- #######################  Gazebo  ######################################### -->
     
