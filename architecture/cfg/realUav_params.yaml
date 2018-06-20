@@ -7,7 +7,7 @@ laser_angle: 1.0472
 
 odometry_error: 0
 
-frontier/safety_margin: 3
+frontier/safety_margin: 0.5
 
 geofence_min/x: -15
 geofence_min/y: -20
@@ -18,6 +18,6 @@ geofence_max/z: 14
 
 path/max_search_iterations: 5000
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 1
+path/safety_margin: 0.5
 
-current_position_topic: "/ground_truth_to_tf/pose"
+current_position_topic: "/mavros/local_position/pose"

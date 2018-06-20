@@ -1,0 +1,86 @@
+<launch>
+
+    <!-- Posix SITL environment launch script -->
+    <arg name="x" default="0"/>
+    <arg name="y" default="0"/>
+    <arg name="z" default="0"/>
+    <arg name="R" default="0"/>
+    <arg name="P" default="0"/>
+    <arg name="Y" default="0"/>
+    <arg name="est" default="lpe"/>
+    <!-- <arg name="vehicle" default="iris"/> -->
+
+    <arg name="ns" default="/"/>
+
+    <arg name="debug" default="false"/>
+    <arg name="verbose" default="false"/>
+    <arg name="paused" default="false"/>
+
+    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
+    
+    <!-- #######################  Gazebo  ######################################### -->
+    
+    <!-- <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" /> -->
+    <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="50.0" />
+        <param name="tf_prefix" type="string" value=""/>
+    </node> -->
+    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="true"/>
+    </node> -->
+    <!-- <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/> -->
+        
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" /> -->
+
+    <!-- #######################  Octomap  ######################################## -->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+        <param name="frame_id" type="string" value="map" />   
+        <remap from="cloud_in" to="/free_cloud" />
+        <!-- <remap from="cloud_in" to="/velodyne_points" /> -->
+        <param name="latch" value="false" />
+        <param name="resolution" value="0.5" />
+        <param name="pointcloud_min" value="0"/>
+        <param name="pointcloud_max" value="2"/>
+        <param name="occupancy_min" value="1"/>
+        <param name="publish_free_space" value="true"/>
+        <param name="sensor_model/max_range" value="10"/>
+        <param name="sensor_model/hit" value="0.7"/>
+        <param name="sensor_model/miss" value="0.3"/>
+    </node>
+    <!-- #######################  Architecture nodes  ############################# -->
+    <node name="free_cloud"         type="free_cloud_node"      pkg="laser_free_to_cloud"/>
+    <!-- <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" /> -->
+    <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
+    <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
+    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
+
+    <!-- vim: set ft=xml noet : -->
+    <!-- example launch script for PX4 based FCU's -->
+
+    <!-- #######################  Mavros  ############################# -->
+    <arg name="fcu_url" default="/dev/ttyACM0:921600" />
+    <arg name="gcs_url" default="" />
+    <arg name="tgt_system" default="1" />
+    <arg name="tgt_component" default="1" />
+    <arg name="log_output" default="screen" />
+    <arg name="fcu_protocol" default="v2.0" />
+    <arg name="respawn_mavros" default="false" />
+
+    <include file="$(find mavros)/launch/node.launch">
+        <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
+        <arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
+
+        <arg name="fcu_url" value="$(arg fcu_url)" />
+        <arg name="gcs_url" value="$(arg gcs_url)" />
+        <arg name="tgt_system" value="$(arg tgt_system)" />
+        <arg name="tgt_component" value="$(arg tgt_component)" />
+        <arg name="log_output" value="$(arg log_output)" />
+        <arg name="fcu_protocol" value="$(arg fcu_protocol)" />
+        <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
+    </include>
+
+</launch>
+
+<!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
