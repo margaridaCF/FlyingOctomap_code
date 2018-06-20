@@ -838,6 +838,12 @@ namespace LazyThetaStarOctree{
 			if(used_search_iterations > max_search_iterations)
 			{
 				ROS_ERROR_STREAM("Reached maximum iterations of A*. Breaking out");
+
+				std::stringstream octomap_name_stream;
+    			octomap_name_stream << folder_name << "/octree_noPath_(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")_("<< disc_initial.x() << disc_initial.y() << disc_initial.z() << ").bt";
+
+				octree.writeBinary(octomap_name_stream.str());
+
 				break;	
 			}
 			// ros::spinOnce();
