@@ -3,10 +3,23 @@
 #include <geometry_msgs/Point.h>
 #include <architecture_msgs/PositionMiddleMan.h>
 
+#include <marker_publishing_utils.h>
+#include <visualization_msgs/Marker.h>
+
+
 namespace current_position_provider_node
 {
 	geometry_msgs::Point current_position;
 	bool current_position_init;
+
+    ros::Publisher marker_pub;
+    visualization_msgs::Marker marker;
+
+	void updatePositionMarker()
+	{
+	    marker.points.push_back(current_position);
+	    marker_pub.publish( marker );
+	}
 
 	bool get_current_position(architecture_msgs::PositionMiddleMan::Request &req,
 		architecture_msgs::PositionMiddleMan::Response &res)
@@ -28,6 +41,7 @@ namespace current_position_provider_node
 	{
 		current_position = new_odometry->pose.position;
 		current_position_init = true;
+		updatePositionMarker();
 	}
 }
 
@@ -43,6 +57,10 @@ int main(int argc, char **argv)
 	
 	ros::ServiceServer service = nh.advertiseService("get_current_position", current_position_provider_node::get_current_position);
 	ros::Subscriber ground_truth_sub = nh.subscribe<geometry_msgs::PoseStamped>(current_position_topic, 1, current_position_provider_node::ground_truth_cb);
+
+    current_position_provider_node::marker_pub = nh.advertise<visualization_msgs::Marker>("position_log", 1);
+	current_position_provider_node::marker = rviz_interface::createEmptyLineStrip(30);
+
 	
 	ros::spin();
 }

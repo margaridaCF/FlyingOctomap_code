@@ -617,4 +617,29 @@ namespace rviz_interface
             id++;
         }
     }
+
+    visualization_msgs::Marker createEmptyLineStrip(int id)
+    {
+        double step = 0.2;
+        visualization_msgs::Marker marker;
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.ns = "position_log";
+        marker.id = id;
+        marker.type = visualization_msgs::Marker::LINE_STRIP;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position.x = 0;
+        marker.pose.position.y = 0;
+        marker.pose.position.z = 0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = 1.0*step;
+        marker.scale.y = 1.0*step;
+        marker.scale.z = 1.0*step;
+        marker.color.a = 1.0;
+        marker.color.r = 248;
+        marker.color.g = 50;
+        marker.color.b = 50;
+        marker.header.seq++;
+        return marker;
+    }
 }
