@@ -1,4 +1,6 @@
 #include <ros/ros.h>
+#include <chrono>
+
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
 #include <architecture_msgs/PositionMiddleMan.h>
@@ -14,6 +16,7 @@ namespace current_position_provider_node
 
     ros::Publisher marker_pub;
     visualization_msgs::Marker marker;
+    std::chrono::high_resolution_clock::time_point start;
 
 	void updatePositionMarker()
 	{
@@ -41,7 +44,15 @@ namespace current_position_provider_node
 	{
 		current_position = new_odometry->pose.position;
 		current_position_init = true;
-		updatePositionMarker();
+
+		std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(now - start);
+		std::chrono::seconds seconds = std::chrono::duration_cast<std::chrono::seconds>(time_span);
+		if( (seconds.count() % 20) == 0)
+		{
+			updatePositionMarker();
+		}
+
 	}
 }
 
@@ -60,6 +71,7 @@ int main(int argc, char **argv)
 
     current_position_provider_node::marker_pub = nh.advertise<visualization_msgs::Marker>("position_log", 1);
 	current_position_provider_node::marker = rviz_interface::createEmptyLineStrip(30);
+	current_position_provider_node::start = std::chrono::high_resolution_clock::now();
 
 	
 	ros::spin();
