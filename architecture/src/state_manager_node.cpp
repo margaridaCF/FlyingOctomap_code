@@ -199,7 +199,7 @@ namespace state_manager_node
         request.max.y = geofence_max.y();
         request.max.z = geofence_max.z();
         request.safety_margin = safety_margin;
-        request.frontier_amount = state_data.unobservable_set.size()+2;
+        request.frontier_amount = state_data.unobservable_set.size()+10;
         request.min_distance = px4_loiter_radius;
         request.sensing_distance = laser_range_xy;
         while(!getUavPositionServiceCall(request.current_position));
@@ -236,6 +236,7 @@ namespace state_manager_node
 #ifdef SAVE_LOG
             log_file << "[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left @ " << log_id << std::endl;
 #endif
+            ROS_WARN_STREAM("[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left @ " << log_id);
         }
         else
         {
@@ -245,7 +246,7 @@ namespace state_manager_node
 #ifdef SAVE_LOG
         log_file << "[State manager][Exploration] generating_path (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << ") @ " << log_id << std::endl;
 #endif
-            ROS_WARN_STREAM("[State manager][Exploration] no path found to " << state_data.ltstar_request.start << " to " << state_data.ltstar_request.goal << ". Adding to unobservable set.");
+            ROS_WARN_STREAM("[State manager][Exploration] generating_path (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << ") @ " << log_id);
         }
     }
 
