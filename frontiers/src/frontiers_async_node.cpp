@@ -87,12 +87,12 @@ namespace frontiers_async_node
 			// Explored volume
 			volume_explored.open (folder_name + "/volume_explored.csv", std::ofstream::app);
 			std::chrono::duration<double> ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start_exploration);
-			std::chrono::milliseconds ellapsed_time_millis = std::chrono::duration_cast<std::chrono::milliseconds>(ellapsed_time);
+			std::chrono::milliseconds ellapsed_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(ellapsed_time);
 			double resolution = octree->getResolution();
 	        octomath::Vector3  max = octomath::Vector3(frontier_request->max.x-resolution, frontier_request->max.y-resolution, frontier_request->max.z-resolution);
 	        octomath::Vector3  min = octomath::Vector3(frontier_request->min.x+resolution, frontier_request->min.y+resolution, frontier_request->min.z+resolution);
 			double explored_volume_meters = calculate_volume_explored(min, max);
-			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << std::endl;
+			volume_explored << ellapsed_time_seconds.count() / 60 << ", " << explored_volume_meters << std::endl;
 			volume_explored.close();
 #endif
 
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
 		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/volume_explored.csv", std::ofstream::app);
-		frontiers_async_node::volume_explored << "time ellapsed millis,volume,RAM\n";
+		frontiers_async_node::volume_explored << "time ellapsed minutes,volume,RAM\n";
 		frontiers_async_node::volume_explored.close();
 		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
 #endif
