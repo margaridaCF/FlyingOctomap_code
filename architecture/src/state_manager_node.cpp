@@ -461,11 +461,11 @@ namespace state_manager_node
                     geometry_msgs::Point waypoint;
                     waypoint.x = current_position.x;
                     waypoint.y = current_position.y;
-                    waypoint.z = current_position.z + geofence_max.z() - 0.5;
+                    waypoint.z = 5;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.x = current_position.x;
                     waypoint.y = current_position.y;
-                    waypoint.z = (geofence_max.z()- geofence_min.z()) / 2;
+                    waypoint.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     state_data.frontiers_msg.frontiers_found = 1;
                     state_data.ltstar_reply.waypoint_amount = 2;
