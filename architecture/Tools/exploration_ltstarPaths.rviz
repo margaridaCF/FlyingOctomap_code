@@ -12,6 +12,7 @@ Panels:
         - /MarkerArray1/Namespaces1
         - /MarkerArray2
         - /MarkerArray2/Namespaces1
+        - /Marker1
       Splitter Ratio: 0.652941167
     Tree Height: 740
   - Class: rviz/Selection
@@ -212,11 +213,7 @@ Visualization Manager:
       Marker Topic: /geofence
       Name: Geofence
       Namespaces:
-        current_position: true
-        frontier_candidate: true
         geofence: true
-        goal: true
-        start: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -224,9 +221,7 @@ Visualization Manager:
       Marker Topic: /frontiers/known_space
       Name: MarkerArray
       Namespaces:
-        frontier_neighborhood: false
-        frontier_safety_margin: true
-        unknown_neighbor: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -234,8 +229,15 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: MarkerArray
       Namespaces:
-        lazy_theta_star_path: true
-        lazy_theta_star_waypoint: true
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /position_log
+      Name: Marker
+      Namespaces:
+        position_log: true
       Queue Size: 100
       Value: true
   Enabled: true
