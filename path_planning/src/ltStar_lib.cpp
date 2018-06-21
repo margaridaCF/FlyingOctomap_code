@@ -935,6 +935,9 @@ namespace LazyThetaStarOctree{
 		if(resulting_path.size()==0)
 		{
 			reply.success = false;
+			std::stringstream octomap_name_stream;
+			octomap_name_stream << folder_name << "/octree_noPath_(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")_("<< disc_initial.x() << disc_initial.y() << disc_initial.z() << ").bt";
+			octree.writeBinary(octomap_name_stream.str());
 		}
 		else
 		{

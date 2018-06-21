@@ -7,7 +7,6 @@
 #include <iostream>
 #include <fstream>
 
-//#include <math.h>
 #include <ros/ros.h>
 #include <octomap/OcTree.h>
 #include <octomap/math/Vector3.h>

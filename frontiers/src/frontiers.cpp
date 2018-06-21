@@ -1,7 +1,9 @@
 #include <frontiers.h>
 #include <neighbors.h>
+#include <ordered_neighbors.h>
 
-#define SAVE_LOG 1
+#define SAVE_LOG 0
+#define BASELINE 1
 
 namespace Frontiers{
 
@@ -62,9 +64,14 @@ namespace Frontiers{
             reply.success = false;
             return reply.success;
         }
+#ifdef BASELINE 
+        frontiers_msgs::VoxelMsg current_position_voxel_msg;
+        current_position_voxel_msg.xyz_m.x = current_position.x();
+        current_position_voxel_msg.xyz_m.y = current_position.y();
+        current_position_voxel_msg.xyz_m.z = current_position.z();
+        OrderedNeighbors allNeighbors (current_position_voxel_msg);
+#endif
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-        // octomath::Vector3 bbxMin (currentVoxel.x, currentVoxel.y, currentVoxel.z);
-        // octomath::Vector3 bbxMax (currentVoxel.x, currentVoxel.y, currentVoxel.z);
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount)
         {
             bool use_center_as_goal = isCenterGoodGoal(it.getSize(), resolution, request.sensing_distance);
@@ -91,9 +98,9 @@ namespace Frontiers{
                         rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
                         if(!isExplored(*n_coordinates, octree))
                         {
-#ifdef SAVE_LOG
-                                    log_file <<  "[N] " << *n_coordinates << " UNKNOWN!! " << std::endl;
-#endif
+// #ifdef SAVE_LOG
+//                                     log_file <<  "[N] " << *n_coordinates << " UNKNOWN!! " << std::endl;
+// #endif
                             // ROS_INFO_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << ". Unknown neighbor is " << *n_coordinates);
                             is_frontier = true;
                             frontiers_msgs::VoxelMsg voxel_msg;
@@ -110,9 +117,9 @@ namespace Frontiers{
                                 approved_frontier = meetsOperationalRequirements(grid_coordinates_curr, request.min_distance, current_position, octree, request.safety_margin, request.min, request.max, marker_pub, publish);
 
 
-#ifdef SAVE_LOG
-                                log_file <<  "[N] " << *n_coordinates << ". Frontier coordinates changed to " << grid_coordinates_curr << std::endl;
-#endif
+// #ifdef SAVE_LOG
+//                                 log_file <<  "[N] " << *n_coordinates << ". Frontier coordinates changed to " << grid_coordinates_curr << std::endl;
+// #endif
                             }
                             else
                             {
@@ -120,9 +127,13 @@ namespace Frontiers{
                             }
                             if(approved_frontier)
                             {
+
                                 voxel_msg.xyz_m.x = grid_coordinates_curr.x();
                                 voxel_msg.xyz_m.y = grid_coordinates_curr.y();
                                 voxel_msg.xyz_m.z = grid_coordinates_curr.z();
+#ifdef BASELINE 
+                                allNeighbors.insert(voxel_msg);
+#else
                                 reply.frontiers.push_back(voxel_msg);
                                 frontiers_count++;
                                 if( frontiers_count == request.frontier_amount)
@@ -130,31 +141,35 @@ namespace Frontiers{
                                     // ROS_INFO_STREAM("[Frontiers] Selecting as frontier " << grid_coordinates_curr << ". Distance to current position " << current_position << " is " << grid_coordinates_curr.distance(current_position));
                                     break;
                                 }
+#endif
                             }
                         }
-                        else
-                        {
-#ifdef SAVE_LOG
-                                    log_file <<  "[N] " << *n_coordinates << " free " << std::endl;
-#endif
-                        }
+// #ifdef SAVE_LOG
+//                         else
+//                         {
+//                                     log_file <<  "[N] " << *n_coordinates << " free " << std::endl;
+//                         }
+// #endif
                     }
-                    else
-                    {
-#ifdef SAVE_LOG
-                                log_file <<  "[N] " << *n_coordinates << " occupied " << std::endl;
-#endif
-                    }
+// #ifdef SAVE_LOG
+//                     else
+//                     {
+//                                 log_file <<  "[N] " << *n_coordinates << " occupied " << std::endl;
+//                     }
+// #endif
                 }
             }
-            // else
-            // {
-            //     ROS_WARN_STREAM("[Frontiers] Discarded frontier " << grid_coordinates_curr);
-            // }
             it++;
         }
+
+#ifdef BASELINE
+        allNeighbors.buildMessageList(request.frontier_amount, reply);
+#else
         reply.frontiers_found = frontiers_count;
+#endif
+
         reply.success = true;
+
 #ifdef SAVE_LOG
         log_file.close();
 #endif
@@ -246,18 +261,25 @@ namespace Frontiers{
             || candidate.y() > geofence_max.y  
             || candidate.z() > geofence_max.z)
         {
-            ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because it is outside geofence ");
+            
+#ifdef SAVE_LOG            
+            log_file << "[Frontiers] Rejected " << candidate << " because it is outside geofence " << std::endl;
+#endif
             return false;
         }
         // Operation restrictions
         if(candidate.distance(current_position) <= min_distance)
         {
-            ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position);
+#ifdef SAVE_LOG            
+            log_file << "[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position << std::endl;
+#endif
             return false; // below navigation precision
         }
         if(isFrontierTooCloseToObstacles(candidate, safety_distance, octree, marker_pub, publish))
         {
-            // ROS_INFO_STREAM("[Frontiers] Rejected " << candidate << " because goal is too close to obstacles");
+#ifdef SAVE_LOG            
+            log_file <<"[Frontiers] Rejected " << candidate << " because goal is too close to obstacles" << std::endl;
+#endif
             return false;
         }
         return true;
@@ -272,11 +294,11 @@ namespace Frontiers{
         octomath::Vector3 cell_center = octree.keyToCoord(key, depth); 
         double voxel_size = ((tree_depth + 1) - depth) * resolution; 
 
-#ifdef SAVE_LOG
-        log_file.open ("/ros_ws/src/data/current/frontiers.log", std::ofstream::app);
-        log_file << " == " << candidate << " == " << std::endl;
-        log_file << " Voxel center " << cell_center << std::endl;
-#endif
+// #ifdef SAVE_LOG
+//         log_file.open ("/ros_ws/src/data/current/frontiers.log", std::ofstream::app);
+//         log_file << " == " << candidate << " == " << std::endl;
+//         log_file << " Voxel center " << cell_center << std::endl;
+// #endif
 
         bool is_frontier = false;
         if( isExplored(cell_center, octree)
@@ -291,24 +313,24 @@ namespace Frontiers{
                 {
                     if(!isExplored(*n_coordinates, octree))
                     {
-#ifdef SAVE_LOG
-                        log_file << "[isFrontier] Neighbor " << *n_coordinates << " UNKNOWN! "  << std::endl;
-#endif
+// #ifdef SAVE_LOG
+//                         log_file << "[isFrontier] Neighbor " << *n_coordinates << " UNKNOWN! "  << std::endl;
+// #endif
                         ROS_ERROR_STREAM("[isFrontier] Unknown neighbor is " << *n_coordinates);
                         is_frontier = true;
                     }
                     else
                     {
-#ifdef SAVE_LOG
-                log_file << "[isFrontier] Neighbor " << *n_coordinates << " free. " << std::endl;
-#endif 
+// #ifdef SAVE_LOG
+//                 log_file << "[isFrontier] Neighbor " << *n_coordinates << " free. " << std::endl;
+// #endif 
                     }
                 }
                 else
                 {
-#ifdef SAVE_LOG
-                log_file << "[isFrontier] Neighbor " << *n_coordinates << " occupied. " << std::endl;
-#endif
+// #ifdef SAVE_LOG
+//                 log_file << "[isFrontier] Neighbor " << *n_coordinates << " occupied. " << std::endl;
+// #endif
 
                 }
             }

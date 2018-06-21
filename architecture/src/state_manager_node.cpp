@@ -79,7 +79,7 @@ namespace state_manager_node
     octomath::Vector3 geofence_min (-5, -5, 1);
     octomath::Vector3 geofence_max (5, 5, 10);
     enum follow_path_state_t{init, on_route, arrived_at_waypoint, finished_sequence};
-    enum exploration_state_t {clear_from_ground, exploration_start, choosing_goal, generating_path, waiting_path_response, visit_waypoints, finished_exploring, gather_data_maneuver};
+    enum exploration_state_t {clear_from_ground, exploration_start, generating_path, waiting_path_response, visit_waypoints, finished_exploring, gather_data_maneuver};
     struct StateData { 
         int frontier_request_id;       // id for the request in use
         int frontier_request_count;      // generate id for new frontier requests
@@ -199,7 +199,7 @@ namespace state_manager_node
         request.max.y = geofence_max.y();
         request.max.z = geofence_max.z();
         request.safety_margin = safety_margin;
-        request.frontier_amount = state_data.unobservable_set.size()+1;
+        request.frontier_amount = state_data.unobservable_set.size()+10;
         request.min_distance = px4_loiter_radius;
         request.sensing_distance = laser_range_xy;
         while(!getUavPositionServiceCall(request.current_position));
@@ -225,6 +225,30 @@ namespace state_manager_node
             return false; 
         } 
     } 
+
+    void dealUnreachableFrontier(std::string log_id)
+    {
+        octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
+        state_data.unobservable_set.insert(unreachable);
+        if (state_data.frontier_index >= state_data.frontiers_msg.frontiers_found-1)
+        {
+            state_data.exploration_state = exploration_start;
+#ifdef SAVE_LOG
+            log_file << "[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left @ " << log_id << std::endl;
+#endif
+            ROS_WARN_STREAM("[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left @ " << log_id);
+        }
+        else
+        {
+            state_data.frontier_index = state_data.frontier_index +1;
+            state_data.exploration_state = generating_path; 
+            state_data.waypoint_index = -1;
+#ifdef SAVE_LOG
+        log_file << "[State manager][Exploration] generating_path (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << ") @ " << log_id << std::endl;
+#endif
+            ROS_WARN_STREAM("[State manager][Exploration] generating_path (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << ") @ " << log_id);
+        }
+    }
 
     void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
     {
@@ -256,12 +280,9 @@ namespace state_manager_node
             }
             else
             {
-                octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-                state_data.unobservable_set.insert(unreachable);
-                state_data.exploration_state = choosing_goal;
-                state_data.waypoint_index = -1;
-                ROS_WARN_STREAM("[State manager][Exploration] no path found to " << state_data.ltstar_request.start << " to " << state_data.ltstar_request.goal << ". Adding to unobservable set.");
+                dealUnreachableFrontier("ltstar_cb");
                 octomath::Vector3 start (state_data.ltstar_request.start.x, state_data.ltstar_request.start.y, state_data.ltstar_request.start.z);
+                octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                 rviz_interface::publish_arrow_path_occupied(start, unreachable, marker_pub);
             }
             
@@ -283,11 +304,12 @@ namespace state_manager_node
         else if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
         {
             state_data.frontier_request_id = msg->request_id;
-            state_data.exploration_state = choosing_goal;
+            state_data.exploration_state = generating_path;
+            state_data.frontier_index = 0;
             state_data.frontiers_msg = *msg;
 #ifdef SAVE_LOG
             log_file << "[State manager]Frontier reply " << *msg << std::endl;
-            log_file << "[State manager][Exploration] choosing_goal from " << msg->frontiers_found << " frontiers." << std::endl;
+            log_file << "[State manager][Exploration] generating_path from " << msg->frontiers_found << " frontiers." << std::endl;
 #endif
             if(get_current_frontier().x < geofence_min.x() 
                 || get_current_frontier().y < geofence_min.y() 
@@ -373,35 +395,6 @@ namespace state_manager_node
                 break;
             }
         }
-    }
-
-    bool chooseFrontier()
-    {
-        geometry_msgs::Point candidate_frontier;
-        std::unordered_set<octomath::Vector3, Vector3Hash>::const_iterator unobservable_frontier;
-        // Pick one the is not in the unobservable
-        for(int i = 0; i < state_data.frontiers_msg.frontiers_found; i++)
-        {
-            candidate_frontier = state_data.frontiers_msg.frontiers[i].xyz_m;
-            octomath::Vector3 candidate_frontier_vector (candidate_frontier.x, candidate_frontier.y, candidate_frontier.z);
-            unobservable_frontier = state_data.unobservable_set.find (candidate_frontier_vector);
-            if ( unobservable_frontier == state_data.unobservable_set.end() )
-            {
-                // This frontier hasn't been explored yet. Let's pick this one
-                state_data.frontier_request_id = state_data.frontiers_msg.request_id;
-                state_data.waypoint_index = -1;
-                state_data.frontier_index = i;
-#ifdef SAVE_LOG
-            log_file << "[State manager] New frontier ("
-                    <<get_current_frontier().x << ", "
-                    <<get_current_frontier().y << ", "
-                    <<get_current_frontier().z << ") " << std::endl;
-#endif
-                rviz_interface::publish_frontier_marker(get_current_frontier(), true, marker_pub);
-                return true;
-            }
-        }
-        return false;
     }
 
     void init_state_variables(state_manager_node::StateData& state_data)
@@ -507,36 +500,6 @@ namespace state_manager_node
                 }
                 break;
             }
-            case choosing_goal:
-            {
-                if(chooseFrontier()) 
-                {
-                    state_data.exploration_state = generating_path;
-#ifdef SAVE_LOG
-                    log_file << "[State manager][Exploration] generating_path" << std::endl;
-#endif
-                }
-                else
-                {
-                    if(state_data.frontiers_msg.frontiers_found < state_data.frontiers_request.frontier_amount)
-                    {
-#ifdef SAVE_LOG
-                        log_file << "[State manager] Exausted all possible frontiers. All are unobservable." << std::endl;
-#endif
-                        ROS_ERROR_STREAM("[State manager] Exausted all possible frontiers. All are unobservable.");
-                        state_data.exploration_state = finished_exploring;                
-                    }
-                    else
-                    {
-#ifdef SAVE_LOG
-                        log_file << "[State manager] Could not find an observable frontier. Asking for more options." << std::endl;
-#endif
-                        ROS_INFO_STREAM("[State manager] Could not find an observable frontier. Asking for more options.");
-                        state_data.exploration_state = exploration_start;
-                    }
-                }
-                break;
-            }
             case generating_path:
             {
                 path_planning_msgs::LTStarNodeStatus srv;
@@ -572,13 +535,7 @@ namespace state_manager_node
                 }
                 else
                 {
-                    octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-                    state_data.unobservable_set.insert(unreachable);
-                    state_data.exploration_state = choosing_goal;
-                    state_data.waypoint_index = -1;
-#ifdef SAVE_LOG
-                    log_file << "[State manager][Exploration] choosing_goal (No response from Lazy Theta Star)" << std::endl;
-#endif
+                    dealUnreachableFrontier("waiting_path_response");
                 }
                 break;
             }
