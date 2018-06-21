@@ -36,6 +36,7 @@ namespace rviz_interface
 	void publish_start_voxel(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
 	void publish_goal_voxel(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
 	void build_neighbor_array(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, visualization_msgs::MarkerArray & marker_array);
+	visualization_msgs::Marker createEmptyLineStrip(int id);
 }
 
 
