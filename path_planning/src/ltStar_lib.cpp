@@ -660,6 +660,7 @@ namespace LazyThetaStarOctree{
 		{
 			log_file << "[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start << std::endl;
 			log_file << "[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal << std::endl;
+#ifdef RUNNING_ROS
 			geometry_msgs::Point start_point, goal_point;
 			start_point.x = cell_center_coordinates_start.x();
 			start_point.y = cell_center_coordinates_start.y();
@@ -667,7 +668,6 @@ namespace LazyThetaStarOctree{
 			goal_point.x = cell_center_coordinates_goal.x();
 			goal_point.y = cell_center_coordinates_goal.y();
 			goal_point.z = cell_center_coordinates_goal.z();
-#ifdef RUNNING_ROS
 			rviz_interface::publish_start_voxel(start_point, marker_pub, cell_size_start);
 			rviz_interface::publish_goal_voxel(goal_point, marker_pub, cell_size_goal);
 #endif
@@ -709,7 +709,7 @@ namespace LazyThetaStarOctree{
 		if(publish)
 		{
 			std::ofstream log_file;
-	    	log_file.open(folder_name + "/out.log", std::ios_base::app);
+	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
 		}
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
@@ -849,6 +849,10 @@ namespace LazyThetaStarOctree{
 		if(!solution_found)
 		{
 			// ROS_ERROR_STREAM("No solution found. Giving empty path.");
+			if(publish)
+			{
+        	    log_file <<  "[ltStar] All nodes were analyzed but the final node center " << disc_final_cell_center << " was never reached with " << octree.getResolution()/2 << " tolerance. Start " << disc_initial << ", end " << disc_final << std::endl;
+			}
 		}
 		else
 		{ 
