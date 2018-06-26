@@ -48,7 +48,7 @@ namespace LazyThetaStarOctree
 			// {
 			// 	publish_free_corridor_arrows = false;
 			// }
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, marker_pub, false);
+			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, marker_pub, true);
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
