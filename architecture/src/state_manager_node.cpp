@@ -40,7 +40,7 @@ namespace state_manager_node
     {
         std::size_t operator()(const octomath::Vector3 & v) const 
         {
-            int scale = 0.1;
+            int scale = 0.00001;
             std::size_t hx = std::hash<float>{}( (int)(v.x() / scale) * scale );
             std::size_t hy = std::hash<float>{}( (int)(v.y() / scale) * scale );
             std::size_t hz = std::hash<float>{}( (int)(v.z() / scale) * scale );
