@@ -16,8 +16,8 @@ geofence_max/x: 50
 geofence_max/y: 50
 geofence_max/z: 60
 
-path/max_search_iterations: 5000
+path/max_search_iterations: 1000
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 1
+path/safety_margin: 3
 
 current_position_topic: "/ground_truth_to_tf/pose"
