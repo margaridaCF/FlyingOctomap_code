@@ -64,8 +64,19 @@ namespace rviz_interface
         build_cube_wire(marker, geofence_min, geofence_max, marker_pub);
         marker_pub.publish(marker); 
     } 
+    void publish_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id) 
+    { 
+        visualization_msgs::Marker marker;
+        octomath::Vector3  max = octomath::Vector3(frontier.x - safety_margin, frontier.y - safety_margin, frontier.z - safety_margin);
+        octomath::Vector3  min = octomath::Vector3(frontier.x + safety_margin, frontier.y + safety_margin, frontier.z + safety_margin);
+        marker.lifetime = ros::Duration();
+        marker.ns = "frontier_safety_margin";
+        marker.id = id;
+        build_cube_wire(marker, min, max, marker_pub);
+        marker_pub.publish(marker); 
+    } 
 
-    void publish_marker_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id)
+    void publish_markerArray_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id)
     {   
         visualization_msgs::Marker marker;
         octomath::Vector3  max = octomath::Vector3(frontier.x - safety_margin, frontier.y - safety_margin, frontier.z - safety_margin);
@@ -419,7 +430,7 @@ namespace rviz_interface
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.ns = "corridor_occupied";
+        marker.ns = "path_unreachable";
         marker.id = 400;
         marker.type = shape;
         geometry_msgs::Point goal_point;

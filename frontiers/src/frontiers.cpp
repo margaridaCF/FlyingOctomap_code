@@ -209,12 +209,6 @@ namespace Frontiers{
             rviz_interface::publish_deleteAll(marker_pub);
         }
         // ROS_WARN_STREAM("[Frontier] Checking neighboring obstacles for candidate frontier " << frontier);
-        geometry_msgs::Point candidate_frontier;
-        if(publish)
-        {
-            rviz_interface::init_point(candidate_frontier, frontier.x(), frontier.y(), frontier.z());
-            rviz_interface::publish_marker_safety_margin(candidate_frontier, safety_margin, marker_pub, 101);
-        }
         octomath::Vector3  min = octomath::Vector3(frontier.x() - safety_margin, frontier.y() - safety_margin, frontier.z() - safety_margin);
         octomath::Vector3  max = octomath::Vector3(frontier.x() + safety_margin, frontier.y() + safety_margin, frontier.z() + safety_margin);
         octomap::OcTreeKey bbxMinKey, bbxMaxKey;

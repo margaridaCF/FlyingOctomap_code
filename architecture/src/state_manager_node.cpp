@@ -283,7 +283,7 @@ namespace state_manager_node
                 dealUnreachableFrontier("ltstar_cb");
                 octomath::Vector3 start (state_data.ltstar_request.start.x, state_data.ltstar_request.start.y, state_data.ltstar_request.start.z);
                 octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-                rviz_interface::publish_arrow_path_occupied(start, unreachable, marker_pub);
+                rviz_interface::publish_arrow_path_occupied(unreachable, start, marker_pub);
             }
             
         }
@@ -510,6 +510,8 @@ namespace state_manager_node
                         geometry_msgs::Point current_position;
                         if(getUavPositionServiceCall(current_position))
                         {
+                            rviz_interface::publish_safety_margin(get_current_frontier(), state_data.frontiers_request.safety_margin, marker_pub, 102);
+                
                             octomath::Vector3 current_position_v (current_position.x, current_position.y, current_position.z);
                             rviz_interface::publish_current_position(current_position_v, marker_pub);
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
@@ -648,7 +650,7 @@ int main(int argc, char **argv)
     // Topic publishers
     state_manager_node::ltstar_request_pub = nh.advertise<path_planning_msgs::LTStarRequest>("ltstar_request", 10);
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
-    state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("geofence", 1);
+    state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("state_manager_viz", 1);
 
 #ifdef SAVE_LOG
     state_manager_node::log_file.open ("/ros_ws/src/data/current/state_manager.log", std::ofstream::app);
