@@ -48,7 +48,7 @@ namespace current_position_provider_node
 		std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(now - start);
 		std::chrono::seconds seconds = std::chrono::duration_cast<std::chrono::seconds>(time_span);
-		if( (seconds.count() % 20) == 0)
+		if( (seconds.count() % 10) == 0)
 		{
 			updatePositionMarker();
 		}
