@@ -530,15 +530,15 @@ namespace state_manager_node
             }
             case waiting_path_response:
             {
-                ROS_INFO_STREAM("[State manager] Waited " << state_data.cycles_waited_for_path << " cycles of " << max_cycles_waited_for_path);
-                if(state_data.cycles_waited_for_path < max_cycles_waited_for_path)
-                {
-                    state_data.cycles_waited_for_path++;
-                }
-                else
-                {
-                    dealUnreachableFrontier("waiting_path_response");
-                }
+                // ROS_INFO_STREAM("[State manager] Waited " << state_data.cycles_waited_for_path << " cycles of " << max_cycles_waited_for_path);
+                // if(state_data.cycles_waited_for_path < max_cycles_waited_for_path)
+                // {
+                //     state_data.cycles_waited_for_path++;
+                // }
+                // else
+                // {
+                //     dealUnreachableFrontier("waiting_path_response");
+                // }
                 break;
             }
             case visit_waypoints:

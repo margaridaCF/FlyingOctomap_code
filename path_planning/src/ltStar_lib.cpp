@@ -628,6 +628,8 @@ namespace LazyThetaStarOctree{
 		// std::ofstream log_file;
     	// log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
+		auto start = ros::Time::now();
+		ros::Duration max_search_time = ros::Duration(max_search_iterations);
 
 		std::list<octomath::Vector3> path;
 
@@ -835,9 +837,10 @@ namespace LazyThetaStarOctree{
 				}
 			}
 			used_search_iterations++;	
-			if(used_search_iterations > max_search_iterations)
+			ros::Duration time_lapse = ros::Time::now() - start;
+			if(time_lapse > max_search_time)
 			{
-				ROS_ERROR_STREAM("Reached maximum iterations of A*. Breaking out");
+				ROS_ERROR_STREAM("Reached maximum time for A*. Breaking out");
 				break;	
 			}
 			// ros::spinOnce();
