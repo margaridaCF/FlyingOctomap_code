@@ -219,7 +219,6 @@ Visualization Manager:
         frontier_safety_margin: true
         geofence: true
         goal: true
-        path_unreachable: true
         start: true
       Queue Size: 100
       Value: true
@@ -229,7 +228,6 @@ Visualization Manager:
       Name: Frontiers
       Namespaces:
         frontier_neighborhood: false
-        frontier_safety_margin: true
         unknown_neighbor: true
       Queue Size: 100
       Value: true
@@ -241,9 +239,11 @@ Visualization Manager:
         corridor_: false
         corridor_center: false
         corridor_occupancy: false
+        goal_voxel: false
         lazy_theta_star_path: true
         lazy_theta_star_waypoint: true
-        s: true
+        s: false
+        start_voxel: false
         visible neighbor: false
       Queue Size: 100
       Value: true
@@ -271,25 +271,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 38.9597588
+      Distance: 96.4629288
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -22.1399326
-        Y: -39.6439857
+        X: -8.19231319
+        Y: -10.1704807
         Z: 2.60720412e-07
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.239797547
+      Pitch: -0.0202030167
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 5.1385808
+      Yaw: 4.34359741
     Saved: ~
 Window Geometry:
   Displays:
