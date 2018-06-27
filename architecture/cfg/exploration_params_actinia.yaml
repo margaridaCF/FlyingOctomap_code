@@ -18,6 +18,6 @@ geofence_max/z: 60
 
 path/max_search_iterations: 180000
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 3
+path/safety_margin: 2
 
 current_position_topic: "/ground_truth_to_tf/pose"
