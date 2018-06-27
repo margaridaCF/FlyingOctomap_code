@@ -230,13 +230,16 @@ namespace state_manager_node
     {
         octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
         state_data.unobservable_set.insert(unreachable);
+#ifdef SAVE_LOG
+            log_file << "[State manager] inserting " << get_current_frontier() << " into unreachable. " << std::endl;
+#endif        
         if (state_data.frontier_index >= state_data.frontiers_msg.frontiers_found-1)
         {
             state_data.exploration_state = exploration_start;
 #ifdef SAVE_LOG
-            log_file << "[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left @ " << log_id << std::endl;
+            log_file << "[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left. Total unreachable frontiers " << state_data.unobservable_set.size() << " @ " << log_id << std::endl;
 #endif
-            ROS_WARN_STREAM("[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left @ " << log_id);
+            ROS_WARN_STREAM("[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left. Total unreachable frontiers " << state_data.unobservable_set.size() << "@ " << log_id);
         }
         else
         {
@@ -244,9 +247,9 @@ namespace state_manager_node
             state_data.exploration_state = generating_path; 
             state_data.waypoint_index = -1;
 #ifdef SAVE_LOG
-        log_file << "[State manager][Exploration] generating_path (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << ") @ " << log_id << std::endl;
+        log_file << "[State manager][Exploration] generating_path (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << ") Total unreachable frontiers " << state_data.unobservable_set.size() << " @ " << log_id << std::endl;
 #endif
-            ROS_WARN_STREAM("[State manager][Exploration] generating_path (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << ") @ " << log_id);
+            ROS_WARN_STREAM("[State manager][Exploration] generating_path (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << ") Total unreachable frontiers " << state_data.unobservable_set.size() << " @ " << log_id);
         }
     }
 
@@ -305,7 +308,7 @@ namespace state_manager_node
         {
             state_data.frontier_request_id = msg->request_id;
             state_data.exploration_state = generating_path;
-            state_data.frontier_index = 0;
+            // state_data.frontier_index = 0;
             state_data.frontiers_msg = *msg;
 #ifdef SAVE_LOG
             log_file << "[State manager]Frontier reply " << *msg << std::endl;
@@ -565,6 +568,7 @@ namespace state_manager_node
                     if(time_lapse > exploration_maneuver_duration_secs)
                     {
                         state_data.exploration_state = exploration_start;
+                        state_data.frontier_index = 0;
                         bool is_frontier = askIsFrontierServiceCall(get_current_frontier());
                         if(is_frontier)
                         {
