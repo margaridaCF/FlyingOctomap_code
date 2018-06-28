@@ -14,7 +14,7 @@ geofence_min/y: -50
 geofence_min/z: 1
 geofence_max/x: 50
 geofence_max/y: 50
-geofence_max/z: 60
+geofence_max/z: 50
 
 path/max_search_iterations: 180
 path/max_cycles_waited_for_path: 50

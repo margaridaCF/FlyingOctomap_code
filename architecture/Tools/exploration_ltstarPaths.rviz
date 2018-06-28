@@ -236,9 +236,11 @@ Visualization Manager:
         corridor_: false
         corridor_center: false
         corridor_occupancy: false
+        goal_voxel: false
         lazy_theta_star_path: true
         lazy_theta_star_waypoint: true
         s: false
+        start_voxel: false
         visible neighbor: false
       Queue Size: 100
       Value: true
@@ -266,25 +268,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 62.7674065
+      Distance: 68.660408
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -39.7054939
-        Y: -14.5184917
-        Z: 6.43788098e-07
+        X: -37.4546089
+        Y: -41.6003838
+        Z: 5.40291876e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.0397970825
+      Pitch: 0.68539834
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 5.23360777
+      Yaw: 4.44856024
     Saved: ~
 Window Geometry:
   Displays:
