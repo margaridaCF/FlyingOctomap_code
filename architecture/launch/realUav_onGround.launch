@@ -69,7 +69,7 @@
     <include file="$(find mavros)/launch/px4.launch">
         <arg name="fcu_url" value="/dev/ttyACM0:921600" />
     </include>
-    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0 0 0 0 0 1 map local_origin 100" />
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0 0 0 0 0 1 map this_uav 100" />
 
 </launch>
 
