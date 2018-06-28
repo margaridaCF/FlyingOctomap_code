@@ -1,20 +1,6 @@
 <launch>
 
-    <!-- Posix SITL environment launch script -->
-    <arg name="x" default="0"/>
-    <arg name="y" default="0"/>
-    <arg name="z" default="0"/>
-    <arg name="R" default="0"/>
-    <arg name="P" default="0"/>
-    <arg name="Y" default="0"/>
-    <arg name="est" default="lpe"/>
-    <!-- <arg name="vehicle" default="iris"/> -->
-
-    <arg name="ns" default="/"/>
-
-    <arg name="debug" default="false"/>
-    <arg name="verbose" default="false"/>
-    <arg name="paused" default="false"/>
+    
 
     <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
     
