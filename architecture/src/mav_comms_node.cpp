@@ -234,6 +234,13 @@ int main(int argc, char **argv)
     ROS_INFO_STREAM("[mav_comms] COM_RC_IN_MODE set to " << 1);
 
 
+    while(!mav_comms::set_mavros_param("MPC_Z_VEL_MAX_DN", 3)) { }
+    ROS_INFO_STREAM("[mav_comms] MPC_Z_VEL_MAX_DN set to " << 3);
+
+    // while(!mav_comms::set_mavros_param("MPC_XY_P", 0.5)) { }
+    // ROS_INFO_STREAM("[mav_comms] MPC_XY_P set to " << 0.5);
+
+
     // === SET POSITIONS ===
     geometry_msgs::PoseStamped point_to_pub;
     point_to_pub.pose.position.x = 0;
