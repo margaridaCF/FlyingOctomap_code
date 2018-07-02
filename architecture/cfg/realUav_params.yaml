@@ -22,4 +22,4 @@ path/safety_margin: 2
 
 current_position_topic: "/mavros/local_position/pose"
 
-lalala: "scan"
+uav/laser_topic: "scan"
