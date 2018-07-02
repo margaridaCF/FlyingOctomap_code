@@ -72,7 +72,7 @@
         <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
     </include> -->
     <include file="$(find mavros)/launch/px4.launch">
-        <arg name="fcu_url" value="/dev/ttyACM0:921600" />
+        <arg name="fcu_url" value="/dev/ttyUSB0:921600" />
     </include>
 
 
