@@ -16,6 +16,8 @@ namespace gps_utm_tf_broadcaster
     tf::Quaternion q;
     tf::quaternionMsgToTF(msg->pose.pose.orientation, q);
     transform.setRotation(q);
+    
+    ROS_WARN_STREAM("Got odometry message. Transform is from " << world_f << " to " << uav_f);
     br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, world_f, uav_f));
   }
   
