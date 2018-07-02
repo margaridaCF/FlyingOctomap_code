@@ -6,9 +6,9 @@
     <!-- <param name="world_frame_name"      type="str" value="world" />
     <param name="uav_base_frame_name"   type="str" value="uav_base_link" />
     <param name="hokuyo_frame_name"     type="str" value="hokuyo" /> -->
-    <arg name="world_frame_name"    default="world"/>
+    <!-- <arg name="world_frame_name"    default="world"/>
     <arg name="uav_frame_name" default="uav_base_link"/>
-    <arg name="hokuyo_frame_name"   default="hokuyo"/>
+    <arg name="hokuyo_frame_name"   default="hokuyo"/> -->
     <!-- #######################  Gazebo  ######################################### -->
     
     <!-- <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" /> -->
@@ -78,10 +78,10 @@
 
 
     <!-- #######################    TF    ############################# -->    
-    <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" >
-        <param name="uav_frame"     type="str" value="$(arg uav_frame_name)" />
+    <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" />
+    <!--     <param name="uav_frame"     type="str" value="$(arg uav_frame_name)" />
         <param name="world_frame"   type="str" value="$(arg world_frame_name)" />
-    </node>
+    </node> -->
     <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0 0 0 0 0 1 $(arg uav_frame_name) $(arg hokuyo_frame_name) 100" />
 
 
