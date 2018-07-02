@@ -29,6 +29,7 @@ int main(int argc, char** argv){
 
   node.getParam("uav_frame", gps_utm_tf_broadcaster::uav_f);
   node.getParam("world_frame", gps_utm_tf_broadcaster::world_f);
+  ROS_WARN_STREAM("uav_frame " << gps_utm_tf_broadcaster::world_f << " world_frame " << gps_utm_tf_broadcaster::uav_f);
 
   ros::Subscriber sub = node.subscribe(+"mavros/global_position/local", 10, &gps_utm_tf_broadcaster::poseCallback);
 
