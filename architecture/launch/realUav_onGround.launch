@@ -79,8 +79,8 @@
 
     <!-- #######################    TF    ############################# -->    
     <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" >
-        <param name="uav_frame"     type="str" value=$(arg uav_frame_name) />
-        <param name="world_frame"   type="str" value=$(arg world_frame_name) />
+        <param name="uav_frame"     type="str" value="$(arg uav_frame_name)" />
+        <param name="world_frame"   type="str" value="$(arg world_frame_name)" />
     </node>
     <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0 0 0 0 0 1 $(arg uav_frame_name) $(arg hokuyo_frame_name) 100" />
 
