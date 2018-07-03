@@ -30,20 +30,22 @@ Run unit tests:
 	- offShoreOil_1m.bt https://github.com/margaridaCF/FlyingOctomap/blob/master/path_planning/test/data/offShoreOil_1m.bt
 
 How to use ltStar_async_node:
- - The ltStar_async_node.cpp encapsules the calling of the API.
- - path_planning package contains the source code. The path_planning_msgs contains the messages and services used with the ltStar_asyncply node. 
- - This node expects a LTStarRequest message and rep - lies with a LTStarReply message. This asynchrounus mode of communication frees the calling node for other processing. The LTStarNodeStatus service replies succefully when the node is ready to receive requested (the octomap messages are being received).
- - Request message:
- 	int16 request_id - identifier to later coordinate with the reply
-	geometry_msgs/Point start - coordinates of the starting point (local in octomap frame)
-	geometry_msgs/Point goal - coordinates of the goal (local in octomap frame)
-	int16 max_search_iterations - maximum amount of seconds spent in the search (if time breaks out the reply message has false in the success variable)
-	float32 safety_margin - width and height of the corridor that is verified to be free around the path.
- - Reply message:
-	bool success - true if a path was found, false otherwise
-	uint32 request_id - the same id as the request message that it is replying to
-	uint32 waypoint_amount - total number of waypoints in the path (if successfull)
-	geometry_msgs/Point[] waypoints - the coordinates (in local octomap frame) of each waypoint 
+
+- The ltStar_async_node.cpp encapsulates the calling of the API.
+- path_planning package contains the source code. The path_planning_msgs contains the messages and services used with the ltStar_asyncply node.
+- This node expects an LTStarRequest message and replies with an LTStarReply message. This asynchronous mode of communication frees the calling node for other processing. The LTStarNodeStatus service replies successfully when the node is ready to receive requested (the octomap messages are being received).
+- Request message:       
+int16 request_id - identifier to later coordinate with the reply       
+geometry_msgs/Point start - coordinates of the starting point (local in octomap frame)       
+geometry_msgs/Point goal - coordinates of the goal (local in octomap frame)       
+int16 max_search_iterations - maximum amount of seconds spent in the search (if time breaks out the reply message has false in the success variable)       
+float32 safety_margin - width and height of the corridor that is verified to be free around the path.      
+
+- Reply message:       
+bool success - true if a path was found, false otherwise      
+uint32 request_id - the same id as the request message that it is replying to       
+uint32 waypoint_amount - total number of waypoints in the path (if successful)       
+geometry_msgs/Point[] waypoints - the coordinates (in local octomap frame) of each waypoint      
 
 This package was developed using px4's sitl inside a docker container. The instructions can be found on _generate_plots packages, jupyter notebook Paper B - SITL. In try 9.
 
