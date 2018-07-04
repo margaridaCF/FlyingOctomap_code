@@ -73,7 +73,7 @@
 
   <!-- ########################################################################## -->
     <!-- OCTOMAP -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="/ros_ws/src/path_planning/test/data/fr_campus.bt">
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="/ros_ws/src/lazy_theta_star/test/data/fr_campus.bt">
 
         <param name="frame_id" type="string" value="map" />   <!--name of the fixed frame -->
         <!--<param name="sensor_model/max_range" value="100.0" />    max range / depth resolution of the sensor in meter -->
@@ -88,7 +88,7 @@
     </node> 
     <!-- ########################################################################## --> 
   <!-- Lazy theta * --> 
-  <node pkg="path_planning" type="ltStar_dispatcher_node" name="ltstar_printer" output="screen"/>
+  <node pkg="lazy_theta_star" type="ltStar_dispatcher_node" name="ltstar_printer" output="screen"/>
   <!-- ########################################################################## -->
     <!-- Architecture nodes -->
   

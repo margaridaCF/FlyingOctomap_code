@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(path_planning_msgs)
+project(lazy_theta_star_msgs)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -25,7 +25,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # does some bookkeeping so that your library target can be implicitly used later
 # cs_add_library(my_lib src/my_lib.cpp)
 
- # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
+# works just like cs_add_library, but it calls CMake's add_executable(...) instead.
 # cs_add_executable(my_exec src/main.cpp)
 # target_link_libraries(my_exec my_lib)
 
