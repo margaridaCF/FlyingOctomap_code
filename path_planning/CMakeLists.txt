@@ -64,11 +64,11 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(collectResults ${catkin_LIBRARIES} )
 
-  # ## Octree @ work in progress ##
-  catkin_add_gtest(workInProgress 
-    test/work_in_progress_test.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib )
+  # # ## Octree @ work in progress ##
+  # catkin_add_gtest(workInProgress 
+  #   test/work_in_progress_test.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib )
 
   # ## Octree @ depth and size ##depthSizeTest
   # catkin_add_gtest(depthSizeTest 

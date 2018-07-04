@@ -40,6 +40,9 @@ target_link_libraries(state_manager_node )
 cs_add_executable(current_position_provider_node src/current_position_provider_node.cpp)
 target_link_libraries(current_position_provider_node)
 
+cs_add_executable(gps_utm_tf_broadcaster_node src/gps_utm_tf_broadcaster_node.cpp)
+target_link_libraries(gps_utm_tf_broadcaster_node )
+
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
 cs_export()

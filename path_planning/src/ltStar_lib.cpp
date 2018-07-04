@@ -611,6 +611,12 @@ namespace LazyThetaStarOctree{
 	 * @param      octree        The octree
 	 * @param      disc_initial  The disc initial
 	 * @param      disc_final    The disc final
+	 * @param      ResultSet  	 Collection of data for performance analysis
+	 * @param      safety_margin Widht and height of corridor around the path that is checked for obstacles
+	 * @param      marker_pub 	 Publisher to publish markers for graphical analysis of results (only used if oublish is true)
+	 * @param      max_search_iterations Maximum amount of seconds used to search for a path, before being declared unsolvable
+	 * @param      print_resulting_path
+	 * @param      publish
 	 *
 	 * @return     A list of the ordered waypoints to get from initial to final
 	 */
