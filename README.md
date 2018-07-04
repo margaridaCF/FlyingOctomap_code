@@ -10,6 +10,8 @@ Developed by M. Faria, in the context of MarineUAS program, Innovative Training 
 Generating paths in large, outdoor, 3D scenarios, online is crucial to autonomous vehicles in various environments like air or underwater. Deterministic algorithms can give more guarantees on the action taken in a given situation, a feature highly important in standardization and verification.
 The path_planning package offers the implementation of Lazy Theta \*, extended for 3D and implemented over octomap. This combination addresses all of the mentioned concerns.
 
+A video with path examples can be seen in https://youtu.be/EMfS2lRTAZY
+
 Lazy Theta * is an any-angle variation of A*. Primarily developed for games and solving the problem in 2D, it focuses on reducing the number of expensive obstacles avoidance tests and generating a trajectory usable without postprocessing for smoothing. http://aigamedev.com/open/tutorial/lazy-theta-star/
 It has several attributes:
 - Deterministic. A chance to unit test and to give guarantees.
