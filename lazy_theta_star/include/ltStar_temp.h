@@ -4,9 +4,9 @@
 #include <open.h>
 #include <list>
 #include <unordered_map>
-#include <path_planning_msgs/LTStarRequest.h>
-#include <path_planning_msgs/LTStarReply.h>
-#include <path_planning_msgs/LTStarNodeStatus.h>
+#include <lazy_theta_star_msgs/LTStarRequest.h>
+#include <lazy_theta_star_msgs/LTStarReply.h>
+#include <lazy_theta_star_msgs/LTStarNodeStatus.h>
 
 // namespace std
 // {
@@ -95,7 +95,7 @@ namespace LazyThetaStarOctree{
 		bool print_resulting_path = false,
 		bool publish = false);
 
-	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish = false);
+	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish = false);
 
 
     bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 

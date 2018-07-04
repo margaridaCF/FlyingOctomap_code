@@ -282,7 +282,7 @@ namespace LazyThetaStarOctree{
 		ros::Publisher marker_pub;
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
 		octomap::OcTree octree ("data/(-11.2177; -18.2778; 2.39616)_(-8.5; 6.5; 3.5)_throughWall.bt");
-		path_planning_msgs::LTStarRequest request;
+		lazy_theta_star_msgs::LTStarRequest request;
 		request.header.seq = 2;
 		request.request_id = 3;
 		request.start.x = -11.2177;
@@ -293,7 +293,7 @@ namespace LazyThetaStarOctree{
 		request.goal.z = 3.5;
 		request.max_search_iterations = 1000;
 		request.safety_margin = 1;
-		path_planning_msgs::LTStarReply reply;
+		lazy_theta_star_msgs::LTStarReply reply;
 		processLTStarRequest(octree, request, reply, marker_pub);
 		ASSERT_TRUE(reply.success);
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
@@ -304,7 +304,7 @@ namespace LazyThetaStarOctree{
 		ros::Publisher marker_pub;
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
 		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
-		path_planning_msgs::LTStarRequest request;
+		lazy_theta_star_msgs::LTStarRequest request;
 		request.header.seq = 2;
 		request.request_id = 3;
 		request.start.x = -10.3054;
@@ -315,7 +315,7 @@ namespace LazyThetaStarOctree{
 		request.goal.z = 3.5;
 		request.max_search_iterations = 500;
 		request.safety_margin = 0.5;
-		path_planning_msgs::LTStarReply reply;
+		lazy_theta_star_msgs::LTStarReply reply;
 		processLTStarRequest(octree, request, reply, marker_pub);
 		ASSERT_TRUE(reply.success);
 		ASSERT_GT(reply.waypoint_amount, 2);
@@ -414,7 +414,7 @@ namespace LazyThetaStarOctree{
 	// {
 
 	// 	octomap::OcTree octree ("data/depth_unknownVoxel.bt");
-	// 	path_planning_msgs::LTStarRequest const& request;
+	// 	lazy_theta_star_msgs::LTStarRequest const& request;
 	// 	geometric_msgs::Point start;
 	// 	start.x = -0.102492;
 	// 	start.x = 0.00635417;
@@ -425,7 +425,7 @@ namespace LazyThetaStarOctree{
 	// 	goal.x = 0.00635417;
 	// 	goal.x = 10.1225;
 	// 	request.goal = goal;
-	// 	processLTStarRequest(octomap::OcTree const& octree, request, path_planning_msgs::LTStarReply & reply);
+	// 	processLTStarRequest(octomap::OcTree const& octree, request, lazy_theta_star_msgs::LTStarReply & reply);
 
 
 
