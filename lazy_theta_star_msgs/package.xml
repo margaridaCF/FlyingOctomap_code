@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>path_planning_msgs</name>
+  <name>lazy_theta_star_msgs</name>
   <version>0.0.0</version>
   <description>The messages to request and receive Lazy Theta Star paths.</description>
 

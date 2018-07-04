@@ -25,9 +25,9 @@
 #include <frontiers_msgs/FrontierNodeStatus.h>
 #include <frontiers_msgs/VoxelMsg.h>
 
-#include <path_planning_msgs/LTStarReply.h>
-#include <path_planning_msgs/LTStarRequest.h>
-#include <path_planning_msgs/LTStarNodeStatus.h>
+#include <lazy_theta_star_msgs/LTStarReply.h>
+#include <lazy_theta_star_msgs/LTStarRequest.h>
+#include <lazy_theta_star_msgs/LTStarNodeStatus.h>
 
 #define SAVE_CSV 1
 #define SAVE_LOG 1
@@ -94,8 +94,8 @@ namespace state_manager_node
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierRequest frontiers_request;
         frontiers_msgs::FrontierReply frontiers_msg;
-        path_planning_msgs::LTStarRequest ltstar_request;
-        path_planning_msgs::LTStarReply ltstar_reply;
+        lazy_theta_star_msgs::LTStarRequest ltstar_request;
+        lazy_theta_star_msgs::LTStarReply ltstar_reply;
         std::unordered_set<octomath::Vector3, Vector3Hash> unobservable_set; 
     };  
     state_manager_node::StateData state_data;
@@ -166,7 +166,7 @@ namespace state_manager_node
 
     void askForObstacleAvoidingPath(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& ltstar_request_pub)
     {
-        path_planning_msgs::LTStarRequest request;
+        lazy_theta_star_msgs::LTStarRequest request;
         state_data.ltstar_request_id++;
         request.request_id = state_data.ltstar_request_id;
         request.header.frame_id = "world";
@@ -250,7 +250,7 @@ namespace state_manager_node
         }
     }
 
-    void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
+    void ltstar_cb(const lazy_theta_star_msgs::LTStarReply::ConstPtr& msg)
     {
         if(state_data.exploration_state != waiting_path_response)
         {
@@ -502,7 +502,7 @@ namespace state_manager_node
             }
             case generating_path:
             {
-                path_planning_msgs::LTStarNodeStatus srv;
+                lazy_theta_star_msgs::LTStarNodeStatus srv;
                 if(ltstar_status_cliente.call(srv))
                 {
                     if((bool)srv.response.is_accepting_requests)
@@ -636,7 +636,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     state_manager_node::init_param_variables(nh);
     // Service client
-    state_manager_node::ltstar_status_cliente = nh.serviceClient<path_planning_msgs::LTStarNodeStatus>("ltstar_status");
+    state_manager_node::ltstar_status_cliente = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>("ltstar_status");
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
     state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
@@ -644,9 +644,9 @@ int main(int argc, char **argv)
     state_manager_node::target_position_client = nh.serviceClient<architecture_msgs::PositionRequest>("target_position");
     // Topic subscribers 
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
-    ros::Subscriber ltstar_reply_sub = nh.subscribe<path_planning_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
+    ros::Subscriber ltstar_reply_sub = nh.subscribe<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
     // Topic publishers
-    state_manager_node::ltstar_request_pub = nh.advertise<path_planning_msgs::LTStarRequest>("ltstar_request", 10);
+    state_manager_node::ltstar_request_pub = nh.advertise<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10);
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
     state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("geofence", 1);
 

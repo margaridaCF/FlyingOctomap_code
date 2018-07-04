@@ -20,17 +20,17 @@ namespace LazyThetaStarOctree
 	bool octomap_init;
 	bool publish_free_corridor_arrows;
 
-	bool check_status(path_planning_msgs::LTStarNodeStatus::Request  &req,
-        path_planning_msgs::LTStarNodeStatus::Response &res)
+	bool check_status(lazy_theta_star_msgs::LTStarNodeStatus::Request  &req,
+        lazy_theta_star_msgs::LTStarNodeStatus::Response &res)
 	{
 		res.is_accepting_requests = octomap_init;
 	  	return true;
 	}
 
-	void ltstar_callback(const path_planning_msgs::LTStarRequest::ConstPtr& path_request)
+	void ltstar_callback(const lazy_theta_star_msgs::LTStarRequest::ConstPtr& path_request)
 	{
 		rviz_interface::publish_deleteAll(marker_pub);
-		path_planning_msgs::LTStarReply reply;
+		lazy_theta_star_msgs::LTStarReply reply;
 		reply.waypoint_amount = 0;
 		reply.success = false;
 		if(octomap_init)
@@ -118,8 +118,8 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	ros::ServiceServer ltstar_status_service = nh.advertiseService("ltstar_status", LazyThetaStarOctree::check_status);
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, LazyThetaStarOctree::octomap_callback);
-	ros::Subscriber ltstars_sub = nh.subscribe<path_planning_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
-	LazyThetaStarOctree::ltstar_reply_pub = nh.advertise<path_planning_msgs::LTStarReply>("ltstar_reply", 10);
+	ros::Subscriber ltstars_sub = nh.subscribe<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
+	LazyThetaStarOctree::ltstar_reply_pub = nh.advertise<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 10);
 	LazyThetaStarOctree::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("ltstar_path", 1);
 
 	ros::spin();

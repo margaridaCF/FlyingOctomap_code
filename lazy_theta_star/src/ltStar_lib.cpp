@@ -902,7 +902,7 @@ namespace LazyThetaStarOctree{
 
 
 
-	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish)
+	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish)
 	{
 		marker_pub_ = marker_pub;
 		std::srand(std::time(0));

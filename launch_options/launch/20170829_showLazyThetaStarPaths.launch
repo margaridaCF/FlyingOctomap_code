@@ -6,7 +6,7 @@
  
   <!-- ########################################################################## --> 
   <!-- OCTOMAP --> 
-  <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="/home/mfaria/ws_mavlink_grvcHal/src/path_planning/test/data/run_2.bt">    
+  <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="/home/mfaria/ws_mavlink_grvcHal/src/lazy_theta_star/test/data/run_2.bt">    
     <param name="frame_id" type="str" value="/world" />
   </node>
  
@@ -18,5 +18,5 @@
  
   <!-- ########################################################################## --> 
   <!-- Lazy theta * --> 
-  <node pkg="path_planning" type="ltStar_dispatcher_node" name="ltstar_printer" output="screen"/>
+  <node pkg="lazy_theta_star" type="ltStar_dispatcher_node" name="ltstar_printer" output="screen"/>
 </launch>

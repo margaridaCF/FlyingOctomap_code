@@ -16,18 +16,18 @@ namespace LazyThetaStarOctree
 	bool publish_free_corridor_arrows;
 
 
-	// bool check_status(path_planning_msgs::LTStarNodeStatus::Request  &req,
- //        path_planning_msgs::LTStarNodeStatus::Response &res)
+	// bool check_status(lazy_theta_star_msgs::LTStarNodeStatus::Request  &req,
+ //        lazy_theta_star_msgs::LTStarNodeStatus::Response &res)
 	// {
 	// 	res.is_accepting_requests = octomap_init;
 	//   	return true;
 	// }
 
-	void runLazyThetaStar(path_planning_msgs::LTStarRequest const& path_request)
+	void runLazyThetaStar(lazy_theta_star_msgs::LTStarRequest const& path_request)
 	{	
 		rviz_interface::publish_deleteAll(marker_pub);
 		rviz_interface::publish_random_important_cube(octomath::Vector3(1.38375, -0.677482, 2.88732), marker_pub);
-		path_planning_msgs::LTStarReply reply;
+		lazy_theta_star_msgs::LTStarReply reply;
 		reply.waypoint_amount = 0;
 		reply.success = false;
 
@@ -77,7 +77,7 @@ namespace LazyThetaStarOctree
 		ROS_WARN_STREAM("Got the octomap");
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
 		octomap_init = true;
-		path_planning_msgs::LTStarRequest request;
+		lazy_theta_star_msgs::LTStarRequest request;
 		request.header.seq = 2;
 		request.request_id = 3;
 		request.start.x = 1.38375;
@@ -103,9 +103,9 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	// ros::ServiceServer ltstar_status_service = nh.advertiseService("ltstar_status", LazyThetaStarOctree::check_status);
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, LazyThetaStarOctree::octomap_callback);
-	// ros::Subscriber ltstars_sub = nh.subscribe<path_planning_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
+	// ros::Subscriber ltstars_sub = nh.subscribe<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
 	LazyThetaStarOctree::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("ltstar_path", 1);
-	// octomap::OcTree octree ("/ros_ws/src/path_planning/test/data/d.bt");
+	// octomap::OcTree octree ("/ros_ws/src/lazy_theta_star/test/data/d.bt");
 	// LazyThetaStarOctree::ltstar_callback(request);
   	ros::spin();
 }

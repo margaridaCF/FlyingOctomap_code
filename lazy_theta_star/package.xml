@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>path_planning</name>
+  <name>lazy_theta_star</name>
   <version>0.2.0</version>
   <description>A package for path planners on octree</description>
 
@@ -14,7 +14,7 @@
   <depend>octomap_msgs</depend>
   <depend>octomap_ros</depend>
   <depend>std_msgs</depend>
-  <depend>path_planning_msgs</depend>
+  <depend>lazy_theta_star_msgs</depend>
   <depend>frontiers</depend>
   <depend>rviz_interface</depend>
 
