@@ -92,6 +92,14 @@
     <node name="hokuyo"         pkg="urg_node"      type="urg_node" output="screen" >
         <param name="ip_address" value="192.168.0.10"/>
     </node>
+
+    <!-- #######################    Log   ############################# -->
+    <!-- Bag to generate surface mesh -->
+    <node pkg="rosbag" type="record" name="rosbag_record"
+       args="record -O /$(find architecture)/cloud_bag.bag /tf /scan /mavros/global_position/local /mavros/global_position/global"/>   
+    <!-- Bag to replay algorithm results -->
+    <node pkg="rosbag" type="record" name="rosbag_record"
+       args="record -O /$(find architecture)/../data/current/diagnostic_bag /tf /mavros/global_position/local /mavros/global_position/global /occupied_cells_vis_array /free_cells_vis_array /ltstar_path /frontiers_reply /frontiers_request /ltstar_request /ltstar_reply /mavros/setpoint_position/local "/> 
 </launch>
 
 <!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
