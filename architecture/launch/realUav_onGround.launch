@@ -84,8 +84,8 @@
     <!--     <param name="uav_frame"     type="str" value="$(arg uav_frame_name)" />
         <param name="world_frame"   type="str" value="$(arg world_frame_name)" />
     </node> -->
-    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0 0 0 -0.872665 0 uav_base_link laser 100" />
-    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0.21 0.22 0 0 0 1 world map 100" />
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0.21 0.22 0 -0.872665 0 uav_base_link laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" />
 
 
     <!-- #######################  Hokuyo  ############################# -->
