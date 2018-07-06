@@ -21,8 +21,8 @@ geofence_min/y: -10
 geofence_max/x: 10
 geofence_max/y: 10
 
-geofence_min/z: 5
-geofence_max/z: 15
+geofence_min/z: 20
+geofence_max/z: 30
 
 path/max_search_iterations: 180
 path/max_cycles_waited_for_path: 50
