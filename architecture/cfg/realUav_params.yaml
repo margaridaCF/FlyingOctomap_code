@@ -30,4 +30,11 @@ path/safety_margin: 2
 
 current_position_topic: "/mavros/local_position/pose"
 
-uav/laser_topic: "scan"
+uav/laser_topic: "scan_filtered"
+
+scan_filter_chain:
+- name: range
+  type: LaserScanRangeFilter
+  params:
+    lower_threshold: 0.7
+    upper_threshold: 10

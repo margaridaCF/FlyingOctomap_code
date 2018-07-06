@@ -23,7 +23,14 @@
 
 
     <!-- #######################  Architecture nodes  ############################# -->
-    <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" />
+    <node name="laser_filter" type="scan_to_scan_filter_chain" pkg="laser_filters">
+        <rosparam command="load" file="$(find architecture)/cfg/realUav_params.yaml" />
+        <param name="target_frame"   value="scan" />
+        <remap from="base_scan" to="scan" />
+    </node>
+    <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" >
+        <param name="range_min" value="1"/>
+    </node>
     <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
     <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
     <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
@@ -37,7 +44,8 @@
 
     <!-- #######################    TF    ############################# -->    
     <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" />
-    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0 0 0 0 0 1 $(arg uav_frame_name) $(arg hokuyo_frame_name) 100" />
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 0 uav_base_link laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" />
 
 
     <!-- #######################  Hokuyo  ############################# -->
