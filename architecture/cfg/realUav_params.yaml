@@ -37,4 +37,4 @@ scan_filter_chain:
   type: LaserScanRangeFilter
   params:
     lower_threshold: 0.7
-    upper_threshold: 10
+    upper_threshold: 200000
