@@ -220,7 +220,7 @@ namespace state_manager_node
         if(is_frontier_client.call(is_frontier_msg)) 
         { 
 #ifdef SAVE_LOG
-            log_file << "[State manager] Is frontier " << is_frontier_msg << std::endl;
+            log_file << "[State manager] Is frontier " << candidate << std::endl;
 #endif
             return is_frontier_msg.response.is_frontier; 
         } 
