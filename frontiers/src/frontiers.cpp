@@ -84,10 +84,6 @@ namespace Frontiers{
             {
                 // ROS_WARN_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal);
                 is_frontier = false;
-
-#ifdef SAVE_LOG
-                log_file <<  "[frontiers] Frontier candidate " << coord << " size " << it.getSize() << " use_center_as_goal " << use_center_as_goal << std::endl;
-#endif
                 // Generate neighbors
                 std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
                 LazyThetaStarOctree::generateNeighbors_frontiers_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution, request.sensor_angle);
