@@ -1,0 +1,13 @@
+<launch>
+    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
+    <arg name="world_frame_name"    default="world"/>
+    <arg name="uav_frame_name" default="uav_base_link"/>
+    <arg name="hokuyo_frame_name"   default="hokuyo"/>
+
+    
+    <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
+    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/realUAV.rviz" /> 
+</launch>
+
