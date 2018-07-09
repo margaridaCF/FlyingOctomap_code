@@ -219,6 +219,9 @@ namespace state_manager_node
         is_frontier_msg.request.candidate = candidate; 
         if(is_frontier_client.call(is_frontier_msg)) 
         { 
+#ifdef SAVE_LOG
+            log_file << "[State manager] Is frontier " << is_frontier_msg << std::endl;
+#endif
             return is_frontier_msg.response.is_frontier; 
         } 
         else 
