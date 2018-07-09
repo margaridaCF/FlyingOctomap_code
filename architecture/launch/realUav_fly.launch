@@ -23,24 +23,29 @@
 
 
     <!-- #######################  Architecture nodes  ############################# -->
-    <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" />
+    <node name="laser_filter" type="scan_to_scan_filter_chain" pkg="laser_filters">
+        <rosparam command="load" file="$(find architecture)/cfg/realUav_params.yaml" />
+        <param name="target_frame"   value="scan" />
+        <remap from="base_scan" to="scan" />
+    </node>
+    <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" >
+        <param name="range_min" value="1"/>
+    </node>
     <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
     <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
     <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
-    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="lazy_theta_star" output="screen" />
+    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
 
     <include file="$(find mavros)/launch/px4.launch">
-        <arg name="fcu_url" value="/dev/ttyACM0:921600" />
+        <arg name="fcu_url" value="/dev/ttyUSB0:921600" />
     </include>
 
 
     <!-- #######################    TF    ############################# -->    
-    <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" >
-        <param name="uav_frame"     type="str" value=$(arg uav_frame_name) />
-        <param name="world_frame"   type="str" value=$(arg world_frame_name) />
-    </node>
-    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0 0 0 0 0 1 $(arg uav_frame_name) $(arg hokuyo_frame_name) 100" />
+    <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" />
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 0 uav_base_link laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" />
 
 
     <!-- #######################  Hokuyo  ############################# -->
@@ -50,11 +55,7 @@
 
 
     <!-- #######################    Log   ############################# -->
-    <!-- Bag to generate surface mesh -->
-    <node pkg="rosbag" type="record" name="rosbag_record"
-       args="record -O /$(find architecture)/cloud_bag.bag /tf /scan /mavros/global_position/local /mavros/global_position/global"/>   
-    <!-- Bag to replay algorithm results -->
-    <node pkg="rosbag" type="record" name="rosbag_record"
-       args="record -O /$(find architecture)/../data/current/diagnostic_bag /tf /mavros/global_position/local /mavros/global_position/global /occupied_cells_vis_array /free_cells_vis_array /ltstar_path /frontiers_reply /frontiers_request /ltstar_request /ltstar_reply /mavros/setpoint_position/local "/> 
+    <node pkg="rosbag" type="record" name="rosbag_record_all"
+       args="record -O /ros_ws/src/data/record_all.bag /tf /scan /mavros/global_position/local /mavros/global_position/global /tf /mavros/global_position/local /mavros/global_position/global /occupied_cells_vis_array /free_cells_vis_array /ltstar_path /frontiers_reply /frontiers_request /ltstar_request /ltstar_reply /mavros/setpoint_position/local "/>  
 </launch>
 

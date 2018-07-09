@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 
     mav_comms::state_variables_init(nh);
     //the setpoint publishing rate MUST be faster than 2Hz
-    ros::Rate rate(100);
+    ros::Rate rate(10);
     // === FCU CONNECTION ===
     while(ros::ok() && mav_comms::current_state.connected) {
         ros::spinOnce();
@@ -255,7 +255,7 @@ int main(int argc, char **argv)
     while(ros::ok()) 
     {// Position is always sent regardeless of the state to keep vehicle in offboard mode
         mav_comms::send_msg_to_px4();
-        if( mav_comms::current_state.mode != "OFFBOARD") 
+        /*if( mav_comms::current_state.mode != "OFFBOARD") 
         {
             if(offboard_on)
             {
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
                     armed = true;
                 }
             }
-        }
+        }*/
         ros::spinOnce();
         rate.sleep();
     }
