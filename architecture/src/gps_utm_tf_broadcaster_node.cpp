@@ -6,13 +6,12 @@
 
 namespace gps_utm_tf_broadcaster
 {
-  // std::string uav_f;
-  // std::string world_f;
+  double z_offset_pixhawk = 0.44;
 
   void poseCallback(const nav_msgs::OdometryConstPtr& msg){
     static tf::TransformBroadcaster br;
     tf::Transform transform;
-    transform.setOrigin( tf::Vector3(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z) );
+    transform.setOrigin( tf::Vector3(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z + z_offset_pixhawk) );
     tf::Quaternion q;
     tf::quaternionMsgToTF(msg->pose.pose.orientation, q);
     transform.setRotation(q);
