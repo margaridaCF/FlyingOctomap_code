@@ -16,8 +16,8 @@ frontier/safety_margin: 2
 # geofence_max/y: 22
 
 # Fly 1
-geofence_min/x: -10
-geofence_min/y: -10
+geofence_min/x: -20
+geofence_min/y: -20
 geofence_max/x: 10
 geofence_max/y: 10
 
