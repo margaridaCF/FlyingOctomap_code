@@ -7,6 +7,8 @@
 namespace gps_utm_tf_broadcaster
 {
   double z_offset_pixhawk = 0.44;
+  std::string uav_f;
+  std::string world_f;
 
   void poseCallback(const nav_msgs::OdometryConstPtr& msg){
     static tf::TransformBroadcaster br;
@@ -16,7 +18,8 @@ namespace gps_utm_tf_broadcaster
     tf::quaternionMsgToTF(msg->pose.pose.orientation, q);
     transform.setRotation(q);
     
-    br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, "world", "uav_base_link"));
+    // br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, "world", "base_link"));
+    br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, world_f, uav_f));
   }
   
 }
@@ -27,9 +30,9 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "gps_utm_tf_broadcaster");
   ros::NodeHandle node;
 
-  // node.getParam("uav_frame", gps_utm_tf_broadcaster::uav_f);
-  // node.getParam("world_frame", gps_utm_tf_broadcaster::world_f);
-  // ROS_WARN_STREAM("uav_frame " << gps_utm_tf_broadcaster::world_f << " world_frame " << gps_utm_tf_broadcaster::uav_f);
+  node.getParam("uav_frame", gps_utm_tf_broadcaster::uav_f);
+  node.getParam("world_frame", gps_utm_tf_broadcaster::world_f);
+  ROS_WARN_STREAM("uav_frame " << gps_utm_tf_broadcaster::world_f << " world_frame " << gps_utm_tf_broadcaster::uav_f);
 
   ros::Subscriber sub = node.subscribe(+"mavros/global_position/local", 10, &gps_utm_tf_broadcaster::poseCallback);
 
