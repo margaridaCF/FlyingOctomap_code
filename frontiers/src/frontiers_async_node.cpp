@@ -61,8 +61,15 @@ namespace frontiers_async_node
 		frontiers_msgs::CheckIsFrontier::Response &res)
 	{
 		octomath::Vector3 candidate(req.candidate.x, req.candidate.y, req.candidate.z);
-		res.is_frontier = Frontiers::isFrontier(*octree, candidate, sensor_angle);
-		return true;
+		try
+		{
+			res.is_frontier = Frontiers::isFrontier(*octree, candidate, sensor_angle);
+			return true;
+		}
+		catch(const std::out_of_range& oor)
+		{
+			ROS_ERROR_STREAM("[Frontiers] Candidate " << req.candidate << " is in unknown space.");
+		}
 	}
 
 	void frontier_callback(const frontiers_msgs::FrontierRequest::ConstPtr& frontier_request)

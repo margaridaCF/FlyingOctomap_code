@@ -7,7 +7,7 @@ laser_angle: 1.0472
 
 odometry_error: 0
 
-frontier/safety_margin: 3
+frontier/safety_margin: 2
 
 # Fly 2
 # geofence_min/x: -17
@@ -26,7 +26,7 @@ geofence_max/z: 30
 
 path/max_search_iterations: 180
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 2
+path/safety_margin: 1.5
 
 current_position_topic: "/mavros/local_position/pose"
 
