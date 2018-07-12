@@ -1,28 +1,11 @@
 <launch>
     <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
     <arg name="world_frame_name"    default="world"/>
-    <arg name="uav_frame_name" default="uav_base_link"/>
+    <arg name="uav_frame_name"      default="base_link"/>
     <arg name="hokuyo_frame_name"   default="hokuyo"/>
 
 
     <!-- #######################  Octomap  ######################################## -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
-        <param name="frame_id" type="string" value="map" />   
-        <remap from="cloud_in" to="/free_cloud" />
-        <!-- <remap from="cloud_in" to="/velodyne_points" /> -->
-        <param name="latch" value="false" />
-        <param name="resolution" value="0.5" />
-        <param name="pointcloud_min" value="0"/>
-        <param name="pointcloud_max" value="2"/>
-        <param name="occupancy_min" value="1"/>
-        <param name="publish_free_space" value="true"/>
-        <param name="sensor_model/max_range" value="10"/>
-        <param name="sensor_model/hit" value="0.7"/>
-        <param name="sensor_model/miss" value="0.3"/>
-    </node>
-
-
-    <!-- #######################  Architecture nodes  ############################# -->
     <node name="laser_filter" type="scan_to_scan_filter_chain" pkg="laser_filters">
         <rosparam command="load" file="$(find architecture)/cfg/realUav_params.yaml" />
         <param name="target_frame"   value="scan" />
@@ -31,6 +14,23 @@
     <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" >
         <param name="range_min" value="1"/>
     </node>
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+        <param name="frame_id" type="string" value="map" />   
+        <remap from="cloud_in" to="/free_cloud" />
+        <!-- <remap from="cloud_in" to="/velodyne_points" /> -->
+        <param name="latch" value="false" />
+        <param name="resolution" value="0.2" />
+        <!-- <param name="pointcloud_min" value="0"/>
+        <param name="pointcloud_max" value="2"/>
+        <param name="occupancy_min" value="1"/> -->
+        <param name="publish_free_space" value="true"/>
+        <param name="sensor_model/max_range" value="20"/>
+        <!-- <param name="sensor_model/hit" value="0.7"/>
+        <param name="sensor_model/miss" value="0.3"/> -->
+    </node>
+
+
+    <!-- #######################  Architecture nodes  ############################# -->
     <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
     <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
     <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
@@ -43,8 +43,9 @@
 
 
     <!-- #######################    TF    ############################# -->    
+    <!-- <param name="/use_sim_time" value="true" />  -->
     <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" />
-    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 0 uav_base_link laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 0 custom_conversion_uav_frame laser 100" />
     <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" />
 
 
