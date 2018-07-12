@@ -45,7 +45,7 @@
     <!-- #######################    TF    ############################# -->    
     <!-- <param name="/use_sim_time" value="true" />  -->
     <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" />
-    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 3.14159 0.872665 3.14159 custom_conversion_uav_frame laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 0.872665 3.14159 custom_conversion_uav_frame laser 100" />
     <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" />
 
 
