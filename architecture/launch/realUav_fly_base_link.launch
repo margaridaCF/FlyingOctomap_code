@@ -11,7 +11,7 @@
         <remap from="cloud_in" to="/free_cloud" />
         <!-- <remap from="cloud_in" to="/velodyne_points" /> -->
         <param name="latch" value="false" />
-        <param name="resolution" value="0.5" />
+        <param name="resolution" value="0.2" />
         <param name="pointcloud_min" value="0"/>
         <param name="pointcloud_max" value="2"/>
         <param name="occupancy_min" value="1"/>
