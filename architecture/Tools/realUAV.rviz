@@ -32,7 +32,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: "Free Cloud "
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -103,8 +103,11 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
-          map:
+          laser:
             {}
+          map:
+            base_link:
+              {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -184,22 +187,19 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        map: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /geofence
       Name: Geofence
       Namespaces:
-        current_position: true
         geofence: true
-        goal: true
-        start: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -207,9 +207,7 @@ Visualization Manager:
       Marker Topic: /frontiers/known_space
       Name: Frontiers
       Namespaces:
-        frontier_neighborhood: true
-        frontier_safety_margin: true
-        unknown_neighbor: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -217,8 +215,7 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        lazy_theta_star_path: true
-        lazy_theta_star_waypoint: true
+        {}
       Queue Size: 100
       Value: true
     - Angle Tolerance: 0.100000001
@@ -295,25 +292,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 35.4473648
+      Distance: 14.486474
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.15684068
-        Y: 2.68842959
-        Z: 5.17013597
+        X: -1.66364431
+        Y: -1.87221992
+        Z: 2.74038315
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.244794026
+      Pitch: 0.164794281
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.37409389
+      Yaw: 3.11909366
     Saved: ~
 Window Geometry:
   Displays:
