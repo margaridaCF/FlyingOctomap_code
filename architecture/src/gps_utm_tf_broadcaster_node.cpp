@@ -18,7 +18,7 @@ namespace gps_utm_tf_broadcaster
     tf::quaternionMsgToTF(msg->pose.pose.orientation, q);
     transform.setRotation(q);
     
-    br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, "world", "base_link"));
+    br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, "world", "custom_conversion_uav_frame"));
     // br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, world_f, uav_f));
   }
   
@@ -34,7 +34,7 @@ int main(int argc, char** argv){
   node.getParam("world_frame", gps_utm_tf_broadcaster::world_f);
   ROS_WARN_STREAM("uav_frame " << gps_utm_tf_broadcaster::world_f << " world_frame " << gps_utm_tf_broadcaster::uav_f);
 
-  ros::Subscriber sub = node.subscribe(+"mavros/global_position/local", 10, &gps_utm_tf_broadcaster::poseCallback);
+  ros::Subscriber sub = node.subscribe("mavros/global_position/local", 10, &gps_utm_tf_broadcaster::poseCallback);
 
   ros::spin();
   return 0;
