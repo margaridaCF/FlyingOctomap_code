@@ -10,6 +10,8 @@
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/YawSpin.h>
 
+// #define SIMULATION 1
+
 namespace mav_comms
 {
     ros::Duration exploration_maneuver_phases_duration_secs;
@@ -265,7 +267,9 @@ int main(int argc, char **argv)
     while(ros::ok()) 
     {// Position is always sent regardeless of the state to keep vehicle in offboard mode
         mav_comms::send_msg_to_px4();
-        /*if( mav_comms::current_state.mode != "OFFBOARD") 
+
+#ifdef SIMULATION 
+        if( mav_comms::current_state.mode != "OFFBOARD") 
         {
             if(offboard_on)
             {
@@ -298,7 +302,8 @@ int main(int argc, char **argv)
                     armed = true;
                 }
             }
-        }*/
+        }
+#endif
         ros::spinOnce();
         rate.sleep();
     }
