@@ -181,6 +181,7 @@ namespace state_manager_node
 #ifdef SAVE_LOG
         log_file << "[State manager] Requesting path " << request << std::endl;
 #endif
+        ROS_WARN_STREAM ("[State manager] Requesting path from " << request.start << " to " << request.goal);
         ltstar_request_pub.publish(request);
         state_data.ltstar_request = request;
         rviz_interface::publish_start(request.start, marker_pub);
@@ -206,6 +207,7 @@ namespace state_manager_node
 #ifdef SAVE_LOG
         log_file << "[State manager] Requesting frontier " << request << std::endl;
 #endif
+        ROS_WARN_STREAM (     "[State manager] Requesting frontier " << request.frontier_amount  << " frontiers." );
         state_data.frontiers_request = request;
         frontier_request_pub.publish(request);
         state_data.frontier_request_count++;
@@ -217,6 +219,9 @@ namespace state_manager_node
         is_frontier_msg.request.candidate = candidate; 
         if(is_frontier_client.call(is_frontier_msg)) 
         { 
+#ifdef SAVE_LOG
+            log_file << "[State manager] Is frontier " << candidate << std::endl;
+#endif
             return is_frontier_msg.response.is_frontier; 
         } 
         else 
@@ -269,6 +274,7 @@ namespace state_manager_node
         }
         else
         {
+            ROS_WARN_STREAM (     "[State manager] Path reply was successfull? " << msg->success );
             if(msg->success)
             {
                 state_data.ltstar_reply = *msg;
@@ -312,8 +318,8 @@ namespace state_manager_node
             state_data.frontiers_msg = *msg;
 #ifdef SAVE_LOG
             log_file << "[State manager]Frontier reply " << *msg << std::endl;
-            log_file << "[State manager][Exploration] generating_path from " << msg->frontiers_found << " frontiers." << std::endl;
 #endif
+            ROS_WARN_STREAM (     "[State manager] found " << msg->frontiers_found << " frontiers." );
             if(get_current_frontier().x < geofence_min.x() 
                 || get_current_frontier().y < geofence_min.y() 
                 || get_current_frontier().x < geofence_min.y() 
@@ -464,11 +470,11 @@ namespace state_manager_node
                     geometry_msgs::Point waypoint;
                     waypoint.x = current_position.x;
                     waypoint.y = current_position.y;
-                    waypoint.z = 5;
+                    waypoint.z = geofence_max.z();
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.x = current_position.x;
                     waypoint.y = current_position.y;
-                    waypoint.z = 2;
+                    waypoint.z = geofence_min.z();
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     state_data.frontiers_msg.frontiers_found = 1;
                     state_data.ltstar_reply.waypoint_amount = 2;

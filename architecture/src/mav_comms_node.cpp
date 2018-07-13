@@ -19,7 +19,7 @@ namespace mav_comms
     ros::ServiceServer yaw_spin_service;
     ros::ServiceServer target_position_service;
     enum movement_state_t {position, stop, yaw_spin};
-    enum yaw_spin_maneuver_state_t {front_facing = 0, half_moon = 180, full_moon = 360};
+    enum yaw_spin_maneuver_state_t {front_facing = 0, yaw_1 = 120, yaw_2 = 240, yaw_3 = 360};
     struct Position { movement_state_t movement_state; int waypoint_sequence;
         double x; double y; double z; 
         yaw_spin_maneuver_state_t yaw_spin_state; 
@@ -145,32 +145,35 @@ namespace mav_comms
                 {
                     case front_facing:
                     {
-                        // ROS_INFO_STREAM("[mav_comms]        front_facing");
                         position_state.yaw_spin_last_sent = ros::Time::now();
-                        position_state.yaw_spin_state = half_moon;
-                        // ROS_INFO_STREAM("[mav_comms]        half_moon");
+                        position_state.yaw_spin_state = yaw_1;
                         break;
                     }
-                    case half_moon:
+                    case yaw_1:
                     {
-                        // ROS_INFO_STREAM("[mav_comms]        @ half_moon for " << time_lapse);
                         if(time_lapse > exploration_maneuver_phases_duration_secs)
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
-                            position_state.yaw_spin_state = full_moon;
-                            // ROS_INFO_STREAM("[mav_comms]        full_moon");
+                            position_state.yaw_spin_state = yaw_2;
                         }
                         break;
                     }
-                    case full_moon:
+                    case yaw_2:
                     {
-                        // ROS_INFO_STREAM("[mav_comms]        @ full_moon for " << time_lapse);
+                        if(time_lapse > exploration_maneuver_phases_duration_secs)
+                        {
+                            position_state.yaw_spin_last_sent = ros::Time::now();
+                            position_state.yaw_spin_state = yaw_3;
+                        }
+                        break;
+                    }
+                    case yaw_3:
+                    {
                         if(time_lapse > exploration_maneuver_phases_duration_secs)
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = front_facing;
                             position_state.movement_state = position;
-                            // ROS_INFO_STREAM("[mav_comms] position");
                         }
                         break;
                     }
@@ -203,7 +206,7 @@ int main(int argc, char **argv)
 
     mav_comms::state_variables_init(nh);
     //the setpoint publishing rate MUST be faster than 2Hz
-    ros::Rate rate(100);
+    ros::Rate rate(10);
     // === FCU CONNECTION ===
     while(ros::ok() && mav_comms::current_state.connected) {
         ros::spinOnce();
@@ -262,7 +265,7 @@ int main(int argc, char **argv)
     while(ros::ok()) 
     {// Position is always sent regardeless of the state to keep vehicle in offboard mode
         mav_comms::send_msg_to_px4();
-        if( mav_comms::current_state.mode != "OFFBOARD") 
+        /*if( mav_comms::current_state.mode != "OFFBOARD") 
         {
             if(offboard_on)
             {
@@ -295,7 +298,7 @@ int main(int argc, char **argv)
                     armed = true;
                 }
             }
-        }
+        }*/
         ros::spinOnce();
         rate.sleep();
     }

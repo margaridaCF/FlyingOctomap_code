@@ -10,8 +10,8 @@
     <arg name="est" default="lpe"/>
     <arg name="vehicle" default="iris"/>
     <arg name="world" default="$(find architecture)/worlds/force_waypoint_sequence.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
-    <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
+    <!-- <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/> -->
+    <!-- <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/> -->
 
     <arg name="headless" default="false"/>
     <arg name="gui" default="true"/>
@@ -23,23 +23,14 @@
 
     <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/realUAV.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
-    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="/ros_ws/src/path_planning/test/data/d.bt">
-        <param name="frame_id" type="string" value="map" />   
-        <remap from="cloud_in" to="/free_cloud" />
-        <param name="latch" value="false" />
-        <param name="resolution" value="1" />
-        <param name="pointcloud_min" value="0"/>
-        <param name="pointcloud_max" value="2"/>
-        <param name="occupancy_min" value="0.5"/>
-        <param name="occupancy_min" value="1"/>
-        <param name="publish_free_space" value="true"/>
-        <param name="sensor_model/max_range" value="laser_max_range"/>
-    </node> -->
+    <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find frontiers)/test/data/failed_to_find_depth__getNodeDepth_Octomap__32768_32768_32777.bt">    
+        <param name="frame_id" type="str" value="/map" />
+    </node>
     <!-- ########################################################################## --> 
-  <!-- Lazy theta * --> 
+  <!-- Frontiers --> 
   <node pkg="frontiers" type="frontiers_debug_node" name="frontiers_debug" output="screen"/>
   <!-- ########################################################################## -->
     <!-- Architecture nodes -->

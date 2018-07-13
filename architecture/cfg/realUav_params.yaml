@@ -7,17 +7,35 @@ laser_angle: 1.0472
 
 odometry_error: 0
 
-frontier/safety_margin: 0.5
+frontier/safety_margin: 3.5
 
-geofence_min/x: -15
-geofence_min/y: -20
-geofence_min/z: 1
-geofence_max/x: 12
-geofence_max/y: 20
-geofence_max/z: 14
+# Fly 2
+# geofence_min/x: -17
+# geofence_min/y: -22
+# geofence_max/x: 17
+# geofence_max/y: 22
 
-path/max_search_iterations: 5000
+# Fly 1
+geofence_min/x: 5
+geofence_max/x: 22
+
+geofence_min/y: -19
+geofence_max/y: 5
+
+geofence_min/z: 5
+geofence_max/z: 15
+
+path/max_search_iterations: 180
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 0.5
+path/safety_margin: 3.5
 
 current_position_topic: "/mavros/local_position/pose"
+
+uav/laser_topic: "scan_filtered"
+
+scan_filter_chain:
+- name: range
+  type: LaserScanRangeFilter
+  params:
+    lower_threshold: 0.7
+    upper_threshold: 200000
