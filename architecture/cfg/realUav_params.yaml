@@ -1,5 +1,5 @@
 exploration_maneuver_duration_secs: 11
-exploration_maneuver_phases_duration_secs: 5
+exploration_maneuver_phases_duration_secs: 15
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
 laser_range: 6
@@ -7,7 +7,7 @@ laser_angle: 1.0472
 
 odometry_error: 0
 
-frontier/safety_margin: 3.5
+frontier/safety_margin: 3
 
 # Fly 2
 # geofence_min/x: -17
@@ -16,18 +16,18 @@ frontier/safety_margin: 3.5
 # geofence_max/y: 22
 
 # Fly 1
-geofence_min/x: 5
-geofence_max/x: 22
+geofence_min/x: -5
+geofence_max/x: 15
 
-geofence_min/y: -19
-geofence_max/y: 5
+geofence_min/y: -10
+geofence_max/y: 10
 
 geofence_min/z: 5
 geofence_max/z: 15
 
-path/max_search_iterations: 180
+path/max_search_iterations: 50
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 3.5
+path/safety_margin: 5
 
 current_position_topic: "/mavros/local_position/pose"
 
