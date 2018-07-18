@@ -1,5 +1,5 @@
-exploration_maneuver_duration_secs: 11
-exploration_maneuver_phases_duration_secs: 15
+exploration_maneuver_duration_secs: 15
+exploration_maneuver_phases_duration_secs: 5
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
 laser_range: 6
@@ -9,13 +9,6 @@ odometry_error: 0
 
 frontier/safety_margin: 3
 
-# Fly 2
-# geofence_min/x: -17
-# geofence_min/y: -22
-# geofence_max/x: 17
-# geofence_max/y: 22
-
-# Fly 1
 geofence_min/x: -5
 geofence_max/x: 15
 
