@@ -10,10 +10,9 @@
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/YawSpin.h>
 
-// #define SIMULATION 1
-
 namespace mav_comms
 {
+    bool offboard_enabled;
     ros::Duration exploration_maneuver_phases_duration_secs;
 	mavros_msgs::State current_state;
 	// ros::Publisher setpoint_raw_pub;
@@ -106,12 +105,12 @@ namespace mav_comms
         position_state.y = 0;
         position_state.z = 1;
 
-        // stop_position.type_mask = 0b0000101111000111;
-        // stop_position.header.seq = 1;
-
         int temp;
         nh.getParam("exploration_maneuver_phases_duration_secs", temp);
         exploration_maneuver_phases_duration_secs = ros::Duration(temp);
+
+        offboard_enabled = false;
+        nh.getParam("offboard_enabled", offboard_enabled);
     }
 
     void send_msg_to_px4()
@@ -211,6 +210,7 @@ int main(int argc, char **argv)
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
     mav_comms::param_set_client = nh.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
 
+
     mav_comms::state_variables_init(nh);
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(10);
@@ -273,42 +273,43 @@ int main(int argc, char **argv)
     {// Position is always sent regardeless of the state to keep vehicle in offboard mode
         mav_comms::send_msg_to_px4();
 
-#ifdef SIMULATION 
-        if( mav_comms::current_state.mode != "OFFBOARD") 
+        if(mav_comms::offboard_enabled)
         {
-            if(offboard_on)
+            if( mav_comms::current_state.mode != "OFFBOARD") 
             {
-                ROS_INFO_STREAM("[mav_comms] mode " <<  mav_comms::current_state.mode);
-            }
-            offboard_on = false;
-            set_mode_client.call(offb_set_mode);
-        } 
-        else 
-        {
-            if(!offboard_on)
-            {
-                ROS_INFO("[mav_comms] mode OFFBOARD");
-                offboard_on = true;
-            }
-            if( !mav_comms::current_state.armed) 
-            {
-                if(armed)
+                if(offboard_on)
                 {
-                    ROS_INFO("[mav_comms] Vehicle DISarmed");
+                    ROS_INFO_STREAM("[mav_comms] mode " <<  mav_comms::current_state.mode);
                 }
-                armed = false;
-                arming_client.call(arm_cmd);
+                offboard_on = false;
+                set_mode_client.call(offb_set_mode);
             } 
-            else
+            else 
             {
-                if(!armed)
+                if(!offboard_on)
                 {
-                    ROS_INFO("[mav_comms] Vehicle ARMED");
-                    armed = true;
+                    ROS_INFO("[mav_comms] mode OFFBOARD");
+                    offboard_on = true;
+                }
+                if( !mav_comms::current_state.armed) 
+                {
+                    if(armed)
+                    {
+                        ROS_INFO("[mav_comms] Vehicle DISarmed");
+                    }
+                    armed = false;
+                    arming_client.call(arm_cmd);
+                } 
+                else
+                {
+                    if(!armed)
+                    {
+                        ROS_INFO("[mav_comms] Vehicle ARMED");
+                        armed = true;
+                    }
                 }
             }
         }
-#endif
         ros::spinOnce();
         rate.sleep();
     }
