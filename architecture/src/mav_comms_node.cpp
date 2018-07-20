@@ -149,6 +149,7 @@ namespace mav_comms
                     {
                         position_state.yaw_spin_last_sent = ros::Time::now();
                         position_state.yaw_spin_state = yaw_1;
+                        ROS_WARN_STREAM("[mav_comms] yaw_1");
                         break;
                     }
                     case yaw_1:
@@ -157,6 +158,7 @@ namespace mav_comms
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = yaw_2;
+                            ROS_WARN_STREAM("[mav_comms] yaw_2");
                         }
                         break;
                     }
@@ -166,6 +168,8 @@ namespace mav_comms
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = yaw_3;
+                            ROS_WARN_STREAM("[mav_comms] yaw_3");
+
                         }
                         break;
                     }
@@ -176,6 +180,7 @@ namespace mav_comms
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = front_facing;
                             position_state.movement_state = position;
+                            ROS_WARN_STREAM("[mav_comms] front_facing");
                         }
                         break;
                     }
