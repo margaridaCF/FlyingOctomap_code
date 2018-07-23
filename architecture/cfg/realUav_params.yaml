@@ -1,12 +1,27 @@
-exploration_maneuver_duration_secs: 33
-exploration_maneuver_phases_duration_secs: 10
+# Linked with px4 params
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
-offboard_enabled: false
-laser_range: 6
-laser_angle: 1.0472
-
 odometry_error: 0
+
+# Linked with hardware
+current_position_topic: "/mavros/local_position/pose"
+uav/laser_topic: "scan_filtered"
+
+# Hokuyo
+laser_range: 9.5
+laser_angle: 0.872665
+exploration_maneuver_duration_secs: 33
+exploration_maneuver_phases_duration_secs: 10
+scan_filter_chain:
+- name: range
+  type: LaserScanRangeFilter
+  params:
+    lower_threshold: 0.7
+    upper_threshold: 200000
+
+
+offboard_enabled: false
+
 
 frontier/safety_margin: 3
 
@@ -23,13 +38,4 @@ path/max_search_iterations: 120
 path/max_cycles_waited_for_path: 50
 path/safety_margin: 3
 
-current_position_topic: "/mavros/local_position/pose"
 
-uav/laser_topic: "scan_filtered"
-
-scan_filter_chain:
-- name: range
-  type: LaserScanRangeFilter
-  params:
-    lower_threshold: 0.7
-    upper_threshold: 200000
