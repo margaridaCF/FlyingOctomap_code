@@ -1,19 +1,14 @@
 <launch>
-    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
     <arg name="world_frame_name"    default="world"/>
     <arg name="uav_frame_name"      default="base_link"/>
     <arg name="hokuyo_frame_name"   default="hokuyo"/>
+    <include file="$(find mavros)/launch/px4.launch">
+        <arg name="fcu_url" value="/dev/ttyUSB0:921600" />
+    </include>
 
+    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
 
     <!-- #######################  Octomap  ######################################## -->
-    <node name="laser_filter" type="scan_to_scan_filter_chain" pkg="laser_filters">
-        <rosparam command="load" file="$(find architecture)/cfg/realUav_params.yaml" />
-        <param name="target_frame"   value="scan" />
-        <remap from="base_scan" to="scan" />
-    </node>
-    <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" >
-        <param name="range_min" value="1"/>
-    </node>
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
         <param name="frame_id" type="string" value="map" />   
         <remap from="cloud_in" to="/free_cloud" />
@@ -37,9 +32,6 @@
     <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
 
-    <include file="$(find mavros)/launch/px4.launch">
-        <arg name="fcu_url" value="/dev/ttyUSB0:921600" />
-    </include>
 
 
     <!-- #######################    TF    ############################# -->    
@@ -52,6 +44,14 @@
     <!-- #######################  Hokuyo  ############################# -->
     <node name="hokuyo"         pkg="urg_node"      type="urg_node" output="screen" >
         <param name="ip_address" value="192.168.0.10"/>
+    </node>
+    <node name="laser_filter" type="scan_to_scan_filter_chain" pkg="laser_filters">
+        <rosparam command="load" file="$(find architecture)/cfg/realUav_params.yaml" />
+        <param name="target_frame"   value="scan" />
+        <remap from="base_scan" to="scan" />
+    </node>
+    <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" >
+        <param name="range_min" value="1"/>
     </node>
 
 
