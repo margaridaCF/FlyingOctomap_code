@@ -355,6 +355,7 @@ namespace state_manager_node
         {
             case init:
             {
+                ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at init");
                 if(askPositionServiceCall(get_current_waypoint()))
                 {
                     state_data.follow_path_state = on_route;
@@ -372,6 +373,7 @@ namespace state_manager_node
             }
             case on_route:
             {
+                ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at on_route");
                 geometry_msgs::Point current_position;
                 if(getUavPositionServiceCall(current_position))
                 {
@@ -555,6 +557,8 @@ namespace state_manager_node
             {
                 ROS_WARN("[architecture] Visit waypoints");
                 updateWaypointSequenceStateMachine();
+                ROS_WARN("[architecture] Visit waypoints 2");
+
                 if (state_data.follow_path_state == finished_sequence)
                 {
                     state_data.exploration_state = gather_data_maneuver;
