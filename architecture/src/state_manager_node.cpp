@@ -555,9 +555,7 @@ namespace state_manager_node
             }
             case visit_waypoints:
             {
-                ROS_WARN("[architecture] Visit waypoints");
                 updateWaypointSequenceStateMachine();
-                ROS_WARN("[architecture] Visit waypoints 2");
 
                 if (state_data.follow_path_state == finished_sequence)
                 {
