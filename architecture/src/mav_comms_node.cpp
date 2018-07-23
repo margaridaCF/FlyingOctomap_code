@@ -71,6 +71,7 @@ namespace mav_comms
 	bool target_position_cb(architecture_msgs::PositionRequest::Request  &req, 
         architecture_msgs::PositionRequest::Response &res)
 	{
+        ROS_WARN_STREAM("[mav_comms] target_position_cb");
 		if(position_state.movement_state != position) 
         { 
             ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.position  
