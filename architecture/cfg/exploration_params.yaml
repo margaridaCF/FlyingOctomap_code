@@ -1,7 +1,8 @@
-exploration_maneuver_duration_secs: 11
-exploration_maneuver_phases_duration_secs: 5
+exploration_maneuver_duration_secs: 33
+exploration_maneuver_phases_duration_secs: 10
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
+offboard_enabled: true
 laser_range: 9.5
 laser_angle: 0.872665
 
@@ -10,10 +11,12 @@ odometry_error: 0
 frontier/safety_margin: 3
 
 geofence_min/x: -15
-geofence_min/y: -20
-geofence_min/z: 1
 geofence_max/x: 12
+
+geofence_min/y: -20
 geofence_max/y: 20
+
+geofence_min/z: 1
 geofence_max/z: 14
 
 path/max_search_iterations: 5000
