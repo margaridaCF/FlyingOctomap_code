@@ -14,7 +14,7 @@
     </node>
     <!-- #######################  Architecture nodes  ############################# -->
     <node name="free_cloud"         type="free_cloud_node"      pkg="laser_free_to_cloud"/>
-    <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
+    <!-- <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" /> -->
     <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
     <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
     <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
