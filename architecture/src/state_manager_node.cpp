@@ -455,6 +455,7 @@ namespace state_manager_node
         {
             case clear_from_ground:
             {
+                ROS_WARN("[architecture] Clear from ground");
                 // Find current position
                 // architecture_msgs::PositionMiddleMan srv;
                 // if(current_position_client.call(srv))
@@ -552,6 +553,7 @@ namespace state_manager_node
             }
             case visit_waypoints:
             {
+                ROS_WARN("[architecture] Visit waypoints");
                 updateWaypointSequenceStateMachine();
                 if (state_data.follow_path_state == finished_sequence)
                 {

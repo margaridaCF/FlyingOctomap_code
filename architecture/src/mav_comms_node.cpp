@@ -111,6 +111,7 @@ namespace mav_comms
 
         offboard_enabled = false;
         nh.getParam("offboard_enabled", offboard_enabled);
+        ROS_WARN_STREAM("[mav_comms] offboard_enabled" << offboard_enabled);
     }
 
     void send_msg_to_px4()
