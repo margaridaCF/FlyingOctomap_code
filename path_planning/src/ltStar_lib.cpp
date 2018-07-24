@@ -934,7 +934,7 @@ namespace LazyThetaStarOctree{
 		if(publish)
 		{
 	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
-	    	log_file << "Straight line distance: " <<  request.start << " to " << request.goal << weightedDistance(disc_initial, disc_final);
+	    	log_file << "Straight line distance: " <<  std::setprecision(2) << disc_initial << " to " << disc_final << weightedDistance(disc_initial, disc_final) << std::endl;
 	    	log_file << "Generated path distance:\n";
 		}
 		std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
@@ -945,7 +945,7 @@ namespace LazyThetaStarOctree{
 		{
 			distance = weightedDistance(disc_initial, *i);
 			distance_total += distance;
-			log_file << request.start << " to " << *i << " = " << distance << std::endl;
+			log_file <<  std::setprecision(2) << disc_initial << " to " << *i << " = " << distance << std::endl;
 		}
 		octomath::Vector3 prev_waypoint = *i;
 		++i;
@@ -953,7 +953,7 @@ namespace LazyThetaStarOctree{
 		{
 			distance = weightedDistance(prev_waypoint, *i);
 			distance_total += distance;
-			log_file << prev_waypoint << " to " << *i << " = " << distance << std::endl;
+			log_file <<  std::setprecision(2) << prev_waypoint << " to " << *i << " = " << distance << std::endl;
 			prev_waypoint = *i;
 		}
 		if(publish)
