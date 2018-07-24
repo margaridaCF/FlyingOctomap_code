@@ -579,7 +579,7 @@ namespace rviz_interface
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
         marker.id = 500 + ( std::rand() % ( 9999 + 1 ) );;
-        marker.ns = "corridor_";
+        marker.ns = "straight_line";
         marker.type = shape;
         marker.points.push_back(goal);
         marker.action = visualization_msgs::Marker::ADD;
