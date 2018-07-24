@@ -914,25 +914,6 @@ namespace LazyThetaStarOctree{
 	}
 	// ln 19 end
 
-
-
-
-    bool equal_test (const octomath::Vector3 & a, const octomath::Vector3 & b, 
-		const double theta, std::ofstream & log_file) 
-	{
- 		log_file <<  std::setprecision(2) << "a: " << a << std::endl;
-		log_file <<  std::setprecision(2) << "b: " << b << std::endl;
-		log_file <<  std::setprecision(2) << "diff x: " << abs(a.x() - b.x()) << " < " << theta << std::endl;
-		log_file <<  std::setprecision(2) << "diff y: " << abs(a.y() - b.y()) << " < " << theta << std::endl;
-		log_file <<  std::setprecision(2) << "diff z: " << abs(a.z() - b.z()) << " < " << theta << std::endl;
-
-		bool is_x_equal = std::abs(a.x() - b.x()) < theta;
-		bool is_y_equal = std::abs(a.y() - b.y()) < theta;
-		bool is_z_equal = std::abs(a. z() - b.z()) < theta;
-
-		return is_x_equal && is_y_equal && is_z_equal;
-	}
-
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish)
 	{
 		marker_pub_ = marker_pub;
@@ -968,11 +949,7 @@ namespace LazyThetaStarOctree{
 			generated_path_distance_ss <<  std::setprecision(2) << prev_waypoint << " to " << *i << " = " << distance << std::endl;
 			prev_waypoint = *i;
 		}
-
 		generated_path_distance_ss << "             total = " << distance_total << "\n";
-
-
-
 		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
 		if(straigh_line_distance > distance_total)
 		{
@@ -980,20 +957,11 @@ namespace LazyThetaStarOctree{
 	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
 	    	log_file << "disc_initial " << disc_initial << std::endl;
 	    	log_file << "resulting_path.begin()" << *(resulting_path.begin()) << std::endl;
-			std::list<octomath::Vector3>::iterator i_test = resulting_path.begin();
-	    	if(equal_test(*i_test, disc_initial, 0.00000000000000000001, log_file) != equal(*i_test, disc_initial))
-	    	{
-	    		log_file << "Equal giving different result." << std::endl;
-	    	}
 	    	log_file << "!!! Straight line distance is larger than generated path distance !!! " << std::endl;
 	    	log_file << "Straight line distance: " <<  std::setprecision(2) << disc_initial << " to " << disc_final << " = " << weightedDistance(disc_initial, disc_final) << std::endl;
 	    	log_file << generated_path_distance_ss.str() << std::endl;
 	    	log_file.close();
 		}
-
-
-
-		
 		std::ofstream csv_file;
 		csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
