@@ -458,8 +458,9 @@ namespace rviz_interface
         marker_pub.publish(marker_array);
     }
 
-    void publish_arrow_path_unreachable(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub)
+    void publish_arrow_path_unreachable(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int id)
     {
+        int id_scoped = id / 1000;
         // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
@@ -467,7 +468,7 @@ namespace rviz_interface
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
         marker.ns = "path_unreachable";
-        marker.id = 400;
+        marker.id = 4000 + id_scoped;
         marker.type = shape;
         geometry_msgs::Point goal_point;
         goal_point.x = goal.x();
@@ -581,9 +582,9 @@ namespace rviz_interface
         marker.id = 500 + ( std::rand() % ( 9999 + 1 ) );;
         marker.ns = "straight_line";
         marker.type = shape;
-        marker.points.push_back(goal);
-        marker.action = visualization_msgs::Marker::ADD;
         marker.points.push_back(start);
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.points.push_back(goal);
         marker.pose.orientation.w = 1.0;
         marker.scale.x = 0.01;
         marker.scale.y = 0.03;

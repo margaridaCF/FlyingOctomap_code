@@ -25,6 +25,7 @@ namespace LazyThetaStarOctree{
 
 	std::ofstream log_file;
 	ros::Publisher marker_pub_;
+	int id_unreachable;
 	// ros::ServiceClient pauseGazebo_;
 	// ros::ServiceClient unpauseGazebo_;
 
@@ -253,7 +254,8 @@ namespace LazyThetaStarOctree{
 						if(publish)
 						{
 							// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset ;
-							rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub);	
+							rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable);	
+							id_unreachable++;
 						}
 						return CellStatus::kOccupied;
 					}	
@@ -262,7 +264,8 @@ namespace LazyThetaStarOctree{
 						if(publish)
 						{
 							// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset + offset ;
-							rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub);	
+							rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable);	
+							id_unreachable;
 						}
 						return CellStatus::kOccupied;
 					}	
@@ -719,7 +722,7 @@ namespace LazyThetaStarOctree{
 		// ln 6 while open != empty do
 		while(!open.empty() && !solution_found)
 		{
-
+			id_unreachable = 0;
 			// open.printNodes("========= Starting state of open ");
 			// ln 7 s := open.Pop();	
 			// [Footnote] open.Pop() removes a vertex with the smallest key from open and returns it
