@@ -916,6 +916,22 @@ namespace LazyThetaStarOctree{
 
 
 
+
+    bool equal_test (const octomath::Vector3 & a, const octomath::Vector3 & b, 
+		const double theta, std::ofstream & log_file) 
+	{
+
+		log_file << "x: " << abs(a.x() - b.x()) << " < " << theta << std::endl;
+		log_file << "y: " << abs(a.y() - b.y()) << " < " << theta << std::endl;
+		log_file << "z: " << abs(a.z() - b.z()) << " < " << theta << std::endl;
+
+		bool is_x_equal = abs(a.x() - b.x()) < theta;
+		bool is_y_equal = abs(a.y() - b.y()) < theta;
+		bool is_z_equal = abs(a.z() - b.z()) < theta;
+
+		return is_x_equal && is_y_equal && is_z_equal;
+	}
+
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish)
 	{
 		marker_pub_ = marker_pub;
@@ -940,7 +956,7 @@ namespace LazyThetaStarOctree{
 		{
 			distance = weightedDistance(disc_initial, *i);
 			distance_total += distance;
-			generated_path_distance_ss <<  std::setprecision(2) << disc_initial << " to " << *i << " = " << distance << std::endl;
+			generated_path_distance_ss <<  std::setprecision(2) << disc_initial << " to " << *i << " = " << distance <<  "(from start to start voxel center)" << std::endl;
 		}
 		octomath::Vector3 prev_waypoint = *i;
 		++i;
@@ -963,6 +979,11 @@ namespace LazyThetaStarOctree{
 	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
 	    	log_file << "disc_initial " << disc_initial << std::endl;
 	    	log_file << "resulting_path.begin()" << *(resulting_path.begin()) << std::endl;
+			std::list<octomath::Vector3>::iterator i_test = resulting_path.begin();
+	    	if(equal_test(*i_test, disc_initial, 0.00000000000000000001, log_file))
+	    	{
+	    		log_file << "Equal giving different result." << std::endl;
+	    	}
 	    	log_file << "!!! Straight line distance is larger than generated path distance !!! " << std::endl;
 	    	log_file << "Straight line distance: " <<  std::setprecision(2) << disc_initial << " to " << disc_final << " = " << weightedDistance(disc_initial, disc_final) << std::endl;
 	    	log_file << generated_path_distance_ss.str() << std::endl;
