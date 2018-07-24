@@ -199,7 +199,7 @@ namespace LazyThetaStarOctree{
 		if(publish)
 		{
 			log_file << "getCorridorOccupancy from " << start << " to " << end << std::endl;
-			rviz_interface::publish_arrow_corridor_center(start, end, marker_pub);
+			// rviz_interface::publish_arrow_corridor_center(start, end, marker_pub);
 		}
 		// TODO(helenol): Probably best way would be to get all the coordinates along
 		// the line, then make a set of all the OcTreeKeys in all the bounding boxes
@@ -253,7 +253,7 @@ namespace LazyThetaStarOctree{
 						if(publish)
 						{
 							// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset ;
-							rviz_interface::publish_arrow_path_occupancyState(start + offset, end + offset, marker_pub, false);	
+							rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub);	
 						}
 						return CellStatus::kOccupied;
 					}	
@@ -262,7 +262,7 @@ namespace LazyThetaStarOctree{
 						if(publish)
 						{
 							// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset + offset ;
-							rviz_interface::publish_arrow_path_occupancyState(end + offset, start + offset, marker_pub, false);	
+							rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub);	
 						}
 						return CellStatus::kOccupied;
 					}	
@@ -271,7 +271,7 @@ namespace LazyThetaStarOctree{
 						if(publish)
 						{
 							// log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
-							rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
+							// rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
 						}
 					}
 				}
@@ -542,6 +542,7 @@ namespace LazyThetaStarOctree{
 		// ROS_WARN_STREAM("UpdateVertex");
 		// ln 21 g_old := g(s')
 		float g_old = s_neighbour->distanceFromInitialPoint;
+		// ln 22 ComputeCost(s, s'); (unrolled de function into UpdatedVertex)
 		// ln 29 /* Path 2 */
 		// ln 30 if  g(parent(s)) + c(parent(s), s') < g(s')  then
 		float cost = CalculateCost(s, *s_neighbour);
@@ -559,6 +560,7 @@ namespace LazyThetaStarOctree{
 			s_neighbour->parentNode = s.parentNode;
 			// ln 32 g(s') := g(parent(s)) + c(parent(s), s');
 			s_neighbour->distanceFromInitialPoint = cost;
+			// ln 33 end (of ComputeCost function)
 			// ln 26 open.Insert(s', g(s') + h(s'));
 			open.insert(s_neighbour);
 			// log_file << "[N]          inserting " << *(s_neighbour->coordinates) << " into open " << std::endl;
@@ -726,6 +728,14 @@ namespace LazyThetaStarOctree{
 				open.printNodes(" ========== Before pop ========== ", log_file);
 			}
 			s = open.pop();
+			if(publish)
+			{
+			geometry_msgs::Point s_point;
+			s_point.x = s->coordinates->x();
+			s_point.y = s->coordinates->y();
+			s_point.z = s->coordinates->z();
+				rviz_interface::publish_s(s_point, marker_pub);
+			}
 			// if(print_resulting_path)
 			// {
 			// 	log_file << "[START] s is " << s << std::endl;
@@ -760,14 +770,14 @@ namespace LazyThetaStarOctree{
 			// ln 11 closed := closed U {s}
 			// ROS_WARN_STREAM("@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s);
 			closed.insert( std::pair<octomath::Vector3, std::shared_ptr<ThetaStarNode>>( *(s->coordinates), s));
+			if(publish)
+			{
+				rviz_interface::publish_closed(*(s->coordinates), marker_pub);
+			}
 			if(publish && print_resulting_path)
 			{
 				log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
-				geometry_msgs::Point s_point;
-				s_point.x = s->coordinates->x();
-				s_point.y = s->coordinates->y();
-				s_point.z = s->coordinates->z();
-				rviz_interface::publish_s(s_point, marker_pub);
+				
 				writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
 			}
 
@@ -804,7 +814,7 @@ namespace LazyThetaStarOctree{
 				{
 
 					// log_file << "[N] visible neighbor " << *n_coordinates << ". Distance to goal " << weightedDistance(*(s->coordinates), *n_coordinates) << std::endl;
-					rviz_interface::publish_visible_neighbor(*n_coordinates, marker_pub);
+					// rviz_interface::publish_visible_neighbor(*n_coordinates, marker_pub);
 				}
 				// ln 13 if s' !€ closed then
 				bool is_neighbor_in_closed = closed.find(*n_coordinates) != closed.end();
@@ -938,7 +948,10 @@ namespace LazyThetaStarOctree{
 			csv_file.close();
 #endif
 		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
-		
+		if(publish)
+		{
+			rviz_interface::publish_arrow_straight_line(disc_initial, disc_final, marker_pub, resulting_path.size() > 0);
+		}
 		if(resulting_path.size()==0)
 		{
 			reply.success = false;
