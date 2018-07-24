@@ -217,9 +217,9 @@ namespace LazyThetaStarOctree{
 		double z_disc = bounding_box_size.z() / ceil((bounding_box_size.z() + epsilon) / resolution);
 
 		// Ensure that resolution is not infinit
-		if (x_disc <= 0.0) x_disc = 1.0;
-		if (y_disc <= 0.0) y_disc = 1.0;
-		if (z_disc <= 0.0) z_disc = 1.0;
+		if (x_disc <= 0.0) x_disc = resolution;
+		if (y_disc <= 0.0) y_disc = resolution;
+		if (z_disc <= 0.0) z_disc = resolution;
 
 		// std::unordered_set<octomap::OcTreeKey> keys;
 		const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
@@ -730,10 +730,10 @@ namespace LazyThetaStarOctree{
 			s = open.pop();
 			if(publish)
 			{
-			geometry_msgs::Point s_point;
-			s_point.x = s->coordinates->x();
-			s_point.y = s->coordinates->y();
-			s_point.z = s->coordinates->z();
+				geometry_msgs::Point s_point;
+				s_point.x = s->coordinates->x();
+				s_point.y = s->coordinates->y();
+				s_point.z = s->coordinates->z();
 				rviz_interface::publish_s(s_point, marker_pub);
 			}
 			// if(print_resulting_path)
