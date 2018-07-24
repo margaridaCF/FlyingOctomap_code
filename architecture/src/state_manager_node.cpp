@@ -290,9 +290,6 @@ namespace state_manager_node
             else
             {
                 dealUnreachableFrontier("ltstar_cb");
-                octomath::Vector3 start (state_data.ltstar_request.start.x, state_data.ltstar_request.start.y, state_data.ltstar_request.start.z);
-                octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-                rviz_interface::publish_arrow_path_occupied(unreachable, start, marker_pub);
             }
             
         }

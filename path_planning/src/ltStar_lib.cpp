@@ -950,7 +950,7 @@ namespace LazyThetaStarOctree{
 		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
 		if(publish)
 		{
-			rviz_interface::publish_arrow_straight_line(disc_initial, disc_final, marker_pub, resulting_path.size() > 0);
+			rviz_interface::publish_arrow_straight_line(request.start, request.goal, marker_pub, resulting_path.size() > 0);
 		}
 		if(resulting_path.size()==0)
 		{

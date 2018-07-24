@@ -570,7 +570,7 @@ namespace rviz_interface
         marker_pub.publish(marker_array);
     }
 
-    void publish_arrow_straight_line(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative)
+    void publish_arrow_straight_line(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative)
     {
         // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
@@ -581,17 +581,9 @@ namespace rviz_interface
         marker.id = 500 + ( std::rand() % ( 9999 + 1 ) );;
         marker.ns = "corridor_";
         marker.type = shape;
-        geometry_msgs::Point goal_point;
-        goal_point.x = goal.x();
-        goal_point.y = goal.y();
-        goal_point.z = goal.z();
-        marker.points.push_back(goal_point);
+        marker.points.push_back(goal);
         marker.action = visualization_msgs::Marker::ADD;
-        geometry_msgs::Point start_point;
-        start_point.x = start.x();
-        start_point.y = start.y();
-        start_point.z = start.z();
-        marker.points.push_back(start_point);
+        marker.points.push_back(start);
         marker.pose.orientation.w = 1.0;
         marker.scale.x = 0.01;
         marker.scale.y = 0.03;
