@@ -594,9 +594,9 @@ namespace LazyThetaStarOctree{
 		const double theta) 
 	{
 
-		bool is_x_equal = abs(a.x() - b.x()) < theta;
-		bool is_y_equal = abs(a.y() - b.y()) < theta;
-		bool is_z_equal = abs(a.z() - b.z()) < theta;
+		bool is_x_equal = std::abs(a.x() - b.x()) < theta;
+		bool is_y_equal = std::abs(a.y() - b.y()) < theta;
+		bool is_z_equal = std::abs(a.z() - b.z()) < theta;
 
 		return is_x_equal && is_y_equal && is_z_equal;
 	}
@@ -920,11 +920,11 @@ namespace LazyThetaStarOctree{
     bool equal_test (const octomath::Vector3 & a, const octomath::Vector3 & b, 
 		const double theta, std::ofstream & log_file) 
 	{
- 		log_file << "a: " << a << std::endl;
-		log_file << "b: " << b << std::endl;
-		log_file << "diff x: " << abs(a.x() - b.x()) << " < " << theta << std::endl;
-		log_file << "diff y: " << abs(a.y() - b.y()) << " < " << theta << std::endl;
-		log_file << "diff z: " << abs(a.z() - b.z()) << " < " << theta << std::endl;
+ 		log_file <<  std::setprecision(2) << "a: " << a << std::endl;
+		log_file <<  std::setprecision(2) << "b: " << b << std::endl;
+		log_file <<  std::setprecision(2) << "diff x: " << abs(a.x() - b.x()) << " < " << theta << std::endl;
+		log_file <<  std::setprecision(2) << "diff y: " << abs(a.y() - b.y()) << " < " << theta << std::endl;
+		log_file <<  std::setprecision(2) << "diff z: " << abs(a.z() - b.z()) << " < " << theta << std::endl;
 
 		bool is_x_equal = std::abs(a.x() - b.x()) < theta;
 		bool is_y_equal = std::abs(a.y() - b.y()) < theta;
