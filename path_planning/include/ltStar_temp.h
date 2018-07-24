@@ -70,7 +70,7 @@ namespace LazyThetaStarOctree{
 	 *
 	 * @return     the new cost
 	 */
-	float CalculateCost(ThetaStarNode const& s, ThetaStarNode & s_neighbour);
+	float CalculateCost(ThetaStarNode const& s, ThetaStarNode const& s_neighbour);
 
 	void UpdateVertex(ThetaStarNode const& s, std::shared_ptr<ThetaStarNode> s_neighbour,
 		Open & open);
