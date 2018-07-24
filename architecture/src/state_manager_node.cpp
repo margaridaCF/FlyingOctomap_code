@@ -355,7 +355,7 @@ namespace state_manager_node
         {
             case init:
             {
-                ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at init");
+                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at init");
                 if(askPositionServiceCall(get_current_waypoint()))
                 {
                     state_data.follow_path_state = on_route;
@@ -373,7 +373,7 @@ namespace state_manager_node
             }
             case on_route:
             {
-                ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at on_route");
+                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at on_route");
                 geometry_msgs::Point current_position;
                 if(getUavPositionServiceCall(current_position))
                 {
@@ -457,7 +457,7 @@ namespace state_manager_node
         {
             case clear_from_ground:
             {
-                ROS_WARN("[architecture] Clear from ground");
+                ROS_INFO("[architecture] Clear from ground");
                 // Find current position
                 // architecture_msgs::PositionMiddleMan srv;
                 // if(current_position_client.call(srv))
