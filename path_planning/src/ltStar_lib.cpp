@@ -980,7 +980,7 @@ namespace LazyThetaStarOctree{
 	    	log_file << "disc_initial " << disc_initial << std::endl;
 	    	log_file << "resulting_path.begin()" << *(resulting_path.begin()) << std::endl;
 			std::list<octomath::Vector3>::iterator i_test = resulting_path.begin();
-	    	if(equal_test(*i_test, disc_initial, 0.00000000000000000001, log_file))
+	    	if(equal_test(*i_test, disc_initial, 0.00000000000000000001, log_file) != equal(*i_test, disc_initial))
 	    	{
 	    		log_file << "Equal giving different result." << std::endl;
 	    	}
