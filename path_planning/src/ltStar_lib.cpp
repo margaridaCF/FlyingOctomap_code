@@ -961,9 +961,11 @@ namespace LazyThetaStarOctree{
 		{
 			std::ofstream log_file;
 	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
+	    	log_file << "disc_initial " << disc_initial << std::endl;
+	    	log_file << "resulting_path.begin()" << *(resulting_path.begin()) << std::endl;
 	    	log_file << "!!! Straight line distance is larger than generated path distance !!! " << std::endl;
 	    	log_file << "Straight line distance: " <<  std::setprecision(2) << disc_initial << " to " << disc_final << " = " << weightedDistance(disc_initial, disc_final) << std::endl;
-	    	log_file << generated_path_distance_ss.str();
+	    	log_file << generated_path_distance_ss.str() << std::endl;
 	    	log_file.close();
 		}
 
