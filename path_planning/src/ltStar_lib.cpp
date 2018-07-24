@@ -914,6 +914,32 @@ namespace LazyThetaStarOctree{
 	}
 	// ln 19 end
 
+	void qualityCheck(octomap::OcTree const& octree, octomath::Vector3 const& disc_initial, octomath::Vector3 const& disc_final, double straigh_line_distance, double distance_total, bool has_flight_corridor_free,  std::list<octomath::Vector3> const&resulting_path, std::stringstream const& generated_path_distance_ss)
+	{
+		std::ofstream log_file;
+    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
+		std::stringstream to_log_file_ss;
+		if(straigh_line_distance > distance_total)
+		{
+	    	to_log_file_ss << "!!! Straight line distance is larger than generated path distance !!! " << std::endl;
+	    	to_log_file_ss << "disc_initial " << disc_initial << std::endl;
+	    	to_log_file_ss << "resulting_path.begin()" << *(resulting_path.begin()) << std::endl;
+	    	to_log_file_ss << "Straight line distance: " <<  std::setprecision(2) << disc_initial << " to " << disc_final << " = " << weightedDistance(disc_initial, disc_final) << std::endl;
+	    	to_log_file_ss << generated_path_distance_ss.str() << std::endl;
+	    	log_file << to_log_file_ss.str();
+		}
+		if(has_flight_corridor_free && abs(distance_total - straigh_line_distance) > straigh_line_distance/10)
+		{
+			to_log_file_ss << "!!! Generated path is much larger than the straigh_line_distance AND there are no obstacles !!!" << std::endl;
+			to_log_file_ss << "straigh_line_distance: " << straigh_line_distance << std::endl;
+			to_log_file_ss << "distance_total: " << distance_total << std::endl;
+			std::stringstream octomap_name_stream;
+			octomap_name_stream << folder_name << "/octree_pathToLong_noObstacles_(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")_("<< disc_initial.x() << disc_initial.y() << disc_initial.z() << ").bt";
+			octree.writeBinaryConst(octomap_name_stream.str());
+		}
+	    log_file.close();
+	}
+
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish)
 	{
 		marker_pub_ = marker_pub;
@@ -951,25 +977,19 @@ namespace LazyThetaStarOctree{
 		}
 		generated_path_distance_ss << "             total = " << distance_total << "\n";
 		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
-		if(straigh_line_distance > distance_total)
-		{
-			std::ofstream log_file;
-	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
-	    	log_file << "disc_initial " << disc_initial << std::endl;
-	    	log_file << "resulting_path.begin()" << *(resulting_path.begin()) << std::endl;
-	    	log_file << "!!! Straight line distance is larger than generated path distance !!! " << std::endl;
-	    	log_file << "Straight line distance: " <<  std::setprecision(2) << disc_initial << " to " << disc_final << " = " << weightedDistance(disc_initial, disc_final) << std::endl;
-	    	log_file << generated_path_distance_ss.str() << std::endl;
-	    	log_file.close();
-		}
+		bool has_flight_corridor_free = is_flight_corridor_free(octree, disc_initial, disc_final, request.safety_margin, marker_pub, false, false);
+
+		qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
+
+
 		std::ofstream csv_file;
 		csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
 		csv_file << millis.count();
-		csv_file << "," << weightedDistance(disc_initial, disc_final);
+		csv_file << "," << straigh_line_distance;
 		csv_file << "," << distance_total;
-		csv_file << "," << is_flight_corridor_free(octree, disc_initial, disc_final, request.safety_margin, marker_pub, false, false) << std::endl;
+		csv_file << "," << has_flight_corridor_free << std::endl;
 		csv_file.close();
 #endif
 		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
