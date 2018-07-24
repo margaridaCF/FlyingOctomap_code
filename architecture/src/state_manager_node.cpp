@@ -274,7 +274,6 @@ namespace state_manager_node
         }
         else
         {
-            ROS_WARN_STREAM (     "[State manager] Path reply was successfull? " << msg->success );
             if(msg->success)
             {
                 state_data.ltstar_reply = *msg;
@@ -289,6 +288,7 @@ namespace state_manager_node
             }
             else
             {
+                ROS_WARN_STREAM (     "[State manager] Path reply failed!");
                 dealUnreachableFrontier("ltstar_cb");
             }
             
