@@ -930,13 +930,8 @@ namespace LazyThetaStarOctree{
 #endif
 		resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.safety_margin, marker_pub, request.max_search_iterations, true, publish);
 #ifdef SAVE_CSV
-		std::ofstream log_file;
-		if(publish)
-		{
-	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
-	    	log_file << "Straight line distance: " <<  std::setprecision(2) << disc_initial << " to " << disc_final << weightedDistance(disc_initial, disc_final) << std::endl;
-	    	log_file << "Generated path distance:\n";
-		}
+		std::stringstream generated_path_distance_ss;
+    	generated_path_distance_ss << "Generated path distance:\n";
 		std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
 		double distance_total = 0;
 		std::list<octomath::Vector3>::iterator i = resulting_path.begin();
@@ -945,7 +940,7 @@ namespace LazyThetaStarOctree{
 		{
 			distance = weightedDistance(disc_initial, *i);
 			distance_total += distance;
-			log_file <<  std::setprecision(2) << disc_initial << " to " << *i << " = " << distance << std::endl;
+			generated_path_distance_ss <<  std::setprecision(2) << disc_initial << " to " << *i << " = " << distance << std::endl;
 		}
 		octomath::Vector3 prev_waypoint = *i;
 		++i;
@@ -953,13 +948,28 @@ namespace LazyThetaStarOctree{
 		{
 			distance = weightedDistance(prev_waypoint, *i);
 			distance_total += distance;
-			log_file <<  std::setprecision(2) << prev_waypoint << " to " << *i << " = " << distance << std::endl;
+			generated_path_distance_ss <<  std::setprecision(2) << prev_waypoint << " to " << *i << " = " << distance << std::endl;
 			prev_waypoint = *i;
 		}
-		if(publish)
+
+		generated_path_distance_ss << "             total = " << distance_total << "\n";
+
+
+
+		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
+		if(straigh_line_distance > distance_total)
 		{
+			std::ofstream log_file;
+	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
+	    	log_file << "!!! Straight line distance is larger than generated path distance !!! " << std::endl;
+	    	log_file << "Straight line distance: " <<  std::setprecision(2) << disc_initial << " to " << disc_final << " = " << weightedDistance(disc_initial, disc_final) << std::endl;
+	    	log_file << generated_path_distance_ss.str();
 	    	log_file.close();
 		}
+
+
+
+		
 		std::ofstream csv_file;
 		csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
