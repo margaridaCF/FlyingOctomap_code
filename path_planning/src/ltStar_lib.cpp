@@ -926,9 +926,9 @@ namespace LazyThetaStarOctree{
 		log_file << "diff y: " << abs(a.y() - b.y()) << " < " << theta << std::endl;
 		log_file << "diff z: " << abs(a.z() - b.z()) << " < " << theta << std::endl;
 
-		bool is_x_equal = abs(a.x() - b.x()) < theta;
-		bool is_y_equal = abs(a.y() - b.y()) < theta;
-		bool is_z_equal = abs(a.z() - b.z()) < theta;
+		bool is_x_equal = std::abs(a.x() - b.x()) < theta;
+		bool is_y_equal = std::abs(a.y() - b.y()) < theta;
+		bool is_z_equal = std::abs(a. z() - b.z()) < theta;
 
 		return is_x_equal && is_y_equal && is_z_equal;
 	}
