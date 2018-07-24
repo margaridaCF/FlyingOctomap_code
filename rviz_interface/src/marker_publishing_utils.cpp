@@ -490,8 +490,8 @@ namespace rviz_interface
         marker.color.a = 1;
         
         marker.lifetime = ros::Duration();
-        // visualization_msgs::MarkerArray marker_array;
-        // marker_array.markers.push_back(marker);
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
         marker_pub.publish(marker);
     }
 
