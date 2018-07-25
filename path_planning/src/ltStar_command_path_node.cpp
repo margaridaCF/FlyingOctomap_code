@@ -60,12 +60,12 @@ namespace ltStar_command_path_node
         {
             current_position = srv.response.current_position;
 
-            // ROS_INFO_STREAM("[State manager] 1 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
+            // ROS_INFO_STREAM("[Command path] 1 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
             return true;
         }
         else
         {
-            ROS_WARN("[State manager] Current position middle man node not accepting requests.");
+            ROS_WARN("[Command path] Current position middle man node not accepting requests.");
             return false;
         }
     }
@@ -79,20 +79,19 @@ namespace ltStar_command_path_node
         {
 
 #ifdef SAVE_LOG
-        log_file << "[State manager] Requesting position " << state_data.waypoint_index << " = " << get_current_waypoint() << std::endl;
+        log_file << "[Command path] Requesting position " << state_data.waypoint_index << " = " << get_current_waypoint() << std::endl;
 #endif
             return position_request_srv.response.is_going_to_position;
         }
         else
         {
-            ROS_WARN("[State manager] In YawSpin, node not accepting position requests.");
+            ROS_WARN("[Command path] In YawSpin, node not accepting position requests.");
             return false;
         }
     }
 
     void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
     {
-        
         if(msg->success)
         {
             state_data.ltstar_reply = *msg;
@@ -100,14 +99,14 @@ namespace ltStar_command_path_node
             state_data.exploration_state = visit_waypoints;
             state_data.waypoint_index = 1;
 #ifdef SAVE_LOG
-            log_file << "[State manager] Path reply " << *msg << std::endl;
-            log_file << "[State manager][Exploration] visit_waypoints 3" << std::endl;
-            log_file << "[State manager]            [Follow path] init" << std::endl;
+            log_file << "[Command path] Path reply " << *msg << std::endl;
+            log_file << "[Command path][Exploration] visit_waypoints 3" << std::endl;
+            log_file << "[Command path]            [Follow path] init" << std::endl;
 #endif
         }
         else
         {
-            ROS_WARN_STREAM (     "[State manager] Path reply failed!");
+            ROS_WARN_STREAM (     "[Command path] Path reply failed!");
         }
          
     }
@@ -115,12 +114,12 @@ namespace ltStar_command_path_node
     bool is_in_target_position(geometry_msgs::Point const& target_waypoint, 
         geometry_msgs::Point & current_position, double error_margin )
     {
-        // ROS_INFO_STREAM("[State manager] Target position " << target_waypoint );
-        // ROS_INFO_STREAM("[State manager] Current position " << current_position );
-        // ROS_INFO_STREAM("[State manager] 3 Position offset");
-        // ROS_INFO_STREAM("[State manager] Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
-        // ROS_INFO_STREAM("[State manager]  Target (" << target_waypoint.x << ", " << target_waypoint.y << ", " << target_waypoint.z << ");");
-        // ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
+        // ROS_INFO_STREAM("[Command path] Target position " << target_waypoint );
+        // ROS_INFO_STREAM("[Command path] Current position " << current_position );
+        // ROS_INFO_STREAM("[Command path] 3 Position offset");
+        // ROS_INFO_STREAM("[Command path] Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
+        // ROS_INFO_STREAM("[Command path]  Target (" << target_waypoint.x << ", " << target_waypoint.y << ", " << target_waypoint.z << ");");
+        // ROS_INFO_STREAM("[Command path] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
         //     << std::abs(target_waypoint.y - current_position.y) << ", "
         //     << std::abs(target_waypoint.z - current_position.z) << ") ");
 
@@ -135,30 +134,30 @@ namespace ltStar_command_path_node
         {
             case init:
             {
-                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at init");
+                // ROS_WARN_STREAM("[Command path]            [Path follow] updateWaypointSequenceStateMachine at init");
                 if(askPositionServiceCall(get_current_waypoint()))
                 {
                     state_data.follow_path_state = on_route;
 #ifdef SAVE_LOG
-            log_file << "[State manager]            [Path follow] on_route to " << get_current_waypoint() << std::endl;
+            log_file << "[Command path]            [Path follow] on_route to " << get_current_waypoint() << std::endl;
 #endif
                 }
                 else
                 {
 #ifdef SAVE_LOG
-            log_file << "[State manager] Failed to set next position. Going to keep trying." << std::endl;
+            log_file << "[Command path] Failed to set next position. Going to keep trying." << std::endl;
 #endif
                 }
                 break;
             }
             case on_route:
             {
-                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at on_route");
+                // ROS_WARN_STREAM("[Command path]            [Path follow] updateWaypointSequenceStateMachine at on_route");
                 geometry_msgs::Point current_position;
                 if(getUavPositionServiceCall(current_position))
                 {
                     // compare target with postition allowing for error margin 
-                    // ROS_INFO_STREAM("[State manager] 2 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
+                    // ROS_INFO_STREAM("[Command path] 2 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
                     geometry_msgs::Point target_waypoint;
                     target_waypoint = get_current_waypoint();
                     if( is_in_target_position(target_waypoint, current_position, error_margin) )
@@ -174,8 +173,8 @@ namespace ltStar_command_path_node
                 {
                     // Reached Frontier
 #ifdef SAVE_LOG
-            log_file << "[State manager] Reached final waypoint (" << state_data.waypoint_index << ")" << std::endl;
-            log_file << "[State manager]            [Path follow]  finished_sequence" << std::endl;
+            log_file << "[Command path] Reached final waypoint (" << state_data.waypoint_index << ")" << std::endl;
+            log_file << "[Command path]            [Path follow]  finished_sequence" << std::endl;
 #endif
                     state_data.follow_path_state = finished_sequence;
                 }
@@ -191,9 +190,9 @@ namespace ltStar_command_path_node
     void init_state_variables(ltStar_command_path_node::StateData& state_data)
     {
         state_data.ltstar_request_id = 0;
-        state_data.exploration_state = waiting_path_response;
+        state_data.exploration_state = clear_from_ground;
 #ifdef SAVE_LOG
-        log_file << "[State manager][Exploration] waiting_path_response" << std::endl;
+        log_file << "[Command path][Exploration] waiting_path_response" << std::endl;
 #endif
     }
 
@@ -224,7 +223,7 @@ namespace ltStar_command_path_node
             }
             default:
             {
-                ROS_ERROR_STREAM("[State manager] Something went very wrong. State is unknown "<< state_data.exploration_state);
+                ROS_ERROR_STREAM("[Command path] Something went very wrong. State is unknown "<< state_data.exploration_state);
                 break;
             }
         }
@@ -243,7 +242,7 @@ int main(int argc, char **argv)
     boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
 
 
-    ros::init(argc, argv, "state_manager");
+    ros::init(argc, argv, "ltStar_command_path_node");
     ros::NodeHandle nh;
     ltStar_command_path_node::init_param_variables(nh);
     // Service client
@@ -252,10 +251,10 @@ int main(int argc, char **argv)
     // Topic subscribers 
     ros::Subscriber ltstar_reply_sub = nh.subscribe<path_planning_msgs::LTStarReply>("ltstar_reply", 5, ltStar_command_path_node::ltstar_cb);
     // Topic publishers
-    ltStar_command_path_node::marker_pub = nh.advertise<visualization_msgs::Marker>("state_manager_viz", 1);
+    ltStar_command_path_node::marker_pub = nh.advertise<visualization_msgs::Marker>("ltStar_command_path_node_viz", 1);
 
 #ifdef SAVE_LOG
-    ltStar_command_path_node::log_file.open ("/ros_ws/src/data/current/state_manager.log", std::ofstream::app);
+    ltStar_command_path_node::log_file.open ("/ros_ws/src/data/current/ltStar_command_path_node.log", std::ofstream::app);
 #endif
     ltStar_command_path_node::init_state_variables(ltStar_command_path_node::state_data);
     ltStar_command_path_node::timer = nh.createTimer(ros::Duration(1), ltStar_command_path_node::update_state);
