@@ -37,7 +37,7 @@ namespace ltStar_command_path_node
     double px4_loiter_radius;
     double error_margin;
     enum follow_path_state_t{init, on_route, arrived_at_waypoint, finished_sequence};
-    enum exploration_state_t {waiting_path_response, visit_waypoints};
+    enum exploration_state_t {clear_from_ground, waiting_path_response, visit_waypoints};
     struct StateData { 
         int waypoint_index;  // id of the waypoint that is currently the waypoint
         int ltstar_request_id;
@@ -192,7 +192,7 @@ namespace ltStar_command_path_node
         state_data.ltstar_request_id = 0;
         state_data.exploration_state = clear_from_ground;
 #ifdef SAVE_LOG
-        log_file << "[Command path][Exploration] waiting_path_response" << std::endl;
+        log_file << "[Command path][Exploration] clear_from_ground" << std::endl;
 #endif
     }
 
@@ -207,6 +207,40 @@ namespace ltStar_command_path_node
     {
         switch(state_data.exploration_state)
         {
+            case clear_from_ground:
+            {
+                ROS_INFO("[architecture] Clear from ground");
+                // Find current position
+                // architecture_msgs::PositionMiddleMan srv;
+                // if(current_position_client.call(srv))
+                geometry_msgs::Point current_position;
+                if(getUavPositionServiceCall(current_position))
+                {
+                    // geometry_msgs::Point current_position = srv.response.current_position;
+                    // state_data.frontier_request_id = 0;
+                    state_data.waypoint_index = 0;
+                    state_data.exploration_state = visit_waypoints;
+                    state_data.follow_path_state = init;
+
+                    geometry_msgs::Point waypoint;
+                    waypoint.x = current_position.x;
+                    waypoint.y = current_position.y;
+                    waypoint.z = 10;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.x = current_position.x;
+                    waypoint.y = current_position.y;
+                    waypoint.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // state_data.frontiers_msg.frontiers_found = 1;
+                    state_data.ltstar_reply.waypoint_amount = 2;
+#ifdef SAVE_LOG
+                    log_file << "[Command path][Exploration] visit_waypoints 2" << std::endl;
+                    log_file << "[Command path]            [Follow path] init" << std::endl;
+#endif
+                }
+
+                break;
+            }
             case waiting_path_response:
             {
                 break;
