@@ -938,7 +938,7 @@ namespace LazyThetaStarOctree{
 			to_log_file_ss <<  std::setprecision(2) << "start: " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" << std::endl;
 			to_log_file_ss <<  std::setprecision(2) << "goal:  " << "(" << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
 			std::stringstream octomap_name_stream;
-			octomap_name_stream << folder_name << "/octree_pathToLong_noObstacles_(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")_("<< disc_initial.x() << disc_initial.y() << disc_initial.z() << ").bt";
+			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_pathToLong_noObstacles_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
 			octree.writeBinaryConst(octomap_name_stream.str());
 		}
 	    log_file.close();
@@ -1007,7 +1007,7 @@ namespace LazyThetaStarOctree{
 		{
 			reply.success = false;
 			std::stringstream octomap_name_stream;
-			octomap_name_stream << folder_name << "/octree_noPath_(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")_("<< disc_initial.x() << disc_initial.y() << disc_initial.z() << ").bt";
+			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
 			octree.writeBinary(octomap_name_stream.str());
 		}
 		else
