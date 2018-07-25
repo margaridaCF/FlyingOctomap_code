@@ -1,4 +1,5 @@
 #include <ltStar_temp.h>
+#include <tf/transform_datatypes.h>
 #include <std_srvs/Empty.h>
 
 #define SAVE_CSV 1
@@ -1014,10 +1015,11 @@ namespace LazyThetaStarOctree{
 			for (std::list<octomath::Vector3>::iterator i = resulting_path.begin(); i != resulting_path.end(); ++i)
 			{
 				// ROS_INFO_STREAM(*i);
-				geometry_msgs::Point waypoint;
-	            waypoint.x = i->x();
-	            waypoint.y = i->y();
-	            waypoint.z = i->z();
+				geometry_msgs::Pose waypoint;
+	            waypoint.position.x = i->x();
+	            waypoint.position.y = i->y();
+	            waypoint.position.z = i->z();
+	            waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
 	            reply.waypoints.push_back(waypoint);
 			}
 			reply.success = true;

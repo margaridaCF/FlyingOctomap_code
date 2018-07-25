@@ -73,7 +73,7 @@ namespace LazyThetaStarOctree
 		for (int i = 0; i < reply.waypoint_amount; ++i)
 		{
 
-			octomath::Vector3 candidate (reply.waypoints[i].x, reply.waypoints[i].y, reply.waypoints[i].z);
+			octomath::Vector3 candidate (reply.waypoints[i].position.x, reply.waypoints[i].position.y, reply.waypoints[i].position.z);
 			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
 	        octomap::OcTreeKey key = octree->coordToKey(candidate);
 	        double depth = getNodeDepth_Octomap(key, *octree);
@@ -88,7 +88,7 @@ namespace LazyThetaStarOctree
 	        {
 
 				visualization_msgs::Marker marker_temp;
-				octomath::Vector3 prev_candidate (reply.waypoints[i-1].x, reply.waypoints[i-1].y, reply.waypoints[i-1].z);
+				octomath::Vector3 prev_candidate (reply.waypoints[i-1].position.x, reply.waypoints[i-1].position.y, reply.waypoints[i-1].position.z);
 				rviz_interface::build_arrow_path(candidate, prev_candidate, i, marker_temp);
 	        	// ROS_WARN_STREAM("[LTStar] " << i << " Publish arrow from " << candidate << " to " << prev_candidate << marker_temp);
 				arrow_array.markers.push_back( marker_temp );

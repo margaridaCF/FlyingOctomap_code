@@ -1,8 +1,10 @@
 
 #include <ros/ros.h>
+#include <tf/transform_datatypes.h>
 #include <std_msgs/Empty.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/Pose.h>
 #include <octomap/math/Vector3.h>
 #include <visualization_msgs/Marker.h>
 
@@ -48,7 +50,7 @@ namespace ltStar_command_path_node
     ltStar_command_path_node::StateData state_data;
 
     // TODO when thre is generation of path these two will be different
-    geometry_msgs::Point& get_current_waypoint()
+    geometry_msgs::Pose& get_current_waypoint()
     {
         return state_data.ltstar_reply.waypoints[state_data.waypoint_index];
     }
@@ -70,11 +72,11 @@ namespace ltStar_command_path_node
         }
     }
 
-    bool askPositionServiceCall(geometry_msgs::Point& position)
+    bool askPositionServiceCall(geometry_msgs::Pose& pose)
     {
         architecture_msgs::PositionRequest position_request_srv;
         position_request_srv.request.waypoint_sequence_id = state_data.ltstar_request_id;
-        position_request_srv.request.position = position;
+        position_request_srv.request.pose = pose;
         if(target_position_client.call(position_request_srv))
         {
 
@@ -159,7 +161,7 @@ namespace ltStar_command_path_node
                     // compare target with postition allowing for error margin 
                     // ROS_INFO_STREAM("[Command path] 2 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
                     geometry_msgs::Point target_waypoint;
-                    target_waypoint = get_current_waypoint();
+                    target_waypoint = get_current_waypoint().position;
                     if( is_in_target_position(target_waypoint, current_position, error_margin) )
                     {
                         state_data.follow_path_state = arrived_at_waypoint;
@@ -222,14 +224,16 @@ namespace ltStar_command_path_node
                     state_data.exploration_state = visit_waypoints;
                     state_data.follow_path_state = init;
 
-                    geometry_msgs::Point waypoint;
-                    waypoint.x = current_position.x;
-                    waypoint.y = current_position.y;
-                    waypoint.z = 10;
+                    geometry_msgs::Pose waypoint;
+                    waypoint.position.x = current_position.x;
+                    waypoint.position.y = current_position.y;
+                    waypoint.position.z = 20;
+                    waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.x = current_position.x;
-                    waypoint.y = current_position.y;
-                    waypoint.z = 2;
+                    waypoint.position.x = current_position.x;
+                    waypoint.position.y = current_position.y;
+                    waypoint.position.z = 2;
+                    waypoint.orientation = tf::createQuaternionMsgFromYaw(180  * 0.0174532925);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     // state_data.frontiers_msg.frontiers_found = 1;
                     state_data.ltstar_reply.waypoint_amount = 2;

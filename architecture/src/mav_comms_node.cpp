@@ -22,7 +22,7 @@ namespace mav_comms
     enum movement_state_t {position, stop, yaw_spin};
     enum yaw_spin_maneuver_state_t {front_facing = 0, yaw_1 = 120, yaw_2 = 240, yaw_3 = 360};
     struct Position { movement_state_t movement_state; int waypoint_sequence;
-        double x; double y; double z; 
+        geometry_msgs::Pose pose; 
         yaw_spin_maneuver_state_t yaw_spin_state; 
         ros::Time yaw_spin_last_sent;};
     // mavros_msgs::PositionTarget stop_position;
@@ -45,9 +45,7 @@ namespace mav_comms
     bool yaw_spin_cb(architecture_msgs::YawSpin::Request  &req, 
         architecture_msgs::YawSpin::Response &res)
     {
-        position_state.x = req.position.x;
-        position_state.y = req.position.y;
-        position_state.z = req.position.z;
+        position_state.pose.position = req.position;
         position_state.movement_state = yaw_spin;
         // ROS_INFO_STREAM("[mav_comms] Receiving yaw spin request " << req);
         return true;
@@ -74,13 +72,13 @@ namespace mav_comms
         ROS_WARN_STREAM("[mav_comms] target_position_cb");
 		if(position_state.movement_state != position) 
         { 
-            ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.position  
+            ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.pose  
                 << ", wrong movement state"); 
             res.is_going_to_position = false;
         } 
         else if( req.waypoint_sequence_id < position_state.waypoint_sequence) 
 		{
-			ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.position 
+			ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.pose 
 				<< ", wrong movement state or request is from aborted waypoint sequence (id "
 				<< req.waypoint_sequence_id << ")");
             res.is_going_to_position = false;
@@ -89,9 +87,7 @@ namespace mav_comms
 		{
 			position_state.movement_state = position;
 			position_state.waypoint_sequence = req.waypoint_sequence_id;
-			position_state.x = req.position.x;
-			position_state.y = req.position.y;
-			position_state.z = req.position.z;
+			position_state.pose = req.pose;
             res.is_going_to_position = true;
 		}
         return true;
@@ -101,10 +97,6 @@ namespace mav_comms
     {
         position_state.movement_state = position;
         position_state.yaw_spin_state = front_facing;
-
-        position_state.x = 0;
-        position_state.y = 0;
-        position_state.z = 1;
 
         int temp;
         nh.getParam("exploration_maneuver_phases_duration_secs", temp);
@@ -122,10 +114,7 @@ namespace mav_comms
             case movement_state_t::position:
             {
                 geometry_msgs::PoseStamped point_to_pub;
-                point_to_pub.pose.position.x = position_state.x;
-                point_to_pub.pose.position.y = position_state.y;
-                point_to_pub.pose.position.z = position_state.z;
-                point_to_pub.pose.orientation = tf::createQuaternionMsgFromYaw(front_facing * 0.0174532925);
+                point_to_pub.pose = position_state.pose;
                 local_pos_pub.publish(point_to_pub);
                 // ROS_INFO_STREAM("[mav_comms] Sending position " << point_to_pub.pose.position);
                 break;
@@ -140,9 +129,7 @@ namespace mav_comms
             case movement_state_t::yaw_spin:
             {
                 geometry_msgs::PoseStamped point_to_pub;
-                point_to_pub.pose.position.x = position_state.x;
-                point_to_pub.pose.position.y = position_state.y;
-                point_to_pub.pose.position.z = position_state.z;
+                point_to_pub.pose = position_state.pose;
                 ros::Duration time_lapse = ros::Time::now() - position_state.yaw_spin_last_sent;
                 switch(position_state.yaw_spin_state)
                 {

@@ -1,4 +1,4 @@
 uint32 waypoint_sequence_id
-geometry_msgs/Point position
+geometry_msgs/Pose pose
 ---
 bool is_going_to_position
