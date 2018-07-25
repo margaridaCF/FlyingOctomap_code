@@ -36,6 +36,9 @@ target_link_libraries(ltStar_async_node  ${catkin_LIBRARIES} ltStar_lib)
 cs_add_executable(ltStar_debug_node src/ltStar_debug_node.cpp )
 target_link_libraries(ltStar_debug_node  ${catkin_LIBRARIES} ltStar_lib)
 
+cs_add_executable(ltStar_command_path_node src/ltStar_command_path_node.cpp )
+target_link_libraries(ltStar_command_path_node  ${catkin_LIBRARIES} ltStar_lib)
+
 cs_install()
 
 cs_export()

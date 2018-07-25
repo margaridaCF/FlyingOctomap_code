@@ -17,6 +17,7 @@
   <depend>path_planning_msgs</depend>
   <depend>frontiers</depend>
   <depend>rviz_interface</depend>
+  <depend>architecture_msgs</depend>
 
   <!-- <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend> -->
