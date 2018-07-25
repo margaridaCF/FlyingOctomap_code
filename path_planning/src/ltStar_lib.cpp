@@ -933,6 +933,8 @@ namespace LazyThetaStarOctree{
 			to_log_file_ss << "!!! Generated path is much larger than the straigh_line_distance AND there are no obstacles !!!" << std::endl;
 			to_log_file_ss << "straigh_line_distance: " << straigh_line_distance << std::endl;
 			to_log_file_ss << "distance_total: " << distance_total << std::endl;
+			to_log_file_ss <<  std::setprecision(2) << "start: " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" << std::endl;
+			to_log_file_ss <<  std::setprecision(2) << "goal:  " << "(" << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
 			std::stringstream octomap_name_stream;
 			octomap_name_stream << folder_name << "/octree_pathToLong_noObstacles_(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")_("<< disc_initial.x() << disc_initial.y() << disc_initial.z() << ").bt";
 			octree.writeBinaryConst(octomap_name_stream.str());
@@ -990,6 +992,8 @@ namespace LazyThetaStarOctree{
 		csv_file << "," << straigh_line_distance;
 		csv_file << "," << distance_total;
 		csv_file << "," << has_flight_corridor_free << std::endl;
+		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" << std::endl;
+		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
 		csv_file.close();
 #endif
 		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
