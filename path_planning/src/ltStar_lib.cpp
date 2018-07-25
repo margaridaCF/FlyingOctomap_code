@@ -931,6 +931,7 @@ namespace LazyThetaStarOctree{
 		if(has_flight_corridor_free && abs(distance_total - straigh_line_distance) > straigh_line_distance/10)
 		{
 			to_log_file_ss << "!!! Generated path is much larger than the straigh_line_distance AND there are no obstacles !!!" << std::endl;
+			to_log_file_ss << "Distance tolerance straigh_line_distance/10: " << straigh_line_distance/10 << std::endl;
 			to_log_file_ss << "straigh_line_distance: " << straigh_line_distance << std::endl;
 			to_log_file_ss << "distance_total: " << distance_total << std::endl;
 			to_log_file_ss <<  std::setprecision(2) << "start: " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" << std::endl;
