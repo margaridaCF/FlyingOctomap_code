@@ -39,7 +39,7 @@ namespace LazyThetaStarOctree
 			// ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
 			// 	<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
 			// octree->writeBinary(ss.str());
-			// ROS_INFO_STREAM("[LTStar] Request message " << *path_request);
+			ROS_INFO_STREAM("[LTStar] Request message " << *path_request);
 			// if(path_request->request_id > 5)
 			// {
 			// 	publish_free_corridor_arrows = true;
@@ -59,6 +59,7 @@ namespace LazyThetaStarOctree
 		}
 		else
 		{
+			ROS_ERROR_STREAM("[LTStar] Cannot generate path because no octomap has been received.");
 			reply.success=false;
 			reply.request_id = path_request->request_id;
 			reply.waypoint_amount = 0;
