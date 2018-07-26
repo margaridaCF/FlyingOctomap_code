@@ -4,9 +4,9 @@
     <arg name="hokuyo_frame_name"   default="hokuyo"/>
     
     <!-- #######################  Mavros   ######################################## -->
-    <include file="$(find mavros)/launch/px4.launch">
+    <!-- <include file="$(find mavros)/launch/px4.launch">
         <arg name="fcu_url" value="/dev/ttyUSB0:921600" />
-    </include>
+    </include> -->
 
     <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
 
@@ -22,7 +22,7 @@
 
 
     <!-- #######################  Architecture nodes  ############################# -->
-    <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
+    <!-- <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" /> -->
     <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
     <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
     <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
@@ -31,8 +31,6 @@
 
 
     <!-- #######################    TF    ############################# -->    
-    <!-- <param name="/use_sim_time" value="true" />  -->
-    <!-- <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" /> -->
     <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 3.14159 base_link laser 100" />
     <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" />
 
