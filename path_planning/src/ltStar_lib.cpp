@@ -993,9 +993,9 @@ namespace LazyThetaStarOctree{
 		csv_file << millis.count();
 		csv_file << "," << straigh_line_distance;
 		csv_file << "," << distance_total;
-		csv_file << "," << has_flight_corridor_free << std::endl;
-		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" << std::endl;
-		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
+		csv_file << "," << has_flight_corridor_free << ",";
+		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << "),";
+		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")" << std::endl;
 		csv_file.close();
 #endif
 		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
