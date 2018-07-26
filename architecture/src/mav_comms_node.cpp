@@ -209,32 +209,41 @@ int main(int argc, char **argv)
         rate.sleep();
     }
     // === px4 PARAM ===
-    double flight_speed = 3;
-    nh.getParam("px4/flight_speed", flight_speed);
-    while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
-    ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
-    double MPC_ACC_HOR = 2; // minimum 1
-    while(!mav_comms::set_mavros_param("MPC_ACC_HOR", MPC_ACC_HOR)) { }
-    ROS_INFO_STREAM("[mav_comms] Acceleration set to " << MPC_ACC_HOR << " m/s (MPC_ACC_HOR)"); 
-    // NAV_ACC_RAD - Acceptance Radius
-    double NAV_ACC_RAD = 2; // minimum 0.01
-    while(!mav_comms::set_mavros_param("NAV_ACC_RAD", NAV_ACC_RAD)) { }
-    ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << NAV_ACC_RAD << " m (NAV_ACC_RAD)"); 
-    // MPC_CRUISE_90 - Cruise speed when angle prev-current/current-next setpoint is 90 degrees.
-    double MPC_CRUISE_90 = 1;   // minimum 1
-    while(!mav_comms::set_mavros_param("MPC_CRUISE_90", MPC_CRUISE_90)) { }
-    ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << MPC_CRUISE_90 << " m/s (MPC_CRUISE_90)");
+    // param set MPC_XY_VEL_MAX 2.00
+    // param set MPC_Z_VEL_MAX_DN 2.00
+    // param set MPC_Z_VEL_MAX_UP 2.00
+    
+    // double flight_speed = 3;
+    // nh.getParam("px4/flight_speed", flight_speed);
+    // while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
+    // ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
+    // while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
+    // ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
+    // while(!mav_comms::set_mavros_param("MPC_Z_VEL_MAX_DN", flight_speed)) { }
+    // ROS_INFO_STREAM("[mav_comms] MPC_Z_VEL_MAX_DN set to " << flight_speed);
+    // while(!mav_comms::set_mavros_param("MPC_Z_VEL_MAX_UP", flight_speed)) { }
+    // ROS_INFO_STREAM("[mav_comms] MPC_Z_VEL_MAX_UP set to " << flight_speed);
+
+    // double MPC_ACC_HOR = 2; // minimum 1
+    // while(!mav_comms::set_mavros_param("MPC_ACC_HOR", MPC_ACC_HOR)) { }
+    // ROS_INFO_STREAM("[mav_comms] Acceleration set to " << MPC_ACC_HOR << " m/s (MPC_ACC_HOR)"); 
+    // // NAV_ACC_RAD - Acceptance Radius
+    // double NAV_ACC_RAD = 2; // minimum 0.01
+    // while(!mav_comms::set_mavros_param("NAV_ACC_RAD", NAV_ACC_RAD)) { }
+    // ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << NAV_ACC_RAD << " m (NAV_ACC_RAD)"); 
+    // // MPC_CRUISE_90 - Cruise speed when angle prev-current/current-next setpoint is 90 degrees.
+    // double MPC_CRUISE_90 = 1;   // minimum 1
+    // while(!mav_comms::set_mavros_param("MPC_CRUISE_90", MPC_CRUISE_90)) { }
+    // ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << MPC_CRUISE_90 << " m/s (MPC_CRUISE_90)");
 
 
-    double const offboard_mode_timeout_sec = 20;
-    while(!mav_comms::set_mavros_param("COM_OF_LOSS_T", offboard_mode_timeout_sec)) { }
-    ROS_INFO_STREAM("[mav_comms] Timeout from OFFBOARD mode set to " << offboard_mode_timeout_sec << " sec (COM_OF_LOSS_T)");
-    while(!mav_comms::set_mavros_param("COM_RC_IN_MODE", 1)) { }
-    ROS_INFO_STREAM("[mav_comms] COM_RC_IN_MODE set to " << 1);
+    // double const offboard_mode_timeout_sec = 20;
+    // while(!mav_comms::set_mavros_param("COM_OF_LOSS_T", offboard_mode_timeout_sec)) { }
+    // ROS_INFO_STREAM("[mav_comms] Timeout from OFFBOARD mode set to " << offboard_mode_timeout_sec << " sec (COM_OF_LOSS_T)");
+    // while(!mav_comms::set_mavros_param("COM_RC_IN_MODE", 1)) { }
+    // ROS_INFO_STREAM("[mav_comms] COM_RC_IN_MODE set to " << 1);
 
 
-    while(!mav_comms::set_mavros_param("MPC_Z_VEL_MAX_DN", 3)) { }
-    ROS_INFO_STREAM("[mav_comms] MPC_Z_VEL_MAX_DN set to " << 3);
 
     // while(!mav_comms::set_mavros_param("MPC_XY_P", 0.5)) { }
     // ROS_INFO_STREAM("[mav_comms] MPC_XY_P set to " << 0.5);
