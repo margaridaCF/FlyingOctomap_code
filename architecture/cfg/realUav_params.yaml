@@ -16,7 +16,7 @@ scan_filter_chain:
 - name: range
   type: LaserScanRangeFilter
   params:
-    lower_threshold: 0.7
+    lower_threshold: 0.7    # Propeller distance
     upper_threshold: 200000
 
 
