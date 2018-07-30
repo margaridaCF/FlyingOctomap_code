@@ -924,7 +924,7 @@ namespace LazyThetaStarOctree{
 	    	to_log_file_ss << generated_path_distance_ss.str() << std::endl;
 	    	log_file << to_log_file_ss.str();
 		}
-		if(has_flight_corridor_free && abs(distance_total - straigh_line_distance) > straigh_line_distance/10)
+		if(   has_flight_corridor_free && abs(distance_total - straigh_line_distance) > std::max( straigh_line_distance/10, octree.getResolution()*2 )   )
 		{
 			to_log_file_ss << "!!! Generated path is much larger than the straigh_line_distance AND there are no obstacles !!!" << std::endl;
 			to_log_file_ss << "Distance tolerance straigh_line_distance/10: " << straigh_line_distance/10 << std::endl;
@@ -991,7 +991,9 @@ namespace LazyThetaStarOctree{
 		csv_file << "," << distance_total;
 		csv_file << "," << has_flight_corridor_free;
 		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
-		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")" << std::endl;
+		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
+		csv_file << "," << request.safety_margin;
+		csv_file << ",(" << request.max_search_iterations << std::endl;
 		csv_file.close();
 #endif
 		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
