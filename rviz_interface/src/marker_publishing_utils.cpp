@@ -460,15 +460,13 @@ namespace rviz_interface
 
     void publish_arrow_path_unreachable(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int id)
     {
-        int id_scoped = id / 1000;
-        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
         marker.ns = "path_unreachable";
-        marker.id = 4000 + id_scoped;
+        marker.id = 4000 + id;
         marker.type = shape;
         geometry_msgs::Point goal_point;
         goal_point.x = goal.x();
