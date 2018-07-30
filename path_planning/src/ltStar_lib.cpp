@@ -993,7 +993,7 @@ namespace LazyThetaStarOctree{
 		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
 		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
 		csv_file << "," << request.safety_margin;
-		csv_file << ",(" << request.max_search_iterations << std::endl;
+		csv_file << "," << request.max_search_iterations << std::endl;
 		csv_file.close();
 #endif
 		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
