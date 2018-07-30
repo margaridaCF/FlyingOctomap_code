@@ -6,7 +6,15 @@
 #include <marker_publishing_utils.h>
 #include <std_srvs/Empty.h>
 
+
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <chrono>
+#include <boost/filesystem.hpp>
+
 #define SAVE_CSV 1
+// #define STANDALONE 1
 
 namespace LazyThetaStarOctree
 {
@@ -108,9 +116,21 @@ namespace LazyThetaStarOctree
 int main(int argc, char **argv)
 {
 	LazyThetaStarOctree::folder_name = "/ros_ws/src/data/current";
+
+#ifdef STANDALONE
+	LazyThetaStarOctree::folder_name = "/home/garuda/Flying_Octomap_code/src/data/";
+	auto timestamp_chrono = std::chrono::high_resolution_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
+    std::stringstream folder_name_stream;
+    folder_name_stream << LazyThetaStarOctree::folder_name << (std::put_time(std::localtime(&now_c), "%F %T") );
+	LazyThetaStarOctree::folder_name = LazyThetaStarOctree::folder_name + "current";
+    boost::filesystem::create_directories(folder_name_stream.str());
+    boost::filesystem::create_directory_symlink(folder_name_stream.str(), LazyThetaStarOctree::folder_name);
+#endif
+
 #ifdef SAVE_CSV
 	std::ofstream csv_file;
-	csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+	csv_file.open (LazyThetaStarOctree::folder_name+"/lazyThetaStar_computation_time.csv", std::ofstream::app);
 	csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds" << std::endl;
 	csv_file.close();
 #endif
