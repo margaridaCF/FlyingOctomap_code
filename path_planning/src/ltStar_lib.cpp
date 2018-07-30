@@ -116,9 +116,9 @@ namespace LazyThetaStarOctree{
 		double z_disc = bounding_box_size.z() / ceil((bounding_box_size.z() + epsilon) / resolution);
 
 		// Ensure that resolution is not infinit
-		if (x_disc <= 0.0) x_disc = 1.0;
-		if (y_disc <= 0.0) y_disc = 1.0;
-		if (z_disc <= 0.0) z_disc = 1.0;
+		if (x_disc <= 0.0) x_disc = resolution;
+		if (y_disc <= 0.0) y_disc = resolution;
+		if (z_disc <= 0.0) z_disc = resolution;
 
 		const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
 
@@ -254,7 +254,7 @@ namespace LazyThetaStarOctree{
 					{
 						if(publish)
 						{
-							// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset ;
+							// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
 							rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable);	
 							id_unreachable++;
 						}
@@ -264,7 +264,7 @@ namespace LazyThetaStarOctree{
 					{
 						if(publish)
 						{
-							// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset + offset ;
+							// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
 							rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable);	
 							id_unreachable;
 						}
@@ -634,8 +634,8 @@ namespace LazyThetaStarOctree{
 		// std::ofstream log_file;
     	// log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
-		auto start = ros::Time::now();
-		ros::Duration max_search_time = ros::Duration(max_search_iterations);
+		auto start = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_search_iterations);
 
 		std::list<octomath::Vector3> path;
 
@@ -721,9 +721,9 @@ namespace LazyThetaStarOctree{
 		}
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
+		id_unreachable = 0;	
 		while(!open.empty() && !solution_found)
 		{
-			id_unreachable = 0;
 			// open.printNodes("========= Starting state of open ");
 			// ln 7 s := open.Pop();	
 			// [Footnote] open.Pop() removes a vertex with the smallest key from open and returns it
@@ -732,6 +732,7 @@ namespace LazyThetaStarOctree{
 				open.printNodes(" ========== Before pop ========== ", log_file);
 			}
 			s = open.pop();
+#ifdef RUNNING_ROS
 			if(publish)
 			{
 				geometry_msgs::Point s_point;
@@ -740,14 +741,7 @@ namespace LazyThetaStarOctree{
 				s_point.z = s->coordinates->z();
 				rviz_interface::publish_s(s_point, marker_pub);
 			}
-			// if(print_resulting_path)
-			// {
-			// 	log_file << "[START] s is " << s << std::endl;
-			// 	if(equal(*(s->coordinates), target_n, 2))
-			// 	{
-			// 		ROS_ERROR_STREAM(*s);
-			// 	}
-			// }
+#endif
 			resultSet.addOcurrance(s->cell_size);
 			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
 			generateNeighbors_pointers(neighbors, *(s->coordinates), s->cell_size, resolution);
@@ -774,6 +768,7 @@ namespace LazyThetaStarOctree{
 			// ln 11 closed := closed U {s}
 			// ROS_WARN_STREAM("@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s);
 			closed.insert( std::pair<octomath::Vector3, std::shared_ptr<ThetaStarNode>>( *(s->coordinates), s));
+#ifdef RUNNING_ROS
 			if(publish)
 			{
 				rviz_interface::publish_closed(*(s->coordinates), marker_pub);
@@ -784,7 +779,7 @@ namespace LazyThetaStarOctree{
 				
 				writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
 			}
-
+#endif
 			// TODO check code repetition to go over the neighbors of s
 			double cell_size = 0;
 			// ln 12 foreach s' € nghbr_vis(s) do
@@ -851,7 +846,7 @@ namespace LazyThetaStarOctree{
 				}
 			}
 			used_search_iterations++;	
-			ros::Duration time_lapse = ros::Time::now() - start;
+			std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 			if(time_lapse > max_search_time)
 			{
 				ROS_ERROR_STREAM("Reached maximum time for A*. Breaking out");
@@ -999,10 +994,12 @@ namespace LazyThetaStarOctree{
 		csv_file.close();
 #endif
 		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
+#ifdef RUNNING_ROS
 		if(publish)
 		{
 			rviz_interface::publish_arrow_straight_line(request.start, request.goal, marker_pub, resulting_path.size() > 0);
 		}
+#endif
 		if(resulting_path.size()==0)
 		{
 			reply.success = false;
