@@ -924,19 +924,19 @@ namespace LazyThetaStarOctree{
 	    	to_log_file_ss << generated_path_distance_ss.str() << std::endl;
 	    	log_file << to_log_file_ss.str();
 		}
-		if(   has_flight_corridor_free && abs(distance_total - straigh_line_distance) > std::max( straigh_line_distance/20, octree.getResolution()*2 )   )
-		{
-			to_log_file_ss << "!!! Generated path is much larger than the straigh_line_distance AND there are no obstacles !!!" << std::endl;
-			to_log_file_ss << "Distance tolerance straigh_line_distance/10: " << straigh_line_distance/10 << std::endl;
-			to_log_file_ss << "straigh_line_distance: " << straigh_line_distance << std::endl;
-			to_log_file_ss << "distance_total: " << distance_total << std::endl;
-			to_log_file_ss <<  std::setprecision(2) << "start: " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" << std::endl;
-			to_log_file_ss <<  std::setprecision(2) << "goal:  " << "(" << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
-			std::stringstream octomap_name_stream;
-			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_pathToLong_noObstacles_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
-			octree.writeBinaryConst(octomap_name_stream.str());
-			log_file << to_log_file_ss.str();
-		}
+		// if(   has_flight_corridor_free && abs(distance_total - straigh_line_distance) > std::max( straigh_line_distance/20, octree.getResolution()*2 )   )
+		// {
+		// 	to_log_file_ss << "!!! Generated path is much larger than the straigh_line_distance AND there are no obstacles !!!" << std::endl;
+		// 	to_log_file_ss << "Distance tolerance straigh_line_distance/10: " << straigh_line_distance/20 << std::endl;
+		// 	to_log_file_ss << "straigh_line_distance: " << straigh_line_distance << std::endl;
+		// 	to_log_file_ss << "distance_total: " << distance_total << std::endl;
+		// 	to_log_file_ss <<  std::setprecision(2) << "start: " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" << std::endl;
+		// 	to_log_file_ss <<  std::setprecision(2) << "goal:  " << "(" << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
+		// 	std::stringstream octomap_name_stream;
+		// 	octomap_name_stream << std::setprecision(2) << folder_name << "/octree_pathToLong_noObstacles_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
+		// 	octree.writeBinaryConst(octomap_name_stream.str());
+		// 	log_file << to_log_file_ss.str();
+		// }
 	    log_file.close();
 	}
 
@@ -1009,6 +1009,14 @@ namespace LazyThetaStarOctree{
 			std::stringstream octomap_name_stream;
 			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
 			octree.writeBinary(octomap_name_stream.str());
+			std::stringstream to_log_file_ss;
+			to_log_file_ss << "!!! No path !!!   " ;
+			to_log_file_ss << "Straight line length " << weightedDistance(disc_initial, disc_final);
+			to_log_file_ss <<  std::setprecision(2) << " from  " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" ;
+			to_log_file_ss <<  std::setprecision(2) << " to " << "(" << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
+			std::ofstream log_file;
+    		log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);log_file << to_log_file_ss.str();
+	    	log_file.close();
 		}
 		else
 		{

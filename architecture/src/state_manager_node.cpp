@@ -183,7 +183,7 @@ namespace state_manager_node
 #ifdef SAVE_LOG
         log_file << "[State manager] Requesting path " << request << std::endl;
 #endif
-        ROS_WARN_STREAM ("[State manager] Requesting path from " << request.start << " to " << request.goal);
+        ROS_INFO_STREAM ("[State manager] Requesting path from " << request.start << " to " << request.goal);
         ltstar_request_pub.publish(request);
         state_data.ltstar_request = request;
         rviz_interface::publish_start(request.start, marker_pub);
@@ -318,7 +318,7 @@ namespace state_manager_node
 #ifdef SAVE_LOG
             log_file << "[State manager]Frontier reply " << *msg << std::endl;
 #endif
-            ROS_WARN_STREAM (     "[State manager] found " << msg->frontiers_found << " frontiers." );
+            ROS_INFO_STREAM (     "[State manager] found " << msg->frontiers_found << " frontiers." );
             if(get_current_frontier().x < geofence_min.x() 
                 || get_current_frontier().y < geofence_min.y() 
                 || get_current_frontier().x < geofence_min.y() 
