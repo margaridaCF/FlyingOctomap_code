@@ -935,6 +935,7 @@ namespace LazyThetaStarOctree{
 			std::stringstream octomap_name_stream;
 			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_pathToLong_noObstacles_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
 			octree.writeBinaryConst(octomap_name_stream.str());
+			log_file << to_log_file_ss.str();
 		}
 	    log_file.close();
 	}
@@ -988,8 +989,8 @@ namespace LazyThetaStarOctree{
 		csv_file << millis.count();
 		csv_file << "," << straigh_line_distance;
 		csv_file << "," << distance_total;
-		csv_file << "," << has_flight_corridor_free << ",";
-		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << "),";
+		csv_file << "," << has_flight_corridor_free;
+		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
 		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")" << std::endl;
 		csv_file.close();
 #endif
