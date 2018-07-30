@@ -231,61 +231,6 @@ namespace Frontiers
 		ASSERT_EQ(voxel_center.y(), 0);
 		ASSERT_EQ(voxel_center.z(), 0);
 	}
-
-	TEST(FrontiersTest, Test_frontierAmount_NeighborToFarToSense)
-	{
-		// -10_-18_6__8__frontierTooBig.bt
-		octomath::Vector3 frontier (-10,-18,6);
-		ros::Publisher marker_pub;
-		octomap::OcTree octree ("data/-10_-18_6__8__frontierTooBig.bt");
-		frontiers_msgs::FrontierRequest request;
-		request.header.seq = 1;
-		request.header.frame_id = "request_frame";
-		request.min.x = -15;
-		request.min.y = -20;
-		request.min.z = 1;
-		request.max.x = 12;
-		request.max.y = 20;
-		request.max.z = 14;
-		request.frontier_amount = 1;
-		request.sensing_distance = 2;
-		frontiers_msgs::FrontierReply reply;
-		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
-		checkFrontiers(octree, request, reply);
-		// ROS_INFO_STREAM(reply);
-	}
-
-	TEST(FrontiersTest, Test_frontierAmount_1)
-	{
-		// -10_-18_6__8__frontierTooBig.bt
-		octomath::Vector3 frontier (-10,-18,6);
-		ros::Publisher marker_pub;
-		octomap::OcTree octree ("data/-10_-18_6__8__frontierTooBig.bt");
-		frontiers_msgs::FrontierRequest request;
-		request.header.seq = 1;
-		request.header.frame_id = "request_frame";
-		request.min.x = -15;
-		request.min.y = -20;
-		request.min.z = 1;
-		request.max.x = 12;
-		request.max.y = 20;
-		request.max.z = 14;
-		request.frontier_amount = 1;
-		request.sensing_distance = 4;
-		frontiers_msgs::FrontierReply reply;
-		bool outcome = processFrontiersRequest(octree, request, reply, marker_pub, false);
-		ASSERT_EQ(reply.frontiers_found, 1);
-		// ROS_INFO_STREAM(reply);
-		checkFrontiers(octree, request, reply);
-		double diff = std::abs(reply.frontiers[0].xyz_m.x - (-14));
-		ASSERT_LE(diff, 0.1) << reply.frontiers[0].xyz_m.x << " and " << -14;
-
-		diff = std::abs(reply.frontiers[0].xyz_m.y - (-18));
-		ASSERT_LE(diff, 0.1) << reply.frontiers[0].xyz_m.y << " and " << -18 << " diff = " << diff;
-
-		diff = std::abs(reply.frontiers[0].xyz_m.z - (6));
-		ASSERT_LE(diff, 0.1) << reply.frontiers[0].xyz_m.z << " and " << 6 << " diff = " << diff;
-	}
 }
 
 int main(int argc, char **argv){
