@@ -11,14 +11,14 @@
     <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
 
     <!-- #######################  Octomap  ######################################## -->
-    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
         <param name="frame_id" type="string"    value="map" />   
         <remap from="cloud_in" to="/free_cloud" />
         <param name="latch"                     value="false" />
         <param name="publish_free_space"        value="true"/>
         <param name="sensor_model/max_range"    value="15"/>
         <param name="resolution"                value="0.4" />
-    </node> -->
+    </node>
 
 
     <!-- #######################  Architecture nodes  ############################# -->
@@ -31,12 +31,12 @@
 
 
     <!-- #######################    TF    ############################# -->    
-    <!-- <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 3.14159 base_link laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 3.14159 base_link laser 100" />
     <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" />
- -->
+
 
     <!-- #######################  Hokuyo  ############################# -->
-   <!--  <node name="hokuyo"         pkg="urg_node"      type="urg_node" output="screen" >
+    <node name="hokuyo"         pkg="urg_node"      type="urg_node" output="screen" >
         <param name="ip_address" value="192.168.0.10"/>
     </node>
     <node name="laser_filter" type="scan_to_scan_filter_chain" pkg="laser_filters">
@@ -46,6 +46,6 @@
     </node>
     <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" >
         <param name="range_min" value="1"/>
-    </node> -->
+    </node>
 </launch>
 
