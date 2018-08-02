@@ -233,15 +233,16 @@ namespace LazyThetaStarOctree{
 		return octree.keyToCoord(key, depth);
 	}
 
-    double findSideLenght(octomap::OcTree const& octree, const int depth)
+    double findSideLenght(int octreeLevelCount, const int depth, double const* lookup_table)
     {
-        int level_count = octree.getTreeDepth() - depth;
-        double side_length = octree.getResolution();
-        for(int i = 0; i < level_count; i++)
-        {
-            side_length = side_length + side_length;
-        }
-        return side_length;
+        int level_count = octreeLevelCount - depth;
+        // double side_length = octree.getResolution();
+        // for(int i = 0; i < level_count; i++)
+        // {
+        //     side_length = side_length + side_length;
+        // }
+        // return side_length;
+        return lookup_table[level_count];
     }
 
     /**
@@ -255,7 +256,7 @@ namespace LazyThetaStarOctree{
      *
      * @return     true if the coordinates correspond to the cell center, false otherise
      */
-    octomap::OcTreeKey updatePointerToCellCenterAndFindSize(std::shared_ptr<octomath::Vector3> & coordinates, octomap::OcTree const& octree, double& side_length)
+    octomap::OcTreeKey updatePointerToCellCenterAndFindSize(std::shared_ptr<octomath::Vector3> & coordinates, octomap::OcTree const& octree, double& side_length, double const* lookup_table)
     {
         // convert to key
         octomap::OcTreeKey key = octree.coordToKey(*coordinates);
@@ -263,7 +264,7 @@ namespace LazyThetaStarOctree{
         // ROS_WARN_STREAM("Calling getNodeDepth from 173");
 
         int depth = getNodeDepth_Octomap(key, octree);
-        side_length = findSideLenght(octree, depth);
+        side_length = findSideLenght(octree.getTreeDepth(), depth, lookup_table);
         // get center coord of cell center at depth
         // std::cout << std::setprecision(10) << "Depth method: " << depth << std::endl;
         octomath::Vector3 cell_center = octree.keyToCoord(key, depth);
@@ -281,19 +282,29 @@ namespace LazyThetaStarOctree{
      *
      * @return     true if the coordinates correspond to the cell center, false otherise
      */
-    void updateToCellCenterAndFindSize(octomath::Vector3 & coordinates, octomap::OcTree const& octree, double& side_length)
+    void updateToCellCenterAndFindSize(octomath::Vector3 & coordinates, octomap::OcTree const& octree, double& side_length, double const* lookup_table)
     {
         // convert to key
         octomap::OcTreeKey key = octree.coordToKey(coordinates);
         // ROS_WARN_STREAM("Calling getNodeDepth from 199 with key " << key[0] << " " << key[1] << " " << key[2]);
         // find depth of cell
         double depth = getNodeDepth_Octomap(key, octree);
-        side_length = findSideLenght(octree, depth);
+        side_length = findSideLenght(octree.getTreeDepth(), depth, lookup_table);
         // get center coord of cell center at depth
         octomath::Vector3 cell_center = octree.keyToCoord(key, depth);
         coordinates = cell_center;
     }
 
+    void fillLookupTable(double resolution, int tree_depth, double lookup_table_ptr[])
+    {
+        double side_length = resolution;
+        lookup_table_ptr[0] = side_length;
+        for(int i = 1; i < tree_depth; i++)
+        {
+            side_length = side_length + side_length;
+            lookup_table_ptr[i] = side_length;
+        }
+    }
 
 	void findDifferentSizeCells_ptr_3D(octomap::OcTree const& octree)
 	{

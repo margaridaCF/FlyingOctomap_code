@@ -861,6 +861,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 cell_center (-0.4f, 1.2f, 1.2f);
 		double cell_size = 0.8;
 		octomap::OcTree octree ("data/circle_1m.bt");
+		double sidelength_lookup_table [octree.getTreeDepth()];
+		LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table);
 		double cell_size_result = -1;
 		// INSIDE
 		std::list <octomath::Vector3> inside_points_to_test {
@@ -874,7 +876,7 @@ namespace LazyThetaStarOctree{
 		for(octomath::Vector3 point : inside_points_to_test)
 		{
 			// ACT
-			updateToCellCenterAndFindSize(point, octree, cell_size_result);
+			updateToCellCenterAndFindSize(point, octree, cell_size_result, sidelength_lookup_table);
 			// ASSERT
 			EXPECT_EQ(cell_center, point);
 			EXPECT_EQ(cell_size, cell_size_result);
@@ -892,7 +894,7 @@ namespace LazyThetaStarOctree{
 		for(octomath::Vector3 point : outside_points_to_test)
 		{
 			// ACT
-			updateToCellCenterAndFindSize(point, octree, cell_size_result);
+			updateToCellCenterAndFindSize(point, octree, cell_size_result, sidelength_lookup_table);
 			// ASSERT
 			EXPECT_FALSE(cell_center==point);
 		}
@@ -908,6 +910,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 cell_center (-0.4f, 1.2f, 1.2f);
 		double cell_size = 0.8;
 		octomap::OcTree octree ("data/circle_1m.bt");
+		double sidelength_lookup_table [octree.getTreeDepth()];
+		LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table);
 		double cell_size_result = -1;
 		// INSIDE
 		std::list< std::shared_ptr<octomath::Vector3> > inside_points_to_test {
@@ -921,7 +925,7 @@ namespace LazyThetaStarOctree{
 		for(std::shared_ptr<octomath::Vector3> point : inside_points_to_test)
 		{
 			// ACT
-			updatePointerToCellCenterAndFindSize(point, octree, cell_size_result);
+			updatePointerToCellCenterAndFindSize(point, octree, cell_size_result, sidelength_lookup_table);
 			// ASSERT
 			EXPECT_TRUE(cell_center == *(point) ) << cell_center << " != " << *(point);
 			EXPECT_EQ(cell_size, cell_size_result);
@@ -939,7 +943,7 @@ namespace LazyThetaStarOctree{
 		for(std::shared_ptr<octomath::Vector3> point : outside_points_to_test)
 		{
 			// ACT
-			updatePointerToCellCenterAndFindSize(point, octree, cell_size_result);
+			updatePointerToCellCenterAndFindSize(point, octree, cell_size_result, sidelength_lookup_table);
 			// ASSERT
 			EXPECT_FALSE(cell_center== *(point) );
 		}
@@ -965,6 +969,17 @@ namespace LazyThetaStarOctree{
 		double z = 1;
 		double blind_r = z / std::tan(0.349066);
 		ASSERT_FALSE(LazyThetaStarOctree::isInsideBlindR( n_x,  n_y,  c_x,  c_y, blind_r));
+	}
+
+	TEST(OctreeNeighborTest, fillLookupTable)
+	{
+		double resolution = 0.2;
+		int treeDepth = 16;
+		double sidelength_lookup_table [treeDepth];
+		LazyThetaStarOctree::fillLookupTable(resolution, treeDepth, sidelength_lookup_table);
+		ASSERT_EQ(LazyThetaStarOctree::findSideLenght(treeDepth, treeDepth, sidelength_lookup_table), resolution);
+		ASSERT_EQ(LazyThetaStarOctree::findSideLenght(treeDepth, treeDepth-1, sidelength_lookup_table), resolution*2);
+		ASSERT_EQ(LazyThetaStarOctree::findSideLenght(treeDepth, treeDepth-2, sidelength_lookup_table), resolution*2 + resolution*2);
 	}
 }
 

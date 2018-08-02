@@ -26,7 +26,7 @@ namespace LazyThetaStarOctree{
 
 	octomath::Vector3 getCellCenter(octomath::Vector3 const& point_coordinates, octomap::OcTree const& octree);
 
-    double findSideLenght(octomap::OcTree const& octree, const int depth);
+    double findSideLenght(int octreeLevelCount, const int depth, double const* lookup_table);
 
     /**
      * @brief      Compares coordinates to cell center to see if it is the cell center.
@@ -39,7 +39,7 @@ namespace LazyThetaStarOctree{
      *
      * @return     true if the coordinates correspond to the cell center, false otherise
      */
-    octomap::OcTreeKey updatePointerToCellCenterAndFindSize(std::shared_ptr<octomath::Vector3> & coordinates, octomap::OcTree const& octree, double& side_length);
+    octomap::OcTreeKey updatePointerToCellCenterAndFindSize(std::shared_ptr<octomath::Vector3> & coordinates, octomap::OcTree const& octree, double& side_length, const double lookup_table []);
 
     /**
      * @brief      Compares coordinates to cell center to see if it is the cell center.
@@ -51,9 +51,9 @@ namespace LazyThetaStarOctree{
      *
      * @return     true if the coordinates correspond to the cell center, false otherise
      */
-    void updateToCellCenterAndFindSize(octomath::Vector3 & coordinates, octomap::OcTree const& octree, double& side_length);
+    void updateToCellCenterAndFindSize(octomath::Vector3 & coordinates, octomap::OcTree const& octree, double& side_length, const double lookup_table []);
 
-
+    void fillLookupTable(double resolution, int tree_depth, double lookup_table_ptr[]);
 	void findDifferentSizeCells_ptr_3D(octomap::OcTree const& octree);
 
     double calculateCellSpace(octomap::OcTree const& octree);
