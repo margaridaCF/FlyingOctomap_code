@@ -29,7 +29,7 @@ namespace LazyThetaStarOctree{
 	CellStatus getLineStatusBoundingBox( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const octomath::Vector3& bounding_box_size);
 	bool is_flight_corridor_free(octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const double safety_margin, ros::Publisher const& marker_pub, bool ignoreUnknown = false, bool publish = false);
 	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end, bool ignoreUnknown = false);
-	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, ros::Publisher const& marker_pub, bool ignoreUnknown = false, bool publish = false);
+	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, ros::Publisher const& marker_pub, const double sidelength_lookup_table[], bool ignoreUnknown = false, bool publish = false);
 	double scale_float(float value);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
@@ -48,6 +48,7 @@ namespace LazyThetaStarOctree{
 		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
 		std::ofstream & log_file,
 		ros::Publisher const& marker_pub, 
+		const double sidelength_lookup_table[],
 		bool ignoreUnknown = false,
 		bool publish = false);
 
@@ -90,12 +91,13 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 const& disc_final,
 		ResultSet & resultSet,
 		double safety_margin,
+		const double sidelength_lookup_table[],
 		ros::Publisher const& marker_pub,
 		int const& max_search_iterations = 55,
 		bool print_resulting_path = false,
 		bool publish = false);
 
-	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish = false);
+	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish = false);
 
 
     bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 

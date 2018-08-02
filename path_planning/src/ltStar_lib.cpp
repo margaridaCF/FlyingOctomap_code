@@ -326,7 +326,7 @@ namespace LazyThetaStarOctree{
 		return free;
 	}
 
-	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, ros::Publisher const& marker_pub, bool ignoreUnknown, bool publish)
+	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, ros::Publisher const& marker_pub, const double sidelength_lookup_table[], bool ignoreUnknown, bool publish)
 	{
 		auto res_node = octree.search(end->x(), end->y(), end->z());
 		if(!res_node)
@@ -336,7 +336,7 @@ namespace LazyThetaStarOctree{
 			return false;
 		}
 		// ROS_WARN_STREAM("From  " << *end);
-		updatePointerToCellCenterAndFindSize(end, octree, cell_size);
+		updatePointerToCellCenterAndFindSize(end, octree, cell_size, sidelength_lookup_table);
 		// ROS_WARN_STREAM("to " << *end << ". Size " << cell_size);
 
 		// bool start_to_end = is_flight_corridor_free(octree, *start, *end, safety_margin, marker_pub, publish);
@@ -370,6 +370,7 @@ namespace LazyThetaStarOctree{
 		std::ofstream & log_file,
 		double safety_margin,
 		ros::Publisher const& marker_pub,
+		const double sidelength_lookup_table[],
 		bool ignoreUnknown,
 		bool publish)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
 	{
@@ -401,7 +402,7 @@ namespace LazyThetaStarOctree{
 			{
 				try
 				{
-					if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, ignoreUnknown, publish))
+					if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
 					{
 						// auto res_node = octree.search(*n_coordinates);
 						// if(res_node == NULL)
@@ -626,6 +627,7 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 const& disc_final,
 		ResultSet & resultSet,
 		double safety_margin,
+		const double sidelength_lookup_table[],
 		ros::Publisher const& marker_pub,
 		int const& max_search_iterations,
 		bool print_resulting_path,
@@ -655,14 +657,14 @@ namespace LazyThetaStarOctree{
 		// Init initial and final nodes to have the coordinates of respective cell centers
 		double cell_size_goal = -1;
 		octomath::Vector3 cell_center_coordinates_goal = disc_final;
-		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal);
+		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
 		std::shared_ptr<ThetaStarNode> disc_final_cell_center = std::make_shared<ThetaStarNode>(std::make_shared<octomath::Vector3>(cell_center_coordinates_goal), cell_size_goal);
 		disc_final_cell_center->lineDistanceToFinalPoint = weightedDistance(cell_center_coordinates_goal, disc_final);
 		// START
 		// Get distance from start to cell center
 		octomath::Vector3 cell_center_coordinates_start = disc_initial;
 		double cell_size_start = -1;
-		updateToCellCenterAndFindSize(cell_center_coordinates_start, octree, cell_size_start);
+		updateToCellCenterAndFindSize(cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
 
 		if(publish)
 		{
@@ -750,7 +752,7 @@ namespace LazyThetaStarOctree{
 			if(s->hasSameCoordinates(s->parentNode, octree.getResolution()) == false)
 			{
 				bool ignoreUnknown = weightedDistance(*(s->coordinates), cell_center_coordinates_goal) < safety_margin;
-				if (!setVertex(octree, s, closed, open, neighbors, log_file, safety_margin, marker_pub, ignoreUnknown, publish))
+				if (!setVertex(octree, s, closed, open, neighbors, log_file, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
 				{
 					octree.writeBinary(folder_name + "/octree_noPath1s.bt");
 					ROS_ERROR_STREAM ("[LTStar] no neighbor of " << *s << " had line of sight. Start " << disc_initial << " goal " << disc_final);
@@ -799,7 +801,7 @@ namespace LazyThetaStarOctree{
 				// {
 				// 	publish = false;
 				// }
-				if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, ignoreUnknown, publish))
+				if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
 				{
 					// auto res_node = octree.search(*n_coordinates);
 					// if(res_node == NULL)
@@ -940,7 +942,7 @@ namespace LazyThetaStarOctree{
 	    log_file.close();
 	}
 
-	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish)
+	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish)
 	{
 		marker_pub_ = marker_pub;
 		std::srand(std::time(0));
@@ -952,7 +954,7 @@ namespace LazyThetaStarOctree{
 #ifdef SAVE_CSV
 		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 #endif
-		resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.safety_margin, marker_pub, request.max_search_iterations, true, publish);
+		resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.safety_margin, sidelength_lookup_table, marker_pub, request.max_search_iterations, true, publish);
 #ifdef SAVE_CSV
 		std::stringstream generated_path_distance_ss;
     	generated_path_distance_ss << "Generated path distance:\n";

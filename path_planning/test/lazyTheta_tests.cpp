@@ -8,6 +8,8 @@ namespace LazyThetaStarOctree{
 	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_search_iterations = 55)
 	{
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ros::Publisher marker_pub;
 		double safety_margin = 0.1;
 		// Initial node is not occupied
@@ -25,18 +27,18 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, marker_pub, max_search_iterations, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
 		// 2 waypoints: The center of start voxel & The center of the goal voxel
 		double cell_size_goal = -1;
 		octomath::Vector3 cell_center_coordinates_goal = disc_final;
-		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal);
+		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
 		ASSERT_LT(      resulting_path.back().distance( cell_center_coordinates_goal ),  cell_size_goal   );
 		double cell_size_start = -1;
 		octomath::Vector3 cell_center_coordinates_start = disc_initial;
-		updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start);
+		updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
 		ASSERT_LT(      resulting_path.begin()->distance( cell_center_coordinates_start ),  cell_size_start   );
 		// LONG PATHS: 
 		if(resulting_path.size() > 2)
@@ -104,6 +106,8 @@ namespace LazyThetaStarOctree{
 	{
 		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		octomath::Vector3 disc_initial(-4.3000001907348633, -4.6999998092651367, 0.5);
 		octomath::Vector3 disc_final  (-3.3000001907348633, -4.6999998092651367, 0.5);
 		// Initial node is not occupied
@@ -126,13 +130,15 @@ namespace LazyThetaStarOctree{
         int count_80 = 0;
         int count_over80 = 0;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, 1, marker_pub);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, 1, sidelength_lookup_table, marker_pub);
         EXPECT_EQ( 0, ThetaStarNode::OustandingObjects()) << "From  " << disc_initial << " to  " << disc_final;
 	}
 	TEST(LazyThetaStarTests, LazyThetaStar_NoSolution_NegativeInstanceCount_Test)
 	{
 		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		octomath::Vector3 disc_initial(-6.9000000953674316, -9.6999998092651367, 0.5);
 		octomath::Vector3 disc_final  (-5.9000000953674316, -9.6999998092651367, 0.5);
 		ASSERT_EQ( 0, ThetaStarNode::OustandingObjects());
@@ -159,7 +165,7 @@ namespace LazyThetaStarOctree{
 
         // std::cout << "Starting lazy theta from " << disc_initial << " to " << disc_final << std::endl;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, marker_pub, 5);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table,marker_pub, 5);
 
 
         if(resulting_path.size() == 0)
@@ -234,6 +240,9 @@ namespace LazyThetaStarOctree{
 	void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_search_iterations = 55, double safety_margin = 2)
 	{
+
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ros::Publisher marker_pub;
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
@@ -250,17 +259,17 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, marker_pub, max_search_iterations);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0) << safety_margin;
 		// 2 waypoints: The center of start voxel & The center of the goal voxel
 		double cell_size_goal = -1;
 		octomath::Vector3 cell_center_coordinates_goal = disc_final;
-		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal);
+		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
 		ASSERT_LT(      resulting_path.back().distance( cell_center_coordinates_goal ),  cell_size_goal   );
 		double cell_size_start = -1;
 		octomath::Vector3 cell_center_coordinates_start = disc_initial;
-		updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start);
+		updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
 		ASSERT_LT(      resulting_path.begin()->distance( cell_center_coordinates_start ),  cell_size_start   );
 		
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
@@ -282,6 +291,8 @@ namespace LazyThetaStarOctree{
 		ros::Publisher marker_pub;
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
 		octomap::OcTree octree ("data/(-11.2177; -18.2778; 2.39616)_(-8.5; 6.5; 3.5)_throughWall.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		path_planning_msgs::LTStarRequest request;
 		request.header.seq = 2;
 		request.request_id = 3;
@@ -294,7 +305,7 @@ namespace LazyThetaStarOctree{
 		request.max_search_iterations = 1000;
 		request.safety_margin = 1;
 		path_planning_msgs::LTStarReply reply;
-		processLTStarRequest(octree, request, reply, marker_pub);
+		processLTStarRequest(octree, request, reply, sidelength_lookup_table, marker_pub);
 		ASSERT_TRUE(reply.success);
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 	}
@@ -304,6 +315,8 @@ namespace LazyThetaStarOctree{
 		ros::Publisher marker_pub;
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
 		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		path_planning_msgs::LTStarRequest request;
 		request.header.seq = 2;
 		request.request_id = 3;
@@ -316,7 +329,7 @@ namespace LazyThetaStarOctree{
 		request.max_search_iterations = 500;
 		request.safety_margin = 0.5;
 		path_planning_msgs::LTStarReply reply;
-		processLTStarRequest(octree, request, reply, marker_pub);
+		processLTStarRequest(octree, request, reply, sidelength_lookup_table, marker_pub);
 		ASSERT_TRUE(reply.success);
 		ASSERT_GT(reply.waypoint_amount, 2);
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());

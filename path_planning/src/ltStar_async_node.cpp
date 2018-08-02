@@ -22,6 +22,7 @@ namespace LazyThetaStarOctree
 
 
     octomap::OcTree* octree;
+	double sidelength_lookup_table  [16]; 
 	ros::Publisher ltstar_reply_pub;
 	ros::Publisher marker_pub;
 		
@@ -56,7 +57,7 @@ namespace LazyThetaStarOctree
 			// {
 			// 	publish_free_corridor_arrows = false;
 			// }
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, marker_pub, true);
+			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, marker_pub, true);
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
@@ -85,7 +86,7 @@ namespace LazyThetaStarOctree
 			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
 	        octomap::OcTreeKey key = octree->coordToKey(candidate);
 	        double depth = getNodeDepth_Octomap(key, *octree);
-	        double side_length = findSideLenght(*octree, depth);
+	        double side_length = findSideLenght(octree->getTreeDepth(), depth, sidelength_lookup_table);
 	        octomath::Vector3 cell_center = octree->keyToCoord(key, depth);
 	        if( cell_center.distance(candidate) < 0.001 )
 	        {
@@ -109,6 +110,10 @@ namespace LazyThetaStarOctree
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
 		delete octree;
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
+		if(!octomap_init)
+		{
+	    	LazyThetaStarOctree::fillLookupTable(octree->getResolution(), octree->getTreeDepth(), sidelength_lookup_table); 
+		}
 		octomap_init = true;
 	}
 }
