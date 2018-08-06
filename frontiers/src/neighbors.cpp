@@ -101,8 +101,7 @@ namespace LazyThetaStarOctree{
         int jump = (voxel_side / resolution);
         int next_i = jump + current_i;
 
-        ROS_WARN_STREAM(*coordinates << " voxel_side " << voxel_side << "; resolution " << resolution);
-        ROS_WARN_STREAM("next_i = " << jump << " + " << current_i << " = " << next_i);
+        ROS_WARN_STREAM(*coordinates << " --> " << " voxel_side " << voxel_side << " next = " << jump << " + " << current_i << " = " << next_i);
 
         return next_i;
     }
@@ -144,42 +143,53 @@ namespace LazyThetaStarOctree{
         int jump;
         int left_x_i = -1;
         int right_x_i = -1;
+        int right_x_j = -1;
         // optimized
         octomath::Vector3* toInsert;
         bool isInserted;
-        for(int i = 0; i < neighbor_sequence_cell_count; i++)
+        ROS_WARN_STREAM(" resolution " << resolution);
+        for(int i_ = 0; i_ < neighbor_sequence_cell_count; i_++)
         {
             // int j = 0;
-            for(int j = 0; j < neighbor_sequence_cell_count_j; j++)
+            for(int j_ = 0; j_ < neighbor_sequence_cell_count_j; j_++)
             {
-                if(left_x_i < i)
+                // Left
+                if(left_x_i < i_)
                 {
-                    coord_ptr = std::make_shared<octomath::Vector3> (octomath::Vector3 (left_x, y_start + (i * resolution), z_start + (j * resolution)));
-                    left_x_i = findJump(octree, lookup_table, coord_ptr, i, resolution);
-                    // Left Right
-                    // addIfUnique_new(neighbors, left_x,                      y_start + (i * resolution),  z_start + (j * resolution));
+                    coord_ptr = std::make_shared<octomath::Vector3> (octomath::Vector3 (left_x, y_start + (i_ * resolution), z_start + (j_ * resolution)));
+                    left_x_i = findJump(octree, lookup_table, coord_ptr, i_, resolution);
                     addIfUnique_new(neighbors, coord_ptr);
+                    ROS_WARN_STREAM("[" << i_ << "]  left_x_i " << left_x_i);
                 }
-                // addIfUnique(neighbors, right_x,                     y_start + (i * resolution),  z_start + (j * resolution));
-                if(right_x_i < i)
+                // Right
+                // addIfUnique(neighbors, right_x,                     y_start + (i * resolution),  z_start + (j * resolution)); 
+                if(    (right_x_i < i_ ) || (right_x_j < j_ )   )
                 {
-                    coord_ptr = std::make_shared<octomath::Vector3> (octomath::Vector3 (right_x, y_start + (i * resolution), z_start + (j * resolution)));
-                    right_x_i = findJump(octree, lookup_table, coord_ptr, i, resolution);
+                    coord_ptr = std::make_shared<octomath::Vector3> (    octomath::Vector3 ( right_x, y_start + (i_ * resolution),  z_start + (j_ * resolution) )   );
+                    right_x_i = findJump(octree, lookup_table, coord_ptr, i_, resolution);
+                    right_x_j = findJump(octree, lookup_table, coord_ptr, j_, resolution);
                     addIfUnique_new(neighbors, coord_ptr);
+                    ROS_WARN_STREAM("[" << i_ << "]  right_x_i " << right_x_i);
+                    ROS_WARN_STREAM("[" << j_ << "]  right_x_j " << right_x_j);
                 }
 
-                // // Front Back
-                // addIfUnique(neighbors, x_start + (i * resolution),  front_y,                     z_start + (j * resolution));
-                // addIfUnique(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution));
-
-                // if(is3d) {
-                //     // Up Down
-                //     addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
-                //     addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
+                // if(right_x_j < j_ )
+                // {
+                //     coord_ptr = std::make_shared<octomath::Vector3> (    octomath::Vector3 ( right_x, y_start + (i_ * resolution),  z_start + (j_ * resolution) )   );
+                //     addIfUnique_new(neighbors, coord_ptr);
                 // }
 
-                // neighbor_index++;
-                i = std::min(right_x_i, left_x_i);
+                // Front Back
+                addIfUnique(neighbors, x_start + (i_ * resolution),  front_y,                     z_start + (j_ * resolution));
+                addIfUnique(neighbors, x_start + (i_ * resolution),  back_y,                      z_start + (j_ * resolution));
+
+                if(is3d) {
+                    // Up Down
+                    addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  up_z);
+                    addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  down_z);
+                }
+
+                // i_ = std::min(right_x_i, left_x_i);
             }
         }
     }
