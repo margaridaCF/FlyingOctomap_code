@@ -8,6 +8,7 @@
 #include <octomap/OcTree.h>
 #include <memory>
 #include <ros/ros.h>
+#include <cmath>
 
 namespace LazyThetaStarOctree{
 	bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, float x, float y, float z );
@@ -19,6 +20,9 @@ namespace LazyThetaStarOctree{
     void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, double sensor_angle_rad, bool is3d = true, bool debug_on = false);
+    void generateNeighbors_pointers_sparse(octomap::OcTree const& octree, double const* lookup_table, std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution, bool is3d = true, bool debug_on = false);
 
     // Other way to find the depth based on the search code of the octree
     int getNodeDepth_Octomap (const octomap::OcTreeKey& key, 
