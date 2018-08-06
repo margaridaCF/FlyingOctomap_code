@@ -100,8 +100,10 @@ namespace LazyThetaStarOctree{
         double voxel_side = find_voxel_side(octree, coordinates, lookup_table);
         int jump = (voxel_side / resolution);
         int next_i = jump + current_i;
-
-        ROS_WARN_STREAM(*coordinates << " --> " << " voxel_side " << voxel_side << " next = " << jump << " + " << current_i << " = " << next_i);
+        if(voxel_side > 0.2)
+        {
+            ROS_WARN_STREAM(*coordinates << " --> " << " voxel_side " << voxel_side << " next = " << jump << " + " << current_i << " = " << next_i);
+        }
 
         return next_i;
     }
@@ -142,8 +144,13 @@ namespace LazyThetaStarOctree{
         double voxel_side;
         int jump;
         int left_x_i = -1;
+        int left_x_j = -1;
         int right_x_i = -1;
         int right_x_j = -1;
+        int front_y_i = -1;
+        int front_y_j = -1;
+        int back_y_i = -1;
+        int back_y_j = -1;
         // optimized
         octomath::Vector3* toInsert;
         bool isInserted;
@@ -154,12 +161,13 @@ namespace LazyThetaStarOctree{
             for(int j_ = 0; j_ < neighbor_sequence_cell_count_j; j_++)
             {
                 // Left
-                if(left_x_i < i_)
+                if(   (left_x_i < i_) || (left_x_j < j_)   )
                 {
                     coord_ptr = std::make_shared<octomath::Vector3> (octomath::Vector3 (left_x, y_start + (i_ * resolution), z_start + (j_ * resolution)));
                     left_x_i = findJump(octree, lookup_table, coord_ptr, i_, resolution);
+                    left_x_j = findJump(octree, lookup_table, coord_ptr, j_, resolution);
                     addIfUnique_new(neighbors, coord_ptr);
-                    ROS_WARN_STREAM("[" << i_ << "]  left_x_i " << left_x_i);
+                    // ROS_WARN_STREAM("[" << i_ << "]  left_x_i " << left_x_i);
                 }
                 // Right
                 // addIfUnique(neighbors, right_x,                     y_start + (i * resolution),  z_start + (j * resolution)); 
@@ -169,25 +177,34 @@ namespace LazyThetaStarOctree{
                     right_x_i = findJump(octree, lookup_table, coord_ptr, i_, resolution);
                     right_x_j = findJump(octree, lookup_table, coord_ptr, j_, resolution);
                     addIfUnique_new(neighbors, coord_ptr);
-                    ROS_WARN_STREAM("[" << i_ << "]  right_x_i " << right_x_i);
-                    ROS_WARN_STREAM("[" << j_ << "]  right_x_j " << right_x_j);
+                    // ROS_WARN_STREAM("[" << i_ << "]  right_x_i " << right_x_i);
+                    // ROS_WARN_STREAM("[" << j_ << "]  right_x_j " << right_x_j);
                 }
 
-                // if(right_x_j < j_ )
-                // {
-                //     coord_ptr = std::make_shared<octomath::Vector3> (    octomath::Vector3 ( right_x, y_start + (i_ * resolution),  z_start + (j_ * resolution) )   );
-                //     addIfUnique_new(neighbors, coord_ptr);
+                // Front 
+                // addIfUnique(neighbors, x_start + (i_ * resolution),  front_y,                     z_start + (j_ * resolution));
+                if(   (front_y_i < i_) || (front_y_j < j_)   ) 
+                {
+                    coord_ptr = std::make_shared<octomath::Vector3> (    octomath::Vector3 (x_start + (i_ * resolution), front_y, z_start + (j_ * resolution) )   );
+                    front_y_i = findJump(octree, lookup_table, coord_ptr, i_, resolution);
+                    front_y_j = findJump(octree, lookup_table, coord_ptr, j_, resolution);
+                    addIfUnique_new(neighbors, coord_ptr);
+                }
+                // Back
+                // addIfUnique(neighbors, x_start + (i_ * resolution),  back_y,                      z_start + (j_ * resolution));
+                if(   (back_y_i < i_) || (back_y_j < j_)   ) 
+                {
+                    coord_ptr = std::make_shared<octomath::Vector3> (    octomath::Vector3 (x_start + (i_ * resolution),  back_y, z_start + (j_ * resolution) )   );
+                    back_y_i = findJump(octree, lookup_table, coord_ptr, i_, resolution);
+                    back_y_j = findJump(octree, lookup_table, coord_ptr, j_, resolution);
+                    addIfUnique_new(neighbors, coord_ptr);
+                }
+
+                // if(is3d) {
+                //     // Up Down
+                //     addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  up_z);
+                //     addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  down_z);
                 // }
-
-                // Front Back
-                addIfUnique(neighbors, x_start + (i_ * resolution),  front_y,                     z_start + (j_ * resolution));
-                addIfUnique(neighbors, x_start + (i_ * resolution),  back_y,                      z_start + (j_ * resolution));
-
-                if(is3d) {
-                    // Up Down
-                    addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  up_z);
-                    addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  down_z);
-                }
 
                 // i_ = std::min(right_x_i, left_x_i);
             }
