@@ -97,6 +97,31 @@ namespace LazyThetaStarOctree{
 		bool print_resulting_path = false,
 		bool publish = false);
 
+	std::list<octomath::Vector3> lazyThetaStar_sparse(
+		octomap::OcTree   & octree, 
+		octomath::Vector3 const& disc_initial, 
+		octomath::Vector3 const& disc_final,
+		ResultSet & resultSet,
+		double safety_margin,
+		const double sidelength_lookup_table[],
+		ros::Publisher const& marker_pub,
+		int const& max_search_iterations = 55,
+		bool print_resulting_path = false,
+		bool publish = false);
+
+	std::list<octomath::Vector3> lazyThetaStar_margin_n(
+			octomap::OcTree   & octree, 
+			octomath::Vector3 const& disc_initial, 
+			octomath::Vector3 const& disc_final,
+			ResultSet & resultSet,
+			double safety_margin,
+			const double sidelength_lookup_table[],
+			ros::Publisher const& marker_pub,
+			int check_only_x_fraction,
+			int const& max_search_iterations = 55,
+			bool print_resulting_path = false,
+			bool publish = false);
+
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish = false);
 
 
