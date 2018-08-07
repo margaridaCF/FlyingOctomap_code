@@ -22,15 +22,51 @@ namespace LazyThetaStarOctree{
         }
     }
 
-	// TODO reduce neighbor number by finding cell center and removing duplicates
-	void generateNeighbors_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
-		octomath::Vector3 const& center_coords, 
-		float node_size, float resolution, bool is3d/* = true*/, bool debug_on/* = false*/)
-	{
-		int neighbor_sequence_cell_count = node_size / resolution;
+    double find_voxel_side(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> & coordinates, double const* lookup_table)
+    {
+        octomap::OcTreeKey key = octree.coordToKey(*coordinates);
+        // find depth of cell
+        // ROS_WARN_STREAM("Calling getNodeDepth from 173");
+
+        int depth = getNodeDepth_Octomap(key, octree);
+
+        return findSideLenght(octree.getTreeDepth(), depth, lookup_table);
+    }
+
+
+    int findJump(octomap::OcTree const& octree, double const* lookup_table, std::shared_ptr<octomath::Vector3> coordinates, int current_i, double resolution)
+    {
+        double voxel_side;
+        try
+        {
+            double voxel_side = find_voxel_side(octree, coordinates, lookup_table);
+        }
+        catch(const std::out_of_range& oor)
+        {
+            // ROS_ERROR_STREAM("[Frontiers] Candidate " << req.candidate << " is in unknown space.");
+            voxel_side = resolution;
+        }
+        int jump = (voxel_side / resolution);
+        int next_i = jump + current_i;
+        if(voxel_side > resolution)
+        {
+            ROS_WARN_STREAM(*coordinates << " --> " << " voxel_side " << voxel_side << " next = " << jump << " + " << current_i << " = " << next_i);
+        }
+
+        return next_i;
+    }
+
+    // TODO reduce neighbor number by finding cell center and removing duplicates
+    void generateNeighbors_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution, bool debug_on/* = false*/)
+    {
+        // mem_alloc_nanosecs = 0;
+        // auto start = std::chrono::high_resolution_clock::now();
+        int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         
         int i;
-        // int neighbor_index = 0;
+        // int neighbor_count = 0;
         float extra = resolution / 2.f;     
 
         float x_start  = center_coords.x() - frontier_offset + extra;
@@ -46,71 +82,41 @@ namespace LazyThetaStarOctree{
         float up_z     = center_coords.z() + frontier_offset + extra; 
         float down_z   = center_coords.z() - frontier_offset - extra;
 
-		
-		// 2d - 3d
-        int neighbor_sequence_cell_count_j = neighbor_sequence_cell_count;
-        if(!is3d)
-        {
-        	neighbor_sequence_cell_count_j = 1;
-        	z_start = center_coords.z();
-        }
-
-
         // optimized
         octomath::Vector3* toInsert;
         bool isInserted;
         for(int i = 0; i < neighbor_sequence_cell_count; i++)
         {
-        	// int j = 0;
-            for(int j = 0; j < neighbor_sequence_cell_count_j; j++)
+            // int j = 0;
+            for(int j = 0; j < neighbor_sequence_cell_count; j++)
             {
                 // Left Right
-                addIfUnique(neighbors, left_x,  					y_start + (i * resolution),  z_start + (j * resolution));
-                // addIfUnique(neighbors, right_x, 					y_start + (i * resolution),  z_start + (j * resolution));
+                addIfUnique(neighbors, left_x,                      y_start + (i * resolution),  z_start + (j * resolution));
+                addIfUnique(neighbors, right_x,                     y_start + (i * resolution),  z_start + (j * resolution));
 
-                // // Front Back
-                // addIfUnique(neighbors, x_start + (i * resolution), 	front_y, 					 z_start + (j * resolution));
-                // addIfUnique(neighbors, x_start + (i * resolution), 	back_y, 					 z_start + (j * resolution));
+                // Front Back
+                addIfUnique(neighbors, x_start + (i * resolution),  front_y,                     z_start + (j * resolution));
+                addIfUnique(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution));
 
-                // if(is3d) {
-                // 	// Up Down
-                //     addIfUnique(neighbors, x_start + (i * resolution),	y_start + (j * resolution),  up_z);
-                //     addIfUnique(neighbors, x_start + (i * resolution), 	y_start + (j * resolution),  down_z);
-                // }
+                // Up Down
+                addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
+                addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
 
-                // neighbor_index++;
+                // neighbor_count++;
             }
         }
-	}
+        // auto finish = std::chrono::high_resolution_clock::now();
+        // auto time_span = finish - start;
+        // int total_nanosecs = std::chrono::duration_cast<std::chrono::nanoseconds>(time_span).count();
 
-    double find_voxel_side(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> & coordinates, double const* lookup_table)
-    {
-        octomap::OcTreeKey key = octree.coordToKey(*coordinates);
-        // find depth of cell
-        // ROS_WARN_STREAM("Calling getNodeDepth from 173");
-
-        int depth = getNodeDepth_Octomap(key, octree);
-
-        return findSideLenght(octree.getTreeDepth(), depth, lookup_table);
-    }
-
-
-    int findJump(octomap::OcTree const& octree, double const* lookup_table, std::shared_ptr<octomath::Vector3> coordinates, int current_i, double resolution)
-    {
-        double voxel_side = find_voxel_side(octree, coordinates, lookup_table);
-        int jump = (voxel_side / resolution);
-        int next_i = jump + current_i;
-        if(voxel_side > 0.2)
-        {
-            ROS_WARN_STREAM(*coordinates << " --> " << " voxel_side " << voxel_side << " next = " << jump << " + " << current_i << " = " << next_i);
-        }
-
-        return next_i;
+        // ROS_WARN_STREAM("Total time " << total_nanosecs << " nanoseconds.");
+        // double percent = (mem_alloc_nanosecs * 100 / total_nanosecs);
+        // ROS_WARN_STREAM("mem_alloc took " << mem_alloc_nanosecs << " - " << percent << "%");
     }
 
     void generateNeighbors_pointers_sparse(octomap::OcTree const& octree, double const* lookup_table, std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
         octomath::Vector3 const& center_coords, 
-        float node_size, float resolution, bool is3d/* = true*/, bool debug_on/* = false*/)
+        float node_size, float resolution, bool debug_on/* = false*/)
     {
         int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         
@@ -131,15 +137,6 @@ namespace LazyThetaStarOctree{
         float up_z     = center_coords.z() + frontier_offset + extra; 
         float down_z   = center_coords.z() - frontier_offset - extra;
 
-        
-        // 2d - 3d
-        int neighbor_sequence_cell_count_j = neighbor_sequence_cell_count;
-        if(!is3d)
-        {
-            neighbor_sequence_cell_count_j = 1;
-            z_start = center_coords.z();
-        }
-
         std::shared_ptr<octomath::Vector3> coord_ptr ;
         double voxel_side;
         int jump;
@@ -151,14 +148,18 @@ namespace LazyThetaStarOctree{
         int front_y_j = -1;
         int back_y_i = -1;
         int back_y_j = -1;
+        int up_z_i = -1;
+        int up_z_j = -1;
+        int down_z_i = -1;
+        int down_z_j = -1;
         // optimized
         octomath::Vector3* toInsert;
         bool isInserted;
-        ROS_WARN_STREAM(" resolution " << resolution);
+        // ROS_WARN_STREAM(" resolution " << resolution);
         for(int i_ = 0; i_ < neighbor_sequence_cell_count; i_++)
         {
             // int j = 0;
-            for(int j_ = 0; j_ < neighbor_sequence_cell_count_j; j_++)
+            for(int j_ = 0; j_ < neighbor_sequence_cell_count; j_++)
             {
                 // Left
                 if(   (left_x_i < i_) || (left_x_j < j_)   )
@@ -200,13 +201,102 @@ namespace LazyThetaStarOctree{
                     addIfUnique_new(neighbors, coord_ptr);
                 }
 
-                // if(is3d) {
-                //     // Up Down
-                //     addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  up_z);
-                //     addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  down_z);
-                // }
+                // Up Down
+                // addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  up_z);
+                if(   (up_z_i < i_) || (up_z_j < j_)   ) 
+                {
+                    coord_ptr = std::make_shared<octomath::Vector3> (    octomath::Vector3 (x_start + (i_ * resolution),  y_start + (j_ * resolution),  up_z )   );
+                    up_z_i = findJump(octree, lookup_table, coord_ptr, i_, resolution);
+                    up_z_j = findJump(octree, lookup_table, coord_ptr, j_, resolution);
+                    addIfUnique_new(neighbors, coord_ptr);
+                }
+                // addIfUnique(neighbors, x_start + (i_ * resolution),  y_start + (j_ * resolution),  down_z);
+                if(   (down_z_i < i_) || (down_z_j < j_)   ) 
+                {
+                    coord_ptr = std::make_shared<octomath::Vector3> (    octomath::Vector3 (x_start + (i_ * resolution),  y_start + (j_ * resolution),  down_z )   );
+                    down_z_i = findJump(octree, lookup_table, coord_ptr, i_, resolution);
+                    down_z_j = findJump(octree, lookup_table, coord_ptr, j_, resolution);
+                    addIfUnique_new(neighbors, coord_ptr);
+                }
 
-                // i_ = std::min(right_x_i, left_x_i);
+            }
+        }
+    }
+
+    double calculate_fraction(double resolution, double margin, int check_only_x_fraction)
+    {
+        double max_res_voxels_within_margin = margin / resolution;
+        double x  = std::max (max_res_voxels_within_margin/check_only_x_fraction, 1.0);
+        double resolution_for_neighbors_m = resolution * x;
+        // ROS_WARN_STREAM("resolution: " << resolution);
+        // ROS_WARN_STREAM("margin: " << margin);
+        // ROS_WARN_STREAM("max_res_voxels_within_margin: " << max_res_voxels_within_margin);
+        // ROS_WARN_STREAM("check_only_x_fraction: " << check_only_x_fraction);
+        // ROS_WARN_STREAM("x: " << x);
+        // ROS_WARN_STREAM("resolution_for_neighbors_m: " << resolution_for_neighbors_m);
+        return resolution_for_neighbors_m;
+    }
+
+    void generateNeighbors_pointers_margin(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution,
+        double margin_neighbor_res, // security margin neighbor count
+        bool debug_on/* = false*/)
+    {
+        int neighbor_count_security_margin = std::ceil(node_size/margin_neighbor_res);
+        int n_count = 0;
+        // mem_alloc_nanosecs = 0;
+        // auto start = std::chrono::high_resolution_clock::now();
+        int neighbor_sequence_cell_count = node_size / resolution;
+        float frontier_offset = (node_size/2.f);         
+        int i;
+        // int neighbor_count = 0;
+        float extra = resolution / 2.f;     
+
+        float x_start  = center_coords.x() - frontier_offset + extra;
+        float y_start  = center_coords.y() - frontier_offset + extra;     
+        float z_start  = center_coords.z() - frontier_offset + extra;                      
+        // Left right
+        float right_x = center_coords.x() + frontier_offset + extra; 
+        float left_x  = center_coords.x() - frontier_offset - extra; 
+        // Front back
+        float front_y  = center_coords.y() + frontier_offset + extra; 
+        float back_y   = center_coords.y() - frontier_offset - extra; 
+        // Up down      
+        float up_z     = center_coords.z() + frontier_offset + extra; 
+        float down_z   = center_coords.z() - frontier_offset - extra;
+
+        
+        int neighbor_sequence_cell_count_j = neighbor_sequence_cell_count;
+        int i_in_octomap_res;
+        int j_in_octomap_res;
+        // optimized
+        octomath::Vector3* toInsert;
+        bool isInserted;
+        for(int i = 0; i < neighbor_count_security_margin; i++)
+        {
+            // int j = 0;
+            for(int j = 0; j < neighbor_count_security_margin; j++)
+            {
+                i_in_octomap_res = std::floor( (i * margin_neighbor_res) / resolution );
+                i_in_octomap_res = std::min(i_in_octomap_res, neighbor_sequence_cell_count_j-1 );
+
+                j_in_octomap_res = std::floor( (j * margin_neighbor_res) / resolution );
+                j_in_octomap_res = std::min(j_in_octomap_res, neighbor_sequence_cell_count_j-1 );
+
+                // Left Right
+                addIfUnique(neighbors, left_x,                      y_start + (i_in_octomap_res * resolution),  z_start + (j_in_octomap_res * resolution));
+                addIfUnique(neighbors, right_x,                     y_start + (i_in_octomap_res * resolution),  z_start + (j_in_octomap_res * resolution));
+
+                // // Front Back
+                addIfUnique(neighbors, x_start + (i_in_octomap_res * resolution),  front_y,                     z_start + (j_in_octomap_res * resolution));
+                addIfUnique(neighbors, x_start + (i_in_octomap_res * resolution),  back_y,                      z_start + (j_in_octomap_res * resolution));
+
+                // Up Down
+                addIfUnique(neighbors, x_start + (i_in_octomap_res * resolution),  y_start + (j_in_octomap_res * resolution),  up_z);
+                addIfUnique(neighbors, x_start + (i_in_octomap_res * resolution),  y_start + (j_in_octomap_res * resolution),  down_z);
+
+                // neighbor_count++;
             }
         }
     }
@@ -232,7 +322,7 @@ namespace LazyThetaStarOctree{
 
     void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
         octomath::Vector3 const& center_coords, 
-        float node_size, float resolution, double sensor_angle_rad, bool is3d/* = true*/, bool debug_on/* = false*/)
+        float node_size, float resolution, double sensor_angle_rad, bool debug_on/* = false*/)
     {
         int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         
@@ -253,15 +343,6 @@ namespace LazyThetaStarOctree{
         float down_z   = center_coords.z() - frontier_offset - extra;
 
         
-        // 2d - 3d
-        int neighbor_sequence_cell_count_j = neighbor_sequence_cell_count;
-        if(!is3d)
-        {
-            neighbor_sequence_cell_count_j = 1;
-            z_start = center_coords.z();
-        }
-
-
         double blind_perimeter = (frontier_offset + extra) / std::tan(sensor_angle_rad);
 
         // optimized
@@ -270,7 +351,7 @@ namespace LazyThetaStarOctree{
         for(int i = 0; i < neighbor_sequence_cell_count; i++)
         {
             // int j = 0;
-            for(int j = 0; j < neighbor_sequence_cell_count_j; j++)
+            for(int j = 0; j < neighbor_sequence_cell_count; j++)
             {
                 // Left Right
                 addIfUnique(neighbors, left_x,                      y_start + (i * resolution),  z_start + (j * resolution));
@@ -280,17 +361,15 @@ namespace LazyThetaStarOctree{
                 addIfUnique(neighbors, x_start + (i * resolution),  front_y,                     z_start + (j * resolution));
                 addIfUnique(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution));
 
-                if(is3d) {
-                    // No neighbors in blind spot
-                    double n_x = x_start + (i * resolution);
-                    double n_y = y_start + (j * resolution);
+                // No neighbors in blind spot
+                double n_x = x_start + (i * resolution);
+                double n_y = y_start + (j * resolution);
 
-                    if(!isInsideBlindR(n_x, n_y, center_coords.x(), center_coords.y(), blind_perimeter))
-                    {
-                        // Up Down
-                        addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
-                        addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
-                    }
+                if(!isInsideBlindR(n_x, n_y, center_coords.x(), center_coords.y(), blind_perimeter))
+                {
+                    // Up Down
+                    addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
+                    addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
                 }
             }
         }
