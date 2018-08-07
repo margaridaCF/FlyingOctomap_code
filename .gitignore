@@ -42,3 +42,5 @@ generate_plots/temp-plot\.html
 *.bag
 *.bt
 
+
+points\.txt
