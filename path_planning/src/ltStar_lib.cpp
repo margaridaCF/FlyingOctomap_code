@@ -772,7 +772,6 @@ namespace LazyThetaStarOctree{
 				// ln 10 return "path found"
 				solution_found = true;
 				solution_end_node = s;
-				ROS_WARN_STREAM("[Vanilla] at iteration " << used_search_iterations << " open size is " << open.size() );
 				// ROS_WARN_STREAM( "Solution end node:" << *s << " == " << *disc_final_cell_center );
 				continue;
 			}
@@ -1044,7 +1043,6 @@ namespace LazyThetaStarOctree{
 					open.printNodes(" ========== Before pop ========== ", log_file);
 				}
 				s = open.pop();
-				ROS_WARN_STREAM("[Margin] at iteration " << used_search_iterations << " open size is " << open.size() );
 	#ifdef RUNNING_ROS
 				if(publish)
 				{
