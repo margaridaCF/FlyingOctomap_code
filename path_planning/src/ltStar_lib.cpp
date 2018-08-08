@@ -228,13 +228,13 @@ namespace LazyThetaStarOctree{
 
 		// std::unordered_set<octomap::OcTreeKey> keys;
 		const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
-		if(publish)
-		{
-			log_file << x_disc << " = " << bounding_box_size.x() << " / " << "ceil((" << bounding_box_size.x() << " + " << epsilon << ") / " << resolution << ")" << std::endl;
-			log_file << x_disc << " = " << bounding_box_size.x() << " / " << ceil((bounding_box_size.x() + epsilon) / resolution) << std::endl;
-  			// ros::Duration(20).sleep();
-			log_file << "double x = " << -bounding_box_half_size.x() << "; x <= " << bounding_box_half_size.x() << "; x += " << x_disc << std::endl;
-		}
+		// if(publish)
+		// {
+		// 	log_file << x_disc << " = " << bounding_box_size.x() << " / " << "ceil((" << bounding_box_size.x() << " + " << epsilon << ") / " << resolution << ")" << std::endl;
+		// 	log_file << x_disc << " = " << bounding_box_size.x() << " / " << ceil((bounding_box_size.x() + epsilon) / resolution) << std::endl;
+  // 			// ros::Duration(20).sleep();
+		// 	log_file << "double x = " << -bounding_box_half_size.x() << "; x <= " << bounding_box_half_size.x() << "; x += " << x_disc << std::endl;
+		// }
 		for (double x = -bounding_box_half_size.x(); x <= bounding_box_half_size.x();
 			x += x_disc) {
 			// log_file << "double y = " << -bounding_box_half_size.y() << "; y <= " << bounding_box_half_size.y() << "; y += " << y_disc << std::endl;
@@ -246,13 +246,13 @@ namespace LazyThetaStarOctree{
 					z <= bounding_box_half_size.z(); z += z_disc) 
 				{
 					octomath::Vector3 offset(x, y, z);
-					if(publish)
-					{
-						log_file << "offset " << offset << std::endl;
-						// log_file << "final position start " << start << " + " << offset << " = " << start + offset << std::endl;
-						// log_file << "final position end " << end << " + " << offset << " = " << end + offset << std::endl;
-						log_file << start + offset << " to " << end + offset << std::endl;
-					}
+					// if(publish)
+					// {
+					// 	log_file << "offset " << offset << std::endl;
+					// 	// log_file << "final position start " << start << " + " << offset << " = " << start + offset << std::endl;
+					// 	// log_file << "final position end " << end << " + " << offset << " = " << end + offset << std::endl;
+					// 	log_file << start + offset << " to " << end + offset << std::endl;
+					// }
 					if(hasLineOfSight(octree_, start + offset, end + offset, ignoreUnknown) == false)
 					{
 						if(publish)
@@ -273,31 +273,31 @@ namespace LazyThetaStarOctree{
 						}
 						return CellStatus::kOccupied;
 					}	
-					else
-					{
-						if(publish)
-						{
-							// log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
-							// rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
-						}
-					}
+					// else
+					// {
+					// 	if(publish)
+					// 	{
+					// 		// log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
+					// 		// rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
+					// 	}
+					// }
 				}
-				if(publish)
-				{
-					log_file << std::endl;
-				}
+				// if(publish)
+				// {
+				// 	log_file << std::endl;
+				// }
 			}
 
-			if(publish)
-			{
-				log_file << std::endl;
-			}
+			// if(publish)
+			// {
+			// 	log_file << std::endl;
+			// }
 		}
 
-		if(publish)
-		{
-			log_file << std::endl;
-		}
+		// if(publish)
+		// {
+		// 	log_file << std::endl;
+		// }
 		// for (std::unordered_set<octomap::OcTreeKey>::iterator i = keys.begin(); i != keys.end(); ++i)
 		// {
 		// 	octomap::OcTreeNode* node = octree_.search(*i);
