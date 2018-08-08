@@ -85,15 +85,36 @@ namespace LazyThetaStarOctree
 	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ResultSet statistical_data;
 		ros::Publisher marker_pub;
-		double safety_margin = 1.6;
+		double safety_margin = 2.5;
 		int max_search_iterations = 1000;
 
 	    auto start = std::chrono::high_resolution_clock::now();
 		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations);
 		auto finish = std::chrono::high_resolution_clock::now();
 		auto time_span = finish - start;
-		ROS_WARN_STREAM("Margin took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
+		ROS_WARN_STREAM("Vanilla took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
 	}
+
+	// TEST(LazyThetaStarTests, ObstaclePath_10m_Test_16_sparse)
+	// {
+		
+	//     octomath::Vector3 disc_initial(0, 5, 1.5); 
+	//     octomath::Vector3 disc_final  (2, -5, 1.5); 
+	//     octomap::OcTree octree ("data/run_2.bt");
+	//     std::string dataset_name = "run 2";
+	// 	double sidelength_lookup_table  [octree.getTreeDepth()];
+	//    	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+	// 	ResultSet statistical_data;
+	// 	ros::Publisher marker_pub;
+	// 	double safety_margin = 1.6;
+	// 	int max_search_iterations = 1000;
+
+	//     auto start = std::chrono::high_resolution_clock::now();
+	// 	std::list<octomath::Vector3> resulting_path = lazyThetaStar_sparse(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations);
+	// 	auto finish = std::chrono::high_resolution_clock::now();
+	// 	auto time_span = finish - start;
+	// 	ROS_WARN_STREAM("Sparse took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
+	// }
 
 	TEST(LazyThetaStarTests, ObstaclePath_10m_Test_16_margin)
 	{
@@ -106,36 +127,16 @@ namespace LazyThetaStarOctree
 	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ResultSet statistical_data;
 		ros::Publisher marker_pub;
-		double safety_margin = 1.6;
+		double safety_margin = 2.5;
 		int max_search_iterations = 1000;
 
 	    auto start = std::chrono::high_resolution_clock::now();
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_margin_n(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, 3, max_search_iterations);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_margin_n(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, 2, max_search_iterations);
 		auto finish = std::chrono::high_resolution_clock::now();
 		auto time_span = finish - start;
 		ROS_WARN_STREAM("Margin took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
 	}
 
-	TEST(LazyThetaStarTests, ObstaclePath_10m_Test_16_sparse)
-	{
-		
-	    octomath::Vector3 disc_initial(0, 5, 1.5); 
-	    octomath::Vector3 disc_final  (2, -5, 1.5); 
-	    octomap::OcTree octree ("data/run_2.bt");
-	    std::string dataset_name = "run 2";
-		double sidelength_lookup_table  [octree.getTreeDepth()];
-	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-		ResultSet statistical_data;
-		ros::Publisher marker_pub;
-		double safety_margin = 1.6;
-		int max_search_iterations = 1000;
-
-	    auto start = std::chrono::high_resolution_clock::now();
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_sparse(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations);
-		auto finish = std::chrono::high_resolution_clock::now();
-		auto time_span = finish - start;
-		ROS_WARN_STREAM("Margin took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
-	}
 }
 
 int main(int argc, char **argv){

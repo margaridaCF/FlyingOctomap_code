@@ -7,6 +7,7 @@
 #include <path_planning_msgs/LTStarRequest.h>
 #include <path_planning_msgs/LTStarReply.h>
 #include <path_planning_msgs/LTStarNodeStatus.h>
+#include <path_planning_msgs/LTStarBenchmarkRequest.h>
 
 // namespace std
 // {
@@ -123,6 +124,8 @@ namespace LazyThetaStarOctree{
 			bool publish = false);
 
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish = false);
+
+	bool processLTStarRequest_margin(octomap::OcTree & octree, path_planning_msgs::LTStarBenchmarkRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish = false);
 
 
     bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 

@@ -35,6 +35,38 @@ namespace LazyThetaStarOctree
 		res.is_accepting_requests = octomap_init;
 	  	return true;
 	}
+	
+	void publishResultingPath(path_planning_msgs::LTStarReply reply, int series )
+	{
+		visualization_msgs::MarkerArray waypoint_array;
+		visualization_msgs::MarkerArray arrow_array;
+		visualization_msgs::Marker marker_temp;
+		// Publish to rviz
+		for (int i = 0; i < reply.waypoint_amount; ++i)
+		{
+			octomath::Vector3 candidate (reply.waypoints[i].position.x, reply.waypoints[i].position.y, reply.waypoints[i].position.z);
+			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
+	        octomap::OcTreeKey key = octree->coordToKey(candidate);
+	        double depth = getNodeDepth_Octomap(key, *octree);
+	        double side_length = findSideLenght(octree->getTreeDepth(), depth, sidelength_lookup_table);
+	        octomath::Vector3 cell_center = octree->keyToCoord(key, depth);
+	        if( cell_center.distance(candidate) < 0.001 )
+	        {
+		        rviz_interface::build_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i+series, marker_temp, series);
+		        waypoint_array.markers.push_back( marker_temp );
+	        }
+	        if(i !=0)
+	        {
+
+				visualization_msgs::Marker marker_temp;
+				octomath::Vector3 prev_candidate (reply.waypoints[i-1].position.x, reply.waypoints[i-1].position.y, reply.waypoints[i-1].position.z);
+				rviz_interface::build_arrow_path(candidate, prev_candidate, i, marker_temp, series);
+				arrow_array.markers.push_back( marker_temp );
+	        }
+		}
+		marker_pub.publish(arrow_array);
+		marker_pub.publish(waypoint_array);
+	}
 
 	void ltstar_callback(const path_planning_msgs::LTStarRequest::ConstPtr& path_request)
 	{
@@ -75,38 +107,58 @@ namespace LazyThetaStarOctree
 		}
 		ltstar_reply_pub.publish(reply);
 
-		visualization_msgs::MarkerArray waypoint_array;
-		visualization_msgs::MarkerArray arrow_array;
-		visualization_msgs::Marker marker_temp;
-		// Publish to rviz
-		for (int i = 0; i < reply.waypoint_amount; ++i)
-		{
-
-			octomath::Vector3 candidate (reply.waypoints[i].position.x, reply.waypoints[i].position.y, reply.waypoints[i].position.z);
-			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-	        octomap::OcTreeKey key = octree->coordToKey(candidate);
-	        double depth = getNodeDepth_Octomap(key, *octree);
-	        double side_length = findSideLenght(octree->getTreeDepth(), depth, sidelength_lookup_table);
-	        octomath::Vector3 cell_center = octree->keyToCoord(key, depth);
-	        if( cell_center.distance(candidate) < 0.001 )
-	        {
-		        rviz_interface::build_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i, marker_temp);
-		        waypoint_array.markers.push_back( marker_temp );
-	        }
-	        if(i !=0)
-	        {
-
-				visualization_msgs::Marker marker_temp;
-				octomath::Vector3 prev_candidate (reply.waypoints[i-1].position.x, reply.waypoints[i-1].position.y, reply.waypoints[i-1].position.z);
-				rviz_interface::build_arrow_path(candidate, prev_candidate, i, marker_temp);
-	        	// ROS_WARN_STREAM("[LTStar] " << i << " Publish arrow from " << candidate << " to " << prev_candidate << marker_temp);
-				arrow_array.markers.push_back( marker_temp );
-	        }
-		}
-		marker_pub.publish(arrow_array);
-		marker_pub.publish(waypoint_array);
+		publishResultingPath(reply, 9);
 	}
-	
+
+	void ltstar_benchmark_callback(const path_planning_msgs::LTStarBenchmarkRequest::ConstPtr& path_request)
+	{
+		rviz_interface::publish_deleteAll(marker_pub);
+		path_planning_msgs::LTStarReply reply;
+		reply.waypoint_amount = 0;
+		reply.success = false;
+		if(octomap_init)
+		{
+			path_planning_msgs::LTStarRequest request_vanilla;
+			request_vanilla.start = path_request->start;
+			request_vanilla.goal = path_request->goal;
+			request_vanilla.safety_margin = path_request->safety_margin; 
+			request_vanilla.max_search_iterations = path_request->max_search_iterations;
+
+			ROS_INFO_STREAM("[LTStar] Request message " << request_vanilla);
+			auto start = std::chrono::high_resolution_clock::now();
+			LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, marker_pub, true);
+			auto finish = std::chrono::high_resolution_clock::now();
+			auto time_span = finish - start;
+			ROS_WARN_STREAM("Vanilla took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
+			if(reply.waypoint_amount == 1)
+			{
+				ROS_ERROR_STREAM("[LTStar] [Vanilla] The resulting path has only one waypoint. Request: " << *path_request);
+			}
+			ltstar_reply_pub.publish(reply);
+			publishResultingPath(reply, 9);
+
+			start = std::chrono::high_resolution_clock::now();
+			LazyThetaStarOctree::processLTStarRequest_margin(*octree, *path_request, reply, sidelength_lookup_table, marker_pub, true);
+			finish = std::chrono::high_resolution_clock::now();
+			time_span = finish - start;
+			ROS_WARN_STREAM("Margin took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
+			if(reply.waypoint_amount == 1)
+			{
+				ROS_ERROR_STREAM("[LTStar] [Margin] The resulting path has only one waypoint. Request: " << *path_request);
+			}
+			ltstar_reply_pub.publish(reply);
+			publishResultingPath(reply, 2);
+		}
+		else
+		{
+			ROS_ERROR_STREAM("[LTStar] Cannot generate path because no octomap has been received.");
+			reply.success=false;
+			reply.request_id = path_request->request_id;
+			reply.waypoint_amount = 0;
+		}
+		
+	}
+
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
 		delete octree;
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
@@ -144,7 +196,8 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	ros::ServiceServer ltstar_status_service = nh.advertiseService("ltstar_status", LazyThetaStarOctree::check_status);
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, LazyThetaStarOctree::octomap_callback);
-	ros::Subscriber ltstars_sub = nh.subscribe<path_planning_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
+	ros::Subscriber ltstar_sub = nh.subscribe<path_planning_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
+	ros::Subscriber ltstar_benchmark_sub = nh.subscribe<path_planning_msgs::LTStarBenchmarkRequest>("ltstar_request_benchmark", 10, LazyThetaStarOctree::ltstar_benchmark_callback);
 	LazyThetaStarOctree::ltstar_reply_pub = nh.advertise<path_planning_msgs::LTStarReply>("ltstar_reply", 10);
 	LazyThetaStarOctree::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("ltstar_path", 1);
 

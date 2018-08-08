@@ -772,6 +772,7 @@ namespace LazyThetaStarOctree{
 				// ln 10 return "path found"
 				solution_found = true;
 				solution_end_node = s;
+				ROS_WARN_STREAM("[Vanilla] at iteration " << used_search_iterations << " open size is " << open.size() );
 				// ROS_WARN_STREAM( "Solution end node:" << *s << " == " << *disc_final_cell_center );
 				continue;
 			}
@@ -936,9 +937,10 @@ namespace LazyThetaStarOctree{
 			int const& max_search_iterations,
 			bool print_resulting_path,
 			bool publish)
-		{
+	{
 			// std::chrono::high_resolution_clock::time_point start_count, finish_count;
 			int generate_neighbors_time = 0;
+			int generate_neighbors_time_margin = 0;
 			double resolution_for_neighbors_m = calculate_fraction(octree.getResolution(), safety_margin, check_only_x_fraction);
 
 			// std::ofstream log_file;
@@ -1042,6 +1044,7 @@ namespace LazyThetaStarOctree{
 					open.printNodes(" ========== Before pop ========== ", log_file);
 				}
 				s = open.pop();
+				ROS_WARN_STREAM("[Margin] at iteration " << used_search_iterations << " open size is " << open.size() );
 	#ifdef RUNNING_ROS
 				if(publish)
 				{
@@ -1056,7 +1059,8 @@ namespace LazyThetaStarOctree{
 				std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
 
 				auto start_count = std::chrono::high_resolution_clock::now();
-				generateNeighbors_pointers_margin(neighbors, *(s->coordinates), s->cell_size, resolution, resolution_for_neighbors_m);
+				generateNeighbors_pointers(neighbors, *(s->coordinates), s->cell_size, resolution);
+				// generateNeighbors_pointers_margin(neighbors, *(s->coordinates), s->cell_size, resolution, resolution_for_neighbors_m);
 				auto finish_count = std::chrono::high_resolution_clock::now();
 				auto time_span = finish_count - start_count;
 				generate_neighbors_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
@@ -1097,6 +1101,12 @@ namespace LazyThetaStarOctree{
 	#endif
 				// TODO check code repetition to go over the neighbors of s
 				double cell_size = 0;
+				start_count = std::chrono::high_resolution_clock::now();
+				generateNeighbors_pointers_margin(neighbors, *(s->coordinates), s->cell_size, resolution, resolution_for_neighbors_m);
+				finish_count = std::chrono::high_resolution_clock::now();
+				time_span = finish_count - start_count;
+				generate_neighbors_time_margin += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
+
 				// ln 12 foreach s' € nghbr_vis(s) do
 				for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
 				{
@@ -1224,7 +1234,8 @@ namespace LazyThetaStarOctree{
 			std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 			int total_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(time_lapse).count();
 			ROS_WARN_STREAM("Total time " << total_in_microseconds << " microseconds.");
-			ROS_WARN_STREAM("generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+			ROS_WARN_STREAM("generate_neighbors_time        took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+			ROS_WARN_STREAM("generate_neighbors_time_margin took " << generate_neighbors_time_margin << " - " << generate_neighbors_time_margin*100/total_in_microseconds << "%");
 			return path;
 		}
 		// ln 19 end
@@ -1563,6 +1574,104 @@ namespace LazyThetaStarOctree{
 		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 #endif
 		resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, request.safety_margin, sidelength_lookup_table, marker_pub, request.max_search_iterations, true, publish);
+#ifdef SAVE_CSV
+		std::stringstream generated_path_distance_ss;
+    	generated_path_distance_ss << "Generated path distance:\n";
+		std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+		double distance_total = 0;
+		std::list<octomath::Vector3>::iterator i = resulting_path.begin();
+		double distance;
+		if( !equal(*i, disc_initial) )
+		{
+			distance = weightedDistance(disc_initial, *i);
+			distance_total += distance;
+			generated_path_distance_ss <<  std::setprecision(2) << disc_initial << " to " << *i << " = " << distance <<  "(from start to start voxel center)" << std::endl;
+		}
+		octomath::Vector3 prev_waypoint = *i;
+		++i;
+		for (; i != resulting_path.end(); ++i)
+		{
+			distance = weightedDistance(prev_waypoint, *i);
+			distance_total += distance;
+			generated_path_distance_ss <<  std::setprecision(2) << prev_waypoint << " to " << *i << " = " << distance << std::endl;
+			prev_waypoint = *i;
+		}
+		generated_path_distance_ss << "             total = " << distance_total << "\n";
+		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
+		bool has_flight_corridor_free = is_flight_corridor_free(octree, disc_initial, disc_final, request.safety_margin, marker_pub, false, false);
+
+		qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
+
+
+		std::ofstream csv_file;
+		csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
+		csv_file << millis.count();
+		csv_file << "," << straigh_line_distance;
+		csv_file << "," << distance_total;
+		csv_file << "," << has_flight_corridor_free;
+		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
+		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
+		csv_file << "," << request.safety_margin;
+		csv_file << "," << request.max_search_iterations << std::endl;
+		csv_file.close();
+#endif
+		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
+#ifdef RUNNING_ROS
+		if(publish)
+		{
+			rviz_interface::publish_arrow_straight_line(request.start, request.goal, marker_pub, resulting_path.size() > 0);
+		}
+#endif
+		if(resulting_path.size()==0)
+		{
+			reply.success = false;
+			std::stringstream octomap_name_stream;
+			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
+			octree.writeBinary(octomap_name_stream.str());
+			std::stringstream to_log_file_ss;
+			to_log_file_ss << "!!! No path !!!   " ;
+			to_log_file_ss << "Straight line length " << weightedDistance(disc_initial, disc_final);
+			to_log_file_ss <<  std::setprecision(2) << " from  " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" ;
+			to_log_file_ss <<  std::setprecision(2) << " to " << "(" << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
+			std::ofstream log_file;
+    		log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);log_file << to_log_file_ss.str();
+	    	log_file.close();
+		}
+		else
+		{
+			for (std::list<octomath::Vector3>::iterator i = resulting_path.begin(); i != resulting_path.end(); ++i)
+			{
+				// ROS_INFO_STREAM(*i);
+				geometry_msgs::Pose waypoint;
+	            waypoint.position.x = i->x();
+	            waypoint.position.y = i->y();
+	            waypoint.position.z = i->z();
+	            waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
+	            reply.waypoints.push_back(waypoint);
+			}
+			reply.success = true;
+		}
+		reply.waypoint_amount = resulting_path.size();
+		reply.request_id = request.request_id;
+		return true;
+	}
+
+
+	bool processLTStarRequest_margin(octomap::OcTree & octree, path_planning_msgs::LTStarBenchmarkRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish)
+	{
+		marker_pub_ = marker_pub;
+		std::srand(std::time(0));
+		ResultSet statistical_data;
+		std::list<octomath::Vector3> resulting_path;
+		octomath::Vector3 disc_initial(request.start.x, request.start.y, request.start.z);
+		octomath::Vector3 disc_final(request.goal.x, request.goal.y, request.goal.z);
+		// ROS_INFO_STREAM("[LTStar] Starting to process path from " << disc_initial << " to " << disc_final);
+#ifdef SAVE_CSV
+		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+#endif
+		resulting_path = lazyThetaStar_margin_n(octree, disc_initial, disc_final, statistical_data, request.safety_margin, sidelength_lookup_table, marker_pub, request.check_only_x_fraction, request.max_search_iterations, true, publish);
 #ifdef SAVE_CSV
 		std::stringstream generated_path_distance_ss;
     	generated_path_distance_ss << "Generated path distance:\n";
