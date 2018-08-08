@@ -13,8 +13,8 @@
 #include <chrono>
 #include <boost/filesystem.hpp>
 
-#define SAVE_CSV 1
-// #define STANDALONE 1
+// #define SAVE_CSV 1
+#define STANDALONE 1
 
 namespace LazyThetaStarOctree
 {
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 	LazyThetaStarOctree::folder_name = "/ros_ws/src/data/current";
 
 #ifdef STANDALONE
-	LazyThetaStarOctree::folder_name = "/home/garuda/Flying_Octomap_code/src/data/";
+	LazyThetaStarOctree::folder_name = "/home/mfaria/Flying_Octomap_code/src/data/";
 	auto timestamp_chrono = std::chrono::high_resolution_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     std::stringstream folder_name_stream;
