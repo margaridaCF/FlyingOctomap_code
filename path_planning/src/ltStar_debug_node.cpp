@@ -139,12 +139,7 @@ namespace LazyThetaStarOctree
 			request_vanilla.safety_margin = path_request->safety_margin; 
 			request_vanilla.max_search_iterations = path_request->max_search_iterations;
 
-			ROS_INFO_STREAM("[LTStar] Request message " << request_vanilla);
-			auto start = std::chrono::high_resolution_clock::now();
 			LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, marker_pub, true);
-			auto finish = std::chrono::high_resolution_clock::now();
-			auto time_span = finish - start;
-			ROS_WARN_STREAM("Vanilla took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] [Vanilla] The resulting path has only one waypoint. Request: " << *path_request);
@@ -152,17 +147,21 @@ namespace LazyThetaStarOctree
 			ltstar_reply_pub.publish(reply);
 			publishResultingPath(reply, 9);
 
-			start = std::chrono::high_resolution_clock::now();
-			LazyThetaStarOctree::processLTStarRequest_margin(*octree, *path_request, reply, sidelength_lookup_table, marker_pub, true);
-			finish = std::chrono::high_resolution_clock::now();
-			time_span = finish - start;
-			ROS_WARN_STREAM("Margin took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
-			if(reply.waypoint_amount == 1)
-			{
-				ROS_ERROR_STREAM("[LTStar] [Margin] The resulting path has only one waypoint. Request: " << *path_request);
-			}
-			ltstar_reply_pub.publish(reply);
-			publishResultingPath(reply, 2);
+			// LazyThetaStarOctree::processLTStarRequest_sparse(*octree, request_vanilla, reply, sidelength_lookup_table, marker_pub, true);
+			// if(reply.waypoint_amount == 1)
+			// {
+			// 	ROS_ERROR_STREAM("[LTStar] [Margin] The resulting path has only one waypoint. Request: " << *path_request);
+			// }
+			// ltstar_reply_pub.publish(reply);
+			// publishResultingPath(reply, 2);
+
+			// LazyThetaStarOctree::processLTStarRequest_margin(*octree, *path_request, reply, sidelength_lookup_table, marker_pub, true);
+			// if(reply.waypoint_amount == 1)
+			// {
+			// 	ROS_ERROR_STREAM("[LTStar] [Margin] The resulting path has only one waypoint. Request: " << *path_request);
+			// }
+			// ltstar_reply_pub.publish(reply);
+			// publishResultingPath(reply, 2);
 		}
 		else
 		{

@@ -24,6 +24,9 @@ namespace LazyThetaStarOctree{
 	std::string folder_name = "/ros_ws/src/data/current";
 
 
+	int obstacle_avoidance_time;
+	int setVertex_time;
+	int updateVertex_time;
 	std::ofstream log_file;
 	ros::Publisher marker_pub_;
 	int id_unreachable;
@@ -319,10 +322,13 @@ namespace LazyThetaStarOctree{
 		bool ignoreUnknown,
 		bool publish)
 	{
+		auto start_count = std::chrono::high_resolution_clock::now();
 		octomath::Vector3 bounding_box_size(safety_margin, safety_margin, safety_margin);
 		// bool free = getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
 		bool free = getCorridorOccupancy(octree_, start, end, bounding_box_size, marker_pub, publish) == CellStatus::kFree;
-		visualization_msgs::Marker marker_temp;
+		auto finish_count = std::chrono::high_resolution_clock::now();
+		auto time_span = finish_count - start_count;
+		obstacle_avoidance_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
 		return free;
 	}
 
@@ -374,6 +380,8 @@ namespace LazyThetaStarOctree{
 		bool ignoreUnknown,
 		bool publish)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
 	{
+		auto start_count = std::chrono::high_resolution_clock::now();
+
 		// // TODO == VERY IMPORTANT == this neighbors are actually the ones calculated before in the main loop so we can just pass that along instead of generating
 		// // There is a choice to be made here, 
 		// //  -> at this point we only care about line of sight and not about if obstacle/unknown distinction
@@ -459,6 +467,10 @@ namespace LazyThetaStarOctree{
 			}
 		}
 		// ln 39 end
+
+		auto finish_count = std::chrono::high_resolution_clock::now();
+		auto time_span = finish_count - start_count;
+		setVertex_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
 		return true;
 	}
 
@@ -544,6 +556,8 @@ namespace LazyThetaStarOctree{
 	void UpdateVertex(ThetaStarNode const& s, std::shared_ptr<ThetaStarNode> s_neighbour,
 		Open & open)
 	{ 
+		auto start_count = std::chrono::high_resolution_clock::now();
+
 		// ROS_WARN_STREAM("UpdateVertex");
 		// ln 21 g_old := g(s')
 		float g_old = s_neighbour->distanceFromInitialPoint;
@@ -577,6 +591,10 @@ namespace LazyThetaStarOctree{
 		// {
 		// 	log_file << "[N]      " << *s_neighbour << " found better path previously " << std::endl;
 		// }
+
+		auto finish_count = std::chrono::high_resolution_clock::now();
+		auto time_span = finish_count - start_count;
+		updateVertex_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
 	}
 
 	bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree & octree)
@@ -635,6 +653,9 @@ namespace LazyThetaStarOctree{
 	{
 		// std::chrono::high_resolution_clock::time_point start_count, finish_count;
 		int generate_neighbors_time = 0;
+		obstacle_avoidance_time = 0;
+		setVertex_time = 0;
+		updateVertex_time = 0;
 
 		// std::ofstream log_file;
     	// log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
@@ -772,6 +793,7 @@ namespace LazyThetaStarOctree{
 				// ln 10 return "path found"
 				solution_found = true;
 				solution_end_node = s;
+				ROS_WARN_STREAM("[Vanilla] at iteration " << used_search_iterations << " open size is " << open.size() );
 				// ROS_WARN_STREAM( "Solution end node:" << *s << " == " << *disc_final_cell_center );
 				continue;
 			}
@@ -918,8 +940,11 @@ namespace LazyThetaStarOctree{
 		disc_initial_cell_center = NULL;
 		std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 		int total_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(time_lapse).count();
-		ROS_WARN_STREAM("Total time " << total_in_microseconds << " microseconds.");
-		ROS_WARN_STREAM("generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+		ROS_WARN_STREAM("[ltstar] [vanilla] Total time " << total_in_microseconds << " microseconds.");
+		ROS_WARN_STREAM("[ltstar] [vanilla] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+		ROS_WARN_STREAM("[ltstar] [vanilla] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "% = " << obstacle_avoidance_time << "*100/" << total_in_microseconds << " = " << obstacle_avoidance_time*100.0 << "/" << total_in_microseconds  );
+		ROS_WARN_STREAM("[ltstar] [vanilla] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
+		ROS_WARN_STREAM("[ltstar] [vanilla] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
 		return path;
 	}
 	// ln 19 end
@@ -1080,6 +1105,7 @@ namespace LazyThetaStarOctree{
 					solution_found = true;
 					solution_end_node = s;
 					// ROS_WARN_STREAM( "Solution end node:" << *s << " == " << *disc_final_cell_center );
+					 ROS_WARN_STREAM("[Margin] at iteration " << used_search_iterations << " open size is " << open.size() );
 					continue;
 				}
 				// ln 11 closed := closed U {s}
@@ -1231,9 +1257,9 @@ namespace LazyThetaStarOctree{
 			disc_initial_cell_center = NULL;
 			std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 			int total_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(time_lapse).count();
-			ROS_WARN_STREAM("Total time " << total_in_microseconds << " microseconds.");
-			ROS_WARN_STREAM("generate_neighbors_time        took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
-			ROS_WARN_STREAM("generate_neighbors_time_margin took " << generate_neighbors_time_margin << " - " << generate_neighbors_time_margin*100/total_in_microseconds << "%");
+			ROS_WARN_STREAM("[ltstar] [margin] Total time " << total_in_microseconds << " microseconds.");
+			ROS_WARN_STREAM("[ltstar] [margin] generate_neighbors_time        took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+			ROS_WARN_STREAM("[ltstar] [margin] generate_neighbors_time_margin took " << generate_neighbors_time_margin << " - " << generate_neighbors_time_margin*100/total_in_microseconds << "%");
 			return path;
 		}
 		// ln 19 end
