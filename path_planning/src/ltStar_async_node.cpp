@@ -76,27 +76,39 @@ namespace LazyThetaStarOctree
 		reply.success = false;
 		if(octomap_init)
 		{
-			// std::stringstream ss;
-			// ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
-			// 	<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
-			// octree->writeBinary(ss.str());
+
 			ROS_INFO_STREAM("[LTStar] Request message " << *path_request);
-			// if(path_request->request_id > 5)
-			// {
-			// 	publish_free_corridor_arrows = true;
-			// }
-			// else
-			// {
-			// 	publish_free_corridor_arrows = false;
-			// }
+			auto start = std::chrono::high_resolution_clock::now();
 			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, marker_pub, true);
+			auto finish = std::chrono::high_resolution_clock::now();
+			auto time_span = finish - start;
+			ROS_WARN_STREAM("Vanilla took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
 			if(reply.waypoint_amount == 1)
 			{
-				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
+				ROS_ERROR_STREAM("[LTStar] [Vanilla] The resulting path has only one waypoint. Request: " << *path_request);
 			}
-			// ROS_INFO_STREAM("[LTStar] Reply " << reply);
+			ltstar_reply_pub.publish(reply);
+			publishResultingPath(reply, 9);
 
-			// octree->writeBinary(folder_name + "/octree_after_processing_request.bt");
+
+			path_planning_msgs::LTStarBenchmarkRequest request_margin;
+			request_margin.start = path_request->start;
+			request_margin.goal = path_request->goal;
+			request_margin.safety_margin = path_request->safety_margin; 
+			request_margin.max_search_iterations = path_request->max_search_iterations;
+			request_margin.check_only_x_fraction = 1;
+
+			start = std::chrono::high_resolution_clock::now();
+			LazyThetaStarOctree::processLTStarRequest_margin(*octree, request_margin, reply, sidelength_lookup_table, marker_pub, true);
+			finish = std::chrono::high_resolution_clock::now();
+			time_span = finish - start;
+			ROS_WARN_STREAM("Margin took " << std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count());
+			if(reply.waypoint_amount == 1)
+			{
+				ROS_ERROR_STREAM("[LTStar] [Margin] The resulting path has only one waypoint. Request: " << *path_request);
+			}
+			ltstar_reply_pub.publish(reply);
+			publishResultingPath(reply, 2);
 		}
 		else
 		{
@@ -105,9 +117,6 @@ namespace LazyThetaStarOctree
 			reply.request_id = path_request->request_id;
 			reply.waypoint_amount = 0;
 		}
-		ltstar_reply_pub.publish(reply);
-
-		publishResultingPath(reply, 9);
 	}
 
 	void ltstar_benchmark_callback(const path_planning_msgs::LTStarBenchmarkRequest::ConstPtr& path_request)
