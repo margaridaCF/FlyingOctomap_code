@@ -1,6 +1,13 @@
 <launch>
 
    
+
+
+
+
+
+
+
     <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
 
     <!-- #######################  Octomap  ######################################## -->
@@ -12,7 +19,10 @@
         <param name="sensor_model/max_range"    value="10"/>
         <param name="resolution"                value="0.5" />
     </node> -->
+
+
     <!-- #######################  Architecture nodes  ############################# -->
+    
     <node name="command_ltStar"     type="ltStar_command_path_node"   pkg="path_planning"  output="screen" />
     <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
