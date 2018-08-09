@@ -255,22 +255,22 @@ namespace LazyThetaStarOctree{
 					// }
 					if(hasLineOfSight(octree_, start + offset, end + offset, ignoreUnknown) == false)
 					{
-						if(publish)
-						{
-							// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
-							rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable);	
-							id_unreachable++;
-						}
+						// if(publish)
+						// {
+						// 	// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
+						// 	rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable);	
+						// 	id_unreachable++;
+						// }
 						return CellStatus::kOccupied;
 					}	
 					else if(hasLineOfSight(octree_, end + offset, start + offset, ignoreUnknown) == false)
 					{
-						if(publish)
-						{
-							// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
-							rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable);	
-							id_unreachable;
-						}
+						// if(publish)
+						// {
+						// 	// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
+						// 	rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable);	
+						// 	id_unreachable;
+						// }
 						return CellStatus::kOccupied;
 					}	
 					// else
