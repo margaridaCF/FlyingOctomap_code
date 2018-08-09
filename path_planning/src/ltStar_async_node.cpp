@@ -13,8 +13,8 @@
 #include <chrono>
 #include <boost/filesystem.hpp>
 
-// #define SAVE_CSV 1
-#define STANDALONE 1
+#define SAVE_CSV 1
+// #define STANDALONE 1
 
 namespace LazyThetaStarOctree
 {
