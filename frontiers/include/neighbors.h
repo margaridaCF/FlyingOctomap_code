@@ -20,14 +20,14 @@ namespace LazyThetaStarOctree{
     void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, double sensor_angle_rad, bool debug_on = false);
-    void generateNeighbors_pointers_sparse(octomap::OcTree const& octree, double const* lookup_table, std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
-        octomath::Vector3 const& center_coords, 
-        float node_size, float resolution, bool debug_on = false);
-    void generateNeighbors_pointers_margin(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
-        octomath::Vector3 const& center_coords, 
-        float node_size, float resolution, 
-        double margin_neighbor_res, // security margin neighbor count
-        bool debug_on = false);
+    // void generateNeighbors_pointers_sparse(octomap::OcTree const& octree, double const* lookup_table, std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+        // octomath::Vector3 const& center_coords, 
+        // float node_size, float resolution, bool debug_on = false);
+    // void generateNeighbors_pointers_margin(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+    //     octomath::Vector3 const& center_coords, 
+    //     float node_size, float resolution, 
+    //     double margin_neighbor_res, // security margin neighbor count
+    //     bool debug_on = false);
 
     // Other way to find the depth based on the search code of the octree
     int getNodeDepth_Octomap (const octomap::OcTreeKey& key, 
@@ -37,7 +37,7 @@ namespace LazyThetaStarOctree{
 
     double findSideLenght(int octreeLevelCount, const int depth, double const* lookup_table);
 
-    double calculate_fraction(double resolution, double margin, int check_only_x_fraction);
+    // double calculate_fraction(double resolution, double margin, int check_only_x_fraction);
 
     /**
      * @brief      Compares coordinates to cell center to see if it is the cell center.
