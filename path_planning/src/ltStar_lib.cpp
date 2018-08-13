@@ -232,7 +232,7 @@ namespace LazyThetaStarOctree{
 		// {
 		// 	log_file << x_disc << " = " << bounding_box_size.x() << " / " << "ceil((" << bounding_box_size.x() << " + " << epsilon << ") / " << resolution << ")" << std::endl;
 		// 	log_file << x_disc << " = " << bounding_box_size.x() << " / " << ceil((bounding_box_size.x() + epsilon) / resolution) << std::endl;
-  // 			// ros::Duration(20).sleep();
+  		// ros::Duration(20).sleep();
 		// 	log_file << "double x = " << -bounding_box_half_size.x() << "; x <= " << bounding_box_half_size.x() << "; x += " << x_disc << std::endl;
 		// }
 		for (double x = -bounding_box_half_size.x(); x <= bounding_box_half_size.x();
@@ -657,8 +657,8 @@ namespace LazyThetaStarOctree{
 		setVertex_time = 0;
 		updateVertex_time = 0;
 
-		// std::ofstream log_file;
-    	// log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
+		std::ofstream log_file;
+    	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
 		auto start = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_search_iterations);
@@ -689,13 +689,28 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 cell_center_coordinates_start = disc_initial;
 		double cell_size_start = -1;
 		updateToCellCenterAndFindSize(cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
+		// bool free_path_from_current_to_second_waypoint = is_flight_corridor_free(octree, disc_initial, cell_center_coordinates_start, safety_margin, marker_pub, false, publish);
+		// if(!free_path_from_current_to_second_waypoint)
+		// {
+		// 	ROS_ERROR_STREAM("[ltstar] start There are obstacles between initial point " << disc_initial << " and its center " << cell_center_coordinates_start);
+		// 	return path;
+		// }
 
 		if(publish)
 		{
-			log_file << "[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start << std::endl;
-			log_file << "[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal << std::endl;
+			log_file << "[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start << " given start point " << disc_initial << std::endl;
+			log_file << "[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal << " given goal point " << disc_final << std::endl;
 #ifdef RUNNING_ROS
 			geometry_msgs::Point start_point, goal_point;
+			start_point.x = disc_initial.x();
+			start_point.y = disc_initial.y();
+			start_point.z = disc_initial.z();
+			goal_point.x = disc_final.x();
+			goal_point.y = disc_final.y();
+			goal_point.z = disc_final.z();
+			rviz_interface::publish_start(start_point, marker_pub);
+			rviz_interface::publish_goal(goal_point, marker_pub);
+
 			start_point.x = cell_center_coordinates_start.x();
 			start_point.y = cell_center_coordinates_start.y();
 			start_point.z = cell_center_coordinates_start.z();
@@ -914,6 +929,10 @@ namespace LazyThetaStarOctree{
 			std::list<octomath::Vector3>::iterator it= path.begin();
 			it++;
 			bool free_path_from_current_to_second_waypoint = is_flight_corridor_free(octree, disc_initial, *it, safety_margin, marker_pub, false, publish);
+			if(!free_path_from_current_to_second_waypoint)
+			{
+				ROS_ERROR_STREAM("[ltstar] end There are obstacles between initial point " << disc_initial << " and its center " << cell_center_coordinates_start);
+			}
 			if(initial_pos_far_from_initial_voxel_center && !free_path_from_current_to_second_waypoint)
 			{
 				path.push_front( disc_initial );
@@ -1035,7 +1054,7 @@ namespace LazyThetaStarOctree{
 		csv_file << "," << request.max_search_iterations << std::endl;
 		csv_file.close();
 #endif
-		// ROS_INFO_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
+		ROS_WARN_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
 #ifdef RUNNING_ROS
 		if(publish)
 		{

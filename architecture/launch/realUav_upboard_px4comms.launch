@@ -17,7 +17,7 @@
         <param name="latch"                     value="false" />
         <param name="publish_free_space"        value="true"/>
         <param name="sensor_model/max_range"    value="15"/>
-        <param name="resolution"                value="0.4" />
+        <param name="resolution"                value="0.5" />
     </node>
 
 
