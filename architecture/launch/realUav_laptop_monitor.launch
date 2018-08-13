@@ -6,6 +6,6 @@
     
     <!-- #######################    Log   ############################# -->
     <node pkg="rosbag" type="record" name="rosbag_record_all"
-       args="record -O /home/garuda/openTheHatch/bags/record_all.bag /tf /scan /mavros/global_position/local /mavros/global_position/global /tf /mavros/global_position/local /mavros/global_position/global /occupied_cells_vis_array /free_cells_vis_array /ltstar_path /frontiers_reply /frontiers_request /ltstar_request /ltstar_reply /mavros/setpoint_position/local /position_log"/>
+       args="record -O /home/mfaria/openTheHatch/bags/record_all.bag /tf /scan /mavros/global_position/local /mavros/global_position/global /tf /mavros/global_position/local /mavros/global_position/global /occupied_cells_vis_array /free_cells_vis_array /ltstar_path /frontiers_reply /frontiers_request /ltstar_request /ltstar_reply /mavros/setpoint_position/local /position_log"/>
 </launch>
 

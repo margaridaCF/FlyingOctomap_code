@@ -181,20 +181,58 @@ namespace rviz_interface
 
     void publish_start(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
     {
-        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
-        float red = 1.0f;
-        float green = 1.0f;
-        float blue = 0.0f;
-        publish_small_marker(candidate_vec3, marker_pub,red,  green,  blue, "start", 22);
+        visualization_msgs::Marker marker;
+        marker.color.r = 1.0f;
+        marker.color.g = 1.0f;
+        marker.color.b = 0.0f;
+        marker.ns = "start";
+        marker.id = 22;
+        marker.type = visualization_msgs::Marker::SPHERE;
+        // Basic
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position = candidate;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = 0.2f;
+        marker.scale.y = 0.2f;
+        marker.scale.z = 0.2f;
+        marker.color.a = 1.0f;
+        marker.lifetime = ros::Duration();
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);
     }
 
     void publish_goal(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
     {
-        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
-        float red = 1.0f;
-        float green = 0.5f;
-        float blue = 0.0f;
-        publish_small_marker(candidate_vec3, marker_pub,red,  green,  blue, "goal", 23);
+        visualization_msgs::Marker marker;
+        marker.color.r = 1.0f;
+        marker.color.g = 0.5f;
+        marker.color.b = 0.0f;
+        marker.ns = "goal";
+        marker.id = 23;
+        marker.type = visualization_msgs::Marker::SPHERE;
+        // Basic
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position = candidate;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = 0.2f;
+        marker.scale.y = 0.2f;
+        marker.scale.z = 0.2f;
+        marker.color.a = 1.0f;
+        marker.lifetime = ros::Duration();
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);
     }
 
 
