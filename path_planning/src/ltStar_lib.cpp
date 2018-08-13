@@ -923,16 +923,40 @@ namespace LazyThetaStarOctree{
 			auto finish_count = std::chrono::high_resolution_clock::now();
 			auto time_span = finish_count - start_count;
 			generate_neighbors_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
+
+			log_file << " found " << neighbors.size() << " neighbors." << std::endl;
+			if(filter_sparse_neighbors)
+			{
+				neighbors_in_use = &neighbors_sparse;
+			}
+			else
+			{
+			}
+
 			// ln 8 SetVertex(s);
 			// It is it's own parent, this happens on the first node when the initial position is the center of the voxel (by chance)
 			if(s->hasSameCoordinates(s->parentNode, octree.getResolution()) == false)
 			{
 				bool ignoreUnknown = weightedDistance(*(s->coordinates), cell_center_coordinates_goal) < safety_margin;
-				if (!setVertex_function(octree, s, closed, open, neighbors, neighbors_sparse, log_file, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
+				log_file << " executing ln 8 " << std::endl;
+				if (!setVertex(octree, s, closed, open, neighbors, neighbors_sparse, log_file, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
 				{
 					octree.writeBinary(folder_name + "/octree_noPath1s.bt");
 					ROS_ERROR_STREAM ("[LTStar] no neighbor of " << *s << " had line of sight. Start " << disc_initial << " goal " << disc_final);
 				}
+				if(filter_sparse_neighbors)
+				{
+					neighbors_in_use = &neighbors_sparse;
+				}
+				else
+				{
+					neighbors_in_use = &neighbors;
+				}
+				log_file << " filtered neighbors are a total of " << neighbors.size() << "." << std::endl;
+			}
+			else
+			{
+				neighbors_in_use = &neighbors;
 			}
 			// ln 9 if s = s_goal then 
 			if( s->hasSameCoordinates(disc_final_cell_center, octree.getResolution()/2) )
@@ -958,14 +982,7 @@ namespace LazyThetaStarOctree{
 #endif
 			// TODO check code repetition to go over the neighbors of s
 			double cell_size = 0;
-			if(filter_sparse_neighbors)
-			{
-				neighbors_in_use = &neighbors_sparse;
-			}
-			else
-			{
-				neighbors_in_use = &neighbors;
-			}
+			
 			// ln 12 foreach s' € nghbr_vis(s) do
 			for(   std::shared_ptr<octomath::Vector3> n_coordinates : (*neighbors_in_use)   )
 			{
