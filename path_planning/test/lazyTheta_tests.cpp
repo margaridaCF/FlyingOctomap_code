@@ -5,7 +5,7 @@
 
 namespace LazyThetaStarOctree{
 
-	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
+	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, bool filter_sparse = true,
 		int const& max_search_iterations = 55)
 	{
 		double sidelength_lookup_table  [octree.getTreeDepth()];
@@ -27,7 +27,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, filter_sparse, marker_pub, max_search_iterations, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -130,7 +130,7 @@ namespace LazyThetaStarOctree{
         int count_80 = 0;
         int count_over80 = 0;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, 1, sidelength_lookup_table, marker_pub);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, 1, sidelength_lookup_table, true, marker_pub);
         EXPECT_EQ( 0, ThetaStarNode::OustandingObjects()) << "From  " << disc_initial << " to  " << disc_final;
 	}
 	TEST(LazyThetaStarTests, LazyThetaStar_NoSolution_NegativeInstanceCount_Test)
@@ -165,7 +165,7 @@ namespace LazyThetaStarOctree{
 
         // std::cout << "Starting lazy theta from " << disc_initial << " to " << disc_final << std::endl;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table,marker_pub, 5);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, true, marker_pub, 5);
 
 
         if(resulting_path.size() == 0)
@@ -240,7 +240,7 @@ namespace LazyThetaStarOctree{
 	void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_search_iterations = 55, double safety_margin = 2)
 	{
-
+		bool filter_sparse = true;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
 	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ros::Publisher marker_pub;
@@ -259,7 +259,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, filter_sparse, marker_pub, max_search_iterations);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0) << safety_margin;
 		// 2 waypoints: The center of start voxel & The center of the goal voxel
