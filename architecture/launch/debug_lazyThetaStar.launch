@@ -23,7 +23,7 @@
 
     <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
     <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="/ros_ws/src/path_planning/test/data/d.bt">

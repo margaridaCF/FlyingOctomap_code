@@ -4,7 +4,7 @@
     <rosparam file="$(find architecture)/cfg/realUav_hitl_params.yaml" command="load" />
 
     <!-- #######################  Octomap  ######################################## -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" >
         <param name="frame_id" type="string"    value="map" />   
         <remap from="cloud_in" to="/free_cloud" />
         <param name="latch"                     value="false" />

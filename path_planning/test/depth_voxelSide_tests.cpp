@@ -212,6 +212,8 @@ namespace LazyThetaStarOctree{
 	TEST(DepthSizeTest, DepthSizeTest)
 	{
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
         octomath::Vector3 point_in_voxel (-5.400001, -2.600000, 0.600000);
         octomath::Vector3 correct_voxel_center (-5.2, -2.8, 0.4);
         double correct_size = 0.8;
@@ -235,7 +237,7 @@ namespace LazyThetaStarOctree{
         int found_depth_search = search(octree, key);
         EXPECT_EQ(found_depth_search, correct_depth);
 
-        double found_length = findSideLenght(octree, found_depth_search); 
+        double found_length = findSideLenght(octree.getTreeDepth(), found_depth_search, sidelength_lookup_table); 
         EXPECT_EQ(found_length, correct_size);
         // get center coord of cell center at depth
         octomath::Vector3 cell_center = octree.keyToCoord(key, found_depth_search);
@@ -297,6 +299,8 @@ namespace LazyThetaStarOctree{
 	TEST(DepthSizeTest, KeyTest)
 	{
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		octomath::Vector3 origin (-5.4, -2.6, 0.6);
 		std::shared_ptr<octomath::Vector3> a = std::make_shared<octomath::Vector3>(origin);
 		std::shared_ptr<octomath::Vector3> b = std::make_shared<octomath::Vector3>(origin);
@@ -305,7 +309,7 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 cell_center = octree.keyToCoord(key, 14);
 
 		double side_length_m = -1;
-		octomap::OcTreeKey key_m = updatePointerToCellCenterAndFindSize(b, octree, side_length_m);
+		octomap::OcTreeKey key_m = updatePointerToCellCenterAndFindSize(b, octree, side_length_m, sidelength_lookup_table);
 
         ASSERT_EQ(key, key_m);
         ASSERT_EQ(cell_center, *b);
@@ -323,8 +327,10 @@ namespace LazyThetaStarOctree{
 	    std::shared_ptr<octomath::Vector3> p1_ptr = std::make_shared<octomath::Vector3>(p1);
 	    std::shared_ptr<octomath::Vector3> p2_ptr = std::make_shared<octomath::Vector3>(p2);
 		octomap::OcTree octree ("data/run_2.bt");
-		bool line_of_sight_A = normalizeToVisibleEndCenter(octree, p1_ptr, p2_ptr, cell_size, safety_margin, marker_pub);
-		bool line_of_sight_B = normalizeToVisibleEndCenter(octree, p2_ptr, p1_ptr, cell_size, safety_margin, marker_pub);
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		bool line_of_sight_A = normalizeToVisibleEndCenter(octree, p1_ptr, p2_ptr, cell_size, safety_margin, marker_pub, sidelength_lookup_table);
+		bool line_of_sight_B = normalizeToVisibleEndCenter(octree, p2_ptr, p1_ptr, cell_size, safety_margin, marker_pub, sidelength_lookup_table);
 		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
 	}
 
