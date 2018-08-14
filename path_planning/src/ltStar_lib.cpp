@@ -25,6 +25,7 @@ namespace LazyThetaStarOctree{
 
 
 	int obstacle_avoidance_time;
+	int obstacle_avoidance_calls;
 	int setVertex_time;
 	int updateVertex_time;
 	std::ofstream log_file;
@@ -329,6 +330,7 @@ namespace LazyThetaStarOctree{
 		auto finish_count = std::chrono::high_resolution_clock::now();
 		auto time_span = finish_count - start_count;
 		obstacle_avoidance_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
+		obstacle_avoidance_calls ++;
 		return free;
 	}
 
@@ -372,10 +374,10 @@ namespace LazyThetaStarOctree{
 		std::shared_ptr<ThetaStarNode> 							& 		s, 
 		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
 		Open 													& 		open, 
-		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
-		std::ofstream & log_file,
+		unordered_set_pointers 									const& 	neighbors,
+		std::ofstream 											& log_file,
 		double safety_margin,
-		ros::Publisher const& marker_pub,
+		ros::Publisher 											const& marker_pub,
 		const double sidelength_lookup_table[],
 		bool ignoreUnknown,
 		bool publish)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
@@ -654,6 +656,7 @@ namespace LazyThetaStarOctree{
 		// std::chrono::high_resolution_clock::time_point start_count, finish_count;
 		int generate_neighbors_time = 0;
 		obstacle_avoidance_time = 0;
+		obstacle_avoidance_calls = 0;
 		setVertex_time = 0;
 		updateVertex_time = 0;
 
@@ -784,11 +787,11 @@ namespace LazyThetaStarOctree{
 			}
 #endif
 			resultSet.addOcurrance(s->cell_size);
-			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
+			unordered_set_pointers neighbors;
 
 			auto start_count = std::chrono::high_resolution_clock::now();
-			// generateNeighbors_pointers(neighbors, *(s->coordinates), s->cell_size, resolution);
 			generateNeighbors_filter_pointers(neighbors, *(s->coordinates), s->cell_size, resolution, octree);
+
 			auto finish_count = std::chrono::high_resolution_clock::now();
 			auto time_span = finish_count - start_count;
 			generate_neighbors_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
@@ -966,6 +969,7 @@ namespace LazyThetaStarOctree{
 		ROS_WARN_STREAM("[ltstar] [vanilla] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "% = " << obstacle_avoidance_time << "*100/" << total_in_microseconds << " = " << obstacle_avoidance_time*100.0 << "/" << total_in_microseconds  );
 		ROS_WARN_STREAM("[ltstar] [vanilla] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
 		ROS_WARN_STREAM("[ltstar] [vanilla] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
+		ROS_WARN_STREAM("[ltstar] [vanilla] obstacle_avoidance_calls count " << obstacle_avoidance_calls  );
 		return path;
 	}
 	// ln 19 end

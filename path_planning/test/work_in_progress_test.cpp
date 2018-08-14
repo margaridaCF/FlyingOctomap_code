@@ -67,14 +67,14 @@ namespace LazyThetaStarOctree
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 	}
 
-	TEST(LazyThetaStarTests, LazyThetaStar_CoreDumped_Test)
-	{
-		// (-8.3 -8.3 0.5) to (-7.3 -8.3 0.5)
-		octomap::OcTree octree ("data/offShoreOil_1m.bt");
-		octomath::Vector3 disc_initial(-8.3, -8.3, 0.5);
-		octomath::Vector3 disc_final  (-7.3, -8.3, 0.5);
-		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
-	}
+	// TEST(LazyThetaStarTests, LazyThetaStar_CoreDumped_Test)
+	// {
+	// 	// (-8.3 -8.3 0.5) to (-7.3 -8.3 0.5)
+	// 	octomap::OcTree octree ("data/offShoreOil_1m.bt");
+	// 	octomath::Vector3 disc_initial(-8.3, -8.3, 0.5);
+	// 	octomath::Vector3 disc_final  (-7.3, -8.3, 0.5);
+	// 	testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
+	// }
 
 	// TEST(LazyThetaStarTests, LazyThetaStar_filteredNeighbors_depthException)
 	// {
@@ -99,6 +99,83 @@ namespace LazyThetaStarOctree
 	// }
 
 
+	  TEST(LazyThetaStarTests, Key_ObstacleAvoidance)
+	  {
+	    ros::Publisher marker_pub;
+	    
+		octomath::Vector3 start(  9.85, -5.52, 6.72); 
+		octomath::Vector3 end  ( 25.9,   3.53, 6.64); 
+		octomap::OcTree octree ("data/20180804_karting_tooSlowObstacleAvoidance.bt");
+		bool ignoreUnknown = 0;
+		bool publish = 1;
+		double safety_margin = 5;
+		int max_search_iterations = 150;
+	    ResultSet statistical_data;
+	    double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true, false);
+	  }	
+
+	// TEST(OctreeNeighborTest, NeighborTest_generateFromRealData_Depth13)
+	// {
+	// 	// ARRANGE
+	// 	octomap::OcTree octree ("data/circle_1m.bt");
+	// 	octomath::Vector3 point_coordinates (10.4f, -0.8f, 0.8f);
+	// 	std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
+	// 	octomap::OcTreeKey point_key = octree.coordToKey(point_coordinates);
+	// 	int depth = getNodeDepth_Octomap(point_key, octree);
+	// 	// EXPECT_EQ(13, depth);
+	// 	double node_size = octree.getNodeSize(depth); // in meters
+	// 	// EXPECT_EQ(1.6, node_size);
+	// 	float resolution = octree.getResolution();
+	// 	// EXPECT_FLOAT_EQ(0.2, resolution);
+	// 	// // ACT
+	// 	// octomath::Vector3 cell_center_coordinates = getCellCenter(point_coordinates, octree);
+	// 	generateNeighbors_filter_pointers(neighbors, point_coordinates, node_size, resolution, octree);
+	// 	// printForTesting(neighbors_us);
+	// 	// printForMatlab(neighbors_us);
+	// 	// ASSERT
+	// 	// EXPECT_EQ(cell_center_coordinates, octomath::Vector3 (10.4f, -0.8f, 0.8f));	
+	// 	// EXPECT_EQ(384, neighbors_us.size());
+	// 	// EXPECT_EQ(384, right_answers.size());
+	// 	// ASSERT_TRUE (allNeighborsAreCorrect(neighbors_us, right_answers));
+	// }
+
+	TEST(OctreeNeighborTest, NeighborTest_addTwoEqualToNeighbors)
+	{
+		octomap::OcTree octree ("data/circle_1m.bt");
+		octomath::Vector3 point_coordinates (10.4f, -0.8f, 0.8f);
+		unordered_set_pointers neighbors;
+		addSparseNeighbor(neighbors, 9.5, -1.5, 0.1, octree);
+		ASSERT_EQ(neighbors.size(), 1);
+		addSparseNeighbor(neighbors, 9.5, -1.5, 0.3, octree);
+		ASSERT_EQ(neighbors.size(), 1);
+	}
+
+
+	TEST(OctreeNeighborTest, NeighborTest_addOneToNeighbors)
+	{
+		octomap::OcTree octree ("data/circle_1m.bt");
+		octomath::Vector3 point_coordinates (10.4f, -0.8f, 0.8f);
+		unordered_set_pointers neighbors;
+		addSparseNeighbor(neighbors, 9.5, -1.5, 0.1, octree);
+		ASSERT_EQ(neighbors.size(), 1);
+		
+	}
+
+	TEST(OctreeNeighborTest, NeighborTest_SetOfPointers)
+	{
+		octomath::Vector3 point_coordinates (10.4f, -0.8f, 0.8f);
+		unordered_set_pointers neighbors;
+		std::shared_ptr<octomath::Vector3> toInsert_ptr = std::make_shared<octomath::Vector3> (point_coordinates);
+		bool result = neighbors.insert(toInsert_ptr).second;
+		ASSERT_EQ(neighbors.size(), 1);
+        ASSERT_TRUE( result);
+		toInsert_ptr = std::make_shared<octomath::Vector3> (point_coordinates);
+       	result = neighbors.insert(toInsert_ptr).second;
+		ASSERT_EQ(neighbors.size(), 1);
+        ASSERT_FALSE( result);   
+	}
 }
 
 int main(int argc, char **argv){

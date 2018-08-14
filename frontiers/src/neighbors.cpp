@@ -12,12 +12,20 @@ namespace LazyThetaStarOctree{
         // This is the creation point for neighbors
         // Raw pointers were chosen because they go out of scope since (for the Lazy Theta Star)
         // objects are produce inside finding neighbors methods and later processed in another method
-        // octomath::Vector3* toInsert = new octomath::Vector3(x, y, z);
         std::shared_ptr<octomath::Vector3> toInsert_ptr = std::make_shared<octomath::Vector3> (toInsert);
         if(!neighbors.insert(toInsert_ptr).second)
         {
             ROS_ERROR_STREAM("Could not insert coordinates of neighbor, this should not happen - contact maintainer. @AddIfUnique"); 
         }
+    }
+
+    bool addIfUniqueValue(unordered_set_pointers & neighbors, octomath::Vector3 & toInsert )
+    {
+        // This is the creation point for neighbors
+        // Raw pointers were chosen because they go out of scope since (for the Lazy Theta Star)
+        // objects are produce inside finding neighbors methods and later processed in another method
+        std::shared_ptr<octomath::Vector3> toInsert_ptr = std::make_shared<octomath::Vector3> (toInsert);
+        neighbors.insert(toInsert_ptr);
     }
 
     // bool addIfUnique_new(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, std::shared_ptr<octomath::Vector3> toInsert )
@@ -381,7 +389,7 @@ namespace LazyThetaStarOctree{
         }
     }
 
-    bool addSparseNeighbor(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, double x, double y, double z, octomap::OcTree const& octree)
+    bool addSparseNeighbor(unordered_set_pointers & neighbors, double x, double y, double z, octomap::OcTree const& octree)
     {
         octomath::Vector3 toAdd (x, y, z);
         auto res_node = octree.search(x, y, z);
@@ -394,11 +402,11 @@ namespace LazyThetaStarOctree{
             catch (const std::out_of_range& oor) {
             }
         }
-        addIfUnique(neighbors, toAdd);
+        addIfUniqueValue(neighbors, toAdd);
     }
 
 
-    void generateNeighbors_filter_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+    void generateNeighbors_filter_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, octomap::OcTree const& octree, bool debug_on)
     {
