@@ -381,6 +381,7 @@ namespace LazyThetaStarOctree{
 		bool ignoreUnknown,
 		bool publish)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
 	{
+		log_file << "Inside setVertex" << std::endl;
 		auto start_count = std::chrono::high_resolution_clock::now();
 
 		// // TODO == VERY IMPORTANT == this neighbors are actually the ones calculated before in the main loop so we can just pass that along instead of generating
@@ -392,6 +393,7 @@ namespace LazyThetaStarOctree{
 		// Path 1 by considering the path from s_start to each expanded visible neighbor s′′ of s′
 		if(    !is_flight_corridor_free( octree, *(s->coordinates), *(s->parentNode->coordinates), safety_margin, marker_pub, ignoreUnknown, publish  )   )
 		{
+			log_file << " Z " << std::endl;
 			// g(s)		= length of the shortest path from the start vertex to s found so far.
 			// c(s,s') 	= straight line distance between vertices s and s'	
 			// ln 36 /* Path 1*/
@@ -411,127 +413,29 @@ namespace LazyThetaStarOctree{
 			{
 				try
 				{
-					if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
-					{
-						// auto res_node = octree.search(*n_coordinates);
-						// if(res_node == NULL)
-						// {
-	     				// 	throw std::out_of_range("Skipping cases where unknown neighbors are found.");
-						// }
-						// log_file << "[SetVertex] no line of sight " << *(s->coordinates) << " to " << *n_coordinates << std::endl;
-						continue;
-					}
-					// else
-					// {
-					// 	log_file << "[SetVertex] visible neighbor " << *n_coordinates << std::endl;
-					// }
+			        log_file << " A " << std::endl;
 
-
-					// VISIBLE
-					// closed.at(*n_coordinates) throws exception when there is no such element
-					std::shared_ptr<ThetaStarNode> neighbor_in_closed = closed.at(*n_coordinates);  											// EXPANDED
-					double candidate_g = neighbor_in_closed->distanceFromInitialPoint;
-					double c_distance_beetween_s_and_candidate = weightedDistance(  *(neighbor_in_closed->coordinates), *(s->coordinates)  );
-					// ln 38 (...) g(s') + c(s', s)
-					if(   (candidate_g + c_distance_beetween_s_and_candidate) < min_g    )
-					{
-						// ROS_WARN_STREAM(std::setprecision(10) << "[SetVer] " << candidate_g << " + " << c_distance_beetween_s_and_candidate << " - " << min_g 
-						// 	<< " ==> " <<  (candidate_g + c_distance_beetween_s_and_candidate) - min_g << " > " << scale);
-						// ROS_WARN_STREAM("[SetVer] Previous best value " << min_g << " with parent " << s->parentNode << ": " << *(s->parentNode));
-						min_g = candidate_g + c_distance_beetween_s_and_candidate;
-						candidate_parent = neighbor_in_closed;
-						new_parent_node = true;
-						// ROS_WARN_STREAM("[SetVer] " << neighbor_in_closed << "  ==>  Min_G:" << min_g << " = " << candidate_g << " + " << c_distance_beetween_s_and_candidate);
-						// ROS_WARN_STREAM("[SetVer] " << neighbor_in_closed << ": " << *neighbor_in_closed << "  ==>  ");
-						// ROS_WARN_STREAM("[SetVer]  Min_G:" << candidate_g << " from start to " << *(neighbor_in_closed->coordinates) );
-						// ROS_WARN_STREAM("[SetVer]  c    :" << c_distance_beetween_s_and_candidate << " from " << *(neighbor_in_closed->coordinates) << " to " << *(s->coordinates)   );
-					}
-				}
-				catch(const std::out_of_range& oor)
-				{
-					// ROS_WARN_STREAM("[N] " << *n_coordinates << " is unknown space.");
-				} // closed.at(*n_coordinates) throws exception when there is no such element
-			}
-			if(new_parent_node)
-			{
-				// ROS_WARN_STREAM("[SetVer] For " << s << ": " << *s << " parent will now be " << candidate_parent << ": " << *candidate_parent);
-				// There is a parent for path 1
-				s->parentNode = candidate_parent;
-				open.changeDistanceFromInitialPoint(min_g, s);
-			}
-			else
-			{
-				ROS_ERROR_STREAM("No path 1 was found, adding to closed a bad node for " << *(s->coordinates));
-				throw std::out_of_range("No path 1 was found, adding to closed a bad node  " );
-				// log_file << "No path 1 was found, adding to closed a bad node for " << *(s->coordinates) << std::endl;
-				return false;
-			}
-		}
-		// ln 39 end
-
-		auto finish_count = std::chrono::high_resolution_clock::now();
-		auto time_span = finish_count - start_count;
-		setVertex_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
-		return true;
-	}
-
-	bool setVertex_filterNeighbors(
-		octomap::OcTree 										& 	octree, 
-		std::shared_ptr<ThetaStarNode> 							& 		s, 
-		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
-		Open 													& 		open, 
-		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
-		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	& 		neighbors_sparse,
-		std::ofstream & log_file,
-		double safety_margin,
-		ros::Publisher const& marker_pub,
-		const double sidelength_lookup_table[],
-		bool ignoreUnknown,
-		bool publish)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
-	{
-		auto start_count = std::chrono::high_resolution_clock::now();
-		log_file << " setVertex_filterNeighbors " << std::endl;
-		// // TODO == VERY IMPORTANT == this neighbors are actually the ones calculated before in the main loop so we can just pass that along instead of generating
-		// // There is a choice to be made here, 
-		// //  -> at this point we only care about line of sight and not about if obstacle/unknown distinction
-		// //  -> passing over the neighbors is one addicional parameter that would increse the difficulty of understanding the code and one more facto to debug
-		// //  -> will leave this for if implementation is not fast enough
-		// ln 35 if NOT lineofsight(parent(s), s) then
-		// Path 1 by considering the path from s_start to each expanded visible neighbor s′′ of s′
-		if(    !is_flight_corridor_free( octree, *(s->coordinates), *(s->parentNode->coordinates), safety_margin, marker_pub, ignoreUnknown, publish  )   )
-		{
-			// g(s)		= length of the shortest path from the start vertex to s found so far.
-			// c(s,s') 	= straight line distance between vertices s and s'	
-			// ln 36 /* Path 1*/
-			// ln 37 parent(s) := argmin_(s' € (nghb_vis  intersection  closed)_) evaluating ( g(s') + c(s', s) );
-			// ln 38 g(s) := min_s'€ngbr_vis(s) intersection closed ( g(s') + c(s', s) );
-			double min_g = std::numeric_limits<double>::max();
-			std::shared_ptr<ThetaStarNode> candidate_parent;
-			bool new_parent_node = false;
-			if(neighbors.empty())
-			{
-				// ROS_WARN_STREAM("No neighbor was found.");
-				return true;
-			}
-			double cell_size;
-			// each expanded & visible & neighbor of s'
-			for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)																	// NEIGHBOR
-			{
-				try
-				{
 					auto res_node = octree.search(n_coordinates->x(), n_coordinates->y(), n_coordinates->z());
+			        log_file << " B " << std::endl;
+			        
 					if(!res_node)
 					{
-						// ROS_WARN_STREAM("[1] The coordinates " << *(end) << " do not correspond to a node in this octree  ==> this neighbor is unknown");
+						ROS_WARN_STREAM("[1] The coordinates " << *(n_coordinates) << " do not correspond to a node in this octree  ==> this neighbor is unknown");
 						// continue;
-						return false;
+						continue;
 					}
+			        log_file << " C " << std::endl;
+			        
 					updatePointerToCellCenterAndFindSize(n_coordinates, octree, cell_size, sidelength_lookup_table);
-					neighbors_sparse.insert(n_coordinates);
-					log_file << " neighbors_sparse now has " << neighbors_sparse.size() << " elememnts." << std::endl;
+					// neighbors_sparse.insert(n_coordinates);
+			        log_file << " D " << std::endl;
+			        
+					if(!neighbors_sparse.insert(n_coordinates).second)
+			        {
+			            ROS_ERROR_STREAM("Could not insert coordinates of filtered neighbor, this should not happen - contact maintainer. @setVertex_filterNeighbors"); 
+			        }
+			        log_file << " inserting inside setvertex size " << neighbors_sparse.size() << std::endl;
 					bool normalizeToVisibleEndCenter_result = is_flight_corridor_free(octree, *(s->coordinates), *n_coordinates, safety_margin, marker_pub, ignoreUnknown, publish);
-															// 	start 			end
-					// if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
 					if(!normalizeToVisibleEndCenter_result)
 					{
 						// auto res_node = octree.search(*n_coordinates);
@@ -595,6 +499,135 @@ namespace LazyThetaStarOctree{
 		setVertex_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
 		return true;
 	}
+
+	// bool setVertex_filterNeighbors(
+	// 	octomap::OcTree 										& 	octree, 
+	// 	std::shared_ptr<ThetaStarNode> 							& 		s, 
+	// 	std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
+	// 	Open 													& 		open, 
+	// 	std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
+	// 	std::unordered_set<std::shared_ptr<octomath::Vector3>> 	& 		neighbors_sparse,
+	// 	std::ofstream & log_file,
+	// 	double safety_margin,
+	// 	ros::Publisher const& marker_pub,
+	// 	const double sidelength_lookup_table[],
+	// 	bool ignoreUnknown,
+	// 	bool publish)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
+	// {
+	// 	auto start_count = std::chrono::high_resolution_clock::now();
+	// 	log_file << " setVertex_filterNeighbors original neighbor count " << neighbors.size() << std::endl;
+	// 	// // TODO == VERY IMPORTANT == this neighbors are actually the ones calculated before in the main loop so we can just pass that along instead of generating
+	// 	// // There is a choice to be made here, 
+	// 	// //  -> at this point we only care about line of sight and not about if obstacle/unknown distinction
+	// 	// //  -> passing over the neighbors is one addicional parameter that would increse the difficulty of understanding the code and one more facto to debug
+	// 	// //  -> will leave this for if implementation is not fast enough
+	// 	// ln 35 if NOT lineofsight(parent(s), s) then
+	// 	// Path 1 by considering the path from s_start to each expanded visible neighbor s′′ of s′
+	// 	if(    !is_flight_corridor_free( octree, *(s->coordinates), *(s->parentNode->coordinates), safety_margin, marker_pub, ignoreUnknown, publish  )   )
+	// 	{
+	// 		// g(s)		= length of the shortest path from the start vertex to s found so far.
+	// 		// c(s,s') 	= straight line distance between vertices s and s'	
+	// 		// ln 36 /* Path 1*/
+	// 		// ln 37 parent(s) := argmin_(s' € (nghb_vis  intersection  closed)_) evaluating ( g(s') + c(s', s) );
+	// 		// ln 38 g(s) := min_s'€ngbr_vis(s) intersection closed ( g(s') + c(s', s) );
+	// 		double min_g = std::numeric_limits<double>::max();
+	// 		std::shared_ptr<ThetaStarNode> candidate_parent;
+	// 		bool new_parent_node = false;
+	// 		if(neighbors.empty())
+	// 		{
+	// 			// ROS_WARN_STREAM("No neighbor was found.");
+	// 			return true;
+	// 		}
+	// 		double cell_size;
+	// 		// each expanded & visible & neighbor of s'
+	// 		for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)																	// NEIGHBOR
+	// 		{
+	// 		    log_file << " Filtered elements total " << neighbors_sparse.size() << std::endl;
+	// 			try
+	// 			{
+	// 				auto res_node = octree.search(n_coordinates->x(), n_coordinates->y(), n_coordinates->z());
+	// 				if(!res_node)
+	// 				{
+	// 					// ROS_WARN_STREAM("[1] The coordinates " << *(end) << " do not correspond to a node in this octree  ==> this neighbor is unknown");
+	// 					// continue;
+	// 					return false;
+	// 				}
+	// 				updatePointerToCellCenterAndFindSize(n_coordinates, octree, cell_size, sidelength_lookup_table);
+	// 				if(!neighbors_sparse.insert(n_coordinates).second)
+	// 		        {
+	// 		            ROS_ERROR_STREAM("Could not insert coordinates of filtered neighbor, this should not happen - contact maintainer. @setVertex_filterNeighbors"); 
+	// 		        }
+	// 				log_file << " neighbors_sparse now has " << neighbors_sparse.size() << " elememnts." << std::endl;
+	// 				bool normalizeToVisibleEndCenter_result = is_flight_corridor_free(octree, *(s->coordinates), *n_coordinates, safety_margin, marker_pub, ignoreUnknown, publish);
+	// 														// 	start 			end
+	// 				// if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
+	// 				if(!normalizeToVisibleEndCenter_result)
+	// 				{
+	// 					// auto res_node = octree.search(*n_coordinates);
+	// 					// if(res_node == NULL)
+	// 					// {
+	//      				// 	throw std::out_of_range("Skipping cases where unknown neighbors are found.");
+	// 					// }
+	// 					// log_file << "[SetVertex] no line of sight " << *(s->coordinates) << " to " << *n_coordinates << std::endl;
+	// 					continue;
+	// 				}
+	// 				// else
+	// 				// {
+	// 				// 	log_file << "[SetVertex] visible neighbor " << *n_coordinates << std::endl;
+	// 				// }
+
+
+	// 				// VISIBLE
+	// 				// closed.at(*n_coordinates) throws exception when there is no such element
+	// 				std::shared_ptr<ThetaStarNode> neighbor_in_closed = closed.at(*n_coordinates);  											// EXPANDED
+	// 				double candidate_g = neighbor_in_closed->distanceFromInitialPoint;
+	// 				double c_distance_beetween_s_and_candidate = weightedDistance(  *(neighbor_in_closed->coordinates), *(s->coordinates)  );
+	// 				// ln 38 (...) g(s') + c(s', s)
+	// 				if(   (candidate_g + c_distance_beetween_s_and_candidate) < min_g    )
+	// 				{
+	// 					// ROS_WARN_STREAM(std::setprecision(10) << "[SetVer] " << candidate_g << " + " << c_distance_beetween_s_and_candidate << " - " << min_g 
+	// 					// 	<< " ==> " <<  (candidate_g + c_distance_beetween_s_and_candidate) - min_g << " > " << scale);
+	// 					// ROS_WARN_STREAM("[SetVer] Previous best value " << min_g << " with parent " << s->parentNode << ": " << *(s->parentNode));
+	// 					min_g = candidate_g + c_distance_beetween_s_and_candidate;
+	// 					candidate_parent = neighbor_in_closed;
+	// 					new_parent_node = true;
+	// 					// ROS_WARN_STREAM("[SetVer] " << neighbor_in_closed << "  ==>  Min_G:" << min_g << " = " << candidate_g << " + " << c_distance_beetween_s_and_candidate);
+	// 					// ROS_WARN_STREAM("[SetVer] " << neighbor_in_closed << ": " << *neighbor_in_closed << "  ==>  ");
+	// 					// ROS_WARN_STREAM("[SetVer]  Min_G:" << candidate_g << " from start to " << *(neighbor_in_closed->coordinates) );
+	// 					// ROS_WARN_STREAM("[SetVer]  c    :" << c_distance_beetween_s_and_candidate << " from " << *(neighbor_in_closed->coordinates) << " to " << *(s->coordinates)   );
+	// 				}
+	// 			}
+	// 			catch(const std::out_of_range& oor)
+	// 			{
+	// 				// ROS_WARN_STREAM("[N] " << *n_coordinates << " is unknown space.");
+	// 			} // closed.at(*n_coordinates) throws exception when there is no such element
+	// 		}
+	// 		if(new_parent_node)
+	// 		{
+	// 			// ROS_WARN_STREAM("[SetVer] For " << s << ": " << *s << " parent will now be " << candidate_parent << ": " << *candidate_parent);
+	// 			// There is a parent for path 1
+	// 			s->parentNode = candidate_parent;
+	// 			open.changeDistanceFromInitialPoint(min_g, s);
+	// 		}
+	// 		else
+	// 		{
+	// 			ROS_ERROR_STREAM("No path 1 was found, adding to closed a bad node for " << *(s->coordinates));
+	// 			throw std::out_of_range("No path 1 was found, adding to closed a bad node  " );
+	// 			// log_file << "No path 1 was found, adding to closed a bad node for " << *(s->coordinates) << std::endl;
+	// 			return false;
+	// 		}
+	// 	}
+	// 	else
+	// 	{
+	// 		log_file << " Flight corridor occupied between s and its parent" << std::endl;
+	// 	}
+	// 	// ln 39 end
+
+	// 	auto finish_count = std::chrono::high_resolution_clock::now();
+	// 	auto time_span = finish_count - start_count;
+	// 	setVertex_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
+	// 	return true;
+	// }
 
 
 	/**
@@ -776,15 +809,7 @@ namespace LazyThetaStarOctree{
 		bool publish)
 	{
 		std::unordered_set<std::shared_ptr<octomath::Vector3>> * neighbors_in_use;
-		bool (*setVertex_function)( octomap::OcTree &, std::shared_ptr<ThetaStarNode>&, std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  , Open &, std::unordered_set<std::shared_ptr<octomath::Vector3>> const&, std::unordered_set<std::shared_ptr<octomath::Vector3>>&, std::ofstream&, double, ros::Publisher const&, const double[], bool, bool );
-		if(filter_sparse_neighbors)
-		{
-			setVertex_function = &setVertex_filterNeighbors;
-		}
-		else
-		{
-			setVertex_function = &setVertex;
-		}
+		
 		// std::chrono::high_resolution_clock::time_point start_count, finish_count;
 		int generate_neighbors_time = 0;
 		obstacle_avoidance_time = 0;
@@ -792,7 +817,7 @@ namespace LazyThetaStarOctree{
 		updateVertex_time = 0;
 
 		std::ofstream log_file;
-    	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
+    	log_file.open("/home/mfaria/Flying_Octomap_code/src/data/out.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
 		auto start = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_search_iterations);
@@ -924,21 +949,13 @@ namespace LazyThetaStarOctree{
 			auto time_span = finish_count - start_count;
 			generate_neighbors_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
 
-			log_file << " found " << neighbors.size() << " neighbors." << std::endl;
-			if(filter_sparse_neighbors)
-			{
-				neighbors_in_use = &neighbors_sparse;
-			}
-			else
-			{
-			}
+			
 
 			// ln 8 SetVertex(s);
 			// It is it's own parent, this happens on the first node when the initial position is the center of the voxel (by chance)
 			if(s->hasSameCoordinates(s->parentNode, octree.getResolution()) == false)
 			{
 				bool ignoreUnknown = weightedDistance(*(s->coordinates), cell_center_coordinates_goal) < safety_margin;
-				log_file << " executing ln 8 " << std::endl;
 				if (!setVertex(octree, s, closed, open, neighbors, neighbors_sparse, log_file, safety_margin, marker_pub, sidelength_lookup_table, ignoreUnknown, publish))
 				{
 					octree.writeBinary(folder_name + "/octree_noPath1s.bt");
@@ -946,18 +963,19 @@ namespace LazyThetaStarOctree{
 				}
 				if(filter_sparse_neighbors)
 				{
-					neighbors_in_use = &neighbors_sparse;
+					neighbors_in_use = &neighbors;
 				}
 				else
 				{
 					neighbors_in_use = &neighbors;
 				}
-				log_file << " filtered neighbors are a total of " << neighbors.size() << "." << std::endl;
+				log_file << " filtered neighbors are a total of " << neighbors_sparse.size() << "." << std::endl;
 			}
 			else
 			{
 				neighbors_in_use = &neighbors;
 			}
+			log_file << " neighbors are a total of " << neighbors_in_use->size() << "." << std::endl;
 			// ln 9 if s = s_goal then 
 			if( s->hasSameCoordinates(disc_final_cell_center, octree.getResolution()/2) )
 			{
@@ -1113,11 +1131,11 @@ namespace LazyThetaStarOctree{
 		disc_initial_cell_center = NULL;
 		std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 		int total_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(time_lapse).count();
-		ROS_WARN_STREAM("[ltstar] [vanilla] Total time " << total_in_microseconds << " microseconds.");
-		ROS_WARN_STREAM("[ltstar] [vanilla] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [vanilla] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "% = " << obstacle_avoidance_time << "*100/" << total_in_microseconds << " = " << obstacle_avoidance_time*100.0 << "/" << total_in_microseconds  );
-		ROS_WARN_STREAM("[ltstar] [vanilla] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [vanilla] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [vanilla] Total time " << total_in_microseconds << " microseconds.");
+		// ROS_WARN_STREAM("[ltstar] [vanilla] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [vanilla] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "% = " << obstacle_avoidance_time << "*100/" << total_in_microseconds << " = " << obstacle_avoidance_time*100.0 << "/" << total_in_microseconds  );
+		// ROS_WARN_STREAM("[ltstar] [vanilla] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [vanilla] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
 		return path;
 	}
 	// ln 19 end
