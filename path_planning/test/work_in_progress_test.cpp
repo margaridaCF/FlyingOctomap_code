@@ -105,7 +105,7 @@ namespace LazyThetaStarOctree
 	    
 		octomath::Vector3 start(  9.85, -5.52, 6.72); 
 		octomath::Vector3 end  ( 25.9,   3.53, 6.64); 
-		octomap::OcTree octree ("data/20180804_karting_tooSlowObstacleAvoidance.bt");
+		octomap::OcTree octree ("data/karting.bt");
 		bool ignoreUnknown = 0;
 		bool publish = 1;
 		double safety_margin = 5;
@@ -114,6 +114,25 @@ namespace LazyThetaStarOctree
 	    double sidelength_lookup_table  [octree.getTreeDepth()];
 	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true, false);
+		ASSERT_GT(resulting_path.size(), 0);
+	  }	
+
+	  TEST(LazyThetaStarTests, Key_ObstacleAvoidance_original)
+	  {
+	    ros::Publisher marker_pub;
+	    
+		octomath::Vector3 start(  9.85, -5.52, 6.72); 
+		octomath::Vector3 end  ( 25.9,   3.53, 6.64); 
+		octomap::OcTree octree ("data/karting.bt");
+		bool ignoreUnknown = 0;
+		bool publish = 1;
+		double safety_margin = 5;
+		int max_search_iterations = 150;
+	    ResultSet statistical_data;
+	    double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_original(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true, false);
+		ASSERT_GT(resulting_path.size(), 0);
 	  }	
 
 	// TEST(OctreeNeighborTest, NeighborTest_generateFromRealData_Depth13)
@@ -141,7 +160,7 @@ namespace LazyThetaStarOctree
 	// 	// ASSERT_TRUE (allNeighborsAreCorrect(neighbors_us, right_answers));
 	// }
 
-	TEST(OctreeNeighborTest, NeighborTest_addTwoEqualToNeighbors)
+	/*TEST(OctreeNeighborTest, NeighborTest_addTwoEqualToNeighbors)
 	{
 		octomap::OcTree octree ("data/circle_1m.bt");
 		octomath::Vector3 point_coordinates (10.4f, -0.8f, 0.8f);
@@ -175,7 +194,7 @@ namespace LazyThetaStarOctree
        	result = neighbors.insert(toInsert_ptr).second;
 		ASSERT_EQ(neighbors.size(), 1);
         ASSERT_FALSE( result);   
-	}
+	}*/
 }
 
 int main(int argc, char **argv){
