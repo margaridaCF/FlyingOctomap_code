@@ -12,7 +12,7 @@
 
 namespace LazyThetaStarOctree{
 	bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, float x, float y, float z );
-
+    bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, octomath::Vector3 & toInsert );
 	// TODO reduce neighbor number by finding cell center and removing duplicates
 	void generateNeighbors_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
 		octomath::Vector3 const& center_coords, 
@@ -20,6 +20,9 @@ namespace LazyThetaStarOctree{
     void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, double sensor_angle_rad, bool debug_on = false);
+    void generateNeighbors_filter_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution, octomap::OcTree const& octree, bool debug_on = false);
     // void generateNeighbors_pointers_sparse(octomap::OcTree const& octree, double const* lookup_table, std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
         // octomath::Vector3 const& center_coords, 
         // float node_size, float resolution, bool debug_on = false);

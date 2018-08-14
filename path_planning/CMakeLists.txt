@@ -67,11 +67,11 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(collectResults ${catkin_LIBRARIES} )
 
-  ## Octree @ work in progress ##
-  catkin_add_gtest(workInProgress 
-    test/work_in_progress_test.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib )
+  # ## Octree @ work in progress ##
+  # catkin_add_gtest(workInProgress 
+  #   test/work_in_progress_test.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib )
 
   # ## Octree @ depth and size ##
   # catkin_add_gtest(depthSizeTest 
@@ -86,11 +86,11 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(openTests ${catkin_LIBRARIES} ltStar_lib)
 
-  # # # Lazy Theta Star ##
-  # catkin_add_gtest(ltstarTests 
-  #   test/lazyTheta_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarTests ${catkin_LIBRARIES} ltStar_lib)
+  ## Lazy Theta Star ##
+  catkin_add_gtest(ltstarTests 
+    test/lazyTheta_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarTests ${catkin_LIBRARIES} ltStar_lib)
   # catkin_add_gtest(ltstarTestsFixture 
   #   test/lazyTheta_tests_Fixture.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)

@@ -787,7 +787,8 @@ namespace LazyThetaStarOctree{
 			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
 
 			auto start_count = std::chrono::high_resolution_clock::now();
-			generateNeighbors_pointers(neighbors, *(s->coordinates), s->cell_size, resolution);
+			// generateNeighbors_pointers(neighbors, *(s->coordinates), s->cell_size, resolution);
+			generateNeighbors_filter_pointers(neighbors, *(s->coordinates), s->cell_size, resolution, octree);
 			auto finish_count = std::chrono::high_resolution_clock::now();
 			auto time_span = finish_count - start_count;
 			generate_neighbors_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
@@ -820,13 +821,14 @@ namespace LazyThetaStarOctree{
 			{
 				rviz_interface::publish_closed(*(s->coordinates), marker_pub);
 			}
+#endif
 			if(publish && print_resulting_path)
 			{
 				log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
 				
 				writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
 			}
-#endif
+
 			// TODO check code repetition to go over the neighbors of s
 			double cell_size = 0;
 			// ln 12 foreach s' € nghbr_vis(s) do
