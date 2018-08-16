@@ -287,15 +287,15 @@ namespace rviz_interface
         marker_pub.publish(marker_array);
     }
 
-    void publish_s(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
+    void publish_s(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double cell_size)
     {
         octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
-        float red = 0.9f;
-        float green = 0.5f;
-        float blue = 1.0f;
+        float red = 0.4f;
+        float green = 0.7f;
+        float blue = 0.4f;
         visualization_msgs::Marker marker;
         int id = 5000 + ( std::rand() % ( 999 + 1 ) );
-        build_small_marker(candidate_vec3, marker, red,  green,  blue, "s", id);
+        build_small_marker(candidate_vec3, marker, red,  green,  blue, "s", id, cell_size, 0.4);
         visualization_msgs::MarkerArray marker_array;
         marker_array.markers.push_back(marker);
         marker_pub.publish(marker_array);   
@@ -504,7 +504,7 @@ namespace rviz_interface
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
         marker.ns = "path_unreachable";
-        marker.id = 4000 + id;
+        marker.id = id;
         marker.type = shape;
         geometry_msgs::Point goal_point;
         goal_point.x = goal.x();
@@ -556,8 +556,8 @@ namespace rviz_interface
         start_point.z = start.z();
         marker.points.push_back(start_point);
         marker.pose.orientation.w = 1.0;
-        marker.scale.x = 0.01;
-        marker.scale.y = 0.03;
+        marker.scale.x = 0.02;
+        marker.scale.y = 0.06;
         marker.scale.z = 0;
         marker.color.r = 0;
         marker.color.g = 255;   

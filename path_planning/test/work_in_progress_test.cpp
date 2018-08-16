@@ -12,60 +12,60 @@
 namespace LazyThetaStarOctree
 {
 
-	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_search_iterations = 55)
-	{
-		double sidelength_lookup_table  [octree.getTreeDepth()];
-	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-		ros::Publisher marker_pub;
-		double safety_margin = 0.1;
-		// Initial node is not occupied
-		octomap::OcTreeNode* originNode = octree.search(disc_initial);
-		ASSERT_TRUE(originNode);
-		ASSERT_FALSE(octree.isNodeOccupied(originNode));
-		// Final node is not occupied
-		octomap::OcTreeNode* finalNode = octree.search(disc_final);
-		ASSERT_TRUE(finalNode);
-		ASSERT_FALSE(octree.isNodeOccupied(finalNode));
-		// The path is clear from start to finish
-		octomath::Vector3 direction (1, 0, 0);
-		octomath::Vector3 end;
-		bool isOccupied = octree.castRay(disc_initial, direction, end, false, weightedDistance(disc_initial, disc_final));
-		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
+	// void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
+	// 	int const& max_search_iterations = 55)
+	// {
+	// 	double sidelength_lookup_table  [octree.getTreeDepth()];
+	//    	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+	// 	ros::Publisher marker_pub;
+	// 	double safety_margin = 0.1;
+	// 	// Initial node is not occupied
+	// 	octomap::OcTreeNode* originNode = octree.search(disc_initial);
+	// 	ASSERT_TRUE(originNode);
+	// 	ASSERT_FALSE(octree.isNodeOccupied(originNode));
+	// 	// Final node is not occupied
+	// 	octomap::OcTreeNode* finalNode = octree.search(disc_final);
+	// 	ASSERT_TRUE(finalNode);
+	// 	ASSERT_FALSE(octree.isNodeOccupied(finalNode));
+	// 	// The path is clear from start to finish
+	// 	octomath::Vector3 direction (1, 0, 0);
+	// 	octomath::Vector3 end;
+	// 	bool isOccupied = octree.castRay(disc_initial, direction, end, false, weightedDistance(disc_initial, disc_final));
+	// 	ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
-		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true, true);
-		// NO PATH
-		ASSERT_NE(resulting_path.size(), 0);
-		// CANONICAL: straight line, no issues
-		// 2 waypoints: The center of start voxel & The center of the goal voxel
-		double cell_size_goal = -1;
-		octomath::Vector3 cell_center_coordinates_goal = disc_final;
-		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
-		ASSERT_LT(      resulting_path.back().distance( cell_center_coordinates_goal ),  cell_size_goal   );
-		double cell_size_start = -1;
-		octomath::Vector3 cell_center_coordinates_start = disc_initial;
-		updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
-		ASSERT_LT(      resulting_path.begin()->distance( cell_center_coordinates_start ),  cell_size_start   );
-		// LONG PATHS: 
-		if(resulting_path.size() > 2)
-		{
-			std::list<octomath::Vector3>::iterator it = resulting_path.begin();
-			octomath::Vector3 previous = *it;
-			++it;
-			// Check that there are no redundant parts in the path
-			while(it != resulting_path.end())
-			{
-				ROS_INFO_STREAM("Step: " << *it);
-				bool dimensions_y_or_z_change = (previous.y() != it->y()) || (previous.z() != it->z());
-				EXPECT_TRUE(dimensions_y_or_z_change) << "(" << previous.y() << " != " << it->y() << ") || (" << previous.z() << " != " << it->z() << ")";
-				EXPECT_TRUE(dimensions_y_or_z_change) << " this should be a straight line. Find out why parent node is being replaced.";
-				previous = *it;
-				++it;
-			}
-		}
-		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
-	}
+	// 	ResultSet statistical_data;
+	// 	std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true, true);
+	// 	// NO PATH
+	// 	ASSERT_NE(resulting_path.size(), 0);
+	// 	// CANONICAL: straight line, no issues
+	// 	// 2 waypoints: The center of start voxel & The center of the goal voxel
+	// 	double cell_size_goal = -1;
+	// 	octomath::Vector3 cell_center_coordinates_goal = disc_final;
+	// 	updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
+	// 	ASSERT_LT(      resulting_path.back().distance( cell_center_coordinates_goal ),  cell_size_goal   );
+	// 	double cell_size_start = -1;
+	// 	octomath::Vector3 cell_center_coordinates_start = disc_initial;
+	// 	updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
+	// 	ASSERT_LT(      resulting_path.begin()->distance( cell_center_coordinates_start ),  cell_size_start   );
+	// 	// LONG PATHS: 
+	// 	if(resulting_path.size() > 2)
+	// 	{
+	// 		std::list<octomath::Vector3>::iterator it = resulting_path.begin();
+	// 		octomath::Vector3 previous = *it;
+	// 		++it;
+	// 		// Check that there are no redundant parts in the path
+	// 		while(it != resulting_path.end())
+	// 		{
+	// 			ROS_INFO_STREAM("Step: " << *it);
+	// 			bool dimensions_y_or_z_change = (previous.y() != it->y()) || (previous.z() != it->z());
+	// 			EXPECT_TRUE(dimensions_y_or_z_change) << "(" << previous.y() << " != " << it->y() << ") || (" << previous.z() << " != " << it->z() << ")";
+	// 			EXPECT_TRUE(dimensions_y_or_z_change) << " this should be a straight line. Find out why parent node is being replaced.";
+	// 			previous = *it;
+	// 			++it;
+	// 		}
+	// 	}
+	// 	ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+	// }
 
 	// TEST(LazyThetaStarTests, LazyThetaStar_CoreDumped_Test)
 	// {
@@ -98,42 +98,54 @@ namespace LazyThetaStarOctree
 	// 	}
 	// }
 
-
-	  TEST(LazyThetaStarTests, Key_ObstacleAvoidance)
-	  {
-	    ros::Publisher marker_pub;
-	    
-		octomath::Vector3 start(  9.85, -5.52, 6.72); 
-		octomath::Vector3 end  ( 25.9,   3.53, 6.64); 
-		octomap::OcTree octree ("data/karting.bt");
-		bool ignoreUnknown = 0;
-		bool publish = 1;
-		double safety_margin = 5;
-		int max_search_iterations = 150;
-	    ResultSet statistical_data;
-	    double sidelength_lookup_table  [octree.getTreeDepth()];
-	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true, false);
+	void benchmarkSparseVanilla(octomap::OcTree   & octree, octomath::Vector3 & start, octomath::Vector3 & end, double safety_margin, int max_search_seconds)
+	{
+		ROS_INFO_STREAM("=> Distance " << weightedDistance(start, end));
+		ros::Publisher marker_pub;
+		ResultSet statistical_data;
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+			LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
 		ASSERT_GT(resulting_path.size(), 0);
-	  }	
-
-	  TEST(LazyThetaStarTests, Key_ObstacleAvoidance_original)
-	  {
-	    ros::Publisher marker_pub;
-	    
-		octomath::Vector3 start(  9.85, -5.52, 6.72); 
-		octomath::Vector3 end  ( 25.9,   3.53, 6.64); 
-		octomap::OcTree octree ("data/karting.bt");
-		bool ignoreUnknown = 0;
-		bool publish = 1;
-		double safety_margin = 5;
-		int max_search_iterations = 150;
-	    ResultSet statistical_data;
-	    double sidelength_lookup_table  [octree.getTreeDepth()];
-	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_original(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_iterations, true, false);
+		resulting_path.clear();
+		resulting_path = lazyThetaStar_original(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
 		ASSERT_GT(resulting_path.size(), 0);
-	  }	
+	}
+
+
+	// TEST(LazyThetaStarTests, Benchmark_20180808_karting)
+	// {
+	// 	octomath::Vector3 start(  9.85, -5.52, 6.72); 
+	// 	octomath::Vector3 end  ( 25.9,   3.53, 6.64); 
+	// 	double safety_margin = 5;
+	// 	int max_search_seconds = 360;
+	// 	ROS_WARN_STREAM("dataset: 20180808_karting.bt");
+	// 	octomap::OcTree octree ("data/20180808_karting.bt");
+	// 	benchmarkSparseVanilla(octree, start, end, safety_margin, max_search_seconds);
+	// }	
+
+	// TEST(LazyThetaStarTests, Benchmark_20180731_octree_noPath)
+	// {
+	// 	octomath::Vector3 start(  9.9, -5.5, 6.7); 
+	// 	octomath::Vector3 end  ( 26,   3.5, 6.6); 
+	// 	double safety_margin = 5;
+	// 	int max_search_seconds = 360;
+	// 	ROS_WARN_STREAM("dataset: 20180731_octree_noPath.bt");
+	// 	octomap::OcTree octree ("data/20180731_octree_noPath.bt");
+	// 	benchmarkSparseVanilla(octree, start, end, safety_margin, max_search_seconds);
+	// }
+
+	TEST(LazyThetaStarTests, Benchmark_20180808_1026_octree_noPath)
+	{
+		octomath::Vector3 start  ( 26, -0.84, 8); 
+		octomath::Vector3 end    ( 17, -6.5,  7); 
+		double safety_margin = 5;
+		int max_search_seconds = 360;
+		ROS_WARN_STREAM("dataset: 20180808_1026_octree_noPath.bt ");
+		octomap::OcTree octree ("data/20180808_1026_octree_noPath.bt");
+		benchmarkSparseVanilla(octree, start, end, safety_margin, max_search_seconds);
+	}
+
 
 	// TEST(OctreeNeighborTest, NeighborTest_generateFromRealData_Depth13)
 	// {

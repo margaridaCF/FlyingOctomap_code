@@ -660,7 +660,6 @@ namespace LazyThetaStarOctree{
 		setVertex_time = 0;
 		updateVertex_time = 0;
 
-		std::ofstream log_file;
     	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
 		auto start = std::chrono::high_resolution_clock::now();
@@ -783,7 +782,7 @@ namespace LazyThetaStarOctree{
 				s_point.x = s->coordinates->x();
 				s_point.y = s->coordinates->y();
 				s_point.z = s->coordinates->z();
-				rviz_interface::publish_s(s_point, marker_pub);
+				rviz_interface::publish_s(s_point, marker_pub, s->cell_size);
 			}
 #endif
 			resultSet.addOcurrance(s->cell_size);
@@ -964,12 +963,12 @@ namespace LazyThetaStarOctree{
 		disc_initial_cell_center = NULL;
 		std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 		int total_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(time_lapse).count();
-		ROS_WARN_STREAM("[ltstar] [sparse] Total time " << total_in_microseconds << " microseconds.");
-		ROS_WARN_STREAM("[ltstar] [sparse] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [sparse] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "% = " << obstacle_avoidance_time << "*100/" << total_in_microseconds << " = " << obstacle_avoidance_time*100.0 << "/" << total_in_microseconds  );
-		ROS_WARN_STREAM("[ltstar] [sparse] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [sparse] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [sparse] obstacle_avoidance_calls count " << obstacle_avoidance_calls  );
+		ROS_WARN_STREAM("[ltstar] [sparse ] Total time " << total_in_microseconds << " microseconds.");
+		// ROS_WARN_STREAM("[ltstar] [sparse ] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+		ROS_WARN_STREAM("[ltstar] [sparse ] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "% " );
+		// ROS_WARN_STREAM("[ltstar] [sparse ] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [sparse ] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
+		ROS_WARN_STREAM("[ltstar] [sparse ] obstacle_avoidance_calls count " << obstacle_avoidance_calls  );
 		return path;
 	}
 	// ln 19 end
@@ -1243,7 +1242,7 @@ namespace LazyThetaStarOctree{
 				s_point.x = s->coordinates->x();
 				s_point.y = s->coordinates->y();
 				s_point.z = s->coordinates->z();
-				rviz_interface::publish_s(s_point, marker_pub);
+				rviz_interface::publish_s(s_point, marker_pub, s->cell_size);
 			}
 #endif
 			resultSet.addOcurrance(s->cell_size);
@@ -1423,10 +1422,10 @@ namespace LazyThetaStarOctree{
 		std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 		int total_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(time_lapse).count();
 		ROS_WARN_STREAM("[ltstar] [vanilla] Total time " << total_in_microseconds << " microseconds.");
-		ROS_WARN_STREAM("[ltstar] [vanilla] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [vanilla] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "% = " << obstacle_avoidance_time << "*100/" << total_in_microseconds << " = " << obstacle_avoidance_time*100.0 << "/" << total_in_microseconds  );
-		ROS_WARN_STREAM("[ltstar] [vanilla] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [vanilla] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [vanilla] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+		ROS_WARN_STREAM("[ltstar] [vanilla] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "%  " );
+		// ROS_WARN_STREAM("[ltstar] [vanilla] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [vanilla] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
 		ROS_WARN_STREAM("[ltstar] [vanilla] obstacle_avoidance_calls count " << obstacle_avoidance_calls  );
 		return path;
 	}
