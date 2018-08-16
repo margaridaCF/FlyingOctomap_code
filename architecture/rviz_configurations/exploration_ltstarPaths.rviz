@@ -4,9 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Frontiers1
         - /Frontiers1/Namespaces1
-        - /Geofence1
         - /Geofence1/Namespaces1
         - /Frontiers2/Namespaces1
         - /Lazy Theta Star1
@@ -18,6 +16,7 @@ Panels:
   - Class: rviz/Tool Properties
     Expanded:
       - /Interact1
+      - /Publish Point1
     Name: Tool Properties
     Splitter Ratio: 0.588679016
   - Class: rviz/Views
@@ -87,13 +86,13 @@ Visualization Manager:
       Update Interval: 0
       Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /is_frontier_markers
       Name: Frontiers
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /free_cells_vis_array
@@ -192,13 +191,14 @@ Visualization Manager:
       Name: Lazy Theta Star
       Namespaces:
         closed: true
-        goal: false
-        goal_voxel: false
-        lazy_theta_star_path: true
-        lazy_theta_star_waypoint: false
-        s: false
+        corridor_: true
+        goal: true
+        goal_voxel: true
+        neighbor: true
+        path_unreachable: true
+        s: true
         start: true
-        start_voxel: false
+        start_voxel: true
         straight_line: true
       Queue Size: 100
       Value: true
@@ -223,29 +223,32 @@ Visualization Manager:
       Hide Inactive Objects: true
     - Class: rviz/Measure
     - Class: rviz/Select
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
   Value: true
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 13.9733734
+      Distance: 15.5235147
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 5.87798786
-        Y: -8.17041397
-        Z: 3.49557013e-06
+        X: 22.9483643
+        Y: -2.38774443
+        Z: 9.21761603e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.29039788
+      Pitch: 0.914797187
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 0.598543108
+      Yaw: 5.46671152
     Saved: ~
 Window Geometry:
   Displays:
