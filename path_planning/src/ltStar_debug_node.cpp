@@ -38,7 +38,7 @@ namespace LazyThetaStarOctree
 		translation_from_center.setOrigin(tf2::Vector3(0.5, 0, 0));
 		translation_from_center.setRotation(no_rotation);
 
-		tf2::Transform final_transform =  rotation  * translation_to_center;
+		tf2::Transform final_transform =  translation_from_center * rotation  * translation_to_center;
 
       	tf2::Vector3 toTest_start (0, 0, 0);
 		tf2::Vector3 toTest_end (1, 0, 0);
@@ -52,8 +52,8 @@ namespace LazyThetaStarOctree
 		toTest_end = final_transform * toTest_end;
 
 
-		toTest_start = translation_from_center * toTest_start;
-		toTest_end = translation_from_center * toTest_end;
+		// toTest_start = translation_from_center * toTest_start;
+		// toTest_end = translation_from_center * toTest_end;
 
 		rviz_interface::publish_arrow_path_unreachable(
 			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
