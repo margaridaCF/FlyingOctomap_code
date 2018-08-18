@@ -2,6 +2,11 @@
 #include <tf/transform_datatypes.h>
 #include <std_srvs/Empty.h>
 
+#include <tf2/LinearMath/Transform.h>
+#include <tf/tf.h>
+
+#define _USE_MATH_DEFINES
+
 #define SAVE_CSV 1
 #define RUNNING_ROS 0
 
@@ -21,7 +26,7 @@ namespace std
 }
 
 namespace LazyThetaStarOctree{
-	std::string folder_name = "/ros_ws/src/data/current";
+	std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data/";
 
 
 	int obstacle_avoidance_time;
@@ -147,8 +152,14 @@ namespace LazyThetaStarOctree{
 		return CellStatus::kFree;
 	}
 
+	bool hasLineOfSight(octomap::OcTree const& octree, tf2::Vector3 const& start, tf2::Vector3 const& end, bool ignoreUnknown/* = false*/)
+	{
+		return hasLineOfSight(octree, octomath::Vector3 (start.getX(), start.getY(), start.getZ()), octomath::Vector3 (end.getX(), end.getY(), end.getZ()), ignoreUnknown);
+	}
+
 	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end, bool ignoreUnknown/* = false*/)
 	{
+		obstacle_avoidance_calls++;
 		// There seems to be a blind spot when the very first node is occupied, so this covers that case
 		octomath::Vector3 mutable_end = end;
 		auto res_node = octree.search(mutable_end);
@@ -200,10 +211,12 @@ namespace LazyThetaStarOctree{
 		const octomath::Vector3& bounding_box_size,
 		ros::Publisher const& marker_pub,
 		bool publish,
-		bool ignoreUnknown = false) 
+		bool ignoreUnknown/* = false*/) 
 	{
+		int getCorridorOccupancy_it = 0;
 		if(publish)
 		{
+			log_file.open(folder_name + "lazyThetaStar.log", std::ios_base::app);
 			log_file << "getCorridorOccupancy from " << start << " to " << end << std::endl;
 			// rviz_interface::publish_arrow_corridor_center(start, end, marker_pub);
 		}
@@ -243,6 +256,7 @@ namespace LazyThetaStarOctree{
 				y <= bounding_box_half_size.y(); y += y_disc) 
 			{
 				// log_file << "double z = " << -bounding_box_half_size.z() << "; z <= " << bounding_box_half_size.z() << "; z += " << z_disc << std::endl;
+				// log_file << "[LTStar] One z loop " << x << ", " << y << ", [" << -bounding_box_half_size.z() << " - " << bounding_box_half_size.z() << "]" << std::endl;
 				for (double z = -bounding_box_half_size.z();
 					z <= bounding_box_half_size.z(); z += z_disc) 
 				{
@@ -254,51 +268,52 @@ namespace LazyThetaStarOctree{
 					// 	// log_file << "final position end " << end << " + " << offset << " = " << end + offset << std::endl;
 					// 	log_file << start + offset << " to " << end + offset << std::endl;
 					// }
-					if(hasLineOfSight(octree_, start + offset, end + offset, ignoreUnknown) == false)
-					{
-						// if(publish)
-						// {
-						// 	// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
-						// 	rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable);	
-						// 	id_unreachable++;
-						// }
-						return CellStatus::kOccupied;
-					}	
-					else if(hasLineOfSight(octree_, end + offset, start + offset, ignoreUnknown) == false)
-					{
-						// if(publish)
-						// {
-						// 	// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
-						// 	rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable);	
-						// 	id_unreachable;
-						// }
-						return CellStatus::kOccupied;
-					}	
+					// if(hasLineOfSight(octree_, start + offset, end + offset, ignoreUnknown) == false)
+					// {
+					// 	if(publish)
+					// 	{
+					// 		log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
+					// 		rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable);	
+					// 		id_unreachable++;
+					// 	}
+					// 	// return CellStatus::kOccupied;
+					// }	
+					// else if(hasLineOfSight(octree_, end + offset, start + offset, ignoreUnknown) == false)
+					// {
+					// 	if(publish)
+					// 	{
+					// 		log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
+					// 		rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable);	
+					// 		id_unreachable++;
+					// 	}
+					// 	// return CellStatus::kOccupied;
+					// }	
 					// else
 					// {
 					// 	if(publish)
 					// 	{
-					// 		// log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
-					// 		// rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
+					// 		log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
+					// 		rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
 					// 	}
 					// }
+					getCorridorOccupancy_it++;
 				}
 				// if(publish)
 				// {
 				// 	log_file << std::endl;
 				// }
 			}
-
+			log_file << "getCorridorOccupancy_it: " << getCorridorOccupancy_it << std::endl;
 			// if(publish)
 			// {
 			// 	log_file << std::endl;
 			// }
 		}
 
-		// if(publish)
-		// {
-		// 	log_file << std::endl;
-		// }
+		if(publish)
+		{
+			log_file.close();
+		}
 		// for (std::unordered_set<octomap::OcTreeKey>::iterator i = keys.begin(); i != keys.end(); ++i)
 		// {
 		// 	octomap::OcTreeNode* node = octree_.search(*i);
@@ -312,6 +327,148 @@ namespace LazyThetaStarOctree{
 		// 		return CellStatus::kOccupied;
 		// 	}
 		// }
+		return CellStatus::kFree;
+	}
+
+	double indexToCoordinate(double original, double resolution, int iteration)
+	{
+		return original + resolution/2 + iteration*resolution;
+	}
+
+	double calculateAngle(double oposite,  double adjacent)
+	{
+		if (adjacent == 0)
+		{
+			if (oposite >= 0) return M_PI / 2;
+			else return -M_PI/2;
+		}
+		else if (adjacent > 0) // I && IV
+		{
+			double division = oposite / adjacent;
+			return std::atan(division);
+		}
+		else if(adjacent < 0) // II & III
+		{
+			double division = oposite / adjacent;
+			return std::atan(division) + M_PI;
+		}
+		else
+		{
+			throw std::out_of_range("@calculateAngle");
+		}
+	}
+
+	double calculatePitch(octomath::Vector3 const& start, octomath::Vector3 const& goal)
+	{
+		double oposite  = goal.z() - start.z();
+		double adjacent = goal.x() - start.x();
+		return calculateAngle(oposite, adjacent);
+
+		try
+		{
+			return calculateAngle(oposite, adjacent);
+		}
+		catch (const std::out_of_range& oor)
+		{
+			ROS_ERROR_STREAM("Bad result at calculatePitch! From " << start << " to " << goal);
+		}
+	}
+
+	CellStatus getCorridorOccupancy_reboot(
+		octomap::OcTree & octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& end,
+		const octomath::Vector3& bounding_box_size,
+		ros::Publisher const& marker_pub,
+		bool publish,
+		bool ignoreUnknown/* = false*/) 
+	{
+		int publish_arrow_corridor_id = 0;
+		tf2::Vector3 start_tf(start.x(), start.y(), start.z());
+		tf2::Vector3 goal_tf (end.x(), end.y(), end.z());
+		if(publish)
+		{
+	    	log_file.open(folder_name + "lazyThetaStar.log", std::ios_base::app);
+			geometry_msgs::Point start_point, goal_point;
+			start_point.x = start.x();
+			start_point.y = start.y();
+			start_point.z = start.z();
+			goal_point.x = end.x();
+			goal_point.y = end.y();
+			goal_point.z = end.z();
+			rviz_interface::publish_start(start_point, marker_pub);
+			rviz_interface::publish_goal(goal_point, marker_pub);
+			// log_file << "getCorridorOccupancy_reboot from " << start << " to " << end << std::endl;
+			// rviz_interface::publish_arrow_corridor_center(start, end, marker_pub);
+		}
+		double resolution = octree_.getResolution();
+
+		tf2::Vector3 		half_size  (bounding_box_size.x()/2, bounding_box_size.y()/2, bounding_box_size.z()/2);
+		tf2::Vector3 		start_min = start_tf - half_size;
+		tf2::Vector3 		end_min   = goal_tf  - half_size;
+		// double pitch = calculatePitch(start, end);
+
+
+		// log_file << "calculatePitch(" << start << ", " << end << ") " << pitch << std::endl;
+  //   	tf2::Transform around_start, around_goal;
+  //   	tf::Quaternion temp = tf::createQuaternionFromRPY(0, pitch, 0);
+  //     	around_start.setOrigin(start_tf);
+  //     	around_goal.setOrigin (goal_tf);
+  //     	around_start.setRotation(   tf2::Quaternion( temp.x(), temp.y(), temp.z(), temp.w() )   );
+  //     	around_goal.setRotation (   tf2::Quaternion( temp.x(), temp.y(), temp.z(), temp.w() )   );
+
+
+
+		int it_max = std::ceil(bounding_box_size.x() / resolution);
+		double start_x, end_x,  start_y, end_y;
+		tf2::Vector3 toTest_start, toTest_end;
+		// log_file << "start_min_x " << start_min_x << ", end_min_x: " << end_min_x << ", it_max: " << it_max << std::endl;
+		for(int i = 0; i < it_max; i++)
+        {
+        	for(int j = 0; j < it_max; j++)
+        	{
+	    		toTest_start = tf2::Vector3(
+	    			indexToCoordinate(start_min.getX(), resolution, i), 
+	    			start.y(), 
+	    			indexToCoordinate(start_min.getZ(), resolution, j));
+	    		// log_file << "before rotation " << toTest_start << std::endl;
+	    		// toTest_start = around_start * toTest_start;
+	    		// log_file << "after rotation                               " << toTest_start << std::endl;
+
+	    		toTest_end   = tf2::Vector3(
+	    			indexToCoordinate(end_min.getX(), resolution, i), 
+	    			end.y(), 
+	    			indexToCoordinate(end_min.getZ(), resolution, j));
+	    		// toTest_end = around_goal * toTest_end;
+
+	        	if(hasLineOfSight(octree_, toTest_start, toTest_end, ignoreUnknown) == false)
+				{
+					if(publish)
+					{
+						rviz_interface::publish_arrow_path_unreachable(
+							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
+							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
+							marker_pub, id_unreachable);	
+						id_unreachable++;
+					}
+				}
+				// else
+				// {
+				// 	if(publish)
+				// 	{
+				// 		rviz_interface::publish_arrow_corridor(
+				// 			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
+				// 			octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
+				// 			marker_pub, publish_arrow_corridor_id);
+				// 		publish_arrow_corridor_id++;	
+				// 	}
+				// }
+			}
+        }
+        if(publish)
+		{
+			log_file << "obstacle_avoidance_calls: " << obstacle_avoidance_calls << std::endl;
+			log_file.close();
+		}
 		return CellStatus::kFree;
 	}
 
@@ -354,9 +511,9 @@ namespace LazyThetaStarOctree{
 		// 	ROS_ERROR_STREAM("normalizeToVisibleEndCenter for "<<*start<<" to "<<*end<<" start_to_end: " << start_to_end << " != end_to_start:" << end_to_start);
 		// }
 
+		return true;
 
-
-		return is_flight_corridor_free(octree, *start, *end, safety_margin, marker_pub, ignoreUnknown, publish);
+		// return is_flight_corridor_free(octree, *start, *end, safety_margin, marker_pub, ignoreUnknown, publish);
 	}
 
 	
@@ -623,6 +780,40 @@ namespace LazyThetaStarOctree{
 		return is_x_equal && is_y_equal && is_z_equal;
 	}
 
+	bool passPreconditions(
+		octomap::OcTree   & octree, 
+		octomath::Vector3 const& disc_initial, 
+		octomath::Vector3 const& disc_final,
+		double safety_margin,
+		ros::Publisher const& dummy_publisher)
+	{
+		if (!isExplored(disc_initial, octree))
+		{
+			ROS_ERROR_STREAM("[LTStar] Start " << disc_initial << " is unknown.");
+			return false;	
+		} 
+		if (!isExplored(disc_final, octree))
+		{
+			ROS_ERROR_STREAM("[LTStar] Goal " << disc_final << " is unknown.");
+			return false;
+		}
+		octomath::Vector3 bounding_box_size (safety_margin, safety_margin, safety_margin);
+		// octomath::Vector3 dummy_start (disc_initial.x(), disc_initial.y(), disc_initial.z()-safety_margin*0.5);
+		// octomath::Vector3 dummy_end (disc_initial.x(), disc_initial.y(), disc_initial.z()+safety_margin*0.5);
+		// ros::Publisher dummy_publisher;
+
+		log_file << " =====  PRE CONDITIONS ====== " << std::endl;
+
+		if(getCorridorOccupancy_reboot(octree, disc_initial, disc_final, bounding_box_size, dummy_publisher, true) != CellStatus::kFree)
+		{
+			ROS_ERROR_STREAM("[LTStar] Initial point is too close to obstacles and/or unknown space. Maybe inside very large voxel and/or octree orientation diagonal to obstacle");
+			return false;
+		}
+		log_file << " =====  END ====== " << std::endl;
+
+		return true;
+	}
+
 	// TODO what about a database like SQLite? Since there is the need for two data structures for open 
 	// TODO 	(one ordered by heuristics and another to access by coordintades) and closed manages the same objects
 	// TODO		And also would solve the problem of ownership of objects
@@ -660,7 +851,7 @@ namespace LazyThetaStarOctree{
 		setVertex_time = 0;
 		updateVertex_time = 0;
 
-    	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
+    	log_file.open(folder_name + "lazyThetaStar.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
 		auto start = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_search_iterations);
@@ -724,7 +915,7 @@ namespace LazyThetaStarOctree{
 #endif
 		}
 
-		if(equal(cell_center_coordinates_start, cell_center_coordinates_goal, octree.getResolution()/2))
+		if(!passPreconditions(octree, disc_initial, disc_final, safety_margin, marker_pub))
 		{
 			// ROS_WARN_STREAM("[LTStar] Start and goal in the same voxel - flying straight.");
 			// ROS_WARN_STREAM("[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start);

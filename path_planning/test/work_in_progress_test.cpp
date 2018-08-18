@@ -6,11 +6,14 @@
 #include <rosbag/view.h>
 #include <visualization_msgs/Marker.h>
 
-
+#include <cmath>
 #include <chrono>
+
+#define _USE_MATH_DEFINES
 
 namespace LazyThetaStarOctree
 {
+	
 
 	// void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 	// 	int const& max_search_iterations = 55)
@@ -107,22 +110,22 @@ namespace LazyThetaStarOctree
 			LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
 		ASSERT_GT(resulting_path.size(), 0);
-		resulting_path.clear();
-		resulting_path = lazyThetaStar_original(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
-		ASSERT_GT(resulting_path.size(), 0);
+		// resulting_path.clear();
+		// resulting_path = lazyThetaStar_original(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
+		// ASSERT_EQ(resulting_path.size(), 0);
 	}
 
 
-	// TEST(LazyThetaStarTests, Benchmark_20180808_karting)
-	// {
-	// 	octomath::Vector3 start(  9.85, -5.52, 6.72); 
-	// 	octomath::Vector3 end  ( 25.9,   3.53, 6.64); 
-	// 	double safety_margin = 5;
-	// 	int max_search_seconds = 360;
-	// 	ROS_WARN_STREAM("dataset: 20180808_karting.bt");
-	// 	octomap::OcTree octree ("data/20180808_karting.bt");
-	// 	benchmarkSparseVanilla(octree, start, end, safety_margin, max_search_seconds);
-	// }	
+	/*TEST(LazyThetaStarTests, Benchmark_20180808_karting)
+	{
+		octomath::Vector3 start(  9.85, -5.52, 6.72); 
+		octomath::Vector3 end  ( 25.9,   3.53, 6.64); 
+		double safety_margin = 5;
+		int max_search_seconds = 360;
+		ROS_WARN_STREAM("dataset: 20180808_karting.bt");
+		octomap::OcTree octree ("data/20180808_karting.bt");
+		benchmarkSparseVanilla(octree, start, end, safety_margin, max_search_seconds);
+	}*/	
 
 	// TEST(LazyThetaStarTests, Benchmark_20180731_octree_noPath)
 	// {
@@ -135,7 +138,7 @@ namespace LazyThetaStarOctree
 	// 	benchmarkSparseVanilla(octree, start, end, safety_margin, max_search_seconds);
 	// }
 
-	TEST(LazyThetaStarTests, Benchmark_20180808_1026_octree_noPath)
+	/*TEST(LazyThetaStarTests, Benchmark_20180808_1026_octree_noPath)
 	{
 		octomath::Vector3 start  ( 26, -0.84, 8); 
 		octomath::Vector3 end    ( 17, -6.5,  7); 
@@ -143,8 +146,13 @@ namespace LazyThetaStarOctree
 		int max_search_seconds = 360;
 		ROS_WARN_STREAM("dataset: 20180808_1026_octree_noPath.bt ");
 		octomap::OcTree octree ("data/20180808_1026_octree_noPath.bt");
-		benchmarkSparseVanilla(octree, start, end, safety_margin, max_search_seconds);
-	}
+		ros::Publisher marker_pub;
+		ResultSet statistical_data;
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+			LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
+		ASSERT_EQ(resulting_path.size(), 0);
+	}*/
 
 
 	// TEST(OctreeNeighborTest, NeighborTest_generateFromRealData_Depth13)

@@ -20,7 +20,7 @@ namespace rviz_interface
 	void publish_arrow_path_occupancyState(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free);
 	void publish_arrow_path_unreachable(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int id);
 	void publish_arrow_path_father	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
-	void publish_arrow_corridor 	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
+	void publish_arrow_corridor 	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub,  int publish_arrow_corridor);
 	void publish_arrow_corridor_center(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
 	void publish_arrow_straight_line(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative);
 	// POINTS

@@ -570,7 +570,7 @@ namespace rviz_interface
         marker_pub.publish(marker_array);
     }
 
-    void publish_arrow_corridor(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub)
+    void publish_arrow_corridor(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int publish_arrow_corridor)
     {
         // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
@@ -578,7 +578,7 @@ namespace rviz_interface
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.id = 50000 + ( std::rand() % ( 9999 + 1 ) );;
+        marker.id = 500 + publish_arrow_corridor;
         marker.ns = "corridor_";
         marker.type = shape;
         geometry_msgs::Point goal_point;

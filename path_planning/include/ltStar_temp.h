@@ -129,4 +129,22 @@ namespace LazyThetaStarOctree{
 
     bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 
 		const double theta = 0.00000000000000000001) ;
+
+    CellStatus getCorridorOccupancy_reboot(
+		octomap::OcTree & octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& end,
+		const octomath::Vector3& bounding_box_size,
+		ros::Publisher const& marker_pub,
+		bool publish,
+		bool ignoreUnknown = false);
+
+    CellStatus getCorridorOccupancy(
+		octomap::OcTree & octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& end,
+		const octomath::Vector3& bounding_box_size,
+		ros::Publisher const& marker_pub,
+		bool publish,
+		bool ignoreUnknown = false) ;
+
+    double calculatePitch(octomath::Vector3 const& start, octomath::Vector3 const& goal );
 }

@@ -423,6 +423,72 @@ namespace LazyThetaStarOctree{
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
+	TEST(LazyThetaStarTests, Benchmark_startWithinSecurityMargin)
+	{
+		octomath::Vector3 start  ( 26, -0.84, 8); 
+		octomath::Vector3 end    ( 17, -6.5,  7); 
+		double safety_margin = 5;
+		int max_search_seconds = 360;
+		octomap::OcTree octree ("data/20180808_1026_octree_noPath.bt");
+		ros::Publisher marker_pub;
+		ResultSet statistical_data;
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+			LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
+		ASSERT_EQ(resulting_path.size(), 0);
+		resulting_path.clear();
+		resulting_path = lazyThetaStar_original(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
+		ASSERT_EQ(resulting_path.size(), 0);
+	}
+	TEST(LazyThetaStarTests, calcAngle_0)
+	{
+		octomath::Vector3 origin (0, 0 , 0);
+		octomath::Vector3 xAxis (1, 0, 0);
+		ASSERT_EQ(calculatePitch(origin, xAxis), 0);
+	}
+
+	TEST(LazyThetaStarTests, calcAngle_90)
+	{
+		octomath::Vector3 zAxis (0, 0, 1);
+		octomath::Vector3 origin (0, 0 , 0);
+		ASSERT_EQ(calculatePitch(origin, zAxis), M_PI/2);
+	}
+
+	TEST(LazyThetaStarTests, calcAngle_I)
+	{
+		octomath::Vector3 origin (0, 0 , 0);
+		octomath::Vector3 diagonal_I (1, 0, 1);
+		ASSERT_EQ(calculatePitch(origin, diagonal_I), M_PI/4);
+	}
+
+	TEST(LazyThetaStarTests, calcAngle_II)
+	{
+		octomath::Vector3 origin (0, 0 , 0);
+		octomath::Vector3 diagonal_II (-1, 0, 1);
+		ASSERT_EQ(calculatePitch(origin, diagonal_II), 3*M_PI/4);
+	}
+
+	TEST(LazyThetaStarTests, calcAngle_III)
+	{
+		octomath::Vector3 origin (0, 0 , 0);
+		octomath::Vector3 diagonal_III (-1, 0, -1);
+		ASSERT_EQ(calculatePitch(origin, diagonal_III), 5*M_PI/4);
+	}
+
+	TEST(LazyThetaStarTests, calcAngle_IV)
+	{
+		octomath::Vector3 origin (0, 0 , 0);
+		octomath::Vector3 diagonal_IV (1, 0, -1);
+		ASSERT_EQ(calculatePitch(origin, diagonal_IV), -M_PI/4);
+	}
+
+	TEST(LazyThetaStarTests, calcAngle_Neg90)
+	{
+		octomath::Vector3 origin (0, 0 , 0);
+		octomath::Vector3 neg_90 (0, 0, -1);
+		ASSERT_EQ(calculatePitch(origin, neg_90), -M_PI/2);
+	}
+
 	// TEST(LazyThetaStarTests, QueryDepthOfUnknowVoxel)
 	// {
 
