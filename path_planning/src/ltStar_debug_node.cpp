@@ -6,6 +6,9 @@
 #include <marker_publishing_utils.h>
 #include <std_srvs/Empty.h>
 
+#include <tf2/LinearMath/Transform.h>
+
+
 namespace LazyThetaStarOctree
 {
     octomap::OcTree* octree;
@@ -16,6 +19,42 @@ namespace LazyThetaStarOctree
 	bool octomap_init;
 	bool publish_free_corridor_arrows;
 
+	void learnTf()
+	{
+    	tf2::Vector3 origin (0, 0, 0);
+    	tf2::Vector3 yAxis(0, 1, 0);
+    	tf2::Quaternion aroundY (yAxis, M_PI/2);
+    	tf2::Quaternion no_rotation (0, 0, 0, 1);
+		tf2::Transform rotation;
+		rotation.setOrigin(origin);
+		rotation.setRotation(aroundY);
+
+		tf2::Transform translation_to_center;
+		translation_to_center.setOrigin(tf2::Vector3(-0.5, 0, 0));
+		translation_to_center.setRotation(no_rotation);
+
+		tf2::Transform final_transform =  rotation  * translation_to_center;
+
+      	tf2::Vector3 toTest_start (0, 0, 0);
+		tf2::Vector3 toTest_end (1, 0, 0);
+      	
+		rviz_interface::publish_arrow_path_unreachable(
+			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
+			octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
+			marker_pub, 10);	
+
+		toTest_start = final_transform * toTest_start;
+		toTest_end = final_transform * toTest_end;
+
+
+		// toTest_start = rotation * toTest_start;
+		// toTest_end = rotation * toTest_end;
+
+		rviz_interface::publish_arrow_path_unreachable(
+			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
+			octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
+			marker_pub, 2);	
+	}
 
 	
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
@@ -34,10 +73,14 @@ namespace LazyThetaStarOctree
 		reply.success = false;
 		if(octomap_init)
 		{
-			octomath::Vector3 disc_initial(path_request->start.x, path_request->start.y, path_request->start.z);
-			octomath::Vector3 disc_final(path_request->goal.x, path_request->goal.y, path_request->goal.z);
-			octomath::Vector3 geofence(path_request->safety_margin, path_request->safety_margin, path_request->safety_margin);
-			getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
+			learnTf();
+
+
+
+			// octomath::Vector3 disc_initial(path_request->start.x, path_request->start.y, path_request->start.z);
+			// octomath::Vector3 disc_final(path_request->goal.x, path_request->goal.y, path_request->goal.z);
+			// octomath::Vector3 geofence(path_request->safety_margin, path_request->safety_margin, path_request->safety_margin);
+			// getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
 			// getCorridorOccupancy       (*octree, disc_initial, disc_final, geofence, marker_pub, true);
 		}
 		else
