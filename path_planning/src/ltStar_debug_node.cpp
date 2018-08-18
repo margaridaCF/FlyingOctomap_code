@@ -29,11 +29,13 @@ namespace LazyThetaStarOctree
 
     	tf2::Vector3 origin (0, 0, 0);
     	tf2::Vector3 yAxis(0, 1, 0);
+    	tf2::Vector3 zAxis(0, 0, 1);
     	tf2::Quaternion aroundY (yAxis, M_PI/2);
+    	tf2::Quaternion aroundZ (zAxis, M_PI/2);
     	tf2::Quaternion no_rotation (0, 0, 0, 1);
 		tf2::Transform rotation;
 		rotation.setOrigin(origin);
-		rotation.setRotation(aroundY);
+		rotation.setRotation(aroundZ);
 
 		tf2::Transform translation_to_center;
 		translation_to_center.setOrigin(offset);
