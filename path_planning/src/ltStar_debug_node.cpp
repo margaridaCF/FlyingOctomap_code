@@ -21,6 +21,12 @@ namespace LazyThetaStarOctree
 
 	void learnTf()
 	{
+      	tf2::Vector3 toTest_start (0, 0, 0);
+		tf2::Vector3 toTest_end (1, 0, 0);
+
+		tf2::Vector3 offset = (toTest_start - toTest_end) / 2;
+
+
     	tf2::Vector3 origin (0, 0, 0);
     	tf2::Vector3 yAxis(0, 1, 0);
     	tf2::Quaternion aroundY (yAxis, M_PI/2);
@@ -30,18 +36,16 @@ namespace LazyThetaStarOctree
 		rotation.setRotation(aroundY);
 
 		tf2::Transform translation_to_center;
-		translation_to_center.setOrigin(tf2::Vector3(-0.5, 0, 0));
+		translation_to_center.setOrigin(offset);
 		translation_to_center.setRotation(no_rotation);
 
 
 		tf2::Transform translation_from_center;
-		translation_from_center.setOrigin(tf2::Vector3(0.5, 0, 0));
+		translation_from_center.setOrigin(-offset);
 		translation_from_center.setRotation(no_rotation);
 
 		tf2::Transform final_transform =  translation_from_center * rotation  * translation_to_center;
 
-      	tf2::Vector3 toTest_start (0, 0, 0);
-		tf2::Vector3 toTest_end (1, 0, 0);
       	
 		rviz_interface::publish_arrow_path_unreachable(
 			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
@@ -50,10 +54,6 @@ namespace LazyThetaStarOctree
 
 		toTest_start = final_transform * toTest_start;
 		toTest_end = final_transform * toTest_end;
-
-
-		// toTest_start = translation_from_center * toTest_start;
-		// toTest_end = translation_from_center * toTest_end;
 
 		rviz_interface::publish_arrow_path_unreachable(
 			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
