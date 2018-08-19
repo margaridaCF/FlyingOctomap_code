@@ -71,7 +71,26 @@ namespace LazyThetaStarOctree
 			marker_pub, 2);	
 	}
 
-	void learnTf_theHardWay_pointSet()
+	tf2::Transform generateRotation(tf2::Vector3 const& axis, double angle_rad)
+	{
+		tf2::Vector3 origin(0, 0, 0);
+    	tf2::Quaternion rotationAxis (axis, angle_rad);
+		tf2::Transform rotation;
+		rotation.setOrigin(origin);
+		rotation.setRotation(rotationAxis);
+		return rotation;
+	}
+
+	void generateTranslations(tf2::Vector3 const& center, tf2::Transform & translation_to_center__, tf2::Transform & translation_from_center)
+	{
+    	tf2::Quaternion no_rotation (0, 0, 0, 1);
+		translation_to_center__.setRotation(no_rotation);
+		translation_from_center.setRotation(no_rotation);
+		translation_to_center__.setOrigin(-center);
+		translation_from_center.setOrigin(center);
+	}
+
+	void learnTf_theHardWay_pointSet_yaw()
 	{
 		// PUBLISH ORIGINAL
 		const int point_count = 5;
@@ -93,32 +112,23 @@ namespace LazyThetaStarOctree
 			};
 
 		visualization_msgs::MarkerArray  marker_array_original, marker_array_rotated;
-		for (int i = 0; i < point_count; ++i)
+		/*for (int i = 0; i < point_count; ++i)
 		{
 			rviz_interface::push_arrow_corridor(
 				octomath::Vector3 (start_points[i].getX(), start_points[i].getY(), start_points[i].getZ()), 
 				octomath::Vector3 (end_points[i].getX(), end_points[i].getY(), end_points[i].getZ()), 
 				marker_pub, 10+i, marker_array_original);
 		}
-		marker_pub.publish(marker_array_original);
+		marker_pub.publish(marker_array_original);*/
 
 		// CALCULATE ROTATION 
-    	tf2::Vector3 origin(0, 0, 0);
     	tf2::Vector3 zAxis (0, 0, 1);
-    	tf2::Quaternion aroundZ (zAxis, -(M_PI/4));
-		tf2::Transform rotation_pitch, rotation_yaw;
-		rotation_yaw.setOrigin(origin);
-		rotation_yaw.setRotation(aroundZ);
+    	tf2::Transform rotation_yaw = generateRotation(zAxis, -(M_PI/4));
 
 		// Offset calculation
-    	tf2::Quaternion no_rotation (0, 0, 0, 1);
 		tf2::Transform translation_to_center__;
 		tf2::Transform translation_from_center;
-		tf2::Vector3 offset = (end_points[2]);
-		translation_to_center__.setRotation(no_rotation);
-		translation_from_center.setRotation(no_rotation);
-		translation_to_center__.setOrigin(-offset);
-		translation_from_center.setOrigin(offset);
+		generateTranslations(end_points[2], translation_to_center__, translation_from_center);
 
 		tf2::Transform final_transform_start = rotation_yaw;
 		tf2::Transform final_transform_end   = translation_from_center * rotation_yaw * translation_to_center__;
@@ -282,7 +292,7 @@ namespace LazyThetaStarOctree
 		// if(octomap_init)
 		// {
 			
-		learnTf_theHardWay_pointSet();
+		learnTf_theHardWay_pointSet_yaw();
 
 
 
