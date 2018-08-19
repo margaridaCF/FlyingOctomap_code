@@ -147,6 +147,65 @@ namespace LazyThetaStarOctree
 		marker_pub.publish(marker_array_rotated);
 	}
 
+	void learnTf_theHardWay_pointSet_roll()
+	{
+		// PUBLISH ORIGINAL
+		const int point_count = 5;
+		std::array < tf2::Vector3, point_count> start_points =
+			{
+				tf2::Vector3(0,  2, 0),
+				tf2::Vector3(0,  1, 0),
+				tf2::Vector3(0,  0, 0),
+				tf2::Vector3(0, -1, 0),
+				tf2::Vector3(0, -2, 0),
+			};
+		std::array < tf2::Vector3, point_count> end_points =
+			{
+				tf2::Vector3(0, -3, 5),
+				tf2::Vector3(0, -4, 5),
+				tf2::Vector3(0, -5, 5),
+				tf2::Vector3(0, -6, 5),
+				tf2::Vector3(0, -7, 5),
+			};
+
+		visualization_msgs::MarkerArray  marker_array_original, marker_array_rotated;
+		for (int i = 0; i < point_count; ++i)
+		{
+			rviz_interface::push_arrow_corridor(
+				octomath::Vector3 (start_points[i].getX(), start_points[i].getY(), start_points[i].getZ()), 
+				octomath::Vector3 (end_points[i].getX(), end_points[i].getY(), end_points[i].getZ()), 
+				marker_pub, 30+i, marker_array_original);
+		}
+		marker_pub.publish(marker_array_original);
+
+		// CALCULATE ROTATION 
+    	// tf2::Vector3 zAxis (0, 0, 1);
+    	tf2::Vector3 xAxis (1, 0, 0);
+    	// tf2::Transform rotation_yaw = generateRotation(zAxis, -(M_PI/4));
+    	tf2::Transform rotation_roll = generateRotation(xAxis, (M_PI/4));
+
+		// Offset calculation
+		tf2::Transform translation_to_center__;
+		tf2::Transform translation_from_center;
+		generateTranslations(end_points[2], translation_to_center__, translation_from_center);
+
+		tf2::Transform final_transform_start = rotation_roll;
+		tf2::Transform final_transform_end   = translation_from_center * rotation_roll * translation_to_center__;
+
+		//     APPLY ROTATION 
+		tf2::Vector3 rotated_start, rotated_end;
+		for (int i = 0; i < point_count; ++i)
+		{
+			rotated_start = final_transform_start * start_points[i];
+			rotated_end   = final_transform_end   * end_points[i];
+			rviz_interface::push_arrow_corridor(
+				octomath::Vector3 (rotated_start.getX(), rotated_start.getY(), rotated_start.getZ()), 
+				octomath::Vector3 (rotated_end.getX(), rotated_end.getY(), rotated_end.getZ()), 
+				marker_pub, 40+i, marker_array_rotated);
+		}
+		marker_pub.publish(marker_array_rotated);
+	}
+
 
 	void learnTf_builtInFunctions()
 	{
@@ -293,7 +352,7 @@ namespace LazyThetaStarOctree
 		// {
 			
 		learnTf_theHardWay_pointSet_yaw();
-
+		learnTf_theHardWay_pointSet_roll();
 
 
 			// octomath::Vector3 disc_initial(path_request->start.x, path_request->start.y, path_request->start.z);
