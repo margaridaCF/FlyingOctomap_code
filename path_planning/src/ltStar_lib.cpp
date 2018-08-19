@@ -362,6 +362,26 @@ namespace LazyThetaStarOctree{
 		}
 	}
 
+
+	tf2::Transform generateRotation(tf2::Vector3 const& axis, double angle_rad)
+	{
+		tf2::Vector3 origin(0, 0, 0);
+    	tf2::Quaternion rotationAxis (axis, angle_rad);
+		tf2::Transform rotation;
+		rotation.setOrigin(origin);
+		rotation.setRotation(rotationAxis);
+		return rotation;
+	}
+
+	void generateTranslations(tf2::Vector3 const& center, tf2::Transform & translation_to_center__, tf2::Transform & translation_from_center)
+	{
+    	tf2::Quaternion no_rotation (0, 0, 0, 1);
+		translation_to_center__.setRotation(no_rotation);
+		translation_from_center.setRotation(no_rotation);
+		translation_to_center__.setOrigin(-center);
+		translation_from_center.setOrigin(center);
+	}
+
 	double calculatePitch(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
 		log_file << "start:  " << start << std::endl;
@@ -380,6 +400,42 @@ namespace LazyThetaStarOctree{
 		}
 	}
 
+	double calculateYaw(octomath::Vector3 const& start, octomath::Vector3 const& goal)
+	{
+		log_file << "start:  " << start << std::endl;
+		log_file << "goal: " << goal << std::endl;
+		double oposite  = goal.y() - start.y();
+		double adjacent = goal.x() - start.x();
+		return calculateAngle(oposite, adjacent);
+
+		try
+		{
+			return calculateAngle(oposite, adjacent);
+		}
+		catch (const std::out_of_range& oor)
+		{
+			ROS_ERROR_STREAM("Bad result at calculateYaw! From " << start << " to " << goal);
+		}
+	}
+
+	double calculateRoll(octomath::Vector3 const& start, octomath::Vector3 const& goal)
+	{
+		log_file << "start:  " << start << std::endl;
+		log_file << "goal: " << goal << std::endl;
+		double oposite  = goal.z() - start.z();
+		double adjacent = goal.y() - start.y();
+		return calculateAngle(oposite, adjacent);
+
+		try
+		{
+			return calculateAngle(oposite, adjacent);
+		}
+		catch (const std::out_of_range& oor)
+		{
+			ROS_ERROR_STREAM("Bad result at calculateYaw! From " << start << " to " << goal);
+		}
+	}
+
 	CellStatus getCorridorOccupancy_reboot(
 		octomap::OcTree & octree_, 
 		const octomath::Vector3& start, const octomath::Vector3& end,
@@ -388,6 +444,7 @@ namespace LazyThetaStarOctree{
 		bool publish,
 		bool ignoreUnknown/* = false*/) 
 	{
+		visualization_msgs::MarkerArray marker_array_free, marker_array_occupied;
 		int publish_arrow_corridor_id = 0;
 		tf2::Vector3 start_tf(start.x(), start.y(), start.z());
 		tf2::Vector3 goal_tf (end.x(), end.y(), end.z());
@@ -411,20 +468,31 @@ namespace LazyThetaStarOctree{
 		tf2::Vector3 		half_size  (bounding_box_size.x()/2, bounding_box_size.y()/2, bounding_box_size.z()/2);
 		tf2::Vector3 		start_min = start_tf - half_size;
 		tf2::Vector3 		end_min   = goal_tf  - half_size;
-		double pitch = calculatePitch(start, end);
+		// double pitch = calculatePitch(start, end);
+		double yaw = calculateYaw(start, end);
+		double roll = calculateRoll(start, end);
 
 
-		log_file << "calculatePitch(" << start << ", " << end << ") " << pitch << std::endl;
-    	tf2::Transform around_start, around_goal;
-    	tf2::Vector3 yAxis(1, 0, 0);
-    	tf2::Quaternion temp (yAxis, M_PI/2);
-    	tf2::Vector3 origin (0, 0, 0);
-      	around_start.setOrigin(start_tf);
-      	around_goal.setOrigin (goal_tf);
-      	around_start.setRotation(temp);
-      	around_goal.setRotation (temp);
+		// CALCULATE ROTATION 
+    	tf2::Vector3 zAxis (0, 0, 1);
+    	tf2::Vector3 xAxis (1, 0, 0);
+    	tf2::Transform rotation_yaw  = generateRotation(zAxis, yaw);
+    	tf2::Transform rotation_roll = generateRotation(xAxis, roll);
 
+		
+		// Offset calculation START
+		tf2::Transform translation_to_center_start;
+		tf2::Transform translation_from_center_start;
+		// Offset calculation END
+		tf2::Transform translation_to_center_end;
+		tf2::Transform translation_from_center_end;
 
+		tf2::Transform final_transform_start, final_transform_end ;
+
+		generateTranslations(start_tf, translation_to_center_start, translation_from_center_start);
+		generateTranslations(goal_tf,  translation_to_center_end,   translation_from_center_end);
+		final_transform_start = translation_from_center_start * rotation_roll * rotation_yaw * translation_to_center_start;
+		final_transform_end   = translation_from_center_end   * rotation_roll * rotation_yaw * translation_to_center_end;
 
 		int it_max = std::ceil(bounding_box_size.x() / resolution);
 		double start_x, end_x,  start_y, end_y;
@@ -432,30 +500,24 @@ namespace LazyThetaStarOctree{
 		// log_file << "start_min_x " << start_min_x << ", end_min_x: " << end_min_x << ", it_max: " << it_max << std::endl;
 		for(int i = 0; i < it_max; i++)
         {
+        	int x_start = indexToCoordinate(start_min.getX(), resolution, i);
+	    	int x_end   = indexToCoordinate(end_min.getX(),   resolution, i);
         	for(int j = 0; j < it_max; j++)
         	{
-	    		toTest_start = tf2::Vector3(
-	    			indexToCoordinate(start_min.getX(), resolution, i), 
-	    			start.y(), 
-	    			indexToCoordinate(start_min.getZ(), resolution, j));
-	    		// log_file << "before rotation " << toTest_start << std::endl;
-	    		toTest_start = around_start * toTest_start;
-	    		// log_file << "after rotation                               " << toTest_start << std::endl;
+	    		toTest_start = tf2::Vector3(x_start, start.y(), indexToCoordinate(start_min.getZ(), resolution, j));
+	    		toTest_end   = tf2::Vector3(x_end,   end.y(),   indexToCoordinate(end_min.getZ(),   resolution, j));
 
-	    		toTest_end   = tf2::Vector3(
-	    			indexToCoordinate(end_min.getX(), resolution, i), 
-	    			end.y(), 
-	    			indexToCoordinate(end_min.getZ(), resolution, j));
-	    		toTest_end = around_goal * toTest_end;
+				toTest_start = final_transform_start * toTest_start;
+				toTest_end   = final_transform_end   * toTest_end;
 
 	   //      	if(hasLineOfSight(octree_, toTest_start, toTest_end, ignoreUnknown) == false)
 				// {
 				// 	if(publish)
 				// 	{
-						rviz_interface::publish_arrow_path_unreachable(
+						rviz_interface::push_arrow_path_unreachable(
 							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
 							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
-							marker_pub, id_unreachable);	
+							marker_pub, id_unreachable, marker_array_occupied);	
 						id_unreachable++;
 				// 	}
 				// }
@@ -474,6 +536,7 @@ namespace LazyThetaStarOctree{
         }
         if(publish)
 		{
+			marker_pub.publish(marker_array_occupied);
 			log_file << "obstacle_avoidance_calls: " << obstacle_avoidance_calls << std::endl;
 			log_file.close();
 		}

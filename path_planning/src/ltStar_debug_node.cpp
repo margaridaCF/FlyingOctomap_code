@@ -278,30 +278,32 @@ namespace LazyThetaStarOctree
 	void ltstar_benchmark_callback_debug(const path_planning_msgs::LTStarBenchmarkRequest::ConstPtr& path_request)
 	{
 		rviz_interface::publish_deleteAll(marker_pub);
+
+		// learnTf_theHardWay_pointSet_yaw();
+		// learnTf_theHardWay_pointSet_roll();
+		// learnTf_theHardWay_pointSet_yaw_roll();
+		
 		path_planning_msgs::LTStarReply reply;
 		reply.waypoint_amount = 0;
 		reply.success = false;
-		// if(octomap_init)
-		// {
+		if(octomap_init)
+		{
 			
-		learnTf_theHardWay_pointSet_yaw();
-		// learnTf_theHardWay_pointSet_roll();
-		// learnTf_theHardWay_pointSet_yaw_roll();
 
 
-			// octomath::Vector3 disc_initial(path_request->start.x, path_request->start.y, path_request->start.z);
-			// octomath::Vector3 disc_final(path_request->goal.x, path_request->goal.y, path_request->goal.z);
-			// octomath::Vector3 geofence(path_request->safety_margin, path_request->safety_margin, path_request->safety_margin);
-			// getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
+			octomath::Vector3 disc_initial(path_request->start.x, path_request->start.y, path_request->start.z);
+			octomath::Vector3 disc_final(path_request->goal.x, path_request->goal.y, path_request->goal.z);
+			octomath::Vector3 geofence(path_request->safety_margin, path_request->safety_margin, path_request->safety_margin);
+			getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
 			// getCorridorOccupancy       (*octree, disc_initial, disc_final, geofence, marker_pub, true);
-		// }
-		// else
-		// {
-		// 	ROS_ERROR_STREAM("[LTStar] Cannot generate path because no octomap has been received.");
-		// 	reply.success=false;
-		// 	reply.request_id = path_request->request_id;
-		// 	reply.waypoint_amount = 0;
-		// }
+		}
+		else
+		{
+			ROS_ERROR_STREAM("[LTStar] Cannot generate path because no octomap has been received.");
+			reply.success=false;
+			reply.request_id = path_request->request_id;
+			reply.waypoint_amount = 0;
+		}
 		
 	}
 }
