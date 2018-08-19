@@ -91,6 +91,7 @@ namespace LazyThetaStarOctree
 				tf2::Vector3(5, -6, 0),
 				tf2::Vector3(5, -7, 0),
 			};
+
 		visualization_msgs::MarkerArray  marker_array_original, marker_array_rotated;
 		for (int i = 0; i < point_count; ++i)
 		{
@@ -109,27 +110,23 @@ namespace LazyThetaStarOctree
 		rotation_yaw.setOrigin(origin);
 		rotation_yaw.setRotation(aroundZ);
 
+		// Offset calculation
     	tf2::Quaternion no_rotation (0, 0, 0, 1);
 		tf2::Transform translation_to_center__;
 		tf2::Transform translation_from_center;
+		tf2::Vector3 offset = (end_points[2]);
 		translation_to_center__.setRotation(no_rotation);
 		translation_from_center.setRotation(no_rotation);
+		translation_to_center__.setOrigin(-offset);
+		translation_from_center.setOrigin(offset);
 
 		tf2::Transform final_transform_start = rotation_yaw;
-		tf2::Transform final_transform_end;
+		tf2::Transform final_transform_end   = translation_from_center * rotation_yaw * translation_to_center__;
 
 		//     APPLY ROTATION 
 		tf2::Vector3 rotated_start, rotated_end;
 		for (int i = 0; i < point_count; ++i)
 		{
-			// Offset calculation
-			tf2::Vector3 offset = (end_points[2]);
-			// translation_to_center__.setOrigin(-tf2::Vector3(5, -5, 0));
-			translation_to_center__.setOrigin(-offset);
-			translation_from_center.setOrigin(offset);
-			final_transform_end   = translation_from_center * rotation_yaw * translation_to_center__;
-
-			// Rotate
 			rotated_start = final_transform_start * start_points[i];
 			rotated_end   = final_transform_end   * end_points[i];
 			rviz_interface::push_arrow_corridor(
@@ -139,6 +136,7 @@ namespace LazyThetaStarOctree
 		}
 		marker_pub.publish(marker_array_rotated);
 	}
+
 
 	void learnTf_builtInFunctions()
 	{
