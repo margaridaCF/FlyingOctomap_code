@@ -73,6 +73,7 @@ namespace LazyThetaStarOctree
 
 	void learnTf_theHardWay_pointSet()
 	{
+		// PUBLISH ORIGINAL
 		const int point_count = 5;
 		std::array < tf2::Vector3, point_count> start_points =
 			{
@@ -84,22 +85,55 @@ namespace LazyThetaStarOctree
 			};
 		std::array < tf2::Vector3, point_count> end_points =
 			{
-				tf2::Vector3(5,  0, 0),
-				tf2::Vector3(5, -1, 0),
-				tf2::Vector3(5, -2, 0),
 				tf2::Vector3(5, -3, 0),
 				tf2::Vector3(5, -4, 0),
+				tf2::Vector3(5, -5, 0),
+				tf2::Vector3(5, -6, 0),
+				tf2::Vector3(5, -7, 0),
 			};
-		visualization_msgs::MarkerArray  marker_array;
+		visualization_msgs::MarkerArray  marker_array_original, marker_array_rotated;
 		for (int i = 0; i < point_count; ++i)
 		{
 			rviz_interface::push_arrow_corridor(
-			octomath::Vector3 (start_points[i].getX(), start_points[i].getY(), start_points[i].getZ()), 
-			octomath::Vector3 (end_points[i].getX(), end_points[i].getY(), end_points[i].getZ()), 
-			marker_pub, 10+i, marker_array);
+				octomath::Vector3 (start_points[i].getX(), start_points[i].getY(), start_points[i].getZ()), 
+				octomath::Vector3 (end_points[i].getX(), end_points[i].getY(), end_points[i].getZ()), 
+				marker_pub, 10+i, marker_array_original);
 		}
-		marker_pub.publish(marker_array);
+		marker_pub.publish(marker_array_original);
 
+		// CALCULATE ROTATION 
+    	tf2::Vector3 origin(0, 0, 0);
+    	tf2::Vector3 zAxis (0, 0, 1);
+    	tf2::Quaternion aroundZ (zAxis, -(M_PI/4));
+		tf2::Transform rotation_pitch, rotation_yaw;
+		rotation_yaw.setOrigin(origin);
+		rotation_yaw.setRotation(aroundZ);
+
+    	tf2::Quaternion no_rotation (0, 0, 0, 1);
+		// tf2::Vector3 offset = (start_points[0] - end_points[0]) / 2;
+		tf2::Vector3 offset = end_points[2];
+		tf2::Transform translation_to_center;
+		translation_to_center.setOrigin(offset);
+		translation_to_center.setRotation(no_rotation);
+		tf2::Transform translation_from_center;
+		translation_from_center.setOrigin(-offset);
+		translation_from_center.setRotation(no_rotation);
+
+		tf2::Transform final_transform_start = rotation_yaw;
+		tf2::Transform final_transform_end   = translation_from_center * rotation_yaw  * translation_to_center;
+
+		//     APPLY ROTATION 
+		tf2::Vector3 rotated_start, rotated_end;
+		for (int i = 0; i < point_count; ++i)
+		{
+			rotated_start = final_transform_start * start_points[i];
+			rotated_end   = final_transform_end   * end_points[i];
+			rviz_interface::push_arrow_corridor(
+				octomath::Vector3 (rotated_start.getX(), rotated_start.getY(), rotated_start.getZ()), 
+				octomath::Vector3 (rotated_end.getX(), rotated_end.getY(), rotated_end.getZ()), 
+				marker_pub, 20+i, marker_array_rotated);
+		}
+		marker_pub.publish(marker_array_rotated);
 	}
 
 	void learnTf_builtInFunctions()
