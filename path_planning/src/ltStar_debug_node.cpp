@@ -125,9 +125,9 @@ namespace LazyThetaStarOctree
 			// Offset calculation
 			tf2::Vector3 offset = (end_points[2]);
 			// translation_to_center__.setOrigin(-tf2::Vector3(5, -5, 0));
-			translation_to_center__.setOrigin(-end_points[2]);
-			translation_from_center.setOrigin(-offset);
-			final_transform_end   = /*translation_from_center * rotation_yaw */ translation_to_center__;
+			translation_to_center__.setOrigin(-offset);
+			translation_from_center.setOrigin(offset);
+			final_transform_end   = translation_from_center * rotation_yaw * translation_to_center__;
 
 			// Rotate
 			rotated_start = final_transform_start * start_points[i];
