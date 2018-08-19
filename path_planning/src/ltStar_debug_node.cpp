@@ -110,22 +110,26 @@ namespace LazyThetaStarOctree
 		rotation_yaw.setRotation(aroundZ);
 
     	tf2::Quaternion no_rotation (0, 0, 0, 1);
-		// tf2::Vector3 offset = (start_points[0] - end_points[0]) / 2;
-		tf2::Vector3 offset = end_points[2];
-		tf2::Transform translation_to_center;
-		translation_to_center.setOrigin(offset);
-		translation_to_center.setRotation(no_rotation);
+		tf2::Transform translation_to_center__;
 		tf2::Transform translation_from_center;
-		translation_from_center.setOrigin(-offset);
+		translation_to_center__.setRotation(no_rotation);
 		translation_from_center.setRotation(no_rotation);
 
 		tf2::Transform final_transform_start = rotation_yaw;
-		tf2::Transform final_transform_end   = translation_from_center * rotation_yaw  * translation_to_center;
+		tf2::Transform final_transform_end;
 
 		//     APPLY ROTATION 
 		tf2::Vector3 rotated_start, rotated_end;
 		for (int i = 0; i < point_count; ++i)
 		{
+			// Offset calculation
+			tf2::Vector3 offset = (end_points[2]);
+			// translation_to_center__.setOrigin(-tf2::Vector3(5, -5, 0));
+			translation_to_center__.setOrigin(-end_points[2]);
+			translation_from_center.setOrigin(-offset);
+			final_transform_end   = /*translation_from_center * rotation_yaw */ translation_to_center__;
+
+			// Rotate
 			rotated_start = final_transform_start * start_points[i];
 			rotated_end   = final_transform_end   * end_points[i];
 			rviz_interface::push_arrow_corridor(
