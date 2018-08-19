@@ -3,7 +3,6 @@
 #include <std_srvs/Empty.h>
 
 #include <tf2/LinearMath/Transform.h>
-#include <tf/tf.h>
 
 #define _USE_MATH_DEFINES
 
@@ -337,18 +336,23 @@ namespace LazyThetaStarOctree{
 
 	double calculateAngle(double oposite,  double adjacent)
 	{
+		log_file << "oposite:  " << oposite << std::endl;
+		log_file << "adjacent: " << adjacent << std::endl;
 		if (adjacent == 0)
 		{
+			log_file << "adjacent = 0 " << std::endl;
 			if (oposite >= 0) return M_PI / 2;
 			else return -M_PI/2;
 		}
 		else if (adjacent > 0) // I && IV
 		{
+			log_file << " I or IV " << std::endl;
 			double division = oposite / adjacent;
 			return std::atan(division);
 		}
 		else if(adjacent < 0) // II & III
 		{
+			log_file << " II or III " << std::endl;
 			double division = oposite / adjacent;
 			return std::atan(division) + M_PI;
 		}
@@ -360,6 +364,8 @@ namespace LazyThetaStarOctree{
 
 	double calculatePitch(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
+		log_file << "start:  " << start << std::endl;
+		log_file << "goal: " << goal << std::endl;
 		double oposite  = goal.z() - start.z();
 		double adjacent = goal.x() - start.x();
 		return calculateAngle(oposite, adjacent);
@@ -405,16 +411,18 @@ namespace LazyThetaStarOctree{
 		tf2::Vector3 		half_size  (bounding_box_size.x()/2, bounding_box_size.y()/2, bounding_box_size.z()/2);
 		tf2::Vector3 		start_min = start_tf - half_size;
 		tf2::Vector3 		end_min   = goal_tf  - half_size;
-		// double pitch = calculatePitch(start, end);
+		double pitch = calculatePitch(start, end);
 
 
-		// log_file << "calculatePitch(" << start << ", " << end << ") " << pitch << std::endl;
-  //   	tf2::Transform around_start, around_goal;
-  //   	tf::Quaternion temp = tf::createQuaternionFromRPY(0, pitch, 0);
-  //     	around_start.setOrigin(start_tf);
-  //     	around_goal.setOrigin (goal_tf);
-  //     	around_start.setRotation(   tf2::Quaternion( temp.x(), temp.y(), temp.z(), temp.w() )   );
-  //     	around_goal.setRotation (   tf2::Quaternion( temp.x(), temp.y(), temp.z(), temp.w() )   );
+		log_file << "calculatePitch(" << start << ", " << end << ") " << pitch << std::endl;
+    	tf2::Transform around_start, around_goal;
+    	tf2::Vector3 yAxis(1, 0, 0);
+    	tf2::Quaternion temp (yAxis, M_PI/2);
+    	tf2::Vector3 origin (0, 0, 0);
+      	around_start.setOrigin(start_tf);
+      	around_goal.setOrigin (goal_tf);
+      	around_start.setRotation(temp);
+      	around_goal.setRotation (temp);
 
 
 
@@ -431,26 +439,26 @@ namespace LazyThetaStarOctree{
 	    			start.y(), 
 	    			indexToCoordinate(start_min.getZ(), resolution, j));
 	    		// log_file << "before rotation " << toTest_start << std::endl;
-	    		// toTest_start = around_start * toTest_start;
+	    		toTest_start = around_start * toTest_start;
 	    		// log_file << "after rotation                               " << toTest_start << std::endl;
 
 	    		toTest_end   = tf2::Vector3(
 	    			indexToCoordinate(end_min.getX(), resolution, i), 
 	    			end.y(), 
 	    			indexToCoordinate(end_min.getZ(), resolution, j));
-	    		// toTest_end = around_goal * toTest_end;
+	    		toTest_end = around_goal * toTest_end;
 
-	        	if(hasLineOfSight(octree_, toTest_start, toTest_end, ignoreUnknown) == false)
-				{
-					if(publish)
-					{
+	   //      	if(hasLineOfSight(octree_, toTest_start, toTest_end, ignoreUnknown) == false)
+				// {
+				// 	if(publish)
+				// 	{
 						rviz_interface::publish_arrow_path_unreachable(
 							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
 							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
 							marker_pub, id_unreachable);	
 						id_unreachable++;
-					}
-				}
+				// 	}
+				// }
 				// else
 				// {
 				// 	if(publish)
