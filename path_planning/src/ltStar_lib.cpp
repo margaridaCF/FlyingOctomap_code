@@ -394,7 +394,8 @@ namespace LazyThetaStarOctree{
 		if (adjacent == 0)
 		{
 			// log_file << "adjacent = 0 " << std::endl;
-			if (oposite > 0) return -M_PI/2;
+			if (oposite > 0) return M_PI/2;
+			else if (oposite < 0) return -M_PI/2;
 			else return 0;
 		}
 		else if (adjacent > 0) // I && IV
@@ -451,14 +452,14 @@ namespace LazyThetaStarOctree{
 
 	double calculateYaw(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
-		double oposite  = start.y() - goal.y();
-		double adjacent = start.x() - goal.x();
+		double oposite  = goal.x() - start.x();
+		double adjacent = goal.y() - start.y();
 		try
 		{
 			double angle = calculateAngle(oposite, adjacent);
 			if (adjacent == 0)
 			{
-				if(oposite > 0) angle = 0;
+				// if(oposite > 0) angle = 0;
 				ROS_WARN_STREAM("@Yaw oposite: " << oposite << "; adjacent: " << adjacent << "  ==> " << angle);
 			}
 			return angle;
@@ -478,7 +479,7 @@ namespace LazyThetaStarOctree{
 			double angle = calculateAngle(oposite, adjacent);
 			if (adjacent == 0)
 			{
-				if(oposite <= 0) angle = M_PI/2;
+				// if(oposite <= 0) angle = M_PI/2;
 				ROS_WARN_STREAM("@Roll oposite: " << oposite << "; adjacent: " << adjacent << "  ==> " << angle);
 			}
 			return angle;
@@ -556,8 +557,8 @@ namespace LazyThetaStarOctree{
 
 		generateTranslations(start_tf, translation_to_center_start, translation_from_center_start);
 		generateTranslations(goal_tf,  translation_to_center_end,   translation_from_center_end);
-		final_transform_start = translation_from_center_start * rotation_roll * rotation_yaw * translation_to_center_start;
-		final_transform_end   = translation_from_center_end   * rotation_roll * rotation_yaw * translation_to_center_end;
+		final_transform_start = translation_from_center_start * rotation_roll * translation_to_center_start;
+		final_transform_end   = translation_from_center_end   * rotation_roll * translation_to_center_end;
 
 		int it_max = std::ceil(bounding_box_size.x() / resolution);
 		double start_x, end_x,  start_y, end_y;
