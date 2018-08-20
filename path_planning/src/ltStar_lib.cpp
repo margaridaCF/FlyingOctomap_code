@@ -394,8 +394,8 @@ namespace LazyThetaStarOctree{
 		if (adjacent == 0)
 		{
 			// log_file << "adjacent = 0 " << std::endl;
-			if (oposite >= 0) return M_PI / 2;
-			else return -M_PI/2;
+			if (oposite > 0) return -M_PI/2;
+			else return 0;
 		}
 		else if (adjacent > 0) // I && IV
 		{
@@ -520,8 +520,8 @@ namespace LazyThetaStarOctree{
 		tf2::Vector3 		half_size  (bounding_box_size.x()/2, bounding_box_size.y()/2, bounding_box_size.z()/2);
 		tf2::Vector3 		start_min = start_tf - half_size;
 		tf2::Vector3 		end_min   = goal_tf  - half_size;
-		double yaw = calculateYaw(start, end);
-		double roll = calculateRoll(start, end);
+		double yaw   = calculateYaw  (start, end);
+		double roll  = calculateRoll (start, end);
 
 
 		// CALCULATE ROTATION 
@@ -560,8 +560,8 @@ namespace LazyThetaStarOctree{
 	    		toTest_end   = tf2::Vector3(end_x,   end.y(),   indexToCoordinate(end_min.getZ(),   resolution, j));
 
 				// log_file << "[" << i << "][" << j << "] toTest_start x " << toTest_start.getX() << std::endl;
-				toTest_start = final_transform_start * toTest_start;
-				toTest_end   = final_transform_end   * toTest_end;
+				toTest_start = final_transform_start * toTest_start; 
+        		toTest_end   = final_transform_end   * toTest_end; 
 
 	        	if(hasLineOfSight(octree_, toTest_start, toTest_end, ignoreUnknown) == false)
 				{

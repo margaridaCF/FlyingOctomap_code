@@ -248,29 +248,29 @@ namespace LazyThetaStarOctree
 			octomath::Vector3 disc_final(path_request->goal.x, path_request->goal.y, path_request->goal.z);
 			octomath::Vector3 geofence(path_request->safety_margin, path_request->safety_margin, path_request->safety_margin);
 
+			// auto start_count = std::chrono::high_resolution_clock::now();
+			// LazyThetaStarOctree::CellStatus outcome_eth = getLineStatusBoundingBox    (*octree, disc_initial, disc_final, geofence, marker_pub, false);
+			// auto finish_count = std::chrono::high_resolution_clock::now();
+			// auto time_span = finish_count - start_count;
+			// ROS_WARN_STREAM( "getLineStatusBoundingBox        " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
+
+
+			//  start_count = std::chrono::high_resolution_clock::now();
+			// LazyThetaStarOctree::CellStatus outcome_original = getCorridorOccupancy       (*octree, disc_initial, disc_final, geofence, marker_pub, false);
+			//  finish_count = std::chrono::high_resolution_clock::now();
+			//  time_span = finish_count - start_count;
+			// ROS_WARN_STREAM( "getCorridorOccupancy        " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
+
 			auto start_count = std::chrono::high_resolution_clock::now();
-			LazyThetaStarOctree::CellStatus outcome_eth = getLineStatusBoundingBox    (*octree, disc_initial, disc_final, geofence, marker_pub, false);
+			LazyThetaStarOctree::CellStatus outcome_reboot = getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
 			auto finish_count = std::chrono::high_resolution_clock::now();
 			auto time_span = finish_count - start_count;
-			ROS_WARN_STREAM( "getLineStatusBoundingBox        " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
-
-
-			 start_count = std::chrono::high_resolution_clock::now();
-			LazyThetaStarOctree::CellStatus outcome_original = getCorridorOccupancy       (*octree, disc_initial, disc_final, geofence, marker_pub, false);
-			 finish_count = std::chrono::high_resolution_clock::now();
-			 time_span = finish_count - start_count;
-			ROS_WARN_STREAM( "getCorridorOccupancy        " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
-
-			start_count = std::chrono::high_resolution_clock::now();
-			LazyThetaStarOctree::CellStatus outcome_reboot = getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
-			finish_count = std::chrono::high_resolution_clock::now();
-			time_span = finish_count - start_count;
 			ROS_WARN_STREAM( "getCorridorOccupancy_reboot " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
 
-			if(outcome_original != outcome_reboot)
-			{
-				ROS_ERROR_STREAM("Reboot yields different result!");
-			}
+			// if(outcome_original != outcome_reboot)
+			// {
+			// 	ROS_ERROR_STREAM("Reboot yields different result!");
+			// }
 
 		}
 		else
