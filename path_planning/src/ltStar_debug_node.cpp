@@ -24,53 +24,6 @@ namespace LazyThetaStarOctree
 	bool octomap_init;
 	bool publish_free_corridor_arrows;
 
-	void learnTf_theHardWay()
-	{
-      	tf2::Vector3 toTest_start (0, 0, 0);
-		tf2::Vector3 toTest_end (1, 0, 0);
-
-		tf2::Vector3 offset = (toTest_start - toTest_end) / 2;
-
-
-    	tf2::Vector3 origin (0, 0, 0);
-    	tf2::Vector3 yAxis(0, 1, 0);
-    	tf2::Vector3 zAxis(0, 0, 1);
-    	tf2::Quaternion aroundY (yAxis, M_PI/4);  // Does not work with PI/2!!! Only one rotation is done
-    	tf2::Quaternion aroundZ (zAxis, M_PI/4);
-    	tf2::Quaternion no_rotation (0, 0, 0, 1);
-		tf2::Transform rotation_pitch, rotation_yaw;
-		rotation_pitch.setOrigin(origin);
-		rotation_pitch.setRotation(aroundY);
-
-		rotation_yaw.setOrigin(origin);
-		rotation_yaw.setRotation(aroundZ);
-
-		tf2::Transform translation_to_center;
-		translation_to_center.setOrigin(offset);
-		translation_to_center.setRotation(no_rotation);
-
-
-		tf2::Transform translation_from_center;
-		translation_from_center.setOrigin(-offset);
-		translation_from_center.setRotation(no_rotation);
-
-		tf2::Transform final_transform =  translation_from_center * rotation_yaw * rotation_pitch  * translation_to_center;
-
-      	
-		rviz_interface::publish_arrow_path_unreachable(
-			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
-			octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
-			marker_pub, 10);	
-
-		toTest_start = final_transform * toTest_start;
-		toTest_end = final_transform * toTest_end;
-
-		rviz_interface::publish_arrow_path_unreachable(
-			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
-			octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
-			marker_pub, 2);	
-	}
-
 	tf2::Transform generateRotation(tf2::Vector3 const& axis, double angle_rad)
 	{
 		tf2::Vector3 origin(0, 0, 0);
@@ -282,7 +235,7 @@ namespace LazyThetaStarOctree
 		// learnTf_theHardWay_pointSet_yaw();
 		// learnTf_theHardWay_pointSet_roll();
 		// learnTf_theHardWay_pointSet_yaw_roll();
-		
+
 		path_planning_msgs::LTStarReply reply;
 		reply.waypoint_amount = 0;
 		reply.success = false;
@@ -294,8 +247,31 @@ namespace LazyThetaStarOctree
 			octomath::Vector3 disc_initial(path_request->start.x, path_request->start.y, path_request->start.z);
 			octomath::Vector3 disc_final(path_request->goal.x, path_request->goal.y, path_request->goal.z);
 			octomath::Vector3 geofence(path_request->safety_margin, path_request->safety_margin, path_request->safety_margin);
-			getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
-			// getCorridorOccupancy       (*octree, disc_initial, disc_final, geofence, marker_pub, true);
+
+			auto start_count = std::chrono::high_resolution_clock::now();
+			LazyThetaStarOctree::CellStatus outcome_eth = getLineStatusBoundingBox    (*octree, disc_initial, disc_final, geofence, marker_pub, false);
+			auto finish_count = std::chrono::high_resolution_clock::now();
+			auto time_span = finish_count - start_count;
+			ROS_WARN_STREAM( "getLineStatusBoundingBox        " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
+
+
+			 start_count = std::chrono::high_resolution_clock::now();
+			LazyThetaStarOctree::CellStatus outcome_original = getCorridorOccupancy       (*octree, disc_initial, disc_final, geofence, marker_pub, false);
+			 finish_count = std::chrono::high_resolution_clock::now();
+			 time_span = finish_count - start_count;
+			ROS_WARN_STREAM( "getCorridorOccupancy        " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
+
+			start_count = std::chrono::high_resolution_clock::now();
+			LazyThetaStarOctree::CellStatus outcome_reboot = getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
+			finish_count = std::chrono::high_resolution_clock::now();
+			time_span = finish_count - start_count;
+			ROS_WARN_STREAM( "getCorridorOccupancy_reboot " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
+
+			if(outcome_original != outcome_reboot)
+			{
+				ROS_ERROR_STREAM("Reboot yields different result!");
+			}
+
 		}
 		else
 		{

@@ -26,8 +26,6 @@
 namespace LazyThetaStarOctree{
 	enum CellStatus { kFree = 0, kOccupied = 1, kUnknown = 2 };
 	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end);
-	CellStatus getLineStatus( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end);
-	CellStatus getLineStatusBoundingBox( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const octomath::Vector3& bounding_box_size);
 	bool is_flight_corridor_free(octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end,const double safety_margin, ros::Publisher const& marker_pub, bool ignoreUnknown = false, bool publish = false);
 	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end, bool ignoreUnknown = false);
 	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, ros::Publisher const& marker_pub, const double sidelength_lookup_table[], bool ignoreUnknown = false, bool publish = false);
@@ -130,6 +128,15 @@ namespace LazyThetaStarOctree{
     bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 
 		const double theta = 0.00000000000000000001) ;
 
+    
+	CellStatus getLineStatus( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end);
+	CellStatus getLineStatusBoundingBox(
+		octomap::OcTree & octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& end,
+		const octomath::Vector3& bounding_box_size,
+		ros::Publisher const& marker_pub,
+		bool publish,
+		bool ignoreUnknown = false);
     CellStatus getCorridorOccupancy_reboot(
 		octomap::OcTree & octree_, 
 		const octomath::Vector3& start, const octomath::Vector3& end,

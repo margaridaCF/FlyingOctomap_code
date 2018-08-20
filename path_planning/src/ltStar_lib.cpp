@@ -4,6 +4,7 @@
 
 #include <tf2/LinearMath/Transform.h>
 
+
 #define _USE_MATH_DEFINES
 
 #define SAVE_CSV 1
@@ -34,7 +35,7 @@ namespace LazyThetaStarOctree{
 	int updateVertex_time;
 	std::ofstream log_file;
 	ros::Publisher marker_pub_;
-	int id_unreachable;
+	int id_unreachable, id_free;
 	// ros::ServiceClient pauseGazebo_;
 	// ros::ServiceClient unpauseGazebo_;
 
@@ -46,109 +47,6 @@ namespace LazyThetaStarOctree{
 	    return sqrt(	pow(end.x()-start.x(),2) +
 						pow(end.y()-start.y(),2) +
         				pow(end.z()-start.z(),2));
-	}
-
-	/*
-		(for getLineStatus and getLineStatusBoundingBox)
-		https://github.com/ethz-asl/volumetric_mapping
-		Copyright (c) 2015, Helen Oleynikova, ETH Zurich, Switzerland
-		You can contact the author at <helen dot oleynikova at mavt dot ethz dot ch>
-		All rights reserved.
-		Redistribution and use in source and binary forms, with or without
-		modification, are permitted provided that the following conditions are met:
-		* Redistributions of source code must retain the above copyright
-		notice, this list of conditions and the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright
-		notice, this list of conditions and the following disclaimer in the
-		documentation and/or other materials provided with the distribution.
-		* Neither the name of ETHZ-ASL nor the
-		names of its contributors may be used to endorse or promote products
-		derived from this software without specific prior written permission.
-		THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-		ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-		WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-		DISCLAIMED. IN NO EVENT SHALL ETHZ-ASL BE LIABLE FOR ANY
-		DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-		(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-		LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-		ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-		(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-		SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-	*/
-	CellStatus getLineStatus(
-		octomap::OcTree & octree_,
-		const octomath::Vector3& start, const octomath::Vector3& end) {
-		// Get all node keys for this line.
-		// This is actually a typedef for a vector of OcTreeKeys.
-		// Can't use the key_ray_ temp member here because this is a const function.
-		octomap::KeyRay key_ray;
-		octree_.computeRayKeys(start, end,
-			key_ray);
-		// ROS_INFO_STREAM("[LTStar] From " << start << " to " << end);
-		// Now check if there are any unknown or occupied nodes in the ray.
-		for (octomap::OcTreeKey key : key_ray) 
-		{
-			// ROS_INFO_STREAM(key[0] << " " << key[1] << " " << key[2] );
-			octomap::OcTreeNode* node = octree_.search(key);
-			if (node == NULL) 
-			{
-				return CellStatus::kUnknown;
-				
-			} 
-			else if (octree_.isNodeOccupied(node)) 
-			{
-				return CellStatus::kOccupied;
-			}
-		}
-		return CellStatus::kFree;
-	}
-
-	CellStatus getLineStatusBoundingBox(
-		octomap::OcTree & octree_, 
-		const octomath::Vector3& start, const octomath::Vector3& end,
-		const octomath::Vector3& bounding_box_size) 
-	{
-		// TODO(helenol): Probably best way would be to get all the coordinates along
-		// the line, then make a set of all the OcTreeKeys in all the bounding boxes
-		// around the nodes... and then just go through and query once.
-		const double epsilon = 0.001;  // Small offset
-		CellStatus ret_forward = CellStatus::kFree;
-		CellStatus ret_backwards = CellStatus::kFree;
-		const double& resolution = octree_.getResolution();
-
-		// Check corner connections and depending on resolution also interior:
-		// Discretization step is smaller than the octomap resolution, as this way
-		// no cell can possibly be missed
-		double x_disc = bounding_box_size.x() / ceil((bounding_box_size.x() + epsilon) / resolution);
-		double y_disc = bounding_box_size.y() / ceil((bounding_box_size.y() + epsilon) / resolution);
-		double z_disc = bounding_box_size.z() / ceil((bounding_box_size.z() + epsilon) / resolution);
-
-		// Ensure that resolution is not infinit
-		if (x_disc <= 0.0) x_disc = resolution;
-		if (y_disc <= 0.0) y_disc = resolution;
-		if (z_disc <= 0.0) z_disc = resolution;
-
-		const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
-
-		for (double x = -bounding_box_half_size.x(); x <= bounding_box_half_size.x();
-			x += x_disc) {
-			for (double y = -bounding_box_half_size.y();
-				y <= bounding_box_half_size.y(); y += y_disc) 
-			{
-				for (double z = -bounding_box_half_size.z();
-					z <= bounding_box_half_size.z(); z += z_disc) 
-				{
-					octomath::Vector3 offset(x, y, z);
-					ret_forward = getLineStatus(octree_, start + offset, end + offset);
-					ret_backwards = getLineStatus(octree_, end + offset, start + offset);
-					if (ret_forward != CellStatus::kFree || ret_backwards != CellStatus::kFree ) 
-					{
-						return CellStatus::kOccupied;
-					}
-				}
-			}
-		}
-		return CellStatus::kFree;
 	}
 
 	bool hasLineOfSight(octomap::OcTree const& octree, tf2::Vector3 const& start, tf2::Vector3 const& end, bool ignoreUnknown/* = false*/)
@@ -204,6 +102,150 @@ namespace LazyThetaStarOctree{
 		return same;
 	}
 
+	/*
+	(FOR getLineStatusBoundingBox)	
+	Copyright (c) 2015, Helen Oleynikova, ETH Zurich, Switzerland
+	You can contact the author at <helen dot oleynikova at mavt dot ethz dot ch>
+	All rights reserved.
+	Redistribution and use in source and binary forms, with or without
+	modification, are permitted provided that the following conditions are met:
+	* Redistributions of source code must retain the above copyright
+	notice, this list of conditions and the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright
+	notice, this list of conditions and the following disclaimer in the
+	documentation and/or other materials provided with the distribution.
+	* Neither the name of ETHZ-ASL nor the
+	names of its contributors may be used to endorse or promote products
+	derived from this software without specific prior written permission.
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+	DISCLAIMED. IN NO EVENT SHALL ETHZ-ASL BE LIABLE FOR ANY
+	DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+	(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+	ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	*/
+
+	CellStatus getLineStatus(
+		octomap::OcTree & octree_,
+	    const octomath::Vector3& start, const octomath::Vector3& end) {
+	  // Get all node keys for this line.
+	  // This is actually a typedef for a vector of OcTreeKeys.
+	  // Can't use the key_ray_ temp member here because this is a const function.
+	  octomap::KeyRay key_ray;
+	  octree_.computeRayKeys(start, end, key_ray);
+
+	  // Now check if there are any unknown or occupied nodes in the ray.
+	  for (octomap::OcTreeKey key : key_ray) {
+	    octomap::OcTreeNode* node = octree_.search(key);
+	    if (node == NULL) {
+	      if (true) {
+	        return CellStatus::kOccupied;
+	      } else {
+	        return CellStatus::kUnknown;
+	      }
+	    } else if (octree_.isNodeOccupied(node)) {
+	      return CellStatus::kOccupied;
+	    }
+	  }
+	  return CellStatus::kFree;
+	}
+	CellStatus getLineStatusBoundingBox(
+		octomap::OcTree & octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& end,
+		const octomath::Vector3& bounding_box_size,
+		ros::Publisher const& marker_pub,
+		bool publish,
+		bool ignoreUnknown) {
+
+		id_unreachable = 0;
+		id_free = 0;
+		visualization_msgs::MarkerArray marker_array_free, marker_array_occupied;
+
+	  // TODO(helenol): Probably best way would be to get all the coordinates along
+	  // the line, then make a set of all the OcTreeKeys in all the bounding boxes
+	  // around the nodes... and then just go through and query once.
+	  const double epsilon = 0.001;  // Small offset
+	  CellStatus ret = CellStatus::kFree;
+	  const double& resolution = octree_.getResolution();
+
+	  // Check corner connections and depending on resolution also interior:
+	  // Discretization step is smaller than the octomap resolution, as this way
+	  // no cell can possibly be missed
+	  double x_disc = bounding_box_size.x() /
+	                  ceil((bounding_box_size.x() + epsilon) / resolution);
+	  double y_disc = bounding_box_size.y() /
+	                  ceil((bounding_box_size.y() + epsilon) / resolution);
+	  double z_disc = bounding_box_size.z() /
+	                  ceil((bounding_box_size.z() + epsilon) / resolution);
+
+	  // Ensure that resolution is not infinit
+	  if (x_disc <= 0.0) x_disc = 1.0;
+	  if (y_disc <= 0.0) y_disc = 1.0;
+	  if (z_disc <= 0.0) z_disc = 1.0;
+
+	  const octomath::Vector3 bounding_box_half_size = bounding_box_size * 0.5;
+
+	  for (double x = -bounding_box_half_size.x(); x <= bounding_box_half_size.x();
+	       x += x_disc) {
+	    for (double y = -bounding_box_half_size.y();
+	         y <= bounding_box_half_size.y(); y += y_disc) {
+	      for (double z = -bounding_box_half_size.z();
+	           z <= bounding_box_half_size.z(); z += z_disc) {
+	        octomath::Vector3 offset(x, y, z);
+
+	    	if(getLineStatus(octree_, start + offset, end + offset) != CellStatus::kFree)
+			{
+				if(publish)
+				{
+					// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
+					rviz_interface::push_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable, marker_array_occupied);	
+					id_unreachable++;
+				}
+				// return CellStatus::kOccupied;
+			}	
+			else if(getLineStatus(octree_, end + offset, start + offset) != CellStatus::kFree)
+			{
+				if(publish)
+				{
+					// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
+					rviz_interface::push_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable, marker_array_occupied);	
+					id_unreachable++;
+				}
+				// return CellStatus::kOccupied;
+			}	
+			else
+			{
+				if(publish)
+				{
+					// log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
+					rviz_interface::push_arrow_corridor(start + offset, end + offset, marker_pub, id_free, marker_array_free);	
+					id_free++;
+
+				}
+			}
+
+	        // ret = getLineStatus(start + offset, end + offset);
+
+
+	        // if (ret != CellStatus::kFree) {
+	        //   return ret;
+	        // }
+	      }
+	    }
+	  }
+	  if(publish)
+		{
+			marker_pub.publish(marker_array_occupied);
+			marker_pub.publish(marker_array_free);
+		}
+	  return CellStatus::kFree;
+	}
+
+
 	CellStatus getCorridorOccupancy(
 		octomap::OcTree & octree_, 
 		const octomath::Vector3& start, const octomath::Vector3& end,
@@ -212,6 +254,9 @@ namespace LazyThetaStarOctree{
 		bool publish,
 		bool ignoreUnknown/* = false*/) 
 	{
+		id_unreachable = 0;
+		id_free = 0;
+		visualization_msgs::MarkerArray marker_array_free, marker_array_occupied;
 		int getCorridorOccupancy_it = 0;
 		if(publish)
 		{
@@ -267,34 +312,36 @@ namespace LazyThetaStarOctree{
 					// 	// log_file << "final position end " << end << " + " << offset << " = " << end + offset << std::endl;
 					// 	log_file << start + offset << " to " << end + offset << std::endl;
 					// }
-					// if(hasLineOfSight(octree_, start + offset, end + offset, ignoreUnknown) == false)
-					// {
-					// 	if(publish)
-					// 	{
-					// 		log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
-					// 		rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable);	
-					// 		id_unreachable++;
-					// 	}
-					// 	// return CellStatus::kOccupied;
-					// }	
-					// else if(hasLineOfSight(octree_, end + offset, start + offset, ignoreUnknown) == false)
-					// {
-					// 	if(publish)
-					// 	{
-					// 		log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
-					// 		rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable);	
-					// 		id_unreachable++;
-					// 	}
-					// 	// return CellStatus::kOccupied;
-					// }	
-					// else
-					// {
-					// 	if(publish)
-					// 	{
-					// 		log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
-					// 		rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
-					// 	}
-					// }
+					if(hasLineOfSight(octree_, start + offset, end + offset, ignoreUnknown) == false)
+					{
+						if(publish)
+						{
+							// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
+							rviz_interface::push_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable, marker_array_occupied);	
+							id_unreachable++;
+						}
+						// return CellStatus::kOccupied;
+					}	
+					else if(hasLineOfSight(octree_, end + offset, start + offset, ignoreUnknown) == false)
+					{
+						if(publish)
+						{
+							// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
+							rviz_interface::push_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable, marker_array_occupied);	
+							id_unreachable++;
+						}
+						// return CellStatus::kOccupied;
+					}	
+					else
+					{
+						if(publish)
+						{
+							// log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
+							rviz_interface::push_arrow_corridor(start + offset, end + offset, marker_pub, id_free, marker_array_free);	
+							id_free++;
+
+						}
+					}
 					getCorridorOccupancy_it++;
 				}
 				// if(publish)
@@ -302,7 +349,7 @@ namespace LazyThetaStarOctree{
 				// 	log_file << std::endl;
 				// }
 			}
-			log_file << "getCorridorOccupancy_it: " << getCorridorOccupancy_it << std::endl;
+			// log_file << "getCorridorOccupancy_it: " << getCorridorOccupancy_it << std::endl;
 			// if(publish)
 			// {
 			// 	log_file << std::endl;
@@ -311,6 +358,8 @@ namespace LazyThetaStarOctree{
 
 		if(publish)
 		{
+			marker_pub.publish(marker_array_occupied);
+			marker_pub.publish(marker_array_free);
 			log_file.close();
 		}
 		// for (std::unordered_set<octomap::OcTreeKey>::iterator i = keys.begin(); i != keys.end(); ++i)
@@ -448,8 +497,9 @@ namespace LazyThetaStarOctree{
 		bool publish,
 		bool ignoreUnknown/* = false*/) 
 	{
+		id_unreachable = 200;
+		id_free = 200;
 		visualization_msgs::MarkerArray marker_array_free, marker_array_occupied;
-		int publish_arrow_corridor_id = 0;
 		tf2::Vector3 start_tf(start.x(), start.y(), start.z());
 		tf2::Vector3 goal_tf (end.x(), end.y(), end.z());
 		if(publish)
@@ -464,15 +514,12 @@ namespace LazyThetaStarOctree{
 			goal_point.z = end.z();
 			rviz_interface::publish_start(start_point, marker_pub);
 			rviz_interface::publish_goal(goal_point, marker_pub);
-			// log_file << "getCorridorOccupancy_reboot from " << start << " to " << end << std::endl;
-			// rviz_interface::publish_arrow_corridor_center(start, end, marker_pub);
 		}
 		double resolution = octree_.getResolution();
 
 		tf2::Vector3 		half_size  (bounding_box_size.x()/2, bounding_box_size.y()/2, bounding_box_size.z()/2);
 		tf2::Vector3 		start_min = start_tf - half_size;
 		tf2::Vector3 		end_min   = goal_tf  - half_size;
-		// double pitch = calculatePitch(start, end);
 		double yaw = calculateYaw(start, end);
 		double roll = calculateRoll(start, end);
 
@@ -526,6 +573,19 @@ namespace LazyThetaStarOctree{
 							marker_pub, id_unreachable, marker_array_occupied);	
 						id_unreachable++;
 					}
+					// return CellStatus::kOccupied;
+				}
+				else if(hasLineOfSight(octree_, toTest_end, toTest_start, ignoreUnknown) == false)
+				{
+					if(publish)
+					{
+						rviz_interface::push_arrow_path_unreachable(
+							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
+							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
+							marker_pub, id_unreachable, marker_array_occupied);	
+						id_unreachable++;
+					}
+					// return CellStatus::kOccupied;
 				}
 				else
 				{
@@ -534,8 +594,8 @@ namespace LazyThetaStarOctree{
 						rviz_interface::push_arrow_corridor(
 							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
 							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
-							marker_pub, publish_arrow_corridor_id, marker_array_free);
-						publish_arrow_corridor_id++;	
+							marker_pub, id_free, marker_array_free);
+						id_free++;	
 					}
 				}
 			}
@@ -929,6 +989,9 @@ namespace LazyThetaStarOctree{
 		setVertex_time = 0;
 		updateVertex_time = 0;
 
+		id_unreachable = 0;	
+		id_free = 0;	
+
     	log_file.open(folder_name + "lazyThetaStar.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
 		auto start = std::chrono::high_resolution_clock::now();
@@ -1033,7 +1096,6 @@ namespace LazyThetaStarOctree{
 		}
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
-		id_unreachable = 0;	
 		while(!open.empty() && !solution_found)
 		{
 			// open.printNodes("========= Starting state of open ");
@@ -1494,6 +1556,7 @@ namespace LazyThetaStarOctree{
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
 		id_unreachable = 0;	
+		id_free = 0;	
 		while(!open.empty() && !solution_found)
 		{
 			// open.printNodes("========= Starting state of open ");
