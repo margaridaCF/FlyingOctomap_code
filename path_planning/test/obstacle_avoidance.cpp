@@ -1497,6 +1497,147 @@ namespace LazyThetaStarOctree
 		ASSERT_TRUE (allPointsAreCorrect(end_points_result, end_points_correct));
 	}
 
+	TEST (LazyThetaStarTests, ObstacleAvoidance_ForwardsInX_OnOrigin)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/20180808_1026_octree_noPath.bt");
+		double safety_margin = 2;
+		octomath::Vector3 geofence(safety_margin, safety_margin, safety_margin);
+		octomath::Vector3 start (0, 0, 0);
+		octomath::Vector3 end (2, 0, 0);
+		std::list <octomath::Vector3> start_points_correct = { 
+			octomath::Vector3 (-1.77636e-16, -0.8, -0.8),  
+			octomath::Vector3 (-1.77636e-16, -0.8, -0.4),  
+			octomath::Vector3 (-1.77636e-16, -0.8, 0),  
+			octomath::Vector3 (-1.77636e-16, -0.8, 0.4),  
+			octomath::Vector3 (-1.77636e-16, -0.8, 0.8),  
+			octomath::Vector3 (-8.88178e-17, -0.4, -0.8),  
+			octomath::Vector3 (-8.88178e-17, -0.4, -0.4),  
+			octomath::Vector3 (-8.88178e-17, -0.4, 0),  
+			octomath::Vector3 (-8.88178e-17, -0.4, 0.4),  
+			octomath::Vector3 (-8.88178e-17, -0.4, 0.8),  
+			octomath::Vector3 (0, 0, -0.8),  
+			octomath::Vector3 (0, 0, -0.4),  
+			octomath::Vector3 (0, 0, 0),  
+			octomath::Vector3 (0, 0, 0.4),  
+			octomath::Vector3 (0, 0, 0.8),  
+			octomath::Vector3 (8.88178e-17, 0.4, -0.8),  
+			octomath::Vector3 (8.88178e-17, 0.4, -0.4),  
+			octomath::Vector3 (8.88178e-17, 0.4, 0),  
+			octomath::Vector3 (8.88178e-17, 0.4, 0.4),  
+			octomath::Vector3 (8.88178e-17, 0.4, 0.8),  
+			octomath::Vector3 (1.77636e-16, 0.8, -0.8),  
+			octomath::Vector3 (1.77636e-16, 0.8, -0.4),  
+			octomath::Vector3 (1.77636e-16, 0.8, 0),  
+			octomath::Vector3 (1.77636e-16, 0.8, 0.4),  
+			octomath::Vector3 (1.77636e-16, 0.8, 0.8),  
+		 }; 
+		std::list <octomath::Vector3> end_points_correct = { 
+			octomath::Vector3 (2, -0.8, -0.8),  
+			octomath::Vector3 (2, -0.8, -0.4),  
+			octomath::Vector3 (2, -0.8, 0),  
+			octomath::Vector3 (2, -0.8, 0.4),  
+			octomath::Vector3 (2, -0.8, 0.8),  
+			octomath::Vector3 (2, -0.4, -0.8),  
+			octomath::Vector3 (2, -0.4, -0.4),  
+			octomath::Vector3 (2, -0.4, 0),  
+			octomath::Vector3 (2, -0.4, 0.4),  
+			octomath::Vector3 (2, -0.4, 0.8),  
+			octomath::Vector3 (2, 0, -0.8),  
+			octomath::Vector3 (2, 0, -0.4),  
+			octomath::Vector3 (2, 0, 0),  
+			octomath::Vector3 (2, 0, 0.4),  
+			octomath::Vector3 (2, 0, 0.8),  
+			octomath::Vector3 (2, 0.4, -0.8),  
+			octomath::Vector3 (2, 0.4, -0.4),  
+			octomath::Vector3 (2, 0.4, 0),  
+			octomath::Vector3 (2, 0.4, 0.4),  
+			octomath::Vector3 (2, 0.4, 0.8),  
+			octomath::Vector3 (2, 0.8, -0.8),  
+			octomath::Vector3 (2, 0.8, -0.4),  
+			octomath::Vector3 (2, 0.8, 0),  
+			octomath::Vector3 (2, 0.8, 0.4),  
+			octomath::Vector3 (2, 0.8, 0.8),  
+		 }; 
+
+
+		std::list <octomath::Vector3> start_points_result, end_points_result; 
+		getCorridorOccupancy_reboot(octree, start, end, geofence, marker_pub, false, start_points_result, end_points_result, false, true);
+		ASSERT_TRUE (allPointsAreCorrect(start_points_result, start_points_correct));
+		ASSERT_TRUE (allPointsAreCorrect(end_points_result, end_points_correct));
+	}
+
+	TEST (LazyThetaStarTests, ObstacleAvoidance_BackwardsInX_OnOrigin)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/20180808_1026_octree_noPath.bt");
+		double safety_margin = 2;
+		octomath::Vector3 geofence(safety_margin, safety_margin, safety_margin);
+		octomath::Vector3 start (0, 0, 0);
+		octomath::Vector3 end (-2, 0, 0);
+		std::list <octomath::Vector3> start_points_correct = { 
+			octomath::Vector3 (-1.77636e-16, 0.8, -0.8),  
+			octomath::Vector3 (-1.77636e-16, 0.8, -0.4),  
+			octomath::Vector3 (-1.77636e-16, 0.8, 0),  
+			octomath::Vector3 (-1.77636e-16, 0.8, 0.4),  
+			octomath::Vector3 (-1.77636e-16, 0.8, 0.8),  
+			octomath::Vector3 (-8.88178e-17, 0.4, -0.8),  
+			octomath::Vector3 (-8.88178e-17, 0.4, -0.4),  
+			octomath::Vector3 (-8.88178e-17, 0.4, 0),  
+			octomath::Vector3 (-8.88178e-17, 0.4, 0.4),  
+			octomath::Vector3 (-8.88178e-17, 0.4, 0.8),  
+			octomath::Vector3 (0, 0, -0.8),  
+			octomath::Vector3 (0, 0, -0.4),  
+			octomath::Vector3 (0, 0, 0),  
+			octomath::Vector3 (0, 0, 0.4),  
+			octomath::Vector3 (0, 0, 0.8),  
+			octomath::Vector3 (8.88178e-17, -0.4, -0.8),  
+			octomath::Vector3 (8.88178e-17, -0.4, -0.4),  
+			octomath::Vector3 (8.88178e-17, -0.4, 0),  
+			octomath::Vector3 (8.88178e-17, -0.4, 0.4),  
+			octomath::Vector3 (8.88178e-17, -0.4, 0.8),  
+			octomath::Vector3 (1.77636e-16, -0.8, -0.8),  
+			octomath::Vector3 (1.77636e-16, -0.8, -0.4),  
+			octomath::Vector3 (1.77636e-16, -0.8, 0),  
+			octomath::Vector3 (1.77636e-16, -0.8, 0.4),  
+			octomath::Vector3 (1.77636e-16, -0.8, 0.8),  
+		 }; 
+		std::list <octomath::Vector3> end_points_correct = { 
+			octomath::Vector3 (-2, 0.8, -0.8),  
+			octomath::Vector3 (-2, 0.8, -0.4),  
+			octomath::Vector3 (-2, 0.8, 0),  
+			octomath::Vector3 (-2, 0.8, 0.4),  
+			octomath::Vector3 (-2, 0.8, 0.8),  
+			octomath::Vector3 (-2, 0.4, -0.8),  
+			octomath::Vector3 (-2, 0.4, -0.4),  
+			octomath::Vector3 (-2, 0.4, 0),  
+			octomath::Vector3 (-2, 0.4, 0.4),  
+			octomath::Vector3 (-2, 0.4, 0.8),  
+			octomath::Vector3 (-2, -2.22045e-16, -0.8),  
+			octomath::Vector3 (-2, -2.22045e-16, -0.4),  
+			octomath::Vector3 (-2, -2.22045e-16, 0),  
+			octomath::Vector3 (-2, -2.22045e-16, 0.4),  
+			octomath::Vector3 (-2, -2.22045e-16, 0.8),  
+			octomath::Vector3 (-2, -0.4, -0.8),  
+			octomath::Vector3 (-2, -0.4, -0.4),  
+			octomath::Vector3 (-2, -0.4, 0),  
+			octomath::Vector3 (-2, -0.4, 0.4),  
+			octomath::Vector3 (-2, -0.4, 0.8),  
+			octomath::Vector3 (-2, -0.8, -0.8),  
+			octomath::Vector3 (-2, -0.8, -0.4),  
+			octomath::Vector3 (-2, -0.8, 0),  
+			octomath::Vector3 (-2, -0.8, 0.4),  
+			octomath::Vector3 (-2, -0.8, 0.8),  
+		 }; 
+
+
+
+		std::list <octomath::Vector3> start_points_result, end_points_result; 
+		getCorridorOccupancy_reboot(octree, start, end, geofence, marker_pub, false, start_points_result, end_points_result, false, true);
+		ASSERT_TRUE (allPointsAreCorrect(start_points_result, start_points_correct));
+		ASSERT_TRUE (allPointsAreCorrect(end_points_result, end_points_correct));
+	}
+
 }
 
 int main(int argc, char **argv){
