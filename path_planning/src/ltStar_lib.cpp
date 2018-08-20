@@ -458,9 +458,10 @@ namespace LazyThetaStarOctree{
 			double angle = calculateAngle(oposite, adjacent);
 			if (adjacent == 0)
 			{
+				if(oposite > 0) angle = 0;
 				ROS_WARN_STREAM("@Yaw oposite: " << oposite << "; adjacent: " << adjacent << "  ==> " << angle);
 			}
-			return calculateAngle(oposite, adjacent);
+			return angle;
 		}
 		catch (const std::out_of_range& oor)
 		{
@@ -477,10 +478,10 @@ namespace LazyThetaStarOctree{
 			double angle = calculateAngle(oposite, adjacent);
 			if (adjacent == 0)
 			{
-				// if(oposite < 0) angle = -M_PI/2;
+				if(oposite <= 0) angle = M_PI/2;
 				ROS_WARN_STREAM("@Roll oposite: " << oposite << "; adjacent: " << adjacent << "  ==> " << angle);
 			}
-			return calculateAngle(oposite, adjacent);
+			return angle;
 		}
 		catch (const std::out_of_range& oor)
 		{
@@ -528,8 +529,8 @@ namespace LazyThetaStarOctree{
 		tf2::Vector3 		start_min = start_tf - half_size;
 		tf2::Vector3 		end_min   = goal_tf  - half_size;
 		double yaw   = calculateYaw  (start, end);
+		double pitch = calculatePitch(start, end);
 		double roll  = calculateRoll (start, end);
-		double pitch = calculatePitch (start, end);
 
 
 		// CALCULATE ROTATION 
@@ -539,9 +540,9 @@ namespace LazyThetaStarOctree{
     	tf2::Transform rotation_yaw  = generateRotation(zAxis, yaw);
     	tf2::Transform rotation_pitch = generateRotation(yAxis, pitch);
     	tf2::Transform rotation_roll = generateRotation(xAxis, roll);
-    	log_file << "Yaw " << yaw << std::endl;
-    	log_file << "Pitch " << roll << std::endl;
-    	log_file << "Roll " << roll << std::endl;
+    	log_file << "Yaw "   << yaw << std::endl;
+    	log_file << "Pitch " << pitch << std::endl;
+    	log_file << "Roll "  << roll << std::endl;
 
 		
 		// Offset calculation START
