@@ -329,30 +329,34 @@ namespace LazyThetaStarOctree{
 		return CellStatus::kFree;
 	}
 
-	double indexToCoordinate(double original, double resolution, int iteration)
+	double indexToCoordinate(double original, double resolution, int iteration, bool publish = false)
 	{
+		if(publish)
+		{
+			log_file << original << " + " << resolution << "/2 + " << iteration << "*" << resolution << " = " << original << " + " << resolution/2 << " + " << iteration*resolution << " = " << original + resolution/2 + iteration*resolution << std::endl;
+		}
 		return original + resolution/2 + iteration*resolution;
 	}
 
 	double calculateAngle(double oposite,  double adjacent)
 	{
-		log_file << "oposite:  " << oposite << std::endl;
-		log_file << "adjacent: " << adjacent << std::endl;
+		// log_file << "oposite:  " << oposite << std::endl;
+		// log_file << "adjacent: " << adjacent << std::endl;
 		if (adjacent == 0)
 		{
-			log_file << "adjacent = 0 " << std::endl;
+			// log_file << "adjacent = 0 " << std::endl;
 			if (oposite >= 0) return M_PI / 2;
 			else return -M_PI/2;
 		}
 		else if (adjacent > 0) // I && IV
 		{
-			log_file << " I or IV " << std::endl;
+			// log_file << " I or IV " << std::endl;
 			double division = oposite / adjacent;
 			return std::atan(division);
 		}
 		else if(adjacent < 0) // II & III
 		{
-			log_file << " II or III " << std::endl;
+			// log_file << " II or III " << std::endl;
 			double division = oposite / adjacent;
 			return std::atan(division) + M_PI;
 		}
@@ -478,6 +482,8 @@ namespace LazyThetaStarOctree{
     	tf2::Vector3 xAxis (1, 0, 0);
     	tf2::Transform rotation_yaw  = generateRotation(zAxis, yaw);
     	tf2::Transform rotation_roll = generateRotation(xAxis, roll);
+    	log_file << "Yaw " << yaw << std::endl;
+    	log_file << "Roll " << roll << std::endl;
 
 		
 		// Offset calculation START
@@ -497,46 +503,47 @@ namespace LazyThetaStarOctree{
 		int it_max = std::ceil(bounding_box_size.x() / resolution);
 		double start_x, end_x,  start_y, end_y;
 		tf2::Vector3 toTest_start, toTest_end;
-		// log_file << "start_min_x " << start_min_x << ", end_min_x: " << end_min_x << ", it_max: " << it_max << std::endl;
 		for(int i = 0; i < it_max; i++)
         {
-        	int x_start = indexToCoordinate(start_min.getX(), resolution, i);
-	    	int x_end   = indexToCoordinate(end_min.getX(),   resolution, i);
+        	start_x = indexToCoordinate(start_min.getX(), resolution, i);
+	    	end_x   = indexToCoordinate(end_min.getX(),   resolution, i);
         	for(int j = 0; j < it_max; j++)
         	{
-	    		toTest_start = tf2::Vector3(x_start, start.y(), indexToCoordinate(start_min.getZ(), resolution, j));
-	    		toTest_end   = tf2::Vector3(x_end,   end.y(),   indexToCoordinate(end_min.getZ(),   resolution, j));
+	    		toTest_start = tf2::Vector3(start_x, start.y(), indexToCoordinate(start_min.getZ(), resolution, j));
+	    		toTest_end   = tf2::Vector3(end_x,   end.y(),   indexToCoordinate(end_min.getZ(),   resolution, j));
 
+				// log_file << "[" << i << "][" << j << "] toTest_start x " << toTest_start.getX() << std::endl;
 				toTest_start = final_transform_start * toTest_start;
 				toTest_end   = final_transform_end   * toTest_end;
 
-	   //      	if(hasLineOfSight(octree_, toTest_start, toTest_end, ignoreUnknown) == false)
-				// {
-				// 	if(publish)
-				// 	{
+	        	if(hasLineOfSight(octree_, toTest_start, toTest_end, ignoreUnknown) == false)
+				{
+					if(publish)
+					{
 						rviz_interface::push_arrow_path_unreachable(
 							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
 							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
 							marker_pub, id_unreachable, marker_array_occupied);	
 						id_unreachable++;
-				// 	}
-				// }
-				// else
-				// {
-				// 	if(publish)
-				// 	{
-				// 		rviz_interface::publish_arrow_corridor(
-				// 			octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
-				// 			octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
-				// 			marker_pub, publish_arrow_corridor_id);
-				// 		publish_arrow_corridor_id++;	
-				// 	}
-				// }
+					}
+				}
+				else
+				{
+					if(publish)
+					{
+						rviz_interface::push_arrow_corridor(
+							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
+							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
+							marker_pub, publish_arrow_corridor_id, marker_array_free);
+						publish_arrow_corridor_id++;	
+					}
+				}
 			}
         }
         if(publish)
 		{
 			marker_pub.publish(marker_array_occupied);
+			marker_pub.publish(marker_array_free);
 			log_file << "obstacle_avoidance_calls: " << obstacle_avoidance_calls << std::endl;
 			log_file.close();
 		}
