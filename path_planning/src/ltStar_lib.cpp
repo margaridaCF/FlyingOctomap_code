@@ -378,13 +378,13 @@ namespace LazyThetaStarOctree{
 		return CellStatus::kFree;
 	}
 
-	double indexToCoordinate(double original, double resolution, int iteration, bool publish = false)
+	double indexToCoordinate(double center_offset, double resolution, int iteration, bool publish = false)
 	{
 		if(publish)
 		{
-			log_file << original << " + " << resolution << "/2 + " << iteration << "*" << resolution << " = " << original << " + " << resolution/2 << " + " << iteration*resolution << " = " << original + resolution/2 + iteration*resolution << std::endl;
+			// log_file << "(" << resolution << "/2 + " << iteration << "*"<<resolution<<") + "<<center_offset << " = " << (resolution/2 + iteration*resolution) << " + " << center_offset << " = " << (resolution/2 + iteration*resolution) + center_offset << std::endl;
 		}
-		return original + resolution/2 + iteration*resolution;
+		return (resolution/2 + iteration*resolution) - center_offset;
 	}
 
 	double calculateAngle(double oposite,  double adjacent)
@@ -557,24 +557,23 @@ namespace LazyThetaStarOctree{
 
 		generateTranslations(start_tf, translation_to_center_start, translation_from_center_start);
 		generateTranslations(goal_tf,  translation_to_center_end,   translation_from_center_end);
-		final_transform_start = translation_from_center_start * rotation_roll * translation_to_center_start;
-		final_transform_end   = translation_from_center_end   * rotation_roll * translation_to_center_end;
+		final_transform_start = translation_from_center_start * rotation_roll * rotation_yaw;
+		final_transform_end   = translation_from_center_end   * rotation_roll * rotation_yaw;
 
 		int it_max = std::ceil(std::abs(bounding_box_size.x() / resolution));
-		double start_x, end_x,  start_y, end_y;
-		tf2::Vector3 toTest_start, toTest_end;
+		double ideal_x, ideal_z;
+		tf2::Vector3 toTest_start, toTest_end, toTest_generic;
 		octomath::Vector3 toTest_start_octomap, toTest_end_octomap;
 		log_file << "it_max: " << it_max << std::endl;
 		for(int i = 0; i < it_max; i++)
         {
-        	start_x = indexToCoordinate(start_min.getX(), resolution, i);
-	    	end_x   = indexToCoordinate(end_min.getX(),   resolution, i);
+        	ideal_x = indexToCoordinate(half_size.x(), resolution, i);
         	for(int j = 0; j < it_max; j++)
         	{
-	    		toTest_start = tf2::Vector3(start_x, start.y(), indexToCoordinate(start_min.getZ(), resolution, j));
-	    		toTest_end   = tf2::Vector3(end_x,   end.y(),   indexToCoordinate(end_min.getZ(),   resolution, j));
-				toTest_start = final_transform_start * toTest_start; 
-        		toTest_end   = final_transform_end   * toTest_end; 
+        		ideal_z = indexToCoordinate(half_size.z(), resolution, j);
+	    		toTest_generic = tf2::Vector3(ideal_x, 0, 	ideal_z);
+				toTest_start = final_transform_start * toTest_generic; 
+    			toTest_end   = final_transform_end   * toTest_generic; 
 
 	    		toTest_start_octomap = octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ());
 	    		toTest_end_octomap = octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ());
