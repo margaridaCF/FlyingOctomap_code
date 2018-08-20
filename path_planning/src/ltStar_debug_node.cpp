@@ -8,7 +8,6 @@
 
 #include <tf2/LinearMath/Transform.h>
 
-#include <array>
 
 #include <visualization_msgs/MarkerArray.h>
 
@@ -260,9 +259,10 @@ namespace LazyThetaStarOctree
 			//  finish_count = std::chrono::high_resolution_clock::now();
 			//  time_span = finish_count - start_count;
 			// ROS_WARN_STREAM( "getCorridorOccupancy        " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);
+			std::list <octomath::Vector3> start_points_result, end_points_result; 
 
 			auto start_count = std::chrono::high_resolution_clock::now();
-			LazyThetaStarOctree::CellStatus outcome_reboot = getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true);
+			LazyThetaStarOctree::CellStatus outcome_reboot = getCorridorOccupancy_reboot(*octree, disc_initial, disc_final, geofence, marker_pub, true,  start_points_result, end_points_result, false, true);
 			auto finish_count = std::chrono::high_resolution_clock::now();
 			auto time_span = finish_count - start_count;
 			ROS_WARN_STREAM( "getCorridorOccupancy_reboot " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count() << " microseconds" << std::endl);

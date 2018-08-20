@@ -1,6 +1,7 @@
 #include <ltStar_temp.h>
 #include <gtest/gtest.h>
 #include <queue>
+#include <vector>
 
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
@@ -13,7 +14,417 @@
 
 namespace LazyThetaStarOctree
 {
-	
+	bool allPointsAreCorrect(std::list <octomath::Vector3>const points , 
+		std::list <octomath::Vector3> const right_answers)
+	{
+
+		bool all_points_are_correct = true;
+		std::list <octomath::Vector3> wrong_answers;
+		octomath::Vector3 temp;
+
+		if(points.size() != right_answers.size())
+		{
+			all_points_are_correct = false;
+			ROS_WARN_STREAM("There are " << points.size() << " points but there should be " << right_answers.size());
+		}
+		for (octomath::Vector3 n : points)
+		{
+			bool found  = false;
+			for(octomath::Vector3 answer : right_answers)
+			{
+				if( equal(answer, (n)) )
+ 				{
+ 					found  = true;
+ 					break;
+				}
+			}
+				
+			if(!found)
+			{
+				wrong_answers.push_back(n);
+				all_points_are_correct = false;
+			}
+		}
+
+
+		if(!wrong_answers.empty())
+		{
+			ROS_WARN_STREAM("There are " << wrong_answers.size() << " wrong answers.");
+			std::cout << std::setprecision(30);
+
+			octomath::Vector3 wrong;
+			for (auto w : wrong_answers)
+			{
+				std::cout << "Wrong answer: " << w << "\n";
+				wrong = w;
+			}
+			std::cout << "Right answers: " <<  "\n";
+			for(octomath::Vector3 nv : right_answers)
+			{
+				std::cout << nv << "\n";
+			}
+
+		}
+
+		return all_points_are_correct;
+	}
+
+	TEST (LazyThetaStarTests, ObstacleAvoidance_BaxkwardsInY)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/20180808_1026_octree_noPath.bt");
+		double safety_margin = 5;
+		octomath::Vector3 geofence(safety_margin, safety_margin, safety_margin);
+		octomath::Vector3 start (26, -0.84, 8);
+		octomath::Vector3 end (26, 2, 8);
+		std::list <octomath::Vector3> start_points_correct = { 
+			octomath::Vector3 (23.7, -0.84, 5.7),  
+			octomath::Vector3 (23.7, -0.84, 6.1),  
+			octomath::Vector3 (23.7, -0.84, 6.5),  
+			octomath::Vector3 (23.7, -0.84, 6.9),  
+			octomath::Vector3 (23.7, -0.84, 7.3),  
+			octomath::Vector3 (23.7, -0.84, 7.7),  
+			octomath::Vector3 (23.7, -0.84, 8.1),  
+			octomath::Vector3 (23.7, -0.84, 8.5),  
+			octomath::Vector3 (23.7, -0.84, 8.9),  
+			octomath::Vector3 (23.7, -0.84, 9.3),  
+			octomath::Vector3 (23.7, -0.84, 9.7),  
+			octomath::Vector3 (23.7, -0.84, 10.1),  
+			octomath::Vector3 (23.7, -0.84, 10.5),  
+			octomath::Vector3 (24.1, -0.84, 5.7),  
+			octomath::Vector3 (24.1, -0.84, 6.1),  
+			octomath::Vector3 (24.1, -0.84, 6.5),  
+			octomath::Vector3 (24.1, -0.84, 6.9),  
+			octomath::Vector3 (24.1, -0.84, 7.3),  
+			octomath::Vector3 (24.1, -0.84, 7.7),  
+			octomath::Vector3 (24.1, -0.84, 8.1),  
+			octomath::Vector3 (24.1, -0.84, 8.5),  
+			octomath::Vector3 (24.1, -0.84, 8.9),  
+			octomath::Vector3 (24.1, -0.84, 9.3),  
+			octomath::Vector3 (24.1, -0.84, 9.7),  
+			octomath::Vector3 (24.1, -0.84, 10.1),  
+			octomath::Vector3 (24.1, -0.84, 10.5),  
+			octomath::Vector3 (24.5, -0.84, 5.7),  
+			octomath::Vector3 (24.5, -0.84, 6.1),  
+			octomath::Vector3 (24.5, -0.84, 6.5),  
+			octomath::Vector3 (24.5, -0.84, 6.9),  
+			octomath::Vector3 (24.5, -0.84, 7.3),  
+			octomath::Vector3 (24.5, -0.84, 7.7),  
+			octomath::Vector3 (24.5, -0.84, 8.1),  
+			octomath::Vector3 (24.5, -0.84, 8.5),  
+			octomath::Vector3 (24.5, -0.84, 8.9),  
+			octomath::Vector3 (24.5, -0.84, 9.3),  
+			octomath::Vector3 (24.5, -0.84, 9.7),  
+			octomath::Vector3 (24.5, -0.84, 10.1),  
+			octomath::Vector3 (24.5, -0.84, 10.5),  
+			octomath::Vector3 (24.9, -0.84, 5.7),  
+			octomath::Vector3 (24.9, -0.84, 6.1),  
+			octomath::Vector3 (24.9, -0.84, 6.5),  
+			octomath::Vector3 (24.9, -0.84, 6.9),  
+			octomath::Vector3 (24.9, -0.84, 7.3),  
+			octomath::Vector3 (24.9, -0.84, 7.7),  
+			octomath::Vector3 (24.9, -0.84, 8.1),  
+			octomath::Vector3 (24.9, -0.84, 8.5),  
+			octomath::Vector3 (24.9, -0.84, 8.9),  
+			octomath::Vector3 (24.9, -0.84, 9.3),  
+			octomath::Vector3 (24.9, -0.84, 9.7),  
+			octomath::Vector3 (24.9, -0.84, 10.1),  
+			octomath::Vector3 (24.9, -0.84, 10.5),  
+			octomath::Vector3 (25.3, -0.84, 5.7),  
+			octomath::Vector3 (25.3, -0.84, 6.1),  
+			octomath::Vector3 (25.3, -0.84, 6.5),  
+			octomath::Vector3 (25.3, -0.84, 6.9),  
+			octomath::Vector3 (25.3, -0.84, 7.3),  
+			octomath::Vector3 (25.3, -0.84, 7.7),  
+			octomath::Vector3 (25.3, -0.84, 8.1),  
+			octomath::Vector3 (25.3, -0.84, 8.5),  
+			octomath::Vector3 (25.3, -0.84, 8.9),  
+			octomath::Vector3 (25.3, -0.84, 9.3),  
+			octomath::Vector3 (25.3, -0.84, 9.7),  
+			octomath::Vector3 (25.3, -0.84, 10.1),  
+			octomath::Vector3 (25.3, -0.84, 10.5),  
+			octomath::Vector3 (25.7, -0.84, 5.7),  
+			octomath::Vector3 (25.7, -0.84, 6.1),  
+			octomath::Vector3 (25.7, -0.84, 6.5),  
+			octomath::Vector3 (25.7, -0.84, 6.9),  
+			octomath::Vector3 (25.7, -0.84, 7.3),  
+			octomath::Vector3 (25.7, -0.84, 7.7),  
+			octomath::Vector3 (25.7, -0.84, 8.1),  
+			octomath::Vector3 (25.7, -0.84, 8.5),  
+			octomath::Vector3 (25.7, -0.84, 8.9),  
+			octomath::Vector3 (25.7, -0.84, 9.3),  
+			octomath::Vector3 (25.7, -0.84, 9.7),  
+			octomath::Vector3 (25.7, -0.84, 10.1),  
+			octomath::Vector3 (25.7, -0.84, 10.5),  
+			octomath::Vector3 (26.1, -0.84, 5.7),  
+			octomath::Vector3 (26.1, -0.84, 6.1),  
+			octomath::Vector3 (26.1, -0.84, 6.5),  
+			octomath::Vector3 (26.1, -0.84, 6.9),  
+			octomath::Vector3 (26.1, -0.84, 7.3),  
+			octomath::Vector3 (26.1, -0.84, 7.7),  
+			octomath::Vector3 (26.1, -0.84, 8.1),  
+			octomath::Vector3 (26.1, -0.84, 8.5),  
+			octomath::Vector3 (26.1, -0.84, 8.9),  
+			octomath::Vector3 (26.1, -0.84, 9.3),  
+			octomath::Vector3 (26.1, -0.84, 9.7),  
+			octomath::Vector3 (26.1, -0.84, 10.1),  
+			octomath::Vector3 (26.1, -0.84, 10.5),  
+			octomath::Vector3 (26.5, -0.84, 5.7),  
+			octomath::Vector3 (26.5, -0.84, 6.1),  
+			octomath::Vector3 (26.5, -0.84, 6.5),  
+			octomath::Vector3 (26.5, -0.84, 6.9),  
+			octomath::Vector3 (26.5, -0.84, 7.3),  
+			octomath::Vector3 (26.5, -0.84, 7.7),  
+			octomath::Vector3 (26.5, -0.84, 8.1),  
+			octomath::Vector3 (26.5, -0.84, 8.5),  
+			octomath::Vector3 (26.5, -0.84, 8.9),  
+			octomath::Vector3 (26.5, -0.84, 9.3),  
+			octomath::Vector3 (26.5, -0.84, 9.7),  
+			octomath::Vector3 (26.5, -0.84, 10.1),  
+			octomath::Vector3 (26.5, -0.84, 10.5),  
+			octomath::Vector3 (26.9, -0.84, 5.7),  
+			octomath::Vector3 (26.9, -0.84, 6.1),  
+			octomath::Vector3 (26.9, -0.84, 6.5),  
+			octomath::Vector3 (26.9, -0.84, 6.9),  
+			octomath::Vector3 (26.9, -0.84, 7.3),  
+			octomath::Vector3 (26.9, -0.84, 7.7),  
+			octomath::Vector3 (26.9, -0.84, 8.1),  
+			octomath::Vector3 (26.9, -0.84, 8.5),  
+			octomath::Vector3 (26.9, -0.84, 8.9),  
+			octomath::Vector3 (26.9, -0.84, 9.3),  
+			octomath::Vector3 (26.9, -0.84, 9.7),  
+			octomath::Vector3 (26.9, -0.84, 10.1),  
+			octomath::Vector3 (26.9, -0.84, 10.5),  
+			octomath::Vector3 (27.3, -0.84, 5.7),  
+			octomath::Vector3 (27.3, -0.84, 6.1),  
+			octomath::Vector3 (27.3, -0.84, 6.5),  
+			octomath::Vector3 (27.3, -0.84, 6.9),  
+			octomath::Vector3 (27.3, -0.84, 7.3),  
+			octomath::Vector3 (27.3, -0.84, 7.7),  
+			octomath::Vector3 (27.3, -0.84, 8.1),  
+			octomath::Vector3 (27.3, -0.84, 8.5),  
+			octomath::Vector3 (27.3, -0.84, 8.9),  
+			octomath::Vector3 (27.3, -0.84, 9.3),  
+			octomath::Vector3 (27.3, -0.84, 9.7),  
+			octomath::Vector3 (27.3, -0.84, 10.1),  
+			octomath::Vector3 (27.3, -0.84, 10.5),  
+			octomath::Vector3 (27.7, -0.84, 5.7),  
+			octomath::Vector3 (27.7, -0.84, 6.1),  
+			octomath::Vector3 (27.7, -0.84, 6.5),  
+			octomath::Vector3 (27.7, -0.84, 6.9),  
+			octomath::Vector3 (27.7, -0.84, 7.3),  
+			octomath::Vector3 (27.7, -0.84, 7.7),  
+			octomath::Vector3 (27.7, -0.84, 8.1),  
+			octomath::Vector3 (27.7, -0.84, 8.5),  
+			octomath::Vector3 (27.7, -0.84, 8.9),  
+			octomath::Vector3 (27.7, -0.84, 9.3),  
+			octomath::Vector3 (27.7, -0.84, 9.7),  
+			octomath::Vector3 (27.7, -0.84, 10.1),  
+			octomath::Vector3 (27.7, -0.84, 10.5),  
+			octomath::Vector3 (28.1, -0.84, 5.7),  
+			octomath::Vector3 (28.1, -0.84, 6.1),  
+			octomath::Vector3 (28.1, -0.84, 6.5),  
+			octomath::Vector3 (28.1, -0.84, 6.9),  
+			octomath::Vector3 (28.1, -0.84, 7.3),  
+			octomath::Vector3 (28.1, -0.84, 7.7),  
+			octomath::Vector3 (28.1, -0.84, 8.1),  
+			octomath::Vector3 (28.1, -0.84, 8.5),  
+			octomath::Vector3 (28.1, -0.84, 8.9),  
+			octomath::Vector3 (28.1, -0.84, 9.3),  
+			octomath::Vector3 (28.1, -0.84, 9.7),  
+			octomath::Vector3 (28.1, -0.84, 10.1),  
+			octomath::Vector3 (28.1, -0.84, 10.5),  
+			octomath::Vector3 (28.5, -0.84, 5.7),  
+			octomath::Vector3 (28.5, -0.84, 6.1),  
+			octomath::Vector3 (28.5, -0.84, 6.5),  
+			octomath::Vector3 (28.5, -0.84, 6.9),  
+			octomath::Vector3 (28.5, -0.84, 7.3),  
+			octomath::Vector3 (28.5, -0.84, 7.7),  
+			octomath::Vector3 (28.5, -0.84, 8.1),  
+			octomath::Vector3 (28.5, -0.84, 8.5),  
+			octomath::Vector3 (28.5, -0.84, 8.9),  
+			octomath::Vector3 (28.5, -0.84, 9.3),  
+			octomath::Vector3 (28.5, -0.84, 9.7),  
+			octomath::Vector3 (28.5, -0.84, 10.1),  
+			octomath::Vector3 (28.5, -0.84, 10.5),  
+		}; 
+		std::list <octomath::Vector3> end_points_correct = { 
+			octomath::Vector3 (23.7, 2, 5.7),  
+			octomath::Vector3 (23.7, 2, 6.1),  
+			octomath::Vector3 (23.7, 2, 6.5),  
+			octomath::Vector3 (23.7, 2, 6.9),  
+			octomath::Vector3 (23.7, 2, 7.3),  
+			octomath::Vector3 (23.7, 2, 7.7),  
+			octomath::Vector3 (23.7, 2, 8.1),  
+			octomath::Vector3 (23.7, 2, 8.5),  
+			octomath::Vector3 (23.7, 2, 8.9),  
+			octomath::Vector3 (23.7, 2, 9.3),  
+			octomath::Vector3 (23.7, 2, 9.7),  
+			octomath::Vector3 (23.7, 2, 10.1),  
+			octomath::Vector3 (23.7, 2, 10.5),  
+			octomath::Vector3 (24.1, 2, 5.7),  
+			octomath::Vector3 (24.1, 2, 6.1),  
+			octomath::Vector3 (24.1, 2, 6.5),  
+			octomath::Vector3 (24.1, 2, 6.9),  
+			octomath::Vector3 (24.1, 2, 7.3),  
+			octomath::Vector3 (24.1, 2, 7.7),  
+			octomath::Vector3 (24.1, 2, 8.1),  
+			octomath::Vector3 (24.1, 2, 8.5),  
+			octomath::Vector3 (24.1, 2, 8.9),  
+			octomath::Vector3 (24.1, 2, 9.3),  
+			octomath::Vector3 (24.1, 2, 9.7),  
+			octomath::Vector3 (24.1, 2, 10.1),  
+			octomath::Vector3 (24.1, 2, 10.5),  
+			octomath::Vector3 (24.5, 2, 5.7),  
+			octomath::Vector3 (24.5, 2, 6.1),  
+			octomath::Vector3 (24.5, 2, 6.5),  
+			octomath::Vector3 (24.5, 2, 6.9),  
+			octomath::Vector3 (24.5, 2, 7.3),  
+			octomath::Vector3 (24.5, 2, 7.7),  
+			octomath::Vector3 (24.5, 2, 8.1),  
+			octomath::Vector3 (24.5, 2, 8.5),  
+			octomath::Vector3 (24.5, 2, 8.9),  
+			octomath::Vector3 (24.5, 2, 9.3),  
+			octomath::Vector3 (24.5, 2, 9.7),  
+			octomath::Vector3 (24.5, 2, 10.1),  
+			octomath::Vector3 (24.5, 2, 10.5),  
+			octomath::Vector3 (24.9, 2, 5.7),  
+			octomath::Vector3 (24.9, 2, 6.1),  
+			octomath::Vector3 (24.9, 2, 6.5),  
+			octomath::Vector3 (24.9, 2, 6.9),  
+			octomath::Vector3 (24.9, 2, 7.3),  
+			octomath::Vector3 (24.9, 2, 7.7),  
+			octomath::Vector3 (24.9, 2, 8.1),  
+			octomath::Vector3 (24.9, 2, 8.5),  
+			octomath::Vector3 (24.9, 2, 8.9),  
+			octomath::Vector3 (24.9, 2, 9.3),  
+			octomath::Vector3 (24.9, 2, 9.7),  
+			octomath::Vector3 (24.9, 2, 10.1),  
+			octomath::Vector3 (24.9, 2, 10.5),  
+			octomath::Vector3 (25.3, 2, 5.7),  
+			octomath::Vector3 (25.3, 2, 6.1),  
+			octomath::Vector3 (25.3, 2, 6.5),  
+			octomath::Vector3 (25.3, 2, 6.9),  
+			octomath::Vector3 (25.3, 2, 7.3),  
+			octomath::Vector3 (25.3, 2, 7.7),  
+			octomath::Vector3 (25.3, 2, 8.1),  
+			octomath::Vector3 (25.3, 2, 8.5),  
+			octomath::Vector3 (25.3, 2, 8.9),  
+			octomath::Vector3 (25.3, 2, 9.3),  
+			octomath::Vector3 (25.3, 2, 9.7),  
+			octomath::Vector3 (25.3, 2, 10.1),  
+			octomath::Vector3 (25.3, 2, 10.5),  
+			octomath::Vector3 (25.7, 2, 5.7),  
+			octomath::Vector3 (25.7, 2, 6.1),  
+			octomath::Vector3 (25.7, 2, 6.5),  
+			octomath::Vector3 (25.7, 2, 6.9),  
+			octomath::Vector3 (25.7, 2, 7.3),  
+			octomath::Vector3 (25.7, 2, 7.7),  
+			octomath::Vector3 (25.7, 2, 8.1),  
+			octomath::Vector3 (25.7, 2, 8.5),  
+			octomath::Vector3 (25.7, 2, 8.9),  
+			octomath::Vector3 (25.7, 2, 9.3),  
+			octomath::Vector3 (25.7, 2, 9.7),  
+			octomath::Vector3 (25.7, 2, 10.1),  
+			octomath::Vector3 (25.7, 2, 10.5),  
+			octomath::Vector3 (26.1, 2, 5.7),  
+			octomath::Vector3 (26.1, 2, 6.1),  
+			octomath::Vector3 (26.1, 2, 6.5),  
+			octomath::Vector3 (26.1, 2, 6.9),  
+			octomath::Vector3 (26.1, 2, 7.3),  
+			octomath::Vector3 (26.1, 2, 7.7),  
+			octomath::Vector3 (26.1, 2, 8.1),  
+			octomath::Vector3 (26.1, 2, 8.5),  
+			octomath::Vector3 (26.1, 2, 8.9),  
+			octomath::Vector3 (26.1, 2, 9.3),  
+			octomath::Vector3 (26.1, 2, 9.7),  
+			octomath::Vector3 (26.1, 2, 10.1),  
+			octomath::Vector3 (26.1, 2, 10.5),  
+			octomath::Vector3 (26.5, 2, 5.7),  
+			octomath::Vector3 (26.5, 2, 6.1),  
+			octomath::Vector3 (26.5, 2, 6.5),  
+			octomath::Vector3 (26.5, 2, 6.9),  
+			octomath::Vector3 (26.5, 2, 7.3),  
+			octomath::Vector3 (26.5, 2, 7.7),  
+			octomath::Vector3 (26.5, 2, 8.1),  
+			octomath::Vector3 (26.5, 2, 8.5),  
+			octomath::Vector3 (26.5, 2, 8.9),  
+			octomath::Vector3 (26.5, 2, 9.3),  
+			octomath::Vector3 (26.5, 2, 9.7),  
+			octomath::Vector3 (26.5, 2, 10.1),  
+			octomath::Vector3 (26.5, 2, 10.5),  
+			octomath::Vector3 (26.9, 2, 5.7),  
+			octomath::Vector3 (26.9, 2, 6.1),  
+			octomath::Vector3 (26.9, 2, 6.5),  
+			octomath::Vector3 (26.9, 2, 6.9),  
+			octomath::Vector3 (26.9, 2, 7.3),  
+			octomath::Vector3 (26.9, 2, 7.7),  
+			octomath::Vector3 (26.9, 2, 8.1),  
+			octomath::Vector3 (26.9, 2, 8.5),  
+			octomath::Vector3 (26.9, 2, 8.9),  
+			octomath::Vector3 (26.9, 2, 9.3),  
+			octomath::Vector3 (26.9, 2, 9.7),  
+			octomath::Vector3 (26.9, 2, 10.1),  
+			octomath::Vector3 (26.9, 2, 10.5),  
+			octomath::Vector3 (27.3, 2, 5.7),  
+			octomath::Vector3 (27.3, 2, 6.1),  
+			octomath::Vector3 (27.3, 2, 6.5),  
+			octomath::Vector3 (27.3, 2, 6.9),  
+			octomath::Vector3 (27.3, 2, 7.3),  
+			octomath::Vector3 (27.3, 2, 7.7),  
+			octomath::Vector3 (27.3, 2, 8.1),  
+			octomath::Vector3 (27.3, 2, 8.5),  
+			octomath::Vector3 (27.3, 2, 8.9),  
+			octomath::Vector3 (27.3, 2, 9.3),  
+			octomath::Vector3 (27.3, 2, 9.7),  
+			octomath::Vector3 (27.3, 2, 10.1),  
+			octomath::Vector3 (27.3, 2, 10.5),  
+			octomath::Vector3 (27.7, 2, 5.7),  
+			octomath::Vector3 (27.7, 2, 6.1),  
+			octomath::Vector3 (27.7, 2, 6.5),  
+			octomath::Vector3 (27.7, 2, 6.9),  
+			octomath::Vector3 (27.7, 2, 7.3),  
+			octomath::Vector3 (27.7, 2, 7.7),  
+			octomath::Vector3 (27.7, 2, 8.1),  
+			octomath::Vector3 (27.7, 2, 8.5),  
+			octomath::Vector3 (27.7, 2, 8.9),  
+			octomath::Vector3 (27.7, 2, 9.3),  
+			octomath::Vector3 (27.7, 2, 9.7),  
+			octomath::Vector3 (27.7, 2, 10.1),  
+			octomath::Vector3 (27.7, 2, 10.5),  
+			octomath::Vector3 (28.1, 2, 5.7),  
+			octomath::Vector3 (28.1, 2, 6.1),  
+			octomath::Vector3 (28.1, 2, 6.5),  
+			octomath::Vector3 (28.1, 2, 6.9),  
+			octomath::Vector3 (28.1, 2, 7.3),  
+			octomath::Vector3 (28.1, 2, 7.7),  
+			octomath::Vector3 (28.1, 2, 8.1),  
+			octomath::Vector3 (28.1, 2, 8.5),  
+			octomath::Vector3 (28.1, 2, 8.9),  
+			octomath::Vector3 (28.1, 2, 9.3),  
+			octomath::Vector3 (28.1, 2, 9.7),  
+			octomath::Vector3 (28.1, 2, 10.1),  
+			octomath::Vector3 (28.1, 2, 10.5),  
+			octomath::Vector3 (28.5, 2, 5.7),  
+			octomath::Vector3 (28.5, 2, 6.1),  
+			octomath::Vector3 (28.5, 2, 6.5),  
+			octomath::Vector3 (28.5, 2, 6.9),  
+			octomath::Vector3 (28.5, 2, 7.3),  
+			octomath::Vector3 (28.5, 2, 7.7),  
+			octomath::Vector3 (28.5, 2, 8.1),  
+			octomath::Vector3 (28.5, 2, 8.5),  
+			octomath::Vector3 (28.5, 2, 8.9),  
+			octomath::Vector3 (28.5, 2, 9.3),  
+			octomath::Vector3 (28.5, 2, 9.7),  
+			octomath::Vector3 (28.5, 2, 10.1),  
+			octomath::Vector3 (28.5, 2, 10.5),  
+		}; 
+
+		std::list <octomath::Vector3> start_points_result, end_points_result; 
+		getCorridorOccupancy_reboot(octree, start, end, geofence, marker_pub, false, start_points_result, end_points_result, false, true);
+		ASSERT_TRUE (allPointsAreCorrect(start_points_result, start_points_correct));
+		ASSERT_TRUE (allPointsAreCorrect(end_points_result, end_points_correct));
+	}
 
 	// void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 	// 	int const& max_search_iterations = 55)
@@ -79,7 +490,7 @@ namespace LazyThetaStarOctree
 	// 	testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
 	// }
 
-	// TEST(LazyThetaStarTests, LazyThetaStar_filteredNeighbors_depthException)
+	// TEST(LazyThetaStarTests, LazyThetaStar_filteredPoints_depthException)
 	// {
 	// 	// (-8.3 -8.3 0.5) to (-7.3 -8.3 0.5)
 	// 	octomap::OcTree octree ("data/offShoreOil_1m.bt");
@@ -101,19 +512,19 @@ namespace LazyThetaStarOctree
 	// 	}
 	// }
 
-	void benchmarkSparseVanilla(octomap::OcTree   & octree, octomath::Vector3 & start, octomath::Vector3 & end, double safety_margin, int max_search_seconds)
-	{
-		ROS_INFO_STREAM("=> Distance " << weightedDistance(start, end));
-		ros::Publisher marker_pub;
-		ResultSet statistical_data;
-		double sidelength_lookup_table  [octree.getTreeDepth()];
-			LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
-		ASSERT_GT(resulting_path.size(), 0);
-		// resulting_path.clear();
-		// resulting_path = lazyThetaStar_original(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
-		// ASSERT_EQ(resulting_path.size(), 0);
-	}
+	// void benchmarkSparseVanilla(octomap::OcTree   & octree, octomath::Vector3 & start, octomath::Vector3 & end, double safety_margin, int max_search_seconds)
+	// {
+	// 	ROS_INFO_STREAM("=> Distance " << weightedDistance(start, end));
+	// 	ros::Publisher marker_pub;
+	// 	ResultSet statistical_data;
+	// 	double sidelength_lookup_table  [octree.getTreeDepth()];
+	// 		LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+	// 	std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
+	// 	ASSERT_GT(resulting_path.size(), 0);
+	// 	// resulting_path.clear();
+	// 	// resulting_path = lazyThetaStar_original(octree, start, end, statistical_data, safety_margin, sidelength_lookup_table, marker_pub, max_search_seconds, true, false);
+	// 	// ASSERT_EQ(resulting_path.size(), 0);
+	// }
 
 
 	/*TEST(LazyThetaStarTests, Benchmark_20180808_karting)

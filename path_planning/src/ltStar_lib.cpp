@@ -437,12 +437,8 @@ namespace LazyThetaStarOctree{
 
 	double calculatePitch(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
-		log_file << "start:  " << start << std::endl;
-		log_file << "goal: " << goal << std::endl;
 		double oposite  = goal.z() - start.z();
 		double adjacent = goal.x() - start.x();
-		return calculateAngle(oposite, adjacent);
-
 		try
 		{
 			return calculateAngle(oposite, adjacent);
@@ -455,14 +451,15 @@ namespace LazyThetaStarOctree{
 
 	double calculateYaw(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
-		log_file << "start:  " << start << std::endl;
-		log_file << "goal: " << goal << std::endl;
-		double oposite  = goal.y() - start.y();
-		double adjacent = goal.x() - start.x();
-		return calculateAngle(oposite, adjacent);
-
+		double oposite  = start.y() - goal.y();
+		double adjacent = start.x() - goal.x();
 		try
 		{
+			double angle = calculateAngle(oposite, adjacent);
+			if (adjacent == 0)
+			{
+				ROS_WARN_STREAM("@Yaw oposite: " << oposite << "; adjacent: " << adjacent << "  ==> " << angle);
+			}
 			return calculateAngle(oposite, adjacent);
 		}
 		catch (const std::out_of_range& oor)
@@ -473,14 +470,16 @@ namespace LazyThetaStarOctree{
 
 	double calculateRoll(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
-		log_file << "start:  " << start << std::endl;
-		log_file << "goal: " << goal << std::endl;
 		double oposite  = goal.z() - start.z();
 		double adjacent = goal.y() - start.y();
-		return calculateAngle(oposite, adjacent);
-
 		try
 		{
+			double angle = calculateAngle(oposite, adjacent);
+			if (adjacent == 0)
+			{
+				// if(oposite < 0) angle = -M_PI/2;
+				ROS_WARN_STREAM("@Roll oposite: " << oposite << "; adjacent: " << adjacent << "  ==> " << angle);
+			}
 			return calculateAngle(oposite, adjacent);
 		}
 		catch (const std::out_of_range& oor)
@@ -495,8 +494,13 @@ namespace LazyThetaStarOctree{
 		const octomath::Vector3& bounding_box_size,
 		ros::Publisher const& marker_pub,
 		bool publish,
-		bool ignoreUnknown/* = false*/) 
+		std::list <octomath::Vector3> & resulting_start_points,
+		std::list <octomath::Vector3> & resulting_end_points,
+		bool ignoreUnknown/* = false*/,
+		bool fill_for_debug/* = false*/) 
 	{
+		std::ofstream unitTests_file;
+		std::stringstream start_stream, end_stream;
 		id_unreachable = 200;
 		id_free = 200;
 		visualization_msgs::MarkerArray marker_array_free, marker_array_occupied;
@@ -505,6 +509,9 @@ namespace LazyThetaStarOctree{
 		if(publish)
 		{
 	    	log_file.open(folder_name + "lazyThetaStar.log", std::ios_base::app);
+			log_file << " =======  " << std::endl;
+			log_file << "start:  " << start << std::endl;
+			log_file << "goal: " << end << std::endl;
 			geometry_msgs::Point start_point, goal_point;
 			start_point.x = start.x();
 			start_point.y = start.y();
@@ -522,14 +529,18 @@ namespace LazyThetaStarOctree{
 		tf2::Vector3 		end_min   = goal_tf  - half_size;
 		double yaw   = calculateYaw  (start, end);
 		double roll  = calculateRoll (start, end);
+		double pitch = calculatePitch (start, end);
 
 
 		// CALCULATE ROTATION 
-    	tf2::Vector3 zAxis (0, 0, 1);
     	tf2::Vector3 xAxis (1, 0, 0);
+    	tf2::Vector3 yAxis (0, 1, 0);
+    	tf2::Vector3 zAxis (0, 0, 1);
     	tf2::Transform rotation_yaw  = generateRotation(zAxis, yaw);
+    	tf2::Transform rotation_pitch = generateRotation(yAxis, pitch);
     	tf2::Transform rotation_roll = generateRotation(xAxis, roll);
     	log_file << "Yaw " << yaw << std::endl;
+    	log_file << "Pitch " << roll << std::endl;
     	log_file << "Roll " << roll << std::endl;
 
 		
@@ -550,6 +561,7 @@ namespace LazyThetaStarOctree{
 		int it_max = std::ceil(bounding_box_size.x() / resolution);
 		double start_x, end_x,  start_y, end_y;
 		tf2::Vector3 toTest_start, toTest_end;
+		octomath::Vector3 toTest_start_octomap, toTest_end_octomap;
 		for(int i = 0; i < it_max; i++)
         {
         	start_x = indexToCoordinate(start_min.getX(), resolution, i);
@@ -558,19 +570,26 @@ namespace LazyThetaStarOctree{
         	{
 	    		toTest_start = tf2::Vector3(start_x, start.y(), indexToCoordinate(start_min.getZ(), resolution, j));
 	    		toTest_end   = tf2::Vector3(end_x,   end.y(),   indexToCoordinate(end_min.getZ(),   resolution, j));
-
-				// log_file << "[" << i << "][" << j << "] toTest_start x " << toTest_start.getX() << std::endl;
 				toTest_start = final_transform_start * toTest_start; 
         		toTest_end   = final_transform_end   * toTest_end; 
+
+	    		toTest_start_octomap = octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ());
+	    		toTest_end_octomap = octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ());
+	    		if(fill_for_debug)
+	    		{
+					start_stream << "octomath::Vector3 (" << toTest_start_octomap.x() << ", " << toTest_start_octomap.y() << ", " << toTest_start_octomap.z() << "),  " << std::endl;
+					end_stream   << "octomath::Vector3 (" << toTest_end_octomap.x()   << ", " << toTest_end_octomap.y()   << ", " << toTest_end_octomap.z()   << "),  " << std::endl;
+					resulting_start_points.push_back(toTest_start_octomap);
+					resulting_end_points.push_back(toTest_end_octomap);
+	    		}
+
+				// log_file << "[" << i << "][" << j << "] toTest_start x " << toTest_start.getX() << std::endl;
 
 	        	if(hasLineOfSight(octree_, toTest_start, toTest_end, ignoreUnknown) == false)
 				{
 					if(publish)
 					{
-						rviz_interface::push_arrow_path_unreachable(
-							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
-							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
-							marker_pub, id_unreachable, marker_array_occupied);	
+						rviz_interface::push_arrow_path_unreachable(toTest_start_octomap, toTest_end_octomap, marker_pub, id_unreachable, marker_array_occupied);	
 						id_unreachable++;
 					}
 					// return CellStatus::kOccupied;
@@ -579,10 +598,7 @@ namespace LazyThetaStarOctree{
 				{
 					if(publish)
 					{
-						rviz_interface::push_arrow_path_unreachable(
-							octomath::Vector3 (toTest_start.getX(), toTest_start.getY(), toTest_start.getZ()), 
-							octomath::Vector3 (toTest_end.getX(), toTest_end.getY(), toTest_end.getZ()), 
-							marker_pub, id_unreachable, marker_array_occupied);	
+						rviz_interface::push_arrow_path_unreachable( toTest_start_octomap, toTest_end_octomap, marker_pub, id_unreachable, marker_array_occupied);	
 						id_unreachable++;
 					}
 					// return CellStatus::kOccupied;
@@ -606,6 +622,15 @@ namespace LazyThetaStarOctree{
 			marker_pub.publish(marker_array_free);
 			log_file << "obstacle_avoidance_calls: " << obstacle_avoidance_calls << std::endl;
 			log_file.close();
+		}
+		if(fill_for_debug)
+		{
+	    	unitTests_file.open(folder_name + "unit_tests_data.log");
+	    	unitTests_file << "octomath::Vector3 start (" << start.x() << ", " << start.y() << ", " << start.z() << ");" << std::endl;
+	    	unitTests_file << "octomath::Vector3 end (" << end.x() << ", " << end.y() << ", " << end.z() << ");" << std::endl;
+			unitTests_file << "std::list <octomath::Vector3> start_points_correct = { " << std::endl << start_stream.str() << " }; " << std::endl;
+			unitTests_file << "std::list <octomath::Vector3> end_points_correct = { "   << std::endl <<   end_stream.str() << " }; " << std::endl;
+			unitTests_file.close();
 		}
 		return CellStatus::kFree;
 	}
@@ -906,18 +931,6 @@ namespace LazyThetaStarOctree{
         }
     }
 
-
-    bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 
-		const double theta) 
-	{
-
-		bool is_x_equal = std::abs(a.x() - b.x()) < theta;
-		bool is_y_equal = std::abs(a.y() - b.y()) < theta;
-		bool is_z_equal = std::abs(a.z() - b.z()) < theta;
-
-		return is_x_equal && is_y_equal && is_z_equal;
-	}
-
 	bool passPreconditions(
 		octomap::OcTree   & octree, 
 		octomath::Vector3 const& disc_initial, 
@@ -942,7 +955,8 @@ namespace LazyThetaStarOctree{
 
 		log_file << " =====  PRE CONDITIONS ====== " << std::endl;
 
-		if(getCorridorOccupancy_reboot(octree, disc_initial, disc_final, bounding_box_size, dummy_publisher, true) != CellStatus::kFree)
+		std::list <octomath::Vector3> start_points_result, end_points_result; 
+		if(getCorridorOccupancy_reboot(octree, disc_initial, disc_final, bounding_box_size, dummy_publisher, true,  start_points_result, end_points_result) != CellStatus::kFree)
 		{
 			ROS_ERROR_STREAM("[LTStar] Initial point is too close to obstacles and/or unknown space. Maybe inside very large voxel and/or octree orientation diagonal to obstacle");
 			return false;

@@ -125,10 +125,19 @@ namespace LazyThetaStarOctree{
 
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish = false);
 
+   
     bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 
-		const double theta = 0.00000000000000000001) ;
+		const double theta = 0.00000000000000000001) 
+	{
 
-    
+		bool is_x_equal = abs(a.x() - b.x()) < theta;
+		bool is_y_equal = abs(a.y() - b.y()) < theta;
+		bool is_z_equal = abs(a.z() - b.z()) < theta;
+
+		return is_x_equal && is_y_equal && is_z_equal;
+	}
+
+
 	CellStatus getLineStatus( octomap::OcTree & octree_, const octomath::Vector3& start, const octomath::Vector3& end);
 	CellStatus getLineStatusBoundingBox(
 		octomap::OcTree & octree_, 
@@ -143,7 +152,10 @@ namespace LazyThetaStarOctree{
 		const octomath::Vector3& bounding_box_size,
 		ros::Publisher const& marker_pub,
 		bool publish,
-		bool ignoreUnknown = false);
+		std::list <octomath::Vector3> & resulting_start_points,
+		std::list <octomath::Vector3> & resulting_end_points,
+		bool ignoreUnknown = false,
+		bool fill_for_debug = false);
 
     CellStatus getCorridorOccupancy(
 		octomap::OcTree & octree_, 
