@@ -560,10 +560,11 @@ namespace LazyThetaStarOctree{
 		final_transform_start = translation_from_center_start * rotation_roll * translation_to_center_start;
 		final_transform_end   = translation_from_center_end   * rotation_roll * translation_to_center_end;
 
-		int it_max = std::ceil(bounding_box_size.x() / resolution);
+		int it_max = std::ceil(std::abs(bounding_box_size.x() / resolution));
 		double start_x, end_x,  start_y, end_y;
 		tf2::Vector3 toTest_start, toTest_end;
 		octomath::Vector3 toTest_start_octomap, toTest_end_octomap;
+		log_file << "it_max: " << it_max << std::endl;
 		for(int i = 0; i < it_max; i++)
         {
         	start_x = indexToCoordinate(start_min.getX(), resolution, i);
