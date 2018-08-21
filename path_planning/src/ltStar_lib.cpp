@@ -538,9 +538,9 @@ namespace LazyThetaStarOctree{
     	tf2::Vector3 xAxis (1, 0, 0);
     	tf2::Vector3 yAxis (0, 1, 0);
     	tf2::Vector3 zAxis (0, 0, 1);
-    	tf2::Transform rotation_yaw  = generateRotation(zAxis, yaw);
+    	tf2::Transform rotation_yaw  = generateRotation(zAxis, yaw - M_PI/2);
     	tf2::Transform rotation_pitch = generateRotation(yAxis, pitch);
-    	tf2::Transform rotation_roll = generateRotation(xAxis, roll);
+    	tf2::Transform rotation_roll = generateRotation(xAxis, roll - M_PI/2);
     	log_file << "Yaw "   << yaw << std::endl;
     	log_file << "Pitch " << pitch << std::endl;
     	log_file << "Roll "  << roll << std::endl;
