@@ -452,8 +452,8 @@ namespace LazyThetaStarOctree{
 
 	double calculateYaw(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
-		double oposite  = goal.x() - start.x();
-		double adjacent = goal.y() - start.y();
+		double oposite  = goal.y() - start.y();
+		double adjacent = goal.x() - start.x();
 		try
 		{
 			double angle = calculateAngle(oposite, adjacent);
