@@ -86,7 +86,7 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(openTests ${catkin_LIBRARIES} ltStar_lib)
 
-  # # # Lazy Theta Star ##
+  # ## Lazy Theta Star ##
   # catkin_add_gtest(ltstarTests 
   #   test/lazyTheta_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)

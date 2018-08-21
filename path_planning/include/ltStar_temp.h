@@ -46,9 +46,23 @@ namespace LazyThetaStarOctree{
 		std::shared_ptr<ThetaStarNode> 							& 		s, 
 		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
 		Open 													& 		open, 
+		unordered_set_pointers									const& 	neighbors,
+		std::ofstream 											& log_file,
+		ros::Publisher 											const& marker_pub, 
+		const double sidelength_lookup_table[],
+		bool ignoreUnknown = false,
+		bool publish = false);
+
+	
+	bool setVertex_original(
+		octomap::OcTree 										& 	octree, 
+		std::shared_ptr<ThetaStarNode> 							& 		s, 
+		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
+		Open 													& 		open, 
 		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
 		std::ofstream & log_file,
-		ros::Publisher const& marker_pub, 
+		double safety_margin,
+		ros::Publisher const& marker_pub,
 		const double sidelength_lookup_table[],
 		bool ignoreUnknown = false,
 		bool publish = false);
@@ -97,6 +111,19 @@ namespace LazyThetaStarOctree{
 		int const& max_search_iterations = 55,
 		bool print_resulting_path = false,
 		bool publish = false);
+
+	std::list<octomath::Vector3> lazyThetaStar_original(
+		octomap::OcTree   & octree, 
+		octomath::Vector3 const& disc_initial, 
+		octomath::Vector3 const& disc_final,
+		ResultSet & resultSet,
+		double safety_margin,
+		const double sidelength_lookup_table[],
+		ros::Publisher const& marker_pub,
+		int const& max_search_iterations = 55,
+		bool print_resulting_path = false,
+		bool publish = false);
+
 
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish = false);
 
