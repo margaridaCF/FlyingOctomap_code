@@ -3,16 +3,30 @@
 namespace LazyThetaStarOctree{
 	bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, float x, float y, float z )
 	{
+        octomath::Vector3 toInsert (x, y, z);
+        addIfUnique (neighbors, toInsert);
+	}
+
+    bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, octomath::Vector3 & toInsert )
+    {
         // This is the creation point for neighbors
         // Raw pointers were chosen because they go out of scope since (for the Lazy Theta Star)
         // objects are produce inside finding neighbors methods and later processed in another method
-        // octomath::Vector3* toInsert = new octomath::Vector3(x, y, z);
-        std::shared_ptr<octomath::Vector3> toInsert = std::make_shared<octomath::Vector3> (octomath::Vector3 (x, y, z));
-        if(!neighbors.insert(toInsert).second)
+        std::shared_ptr<octomath::Vector3> toInsert_ptr = std::make_shared<octomath::Vector3> (toInsert);
+        if(!neighbors.insert(toInsert_ptr).second)
         {
             ROS_ERROR_STREAM("Could not insert coordinates of neighbor, this should not happen - contact maintainer. @AddIfUnique"); 
         }
-	}
+    }
+
+    bool addIfUniqueValue(unordered_set_pointers & neighbors, octomath::Vector3 & toInsert )
+    {
+        // This is the creation point for neighbors
+        // Raw pointers were chosen because they go out of scope since (for the Lazy Theta Star)
+        // objects are produce inside finding neighbors methods and later processed in another method
+        std::shared_ptr<octomath::Vector3> toInsert_ptr = std::make_shared<octomath::Vector3> (toInsert);
+        neighbors.insert(toInsert_ptr);
+    }
 
     // bool addIfUnique_new(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, std::shared_ptr<octomath::Vector3> toInsert )
     // {
@@ -375,7 +389,68 @@ namespace LazyThetaStarOctree{
         }
     }
 
+    bool addSparseNeighbor(unordered_set_pointers & neighbors, double x, double y, double z, octomap::OcTree const& octree)
+    {
+        octomath::Vector3 toAdd (x, y, z);
+        auto res_node = octree.search(x, y, z);
+        if(res_node)
+        {
+            try
+            {
+                toAdd = getCellCenter(toAdd, octree);
+            }
+            catch (const std::out_of_range& oor) {
+            }
+        }
+        addIfUniqueValue(neighbors, toAdd);
+    }
 
+
+    void generateNeighbors_filter_pointers(unordered_set_pointers & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution, octomap::OcTree const& octree, bool debug_on)
+    {
+        int neighbor_sequence_cell_count = node_size / resolution;
+        float frontier_offset = (node_size/2.f);         
+        int i;
+        float extra = resolution / 2.f;     
+
+        float x_start  = center_coords.x() - frontier_offset + extra;
+        float y_start  = center_coords.y() - frontier_offset + extra;     
+        float z_start  = center_coords.z() - frontier_offset + extra;                      
+        // Left right
+        float right_x = center_coords.x() + frontier_offset + extra; 
+        float left_x  = center_coords.x() - frontier_offset - extra; 
+        // Front back
+        float front_y  = center_coords.y() + frontier_offset + extra; 
+        float back_y   = center_coords.y() - frontier_offset - extra; 
+        // Up down      
+        float up_z     = center_coords.z() + frontier_offset + extra; 
+        float down_z   = center_coords.z() - frontier_offset - extra;
+
+        octomath::Vector3 toInsert;
+        bool isInserted;
+        for(int i = 0; i < neighbor_sequence_cell_count; i++)
+        {
+            // int j = 0;
+            for(int j = 0; j < neighbor_sequence_cell_count; j++)
+            {
+                // Left Right
+                addSparseNeighbor(neighbors, left_x,                      y_start + (i * resolution),  z_start + (j * resolution), octree);
+                addSparseNeighbor(neighbors, right_x,                     y_start + (i * resolution),  z_start + (j * resolution), octree);
+
+                // Front Back
+                addSparseNeighbor(neighbors, x_start + (i * resolution),  front_y,                     z_start + (j * resolution), octree);
+                addSparseNeighbor(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution), octree);
+
+                // Up Down
+                addSparseNeighbor(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z, octree);
+                addSparseNeighbor(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z, octree);
+            }
+        }
+    }
+
+    
     // Other way to find the depth based on the search code of the octree
     int getNodeDepth_Octomap (const octomap::OcTreeKey& key, 
     	octomap::OcTree const& octree)  
@@ -443,7 +518,8 @@ namespace LazyThetaStarOctree{
 		octomap::OcTreeKey key = octree.coordToKey(point_coordinates);
 		// find depth of cell
         // ROS_WARN_STREAM("Calling getNodeDepth from 141 for point coordinates " << point_coordinates);
-		double depth = getNodeDepth_Octomap(key, octree);
+
+        double depth = getNodeDepth_Octomap(key, octree);  
 		// get center coord of cell center at depth
 		return octree.keyToCoord(key, depth);
 	}

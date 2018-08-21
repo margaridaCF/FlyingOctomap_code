@@ -48,58 +48,6 @@ namespace LazyThetaStarOctree
 		marker_pub.publish(arrow_array);
 		marker_pub.publish(waypoint_array);
 	}
-
-	void runLazyThetaStar(path_planning_msgs::LTStarRequest const& path_request)
-	{	
-		double sidelength_lookup_table  [octree->getTreeDepth()]; 
-	    LazyThetaStarOctree::fillLookupTable(octree->getResolution(), octree->getTreeDepth(), sidelength_lookup_table); 
-		
-		rviz_interface::publish_deleteAll(marker_pub);
-		rviz_interface::publish_random_important_cube(octomath::Vector3(1.38375, -0.677482, 2.88732), marker_pub);
-		path_planning_msgs::LTStarReply reply;
-		reply.waypoint_amount = 0;
-		reply.success = false;
-
-		// std::stringstream ss;
-		// std::string path = "/ros_ws/src/data/";
-		// ss << path << "(" << path_request.start.x << "; " << path_request.start.y << "; " << path_request.start.z << ")_(" 
-		// 	<<  path_request.goal.x << "; " << path_request.goal.y << "; " << path_request.goal.z << ").bt";
-		// octree->writeBinary(ss.str());
-		// ROS_WARN_STREAM("[LTStar] Request message " << path_request);
-		LazyThetaStarOctree::processLTStarRequest(*octree, path_request, reply, sidelength_lookup_table, marker_pub, false);
-		if(reply.waypoint_amount == 1)
-		{
-			ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. It should always have at least start and goal. Here is the request message (the octree was saved to /data) " << path_request);
-			ROS_ERROR_STREAM("[LTStar] And here is the reply " << reply);
-		}
-
-		visualization_msgs::MarkerArray waypoint_array;
-		visualization_msgs::MarkerArray arrow_array;
-		visualization_msgs::Marker marker_temp;
-		// Publish to rviz
-		for (int i = 0; i < reply.waypoint_amount; ++i)
-		{
-
-			octomath::Vector3 candidate (reply.waypoints[i].position.x, reply.waypoints[i].position.y, reply.waypoints[i].position.z);
-			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-	        octomap::OcTreeKey key = octree->coordToKey(candidate);
-	        double depth = getNodeDepth_Octomap(key, *octree);
-	        double side_length = findSideLenght(octree->getTreeDepth(), depth, sidelength_lookup_table);
-	        rviz_interface::build_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i, marker_temp);
-	        waypoint_array.markers.push_back( marker_temp );
-	        if(i !=0)
-	        {
-
-				visualization_msgs::Marker marker_temp;
-				octomath::Vector3 prev_candidate (reply.waypoints[i-1].position.x, reply.waypoints[i-1].position.y, reply.waypoints[i-1].position.z);
-				rviz_interface::build_arrow_path(candidate, prev_candidate, i, marker_temp);
-	        	// ROS_WARN_STREAM("[LTStar] " << i << " Publish arrow from " << candidate << " to " << prev_candidate << marker_temp);
-				arrow_array.markers.push_back( marker_temp );
-	        }
-		}
-		marker_pub.publish(arrow_array);
-		marker_pub.publish(waypoint_array);
-	}
 	
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
 		delete octree;
