@@ -67,11 +67,17 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(collectResults ${catkin_LIBRARIES} )
 
-  ## Octree @ work in progress ##
-  catkin_add_gtest(workInProgress 
-    test/work_in_progress_test.cpp
+  # ## Octree @ work in progress ##
+  # catkin_add_gtest(workInProgress 
+  #   test/work_in_progress_test.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib )
+
+  ## Lazy Theta Star @ orthogonal planes ##
+  catkin_add_gtest(orthogonalPlanesTests 
+    test/orthogonal_planes_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib )
+  target_link_libraries(orthogonalPlanesTests ${catkin_LIBRARIES} ltStar_lib)
 
   # ## Octree @ depth and size ##
   # catkin_add_gtest(depthSizeTest 
