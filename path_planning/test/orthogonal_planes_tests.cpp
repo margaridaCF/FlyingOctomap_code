@@ -249,6 +249,31 @@ namespace LazyThetaStarOctree{
 		testCoordinateFrame(start, goal);
 	}
 
+	TEST(OrthogonalPlanesTest, generategoalWithDistance_)
+	{
+		octomath::Vector3 start (1, 1, 1);
+		octomath::Vector3 goal  (-1, -1, -1);
+		double margin = 2 * (start.norm() );
+		ASSERT_TRUE (   equal( calculateGoalWithMargin(start, goal, margin), octomath::Vector3(-2, -2, -2) )   );
+	}
+
+	TEST(OrthogonalPlanesTest, generatePlaneIndexes)
+	{
+		double margin = 1;
+		double resolution = 0.5;
+		std::vector<octomath::Vector3> plane = {};
+		generateRectanglePlaneIndexes(margin, resolution, plane);
+		ASSERT_EQ(16, plane.size());
+	}
+
+	TEST(OrthogonalPlanesTest, generatePlaneIndexes)
+	{
+		double margin = 1.25;
+		double resolution = 0.5;
+		std::vector<octomath::Vector3> plane = {};
+		generateRectanglePlaneIndexes(margin, resolution, plane);
+		ASSERT_EQ(25, plane.size());
+	}
 }
 
 int main(int argc, char **argv){

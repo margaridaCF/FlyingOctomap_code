@@ -51,6 +51,30 @@ namespace LazyThetaStarOctree{
 		CoordinateFrame coord (direction, oA, oB);
 		return coord;
 	}
+
+	octomath::Vector3 calculateGoalWithMargin(octomath::Vector3 const& start, octomath::Vector3 const& goal, double margin)
+	{
+		octomath::Vector3 direction = goal - start;
+		direction.normalize();
+		octomath::Vector3 scale = direction * (margin/2);
+		return goal + scale;
+	}
+
+	void generateRectanglePlaneIndexes(double margin, double resolution, std::vector<octomath::Vector3> & plane)
+	{
+		int loop_count = (margin/resolution) * 2;
+		double x = -margin + resolution/2;
+		double z = x;
+		int array_index = 0;
+		for (int i = 0; i < loop_count; ++i)
+		{
+			for (int j = 0; j < loop_count; ++j)
+			{
+				plane.emplace(plane.end(),x + i*resolution, 0, z + j*resolution);
+				array_index++;
+			}
+		}
+	}
 }
 
 #endif // OPEN_H
