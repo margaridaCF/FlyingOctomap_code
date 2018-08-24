@@ -127,6 +127,5 @@ namespace LazyThetaStarOctree{
 
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish = false);
 
-    bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 
-		const double theta = 0.00000000000000000001) ;
+    
 }
