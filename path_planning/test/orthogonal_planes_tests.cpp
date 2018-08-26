@@ -257,7 +257,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_TRUE (   equal( calculateGoalWithMargin(start, goal, margin), octomath::Vector3(-2, -2, -2) )   );
 	}
 
-	TEST(OrthogonalPlanesTest, generatePlaneIndexes)
+	TEST(OrthogonalPlanesTest, generatePlaneIndexes_16)
 	{
 		double margin = 1;
 		double resolution = 0.5;
@@ -266,7 +266,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_EQ(16, plane.size());
 	}
 
-	TEST(OrthogonalPlanesTest, generatePlaneIndexes)
+	TEST(OrthogonalPlanesTest, generatePlaneIndexes_25)
 	{
 		double margin = 1.25;
 		double resolution = 0.5;

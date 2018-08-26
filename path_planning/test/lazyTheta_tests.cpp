@@ -242,7 +242,7 @@ namespace LazyThetaStarOctree{
 	{
 
 		double sidelength_lookup_table  [octree.getTreeDepth()];
-	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ros::Publisher marker_pub;
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
@@ -342,8 +342,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-11, -15, 3);
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
-		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -354,8 +354,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-10.5, -13.5, 3.5);
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
-		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -366,8 +366,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-10.5, -13.5, 3.5);
 		octomath::Vector3 end(-10.5, -12.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
-		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -379,10 +379,9 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 end(-11.5, -13.5, 2.5);
 		double safety_margin = 0;
 
-		octomath::Vector3 bounding_box_size(safety_margin, safety_margin, safety_margin);
-		bool start_to_end = getLineStatusBoundingBox(octree, start, end, bounding_box_size) == CellStatus::kFree;
+		bool start_to_end = getLineStatusBoundingBox( InputData(octree, start, end, safety_margin ) ) == CellStatus::kFree;
 		ROS_ERROR_STREAM("reverse");
-		bool end_to_start = getLineStatusBoundingBox(octree, end, start, bounding_box_size) == CellStatus::kFree;
+		bool end_to_start = getLineStatusBoundingBox( InputData(octree, end, start, safety_margin) ) == CellStatus::kFree;
 
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
@@ -394,8 +393,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-11, -15, 3);
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
-		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -406,8 +405,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-10.5, -13.5, 3.5);
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
-		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -418,8 +417,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-10.5, -13.5, 3.5);
 		octomath::Vector3 end(-10.5, -12.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free(octree, start, end, safety_margin, marker_pub);
-		bool end_to_start = is_flight_corridor_free(octree, end, start, safety_margin, marker_pub);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
