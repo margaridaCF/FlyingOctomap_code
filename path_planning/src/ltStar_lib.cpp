@@ -1,6 +1,7 @@
 #include <ltStar_temp.h>
 #include <tf/transform_datatypes.h>
 #include <std_srvs/Empty.h>
+#include <orthogonal_planes.h>
 
 #define SAVE_CSV 1
 #define RUNNING_ROS 0
@@ -192,6 +193,53 @@ namespace LazyThetaStarOctree{
 		same = same || (target.y() == point_B.y()); 
 		same = same || (target.z() == point_B.z()); 
 		return same;
+	}
+
+	CellStatus getCorridorOccupancy_byPlanes(
+		octomap::OcTree & octree_, 
+		const octomath::Vector3& start, const octomath::Vector3& goal,
+		const octomath::Vector3& bounding_box_size,
+		const std::vector<octomath::Vector3> planeOffsets,
+		ros::Publisher const& marker_pub,
+		bool publish,
+		bool ignoreUnknown = false) 
+	{
+		octomath::Vector3 temp_start, temp_goal;
+		octomath::Vector3 goalWithMargin = calculateGoalWithMargin(start, goal, bounding_box_size.x());
+		CoordinateFrame coordinate_frame =  generateCoordinateFrame(start, goal);
+		for (std::vector<octomath::Vector3>::const_iterator i = planeOffsets.begin(); i != planeOffsets.end(); ++i)
+		{
+			temp_start = start + *i;
+			temp_goal  = goalWithMargin + *i;
+			if(hasLineOfSight(octree_, temp_start, temp_goal, ignoreUnknown) == false)
+			{
+				// if(publish)
+				// {
+				// 	// log_file << "[LTStar] 1 Has obstacles from " << start + offset << " to " << end + offset << std::endl ;
+				// 	rviz_interface::publish_arrow_path_unreachable(start + offset, end + offset, marker_pub, id_unreachable);	
+				// 	id_unreachable++;
+				// }
+				return CellStatus::kOccupied;
+			}	
+			else if(hasLineOfSight(octree_, temp_goal, temp_start, ignoreUnknown) == false)
+			{
+				// if(publish)
+				// {
+				// 	// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << start + offset << std::endl ;
+				// 	rviz_interface::publish_arrow_path_unreachable(end + offset, start + offset, marker_pub, id_unreachable);	
+				// 	id_unreachable;
+				// }
+				return CellStatus::kOccupied;
+			}	
+			// else
+			// {
+			// 	if(publish)
+			// 	{
+			// 		// log_file << "[LTStar] 3 Free from " << end + offset << " to " << start + offset + offset << std::endl;
+			// 		// rviz_interface::publish_arrow_corridor(start + offset, end + offset, marker_pub);	
+			// 	}
+			// }
+		}
 	}
 
 	CellStatus getCorridorOccupancy(

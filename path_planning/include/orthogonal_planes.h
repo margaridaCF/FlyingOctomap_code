@@ -1,5 +1,5 @@
-#ifndef OPEN_H
-#define OPEN_H
+#ifndef ORTHOGONAL_PLANES_H
+#define ORTHOGONAL_PLANES_H
 
 #include <octomap/math/Vector3.h>
 #include <ltStarOctree_common.h>
@@ -77,4 +77,4 @@ namespace LazyThetaStarOctree{
 	}
 }
 
-#endif // OPEN_H
+#endif // ORTHOGONAL_PLANES_H
