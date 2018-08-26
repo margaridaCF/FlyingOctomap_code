@@ -37,6 +37,16 @@ namespace LazyThetaStarOctree{
 		{}
 	};
 
+	class PublishingInput
+	{
+	public:
+		ros::Publisher const& marker_pub;
+		const bool publish;
+		PublishingInput(ros::Publisher const& marker_pub, bool publish = false)
+			: marker_pub(marker_pub), publish(publish)
+		{}
+	};
+
 	class ObstacleAvoidanceInput
 	{
 		const InputData input;
@@ -47,9 +57,9 @@ namespace LazyThetaStarOctree{
 	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end);
 	CellStatus getLineStatus( InputData const& input);
 	CellStatus getLineStatusBoundingBox( InputData const& input);
-	bool is_flight_corridor_free(InputData const& input, ros::Publisher const& marker_pub, bool ignoreUnknown = false, bool publish = false);
+	bool is_flight_corridor_free(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown = false);
 	bool hasLineOfSight(octomap::OcTree const& octree, octomath::Vector3 const& start, octomath::Vector3 const& end, bool ignoreUnknown = false);
-	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, ros::Publisher const& marker_pub, const double sidelength_lookup_table[], bool ignoreUnknown = false, bool publish = false);
+	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], bool ignoreUnknown = false);
 	double scale_float(float value);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
@@ -67,10 +77,9 @@ namespace LazyThetaStarOctree{
 		Open 													& 		open, 
 		unordered_set_pointers									const& 	neighbors,
 		std::ofstream 											& log_file,
-		ros::Publisher 											const& marker_pub, 
+		PublishingInput 										const& publish_input, 
 		const double sidelength_lookup_table[],
-		bool ignoreUnknown = false,
-		bool publish = false);
+		bool ignoreUnknown = false);
 
 	
 	bool setVertex_original(
@@ -81,10 +90,9 @@ namespace LazyThetaStarOctree{
 		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
 		std::ofstream & log_file,
 		double safety_margin,
-		ros::Publisher const& marker_pub,
+		PublishingInput const& publish_input,
 		const double sidelength_lookup_table[],
-		bool ignoreUnknown = false,
-		bool publish = false);
+		bool ignoreUnknown = false);
 
 	/**
 	 * @brief      Extracts a sequence of coordinates from the links between nodes starting at the goal node and expanding the connections to the prevuous point through parentNode.
@@ -126,10 +134,9 @@ namespace LazyThetaStarOctree{
 		ResultSet & resultSet,
 		double safety_margin,
 		const double sidelength_lookup_table[],
-		ros::Publisher const& marker_pub,
+		PublishingInput const& publish_input,
 		int const& max_search_iterations = 55,
-		bool print_resulting_path = false,
-		bool publish = false);
+		bool print_resulting_path = false);
 
 	std::list<octomath::Vector3> lazyThetaStar_original(
 		octomap::OcTree   & octree, 
@@ -138,13 +145,12 @@ namespace LazyThetaStarOctree{
 		ResultSet & resultSet,
 		double safety_margin,
 		const double sidelength_lookup_table[],
-		ros::Publisher const& marker_pub,
+		PublishingInput const& publish_input,
 		int const& max_search_iterations = 55,
-		bool print_resulting_path = false,
-		bool publish = false);
+		bool print_resulting_path = false);
 
 
-	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], ros::Publisher const& marker_pub, bool publish = false);
+	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input);
 
     
 }

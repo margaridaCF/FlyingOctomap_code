@@ -97,10 +97,10 @@ if (CATKIN_ENABLE_TESTING)
     test/lazyTheta_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   target_link_libraries(ltstarTests ${catkin_LIBRARIES} ltStar_lib)
-  # catkin_add_gtest(ltstarTestsFixture 
-  #   test/lazyTheta_tests_Fixture.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
+  catkin_add_gtest(ltstarTestsFixture 
+    test/lazyTheta_tests_Fixture.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
 
 endif()
 

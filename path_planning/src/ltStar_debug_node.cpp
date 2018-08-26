@@ -87,7 +87,7 @@ namespace LazyThetaStarOctree
 			request_vanilla.safety_margin = path_request->safety_margin; 
 			request_vanilla.max_search_iterations = path_request->max_search_iterations;
 
-			LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, marker_pub, true);
+			LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] [Vanilla] The resulting path has only one waypoint. Request: " << *path_request);
