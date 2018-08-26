@@ -54,13 +54,14 @@ namespace LazyThetaStarOctree{
 	};
 
 	enum CellStatus { kFree = 0, kOccupied = 1, kUnknown = 2 };
-	float weightedDistance(octomath::Vector3 const& start, octomath::Vector3 const& end);
-	CellStatus getLineStatus( InputData const& input);
-	CellStatus getLineStatusBoundingBox( InputData const& input);
-	bool is_flight_corridor_free(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown = false);
-	bool hasLineOfSight(InputData const& input, bool ignoreUnknown = false);
-	bool normalizeToVisibleEndCenter(octomap::OcTree & octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], bool ignoreUnknownF = false);
-	double scale_float(float value);
+	
+	double scale_float						(float value);
+	CellStatus 	getLineStatus 				(InputData const& input);
+	CellStatus 	getLineStatusBoundingBox	(InputData const& input);
+	bool 		hasLineOfSight				(InputData const& input, bool ignoreUnknown = false);
+	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown = false);
+	float 		weightedDistance			(octomath::Vector3 const& start, octomath::Vector3 const& end);
+	bool 		normalizeToVisibleEndCenter (octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], bool ignoreUnknownF = false);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
 	 *
@@ -71,7 +72,7 @@ namespace LazyThetaStarOctree{
 	 * @param[in]  neighbors  The neighbors
 	 */
 	bool setVertex(
-		octomap::OcTree 										& 	octree, 
+		octomap::OcTree 										const& 	octree, 
 		std::shared_ptr<ThetaStarNode> 							& 		s, 
 		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
 		Open 													& 		open, 
@@ -128,11 +129,8 @@ namespace LazyThetaStarOctree{
 	 * @return     A list of the ordered waypoints to get from initial to final
 	 */
 	std::list<octomath::Vector3> lazyThetaStar_(
-		octomap::OcTree   & octree, 
-		octomath::Vector3 const& disc_initial, 
-		octomath::Vector3 const& disc_final,
+		InputData const& input,
 		ResultSet & resultSet,
-		double safety_margin,
 		const double sidelength_lookup_table[],
 		PublishingInput const& publish_input,
 		int const& max_search_iterations = 55,
