@@ -194,7 +194,6 @@ namespace LazyThetaStarOctree{
 		InputData const& input,
 		const std::vector<octomath::Vector3> planeOffsets,
 		PublishingInput const& publish_input,
-		bool publish,
 		bool ignoreUnknown = false) 
 	{
 		octomath::Vector3 temp_start, temp_goal;
@@ -206,7 +205,7 @@ namespace LazyThetaStarOctree{
 			temp_goal  = goalWithMargin + *i;
 			if(hasLineOfSight( InputData( input.octree, temp_start, temp_goal, input.margin), ignoreUnknown) == false)
 			{
-				// if(input.publish)
+				// if(publish_input.publish)
 				// {
 				// 	// log_file << "[LTStar] 1 Has obstacles from " << input.start + offset << " to " << end + offset << std::endl ;
 				// 	rviz_interface::publish_arrow_path_unreachable(input.start + offset, end + offset, input.marker_pub, id_unreachable);	
@@ -216,7 +215,7 @@ namespace LazyThetaStarOctree{
 			}	
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false)
 			{
-				// if(input.publish)
+				// if(publish_input.publish)
 				// {
 				// 	// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << input.start + offset << std::endl ;
 				// 	rviz_interface::publish_arrow_path_unreachable(end + offset, input.start + offset, input.marker_pub, id_unreachable);	
@@ -226,7 +225,7 @@ namespace LazyThetaStarOctree{
 			}	
 			// else
 			// {
-			// 	if(input.publish)
+			// 	if(publish_input.publish)
 			// 	{
 			// 		// log_file << "[LTStar] 3 Free from " << end + offset << " to " << input.start + offset + offset << std::endl;
 			// 		// rviz_interface::publish_arrow_corridor(input.start + offset, end + offset, input.marker_pub);	
