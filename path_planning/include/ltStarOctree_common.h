@@ -68,6 +68,16 @@ namespace LazyThetaStarOctree{
 	};
 
 
+    bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 
+		const double theta = 0.00000000000000000001)
+	{
+
+		bool is_x_equal = std::abs(a.x() - b.x()) < theta;
+		bool is_y_equal = std::abs(a.y() - b.y()) < theta;
+		bool is_z_equal = std::abs(a.z() - b.z()) < theta;
+
+		return is_x_equal && is_y_equal && is_z_equal;
+	}
 
     void writeToFileWaypoint(octomath::Vector3 waypoint, double size, std::string path)
     {
