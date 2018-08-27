@@ -8,20 +8,7 @@
 #include <path_planning_msgs/LTStarReply.h>
 #include <path_planning_msgs/LTStarNodeStatus.h>
 #include <path_planning_msgs/LTStarBenchmarkRequest.h>
-
-// namespace std
-// {
-//     template <>
-//     struct hash<octomath::Vector3>
-//     {
-//         size_t operator()( const octomath::Vector3& coordinates ) const
-//         {
-//             double fractpart, intpart;
-//             fractpart = modf (coordinates.x()*10000 , &intpart);
-//             return intpart;
-//         }
-//     };
-// }
+#include <orthogonal_planes.h>
 
 namespace LazyThetaStarOctree{
 
@@ -59,9 +46,9 @@ namespace LazyThetaStarOctree{
 	CellStatus 	getLineStatus 				(InputData const& input);
 	CellStatus 	getLineStatusBoundingBox	(InputData const& input);
 	bool 		hasLineOfSight				(InputData const& input, bool ignoreUnknown = false);
-	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown = false);
+	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input, const std::vector<octomath::Vector3> & planeOffsets, bool ignoreUnknown = false);
 	float 		weightedDistance			(octomath::Vector3 const& start, octomath::Vector3 const& end);
-	bool 		normalizeToVisibleEndCenter (octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], bool ignoreUnknownF = false);
+	bool 		normalizeToVisibleEndCenter (octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], const std::vector<octomath::Vector3> & planeOffsets, bool ignoreUnknownF = false);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
 	 *
@@ -80,19 +67,7 @@ namespace LazyThetaStarOctree{
 		std::ofstream 											& log_file,
 		PublishingInput 										const& publish_input, 
 		const double sidelength_lookup_table[],
-		bool ignoreUnknown = false);
-
-	
-	bool setVertex_original(
-		octomap::OcTree 										& 	octree, 
-		std::shared_ptr<ThetaStarNode> 							& 		s, 
-		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
-		Open 													& 		open, 
-		std::unordered_set<std::shared_ptr<octomath::Vector3>> 	const& 	neighbors,
-		std::ofstream & log_file,
-		double safety_margin,
-		PublishingInput const& publish_input,
-		const double sidelength_lookup_table[],
+		const std::vector<octomath::Vector3> & planeOffsets,
 		bool ignoreUnknown = false);
 
 	/**
@@ -133,17 +108,7 @@ namespace LazyThetaStarOctree{
 		ResultSet & resultSet,
 		const double sidelength_lookup_table[],
 		PublishingInput const& publish_input,
-		int const& max_search_iterations = 55,
-		bool print_resulting_path = false);
-
-	std::list<octomath::Vector3> lazyThetaStar_original(
-		octomap::OcTree   & octree, 
-		octomath::Vector3 const& disc_initial, 
-		octomath::Vector3 const& disc_final,
-		ResultSet & resultSet,
-		double safety_margin,
-		const double sidelength_lookup_table[],
-		PublishingInput const& publish_input,
+		std::vector<octomath::Vector3> & planeOffsets,
 		int const& max_search_iterations = 55,
 		bool print_resulting_path = false);
 
