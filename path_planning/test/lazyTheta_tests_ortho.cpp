@@ -1,4 +1,4 @@
-#include <ltStar_temp.h>
+#include <ltStar_lib_ortho.h>
 #include <gtest/gtest.h>
 #include <queue>
 
@@ -27,7 +27,9 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, safety_margin), statistical_data, sidelength_lookup_table, marker_pub, max_search_iterations, true);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, safety_margin), statistical_data, sidelength_lookup_table, PublishingInput( marker_pub), planeOffsets, max_search_iterations, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -130,7 +132,10 @@ namespace LazyThetaStarOctree{
         int count_80 = 0;
         int count_over80 = 0;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, 1), statistical_data, sidelength_lookup_table, marker_pub);
+        InputData input( octree, disc_initial, disc_final, 1);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(input.margin, octree.getResolution(), planeOffsets);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub), planeOffsets);
         EXPECT_EQ( 0, ThetaStarNode::OustandingObjects()) << "From  " << disc_initial << " to  " << disc_final;
 	}
 	TEST(LazyThetaStarTests, LazyThetaStar_NoSolution_NegativeInstanceCount_Test)
@@ -165,7 +170,10 @@ namespace LazyThetaStarOctree{
 
         // std::cout << "Starting lazy theta from " << disc_initial << " to " << disc_final << std::endl;
         ResultSet statistical_data;
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, safety_margin), statistical_data, sidelength_lookup_table,marker_pub, 5);
+        InputData input( octree, disc_initial, disc_final, safety_margin);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(input.margin, octree.getResolution(), planeOffsets);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub), planeOffsets, 5);
 
 
         if(resulting_path.size() == 0)
@@ -259,7 +267,10 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, safety_margin), statistical_data,  sidelength_lookup_table, marker_pub, max_search_iterations);
+		InputData input( octree, disc_initial, disc_final, safety_margin);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(input.margin, octree.getResolution(), planeOffsets);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data,  sidelength_lookup_table, PublishingInput( marker_pub), planeOffsets, max_search_iterations);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0) << safety_margin;
 		// 2 waypoints: The center of start voxel & The center of the goal voxel
@@ -342,8 +353,10 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-11, -15, 3);
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
-		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub), planeOffsets );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub), planeOffsets );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -354,8 +367,10 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-10.5, -13.5, 3.5);
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
-		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub), planeOffsets );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub), planeOffsets );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -366,8 +381,10 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-10.5, -13.5, 3.5);
 		octomath::Vector3 end(-10.5, -12.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
-		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub), planeOffsets );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub), planeOffsets );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -393,8 +410,10 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-11, -15, 3);
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
-		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub), planeOffsets );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub), planeOffsets );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -405,8 +424,10 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-10.5, -13.5, 3.5);
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
-		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub), planeOffsets );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub), planeOffsets );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -417,8 +438,10 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start(-10.5, -13.5, 3.5);
 		octomath::Vector3 end(-10.5, -12.5, 3.5);
 		double safety_margin = 0;
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
-		bool end_to_start = is_flight_corridor_free( InputData(octree, start, end, safety_margin), marker_pub);
+		std::vector<octomath::Vector3> planeOffsets;
+		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub), planeOffsets );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub), planeOffsets );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
