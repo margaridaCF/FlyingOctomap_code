@@ -266,7 +266,7 @@ namespace LazyThetaStarOctree{
 		bool is_obstacle = false;
 		// ACT
 		// ROS_WARN_STREAM("The conversion being tested:");
-		bool has_line_of_sight = hasLineOfSight(octree, start, end);
+		bool has_line_of_sight = hasLineOfSight(InputData( octree, start, end, 0) );
 		// ASSERT
 		// castRay & search
 		octomath::Vector3 return_value;
@@ -361,8 +361,8 @@ namespace LazyThetaStarOctree{
 		// }
 
 
-		bool line_of_sight_A = hasLineOfSight(octree, p1, p2);
-		bool line_of_sight_B = hasLineOfSight(octree, p2, p1);
+		bool line_of_sight_A = hasLineOfSight( InputData( octree, p1, p2, 0) );
+		bool line_of_sight_B = hasLineOfSight( InputData( octree, p2, p1, 0) );
 		ASSERT_FALSE(line_of_sight_B);
 		ASSERT_FALSE(line_of_sight_A);
 		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
