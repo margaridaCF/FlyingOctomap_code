@@ -607,6 +607,50 @@ namespace rviz_interface
         marker_pub.publish(marker_array);
     }
 
+
+    void build_arrow_type(octomath::Vector3 const& start, octomath::Vector3 const& goal, visualization_msgs::MarkerArray & marker_array, int id, bool occupied)
+    {
+        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
+        visualization_msgs::Marker marker;
+        uint32_t shape = visualization_msgs::Marker::ARROW;
+        // Set the frame ID and timestamp.  See the TF tutorials for information on these.
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.id = 500 + id;
+        marker.ns = "corridor_";
+        marker.type = shape;
+        geometry_msgs::Point goal_point;
+        goal_point.x = goal.x();
+        goal_point.y = goal.y();
+        goal_point.z = goal.z();
+        marker.points.push_back(goal_point);
+        marker.action = visualization_msgs::Marker::ADD;
+        geometry_msgs::Point start_point;
+        start_point.x = start.x();
+        start_point.y = start.y();
+        start_point.z = start.z();
+        marker.points.push_back(start_point);
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = 0.02;
+        marker.scale.y = 0.06;
+        marker.scale.z = 0;
+        if(!occupied)
+        {
+            marker.color.r = 0;
+            marker.color.g = 0;   
+            marker.color.b = 255;
+        }
+        else
+        {
+            marker.color.r = 255;
+            marker.color.g = 0;   
+            marker.color.b = 255;
+        }
+        marker.color.a = 1;
+        marker.lifetime = ros::Duration();
+        marker_array.markers.push_back(marker);
+    }
+
     void publish_arrow_straight_line(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative)
     {
         // ROS_WARN_STREAM("publish_arrow_path_occupancyState");

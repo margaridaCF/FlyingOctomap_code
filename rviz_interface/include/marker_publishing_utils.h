@@ -23,6 +23,8 @@ namespace rviz_interface
 	void publish_arrow_corridor 	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
 	void publish_arrow_corridor_center(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
 	void publish_arrow_straight_line(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative);
+    void build_arrow_type(octomath::Vector3 const& start, octomath::Vector3 const& goal, visualization_msgs::MarkerArray & marker_array, int id, bool occupied);
+
 	// POINTS
 	void publish_frontier_marker 	(octomath::Vector3 const& candidate, bool is_frontier, ros::Publisher const& marker_pub);
 	void publish_frontier_marker 	(geometry_msgs::Point const& candidate, bool is_frontier, ros::Publisher const& marker_pub);
