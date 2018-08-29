@@ -24,7 +24,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Hokuyo
+    SyncSource: "Free Cloud "
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -162,13 +162,13 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        {}
+        map: true
       Queue Size: 100
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -200,10 +200,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.145399079
+      Pitch: 0.180399045
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 2.56854391
+      Yaw: 2.05354023
     Saved: ~
 Window Geometry:
   Displays:
