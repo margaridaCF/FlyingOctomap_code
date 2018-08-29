@@ -22,29 +22,31 @@ namespace LazyThetaStarOctree{
 
 	CoordinateFrame generateCoordinateFrame(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
+		const octomath::Vector3 yAxis (0, 1, 0);
 		const octomath::Vector3 zAxis (0, 0, 1);
 		const octomath::Vector3 zero  (0, 0, 0);
+		octomath::Vector3 oA, oB;
+
+
 		octomath::Vector3 direction = goal - start;
 		direction.normalize();
-		octomath::Vector3 oA = direction.cross(zAxis);
+
+		if(  std::abs( direction.dot(zAxis) ) <= 0.9 )
+		{
+			oA = zAxis.cross(direction);
+		}
+		else
+		{
+			oA = direction.cross(xAxis);
+		}
+
 		oA.normalize();
 
 		// ROS_WARN_STREAM("direction: " << direction);
 		// ROS_WARN_STREAM("orthogonalA: " << oA);
 		// ROS_WARN_STREAM(direction << ".dot(" << oA << ") =  " << direction.dot(oA));
 
-		if ( equal(oA, zero, 0.1) )
-		{
-			// Direction is close to parallel to zAxis
-			octomath::Vector3 yAxis (0, 1, 0);
-			oA = direction.cross(yAxis);
-			oA.normalize();
-			// ROS_WARN_STREAM("orthogonalA: " << oA);
-
-		}
-
 		octomath::Vector3 oB = direction.cross(oA);
-		oB.normalize();
 		// ROS_WARN_STREAM("orthogonalB: " << oB);
 
 
@@ -55,10 +57,25 @@ namespace LazyThetaStarOctree{
 	octomath::Vector3 calculateGoalWithMargin(octomath::Vector3 const& start, octomath::Vector3 const& goal, double margin)
 	{
 		octomath::Vector3 direction = goal - start;
+		double distance = direction.norm();
 		direction.normalize();
 		octomath::Vector3 scale = direction * (margin/2);
 		return goal + scale;
 	}
+
+	octomath::Vector3 rotateAndTranslate(CoordinateFrame coordinate_frame, octomath::Vector3 offsetPoint, octomath::Vector3 start, octomath::Vector3 goalWithMargin)
+	{
+		// Matrix r = (direction.x, orthogonalA.x, orthogonalB.x )
+		//            (direction.y, orthogonalA.y, orthogonalB.y )
+		//            (direction.z, orthogonalA.z, orthogonalB.z )
+
+		// rotated_point = r * offsetPoint;
+		// rotated_start = rotated_point + start;
+		// rotated_goalWithMargin  = rotated_point + goalWithMargin ;
+	}
+
+
+	
 
 	void generateRectanglePlaneIndexes(double margin, double resolution, std::vector<octomath::Vector3> & plane)
 	{
@@ -70,7 +87,7 @@ namespace LazyThetaStarOctree{
 		{
 			for (int j = 0; j < loop_count; ++j)
 			{
-				plane.emplace(plane.end(),x + i*resolution, 0, z + j*resolution);
+				plane.emplace(plane.end(), 0, x + i*resolution, z + j*resolution);
 				array_index++;
 			}
 		}
