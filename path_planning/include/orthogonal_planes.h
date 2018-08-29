@@ -22,7 +22,7 @@ namespace LazyThetaStarOctree{
 
 	CoordinateFrame generateCoordinateFrame(octomath::Vector3 const& start, octomath::Vector3 const& goal)
 	{
-		const octomath::Vector3 yAxis (0, 1, 0);
+		const octomath::Vector3 xAxis (1, 0, 0);
 		const octomath::Vector3 zAxis (0, 0, 1);
 		const octomath::Vector3 zero  (0, 0, 0);
 		octomath::Vector3 oA, oB;
@@ -46,7 +46,7 @@ namespace LazyThetaStarOctree{
 		// ROS_WARN_STREAM("orthogonalA: " << oA);
 		// ROS_WARN_STREAM(direction << ".dot(" << oA << ") =  " << direction.dot(oA));
 
-		octomath::Vector3 oB = direction.cross(oA);
+		oB = direction.cross(oA);
 		// ROS_WARN_STREAM("orthogonalB: " << oB);
 
 
