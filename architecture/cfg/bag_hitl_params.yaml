@@ -8,6 +8,7 @@ laser_angle: 0.872665
 
 odometry_error: 0
 
+offboard_enabled: false
 frontier/safety_margin: 3
 
 geofence_min/x: -5
@@ -26,4 +27,34 @@ path/safety_margin: 3
 current_position_topic: "/mavros/local_position/pose"
 
 uav/laser_topic: "scan_filtered"
+
+
+scan_filter_chain:
+- name: intensity
+  type: LaserScanIntensityFilter
+  params:
+    lower_threshold: 400
+    upper_threshold: 2000
+- name: range
+  type: LaserScanRangeFilter
+  params:
+    lower_threshold: 0.7    # Propeller distance
+    upper_threshold: 20
+    upper_replacement_value: 200  
+- type: laser_filters/LaserArrayFilter
+  name: laser_median_filter
+  params: 
+    range_filter_chain:
+      - name: median_5
+        type: filters/MultiChannelMedianFilterFloat 
+        params:
+          number_of_observations: 3
+          unused: 10
+    intensity_filter_chain:
+      - name: median_5
+        type: filters/MultiChannelMedianFilterFloat 
+        params:
+          number_of_observations: 3
+          unused: 10
+
 

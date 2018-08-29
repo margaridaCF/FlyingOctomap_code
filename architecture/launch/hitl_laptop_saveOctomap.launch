@@ -9,14 +9,14 @@
         <remap from="cloud_in" to="/free_cloud" />
         <param name="latch"                     value="false" />
         <param name="publish_free_space"        value="true"/>
-        <param name="sensor_model/max_range"    value="15"/>
-        <param name="resolution"                value="0.4" />
+        <param name="sensor_model/max_range"    value="20"/>
+        <param name="resolution"                value="0.5" />
     </node>
     <!-- #######################  Architecture nodes  ############################# -->
-    <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
+    <!-- <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" /> -->
     <!-- <node name="command_ltStar"     type="ltStar_command_path_node"   pkg="path_planning"  output="screen" /> -->
-    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
-    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
+   <!--  <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" /> -->
 
 
     <!-- #######################    TF    ############################# -->    
@@ -28,12 +28,9 @@
     <!-- <node name="hokuyo"         pkg="urg_node"      type="urg_node" output="screen" >
         <param name="ip_address" value="192.168.0.10"/>
     </node> -->
-    <node name="laser_filter" type="scan_to_scan_filter_chain" pkg="laser_filters">
-        <rosparam command="load" file="$(find architecture)/cfg/realUav_params.yaml" />
-        <param name="target_frame"   value="scan" />
-        <remap from="base_scan" to="scan" />
-    </node>
-    <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" >
-        <param name="range_min" value="1"/>
+    <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
+        <rosparam command="load" file="$(find architecture)/cfg/bag_hitl_params.yaml" />
+        <param name="target_frame"   value="base_link" />
+        <remap from="cloud_filtered" to="free_cloud" />
     </node>
 </launch>
