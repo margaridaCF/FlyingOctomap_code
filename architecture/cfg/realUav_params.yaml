@@ -13,11 +13,14 @@ laser_angle: 0.872665
 exploration_maneuver_duration_secs: 33
 exploration_maneuver_phases_duration_secs: 10
 scan_filter_chain:
-- name: range
-  type: LaserScanRangeFilter
+- name: intensityRange
+  type: LaserScanIntensityFilter
   params:
-    lower_threshold: 0.7    # Propeller distance
-    upper_threshold: 200000
+    lower_threshold: 400
+    upper_threshold: 2000
+    lower_range_threshold: 0.7
+    upper_range_threshold: 15
+    upper_replacement_value: 16
 
 
 offboard_enabled: false
