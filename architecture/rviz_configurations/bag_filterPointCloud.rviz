@@ -4,8 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /TF1
         - /TF1/Frames1
+        - /MarkerArray1
+        - /MarkerArray1/Namespaces1
       Splitter Ratio: 0.652941167
     Tree Height: 548
   - Class: rviz/Selection
@@ -24,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: "Free Cloud "
+    SyncSource: ""
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -167,6 +168,17 @@ Visualization Manager:
       Name: Octomap
       Namespaces:
         map: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /ltstar_path
+      Name: MarkerArray
+      Namespaces:
+        closed: true
+        lazy_theta_star_waypoint: true
+        s: true
+        straight_line: true
       Queue Size: 100
       Value: true
   Enabled: true

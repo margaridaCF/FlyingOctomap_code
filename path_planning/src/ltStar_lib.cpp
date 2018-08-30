@@ -467,6 +467,9 @@ namespace LazyThetaStarOctree{
 	{
 		bool success = true;
 		std::ofstream pathWaypoints;
+
+		ROS_WARN_STREAM("[extractPath] Saving to " << folder_name << "/final_path.txt");
+
         pathWaypoints.open (folder_name + "/final_path.txt", std::ofstream::out | std::ofstream::app);
 		std::shared_ptr<ThetaStarNode> current = std::make_shared<ThetaStarNode>(end);
 		std::shared_ptr<ThetaStarNode> parentAdd;
@@ -1004,10 +1007,10 @@ namespace LazyThetaStarOctree{
 		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), PublishingInput( publish_input.marker_pub, false), false);
 
 		qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
-
+		ROS_WARN_STREAM("[processLTStarRequest] Saving to " << folder_name << "/lazyThetaStar_computation_time.csv");
 
 		std::ofstream csv_file;
-		csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		csv_file.open (folder_name+"/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
 		csv_file << millis.count();

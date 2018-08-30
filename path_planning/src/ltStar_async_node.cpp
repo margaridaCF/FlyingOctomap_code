@@ -137,6 +137,8 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef SAVE_CSV
+	ROS_WARN_STREAM("[main] Saving to " << LazyThetaStarOctree::folder_name << "/lazyThetaStar_computation_time.csv");
+
 	std::ofstream csv_file;
 	csv_file.open (LazyThetaStarOctree::folder_name+"/lazyThetaStar_computation_time.csv", std::ofstream::app);
 	csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count" << std::endl;
