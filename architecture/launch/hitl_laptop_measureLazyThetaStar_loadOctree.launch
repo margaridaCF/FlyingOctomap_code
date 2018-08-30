@@ -1,8 +1,11 @@
 <launch>
-    <rosparam file="$(find architecture)/cfg/realUav_hitl_params.yaml" command="load" />
+    
+    <!-- #######################   Rviz   ############################# -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/realUAV.rviz" />
 
-    <!-- #######################  Architecture nodes  ############################# -->
-    <node name="command_ltStar"     type="ltStar_command_path_node"   pkg="path_planning"  output="screen" />
-    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
+    <!-- #######################    Log   ############################# -->
+    <node pkg="rosbag" type="play" name="rosbag_playback"
+       args="record -O //media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180705_karting_experiments/experimental_data
+/20180821_1110_manyRuns_karting_filterTfScan.bag "/>
 
 </launch>
