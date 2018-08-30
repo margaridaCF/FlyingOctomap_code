@@ -2,8 +2,5 @@
     <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" />
 
     <!-- #######################  Architecture nodes  ############################# -->
-    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
-    <node name="command_ltStar"     type="ltStar_command_path_node"   pkg="path_planning"  output="screen" />
-    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
-
+    <node pkg="path_planning" type="ltStar_debug_node" name="ltstar_printer" output="screen"/>
 </launch>
