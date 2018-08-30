@@ -1,5 +1,5 @@
 <launch>
-    <rosparam file="$(find architecture)/cfg/realUav_hitl_params.yaml" command="load" />
+    <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" />
 
     <!-- #######################  Architecture nodes  ############################# -->
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
