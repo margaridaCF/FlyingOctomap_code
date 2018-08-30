@@ -2,6 +2,7 @@
 
    
     <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/bag_filterPointCloud.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
@@ -9,7 +10,11 @@
         <remap from="cloud_in" to="/free_cloud" />
         <param name="latch"                     value="false" />
         <param name="publish_free_space"        value="true"/>
-        <param name="sensor_model/max_range"    value="20"/>
+        <param name="sensor_model/max_range"    value="15"/>
+        
+        <param name="sensor_model/hit"          value="0.74"/>
+        <param name="sensor_model/miss"         value="0.484"/>
+        
         <param name="resolution"                value="0.5" />
     </node>
     <!-- #######################  Architecture nodes  ############################# -->
