@@ -1,7 +1,7 @@
 <launch>
     
     <!-- #######################   Rviz   ############################# -->
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/realUAV.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/bag_filterPointCloud.rviz" />
 
     <!-- #######################    Log   ############################# -->
     <node pkg="rosbag" type="play" name="rosbag_playback" output="screen" 
