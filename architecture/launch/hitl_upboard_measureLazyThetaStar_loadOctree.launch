@@ -1,0 +1,8 @@
+<launch>
+    <rosparam file="$(find architecture)/cfg/realUav_hitl_params.yaml" command="load" />
+
+    <!-- #######################  Architecture nodes  ############################# -->
+    <node name="command_ltStar"     type="ltStar_command_path_node"   pkg="path_planning"  output="screen" />
+    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
+
+</launch>
