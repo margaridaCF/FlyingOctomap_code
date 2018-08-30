@@ -22,7 +22,7 @@ namespace std
 }
 
 namespace LazyThetaStarOctree{
-	std::string folder_name = "/ros_ws/src/data/current";
+	std::string folder_name = "/ros_ws/src/data";
 
 
 	int obstacle_avoidance_time;
@@ -627,7 +627,7 @@ namespace LazyThetaStarOctree{
 		setVertex_time = 0;
 		updateVertex_time = 0;
 
-    	log_file.open(folder_name+"lazyThetaStar.log", std::ios_base::app);
+    	log_file.open(folder_name+"/lazyThetaStar.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
 		auto start = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_search_iterations);
