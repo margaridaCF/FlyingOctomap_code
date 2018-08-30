@@ -16,7 +16,125 @@ namespace LazyThetaStarOctree
         return temp;
     }
 
-    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110)
+    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110_1)
+	{
+		ros::Publisher marker_pub;
+		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+		octomap::OcTree octree ("data/20180823_1110_manyRuns_karting.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 6;
+		request.start.y = -6;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 5;
+		path_planning_msgs::LTStarReply reply;
+
+		for (int i = 0; i < 10; ++i)
+		{
+			processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, "20180823_1110_manyRuns_karting")  );
+			ASSERT_TRUE(reply.success);
+			ASSERT_EQ(reply.waypoint_amount, 2);
+			ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+		}
+	}
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110_filtered_1)
+	{
+		ros::Publisher marker_pub;
+		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+		octomap::OcTree octree ("data/20180823_1110_manyRuns_karting_filterIntensityRange.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 6;
+		request.start.y = -6;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 5;
+		path_planning_msgs::LTStarReply reply;
+
+		for (int i = 0; i < 10; ++i)
+		{
+			processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, "20180823_1110_manyRuns_karting_filterIntensityRange")  );
+			ASSERT_TRUE(reply.success);
+			ASSERT_EQ(reply.waypoint_amount, 2);
+			ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+		}
+	}
+
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110_2)
+	{
+		ros::Publisher marker_pub;
+		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+		octomap::OcTree octree ("data/20180823_1110_manyRuns_karting.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -3.9;
+		request.start.y = -14.76;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 7;
+		path_planning_msgs::LTStarReply reply;
+
+		for (int i = 0; i < 10; ++i)
+		{
+			processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, "20180823_1110_manyRuns_karting")  );
+			ASSERT_TRUE(reply.success);
+			ASSERT_EQ(reply.waypoint_amount, 5);
+			ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+		}
+	}
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110_filtered_2)
+	{
+		ros::Publisher marker_pub;
+		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+		octomap::OcTree octree ("data/20180823_1110_manyRuns_karting_filterIntensityRange.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -3.9;
+		request.start.y = -14.76;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 5;
+		path_planning_msgs::LTStarReply reply;
+
+		for (int i = 0; i < 10; ++i)
+		{
+			processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, "20180823_1110_manyRuns_karting_filterIntensityRange")  );
+			ASSERT_TRUE(reply.success);
+			ASSERT_EQ(reply.waypoint_amount, 7);
+			ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+		}
+	}
+
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110_3)
 	{
 		ros::Publisher marker_pub;
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
@@ -45,7 +163,7 @@ namespace LazyThetaStarOctree
 		}
 	}
 
-    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110_filtered)
+    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110_filtered_3)
 	{
 		ros::Publisher marker_pub;
 		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
