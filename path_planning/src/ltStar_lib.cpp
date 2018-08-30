@@ -4,7 +4,7 @@
 #include <orthogonal_planes.h>
 
 #define SAVE_CSV 1
-#define RUNNING_ROS 0
+// #define RUNNING_ROS 0
 
 
 namespace std
@@ -23,6 +23,7 @@ namespace std
 
 namespace LazyThetaStarOctree{
 	std::string folder_name = "/ros_ws/src/data";
+	// std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
 
 
 	int obstacle_avoidance_time;
@@ -463,14 +464,9 @@ namespace LazyThetaStarOctree{
 	 *
 	 * @return     true is a path from goal node until start node was found (under 500 jumps). False otherwise.
 	 */
-	bool extractPath(std::list<octomath::Vector3> & path, ThetaStarNode const& start, ThetaStarNode & end, bool writeToFile)
+	bool extractPath(std::list<octomath::Vector3> & path, ThetaStarNode const& start, ThetaStarNode & end)
 	{
 		bool success = true;
-		std::ofstream pathWaypoints;
-
-		ROS_WARN_STREAM("[extractPath] Saving to " << folder_name << "/final_path.txt");
-
-        pathWaypoints.open (folder_name + "/final_path.txt", std::ofstream::out | std::ofstream::app);
 		std::shared_ptr<ThetaStarNode> current = std::make_shared<ThetaStarNode>(end);
 		std::shared_ptr<ThetaStarNode> parentAdd;
 		int safety_count = 0;
@@ -484,13 +480,7 @@ namespace LazyThetaStarOctree{
 				return false;
 			}
 
-			// ROS_INFO_STREAM("[LTStar] Adding " << *(current->coordinates));
 			path.push_front( *(current->coordinates) );
-			if(writeToFile)
-			{
-				// writeToFileWaypoint(*(current->coordinates), current->cell_size, folder_name + "/final_path.txt");
-        		pathWaypoints << std::setprecision(5) << current->coordinates->x() << ", " << current->coordinates->y() << ", " << current->coordinates->z() << ", " << current->cell_size << std::endl;
-			}
 			parentAdd = current->parentNode;
 			current = parentAdd;
 			safety_count++;
@@ -502,13 +492,6 @@ namespace LazyThetaStarOctree{
 			}
 		}
 		path.push_front( *(current->coordinates) );
-		if(writeToFile)
-		{
-        	pathWaypoints << std::setprecision(5) << current->coordinates->x() << ", " << current->coordinates->y() << ", " << current->coordinates->z() << ", " << current->cell_size << std::endl;
-			// writeToFileWaypoint(*(current->coordinates), current->cell_size, folder_name + "/final_path.txt");
-		}
-        pathWaypoints << std::endl;
-		pathWaypoints.close();
 		return success;
 	}
 
@@ -617,8 +600,7 @@ namespace LazyThetaStarOctree{
 		ResultSet & resultSet,
 		const double sidelength_lookup_table[],
 		PublishingInput const& publish_input,
-		int const& max_search_iterations,
-		bool print_resulting_path)
+		int const& max_search_iterations)
 	{
 		// std::chrono::high_resolution_clock::time_point start_count, finish_count;
 		int generate_neighbors_time = 0;
@@ -736,7 +718,7 @@ namespace LazyThetaStarOctree{
 			// open.printNodes("========= Starting state of open ");
 			// ln 7 s := open.Pop();	
 			// [Footnote] open.Pop() removes a vertex with the smallest key from open and returns it
-			if(publish_input.publish && print_resulting_path)
+			if(publish_input.publish)
 			{
 				open.printNodes(" ========== Before pop ========== ", log_file);
 			}
@@ -790,13 +772,7 @@ namespace LazyThetaStarOctree{
 				rviz_interface::publish_closed(*(s->coordinates), publish_input.marker_pub);
 			}
 #endif
-			if(publish_input.publish && print_resulting_path)
-			{
-				log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
-				
-				writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
-			}
-
+			
 			// TODO check code repetition to go over the neighbors of s
 			double cell_size = 0;
 			// ln 12 foreach s' € nghbr_vis(s) do
@@ -894,7 +870,7 @@ namespace LazyThetaStarOctree{
 			{
 				path.push_front( input.goal );
 			}
-			extractPath(path, *disc_initial_cell_center, *solution_end_node, print_resulting_path);
+			extractPath(path, *disc_initial_cell_center, *solution_end_node);
 			bool initial_pos_far_from_initial_voxel_center = equal(input.start, cell_center_coordinates_start, input.octree.getResolution()/2) == false;
 			std::list<octomath::Vector3>::iterator it= path.begin();
 			it++;
@@ -979,7 +955,7 @@ namespace LazyThetaStarOctree{
 #ifdef SAVE_CSV
 		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 #endif
-		resulting_path = lazyThetaStar_( InputData( octree, disc_initial, disc_final, request.safety_margin), statistical_data, sidelength_lookup_table, publish_input, request.max_search_iterations, true);
+		resulting_path = lazyThetaStar_( InputData( octree, disc_initial, disc_final, request.safety_margin), statistical_data, sidelength_lookup_table, publish_input, request.max_search_iterations);
 #ifdef SAVE_CSV
 		std::stringstream generated_path_distance_ss;
     	generated_path_distance_ss << "Generated path distance:\n";
@@ -1016,12 +992,13 @@ namespace LazyThetaStarOctree{
 		csv_file << millis.count();
 		csv_file << "," << straigh_line_distance;
 		csv_file << "," << distance_total;
-		csv_file << "," << has_flight_corridor_free;
+		csv_file << "," << !has_flight_corridor_free;
 		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
 		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
 		csv_file << "," << request.safety_margin;
 		csv_file << "," << request.max_search_iterations ;
-		csv_file << "," << statistical_data.iterations_used << std::endl;
+		csv_file << "," << statistical_data.iterations_used ;
+		csv_file << "," << publish_input.dataset_name << std::endl;
 		csv_file.close();
 #endif
 		ROS_WARN_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
@@ -1047,6 +1024,13 @@ namespace LazyThetaStarOctree{
 		}
 		else
 		{
+
+			std::ofstream pathWaypoints;
+			if(publish_input.publish)
+			{
+		        pathWaypoints.open (folder_name + "/final_path.txt", std::ofstream::out | std::ofstream::app);
+		    }
+
 			for (std::list<octomath::Vector3>::iterator i = resulting_path.begin(); i != resulting_path.end(); ++i)
 			{
 				// ROS_INFO_STREAM(*i);
@@ -1056,6 +1040,17 @@ namespace LazyThetaStarOctree{
 	            waypoint.position.z = i->z();
 	            waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
 	            reply.waypoints.push_back(waypoint);
+
+
+				if(publish_input.publish)
+				{
+	        		pathWaypoints << std::setprecision(5) << "(" << i->x() << ", " << i->y() << ", " << i->z() << ")" << std::endl;
+				}
+			}
+			if(publish_input.publish)
+			{
+        		pathWaypoints <<  std::endl;
+        		pathWaypoints.close();
 			}
 			reply.success = true;
 		}
@@ -1244,12 +1239,12 @@ namespace LazyThetaStarOctree{
 			{
 				rviz_interface::publish_closed(*(s->coordinates), publish_input.marker_pub);
 			}
-			if(publish_input.publish && print_resulting_path)
-			{
-				log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
+			// if(publish_input.publish && print_resulting_path)
+			// {
+			// 	log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
 				
-				writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
-			}
+			// 	writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
+			// }
 #endif
 			// TODO check code repetition to go over the neighbors of s
 			double cell_size = 0;
@@ -1348,7 +1343,7 @@ namespace LazyThetaStarOctree{
 			{
 				path.push_front( disc_final );
 			}
-			extractPath(path, *disc_initial_cell_center, *solution_end_node, print_resulting_path);
+			extractPath(path, *disc_initial_cell_center, *solution_end_node);
 			bool initial_pos_far_from_initial_voxel_center = equal(disc_initial, cell_center_coordinates_start, octree.getResolution()/2) == false;
 			std::list<octomath::Vector3>::iterator it= path.begin();
 			it++;

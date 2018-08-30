@@ -16,91 +16,62 @@ namespace LazyThetaStarOctree
         return temp;
     }
 
-    void extractResults (octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, std::string dataset_name, int max_search_iterations = 500)
-    {
-    	octomath::Vector3 direction =  disc_final-disc_initial;
-		octomath::Vector3 return_value;
+    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110)
+	{
+		ros::Publisher marker_pub;
+		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+		octomap::OcTree octree ("data/20180823_1110_manyRuns_karting.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 7.49;
+		request.start.y = -6.98;
+		request.start.z = 7;
+		request.goal.x = -3.9;
+		request.goal.y = -14.76;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 5;
+		path_planning_msgs::LTStarReply reply;
 
-		bool occupied_cell_was_hit = octree.castRay(disc_final, direction, return_value, false, direction.norm());
-		if(!occupied_cell_was_hit)
+		for (int i = 0; i < 10; ++i)
 		{
-			octomap::OcTreeNode* search_result = octree.search(return_value);
-			if (search_result == NULL)
-			{
-				ASSERT_TRUE (false) << "Goal is in unknown space";
-			}
-			else
-			{
-				ROS_WARN_STREAM("This is known obstacle space. ");
-			}
+			processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, "20180823_1110_manyRuns_karting")  );
+			ASSERT_TRUE(reply.success);
+			ASSERT_EQ(reply.waypoint_amount, 5);
+			ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 		}
-		else
+	}
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180823_1110_filtered)
+	{
+		ros::Publisher marker_pub;
+		// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+		octomap::OcTree octree ("data/20180823_1110_manyRuns_karting_filterIntensityRange.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 7.49;
+		request.start.y = -6.98;
+		request.start.z = 7;
+		request.goal.x = -3.9;
+		request.goal.y = -14.76;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 5;
+		path_planning_msgs::LTStarReply reply;
+
+		for (int i = 0; i < 10; ++i)
 		{
-			ROS_WARN_STREAM("This is free space");
+			processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, "20180823_1110_manyRuns_karting_filterIntensityRange")  );
+			ASSERT_TRUE(reply.success);
+			ASSERT_EQ(reply.waypoint_amount, 6);
+			ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 		}
-
-		
-		ResultSet statistical_data;
-		timespec time1, time2;
-    	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, max_search_iterations);
-		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
-    	double total_nSecs_overall = diff(time1,time2).tv_nsec;
-    	std::ofstream waypoints_file;
-    	waypoints_file.open("/home/mfaria/Margarida/20170802_lazyThetaStar/experimental data/euroc_compare/newImplementation.log", std::ios_base::app);
-    	waypoints_file << " ===== " << dataset_name << " ===== " << std::endl;
-		waypoints_file << " iterations used: " << statistical_data.iterations_used  << "; Took " << total_nSecs_overall << " nano seconds." << std::endl;
-		for (octomath::Vector3 waypoint : resulting_path)
-		{
-			waypoints_file << waypoint << std::endl;
-		}
-		waypoints_file << std::endl;
-		ASSERT_GT(resulting_path.size(), 0);
-    }
-
-// 1490700010.397750750   Local:  Calculating path from (0, 0, 0) to 2.6, -2.3, 0.4)  iterations used: 27; Took 1565925 nano seconds.
-	/*TEST(LazyThetaStarTests, run1_1490700010)
-	{
-		std::string dataset_name = "Euroc Run 1 @ 1490700010";
-		octomap::OcTree octree ("data/run_1_1490700010.bt");
-		octomath::Vector3 disc_initial(0, 0, 0);
-		octomath::Vector3 disc_final  (2.6, -2.3, 0.4);
-		int max_search_iterations = 27;
-		extractResults(octree, disc_initial, disc_final, dataset_name);
-	}*/
-
-// 1490700011.624896175   Global: Calculating path from (2.2, 4.8, 1.2) to -2.5, -0.5, 2.2)  iterations used: 43270; Took 4 seconds.
-	/*TEST(LazyThetaStarTests, run1_1490700011)
-	{
-		std::string dataset_name = "Euroc Run 1 @ 1490700011";
-		octomap::OcTree octree ("data/run_1_1490700011.bt");
-		octomath::Vector3 disc_initial( 2.2, 4.8, 1.2);
-		octomath::Vector3 disc_final  (-2.5, -0.5, 2.2);
-		int max_search_iterations = 43270;
-		extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
-	}*/
-
-
-// 1490700086.444189348   Global: Calculating path from (-2.6, -3.9, 3.2) to 2.2, 4.9, 1.5)  iterations used: 54; Took 42690669 nano seconds.
-	/*TEST(LazyThetaStarTests, run1_1490700086)
-	{
-		std::string dataset_name = "Euroc Run 1 @ 1490700086";
-		octomap::OcTree octree ("data/run_1_1490700086.bt");
-		octomath::Vector3 disc_initial(-2.6, -3.9, 3.2);
-		octomath::Vector3 disc_final  ( 2.2, 4.9, 1.5);
-		int max_search_iterations = 1000;
-		extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
-	}*/
-
-// (-2.75488459312, -3.89351167009, 3.24224048416) to (2.20000004768, 4.90000009537, 1.5)
-	TEST(LazyThetaStarTests, run1_1490700080)
-	{
-		std::string dataset_name = "Euroc Run 2 @ final map";
-		octomap::OcTree octree ("data/run_2.bt");
-		octomath::Vector3 disc_initial(2, 6, 1.5);
-		octomath::Vector3 disc_final  (-1, 2.5, 1.5);
-		int max_search_iterations = 1000;
-		extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
 	}
 }
 

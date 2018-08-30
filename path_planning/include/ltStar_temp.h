@@ -42,8 +42,9 @@ namespace LazyThetaStarOctree{
 	public:
 		ros::Publisher const& marker_pub;
 		const bool publish;
-		PublishingInput(ros::Publisher const& marker_pub, bool publish = false)
-			: marker_pub(marker_pub), publish(publish)
+		const std::string dataset_name;
+		PublishingInput(ros::Publisher const& marker_pub, bool publish = false, std::string dataset_name = "unamed")
+			: marker_pub(marker_pub), dataset_name(dataset_name), publish(publish)
 		{}
 	};
 
@@ -104,7 +105,7 @@ namespace LazyThetaStarOctree{
 	 *
 	 * @return     true is a path from goal node until start node was found (under 500 jumps). False otherwise.
 	 */
-	bool extractPath(std::list<octomath::Vector3> & path, ThetaStarNode const& start, ThetaStarNode & end, bool writeToFile = false);
+	bool extractPath(std::list<octomath::Vector3> & path, ThetaStarNode const& start, ThetaStarNode & end);
 
 	/**
 	 * @brief      Calcute the cost if a link between these to nodes is created. This is not the ComputeCost method of the pseudo code.
@@ -133,8 +134,7 @@ namespace LazyThetaStarOctree{
 		ResultSet & resultSet,
 		const double sidelength_lookup_table[],
 		PublishingInput const& publish_input,
-		int const& max_search_iterations = 55,
-		bool print_resulting_path = false);
+		int const& max_search_iterations = 55);
 
 	std::list<octomath::Vector3> lazyThetaStar_original(
 		octomap::OcTree   & octree, 
