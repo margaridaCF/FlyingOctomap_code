@@ -174,7 +174,7 @@ namespace LazyThetaStarOctree{
 		{
 			// if(!ignoreUnknown)
 			// {
-			// 	ROS_WARN_STREAM("[LTStar] No line of sight because has_hit_obstacle");
+				// ROS_WARN_STREAM("[LTStar] No line of sight because has_hit_obstacle");
 			// }
 			return false;
 		}
@@ -872,16 +872,18 @@ namespace LazyThetaStarOctree{
 			}
 			extractPath(path, *disc_initial_cell_center, *solution_end_node);
 			bool initial_pos_far_from_initial_voxel_center = equal(input.start, cell_center_coordinates_start, input.octree.getResolution()/2) == false;
-			std::list<octomath::Vector3>::iterator it= path.begin();
-			it++;
-			bool free_path_from_current_to_second_waypoint = is_flight_corridor_free( InputData(input.octree, input.start, *it, input.margin), publish_input, false);
-			if(!free_path_from_current_to_second_waypoint)
+			if(initial_pos_far_from_initial_voxel_center)
 			{
-				ROS_ERROR_STREAM("[ltstar] end There are obstacles between initial point " << input.start << " and its center " << cell_center_coordinates_start);
-			}
-			if(initial_pos_far_from_initial_voxel_center && !free_path_from_current_to_second_waypoint)
-			{
-				path.push_front( input.start );
+				std::list<octomath::Vector3>::iterator it= path.begin();
+				bool free_path_from_current_to_second_waypoint = is_flight_corridor_free( InputData(input.octree, input.start, *it, input.margin), publish_input, false);
+				if(free_path_from_current_to_second_waypoint)
+				{
+					path.push_front( input.start );
+				}
+				else
+				{	
+					ROS_ERROR_STREAM("[ltstar] end There are obstacles between initial point " << input.start << " and its center " << cell_center_coordinates_start);
+				}
 			}
 		}
 		if(path.size() == 1)
