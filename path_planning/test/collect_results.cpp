@@ -39,22 +39,22 @@ namespace LazyThetaStarOctree
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw" );
 	}
- //    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_2)
-	// {
-	// 	octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
-	// 	path_planning_msgs::LTStarRequest request;
-	// 	request.header.seq = 2;
-	// 	request.request_id = 3;
-	// 	request.start.x = 7.49;
-	// 	request.start.y = -6.98;
-	// 	request.start.z = 7;
-	// 	request.goal.x = -3.9;
-	// 	request.goal.y = -14.76;
-	// 	request.goal.z = 7;
-	// 	request.max_search_iterations = 120;
-	// 	request.safety_margin = 5;
-	// 	testResults(request, octree, "20180821_1110_42712_raw" );
-	// }
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_2)
+	{
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 7.49;
+		request.start.y = -6.98;
+		request.start.z = 7;
+		request.goal.x = -3.9;
+		request.goal.y = -14.76;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw" );
+	}
 
  //    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_filtered_1)
 	// {
@@ -90,22 +90,22 @@ namespace LazyThetaStarOctree
 	// }
 
 
- //    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42936_raw_1)
-	// {
-	// 	octomap::OcTree octree ("data/20180821_1110_42936_raw.bt");
-	// 	path_planning_msgs::LTStarRequest request;
-	// 	request.header.seq = 2;
-	// 	request.request_id = 3;
-	// 	request.start.x = -3.9;
-	// 	request.start.y = -14.76;
-	// 	request.start.z = 7;
-	// 	request.goal.x = 7.49;
-	// 	request.goal.y = -6.98;
-	// 	request.goal.z = 7;
-	// 	request.max_search_iterations = 120;
-	// 	request.safety_margin = 5;
-	// 	testResults(request, octree, "20180821_1110_42936_raw" );
-	// }
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42936_raw_1)
+	{
+		octomap::OcTree octree ("data/20180821_1110_42936_raw.bt");
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -3.9;
+		request.start.y = -14.76;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42936_raw" );
+	}
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42936_raw_2)
 	{
 		octomap::OcTree octree ("data/20180821_1110_42936_raw.bt");
@@ -175,22 +175,22 @@ namespace LazyThetaStarOctree
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_43042_raw" );
 	}
- //    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_43042_raw_2)
-	// {
-	// 	octomap::OcTree octree ("data/20180821_1110_43042_raw.bt");
-	// 	path_planning_msgs::LTStarRequest request;
-	// 	request.header.seq = 2;
-	// 	request.request_id = 3;
-	// 	request.start.x = 7.49;
-	// 	request.start.y = -6.98;
-	// 	request.start.z = 7;
-	// 	request.goal.x = -3.9;
-	// 	request.goal.y = -14.76;
-	// 	request.goal.z = 7;
-	// 	request.max_search_iterations = 120;
-	// 	request.safety_margin = 5;
-	// 	testResults(request, octree, "20180821_1110_43042_raw" );
-	// }
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_43042_raw_2)
+	{
+		octomap::OcTree octree ("data/20180821_1110_43042_raw.bt");
+		path_planning_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 7.49;
+		request.start.y = -6.98;
+		request.start.z = 7;
+		request.goal.x = -3.9;
+		request.goal.y = -14.76;
+		request.goal.z = 7;
+		request.max_search_iterations = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_43042_raw" );
+	}
 
  //    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_43042_filtered_1)
 	// {
