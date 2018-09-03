@@ -38,10 +38,11 @@ def calculate_time_variability(data):
 
 	path_by_bucket = {}
 
-	for i in range( len(data['computation_time_millis']) ):
+
+	for i in range( 0, len(data['computation_time_millis']), 1 ):
 		# print data['path_lenght_total_meters'][i]
-		bucket = data['path_lenght_total_meters'][i] // 10 + 10
-		# print "bucket " + str(bucket) + " for " + str(data['path_lenght_total_meters'][i])
+		bucket = (data['path_lenght_total_meters'][i] // 10) * 10
+		# print str(i) + " bucket " + str(bucket) + " for " + str(data['path_lenght_total_meters'][i]) + " @ " + str(data['dataset_name'][i] )
 		
 		if not str(bucket) in path_by_bucket:
 			path_by_bucket[str(bucket)] =  []
@@ -52,7 +53,7 @@ def calculate_time_variability(data):
 		standard_deviation = np.std(path_by_bucket[str(key)]) 
 		mean_ = np.mean(path_by_bucket[str(key)])
 		print " = " +  str(key) + " = "
-		print path_by_bucket[str(key)]
+		print "Amount of data points " + str(   len(path_by_bucket[str(key)])   )
 		print "Standard deviation: " + str( standard_deviation )
 		print "Mean: " + str( mean_ )
 		minimum_time =  min(path_by_bucket[str(key)])
@@ -81,7 +82,9 @@ def extract_lazy_theta_star_data(csv_filepath):
 #     #     return data
 
 
-lazyThetaStar_filename = "/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180829_paper/data/20180830_unitTests/lazyThetaStar_computation_time.csv"
+# lazyThetaStar_filename = "/media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180829_paper/data/20180830_unitTests/lazyThetaStar_computation_time.csv"
+
+lazyThetaStar_filename = "/home/mfaria/Flying_Octomap_code/src/data/lazyThetaStar_computation_time.csv"
 lazyThetaStar_computation_data = extract_lazy_theta_star_data( lazyThetaStar_filename )
 # print lazyThetaStar_computation_data.keys
 # plot_box_plot(lazyThetaStar_computation_data, 'Runtime variability for same intput', 'computation_time_millis', 'lazyThetaStar_time_box')
