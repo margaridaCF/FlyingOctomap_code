@@ -1,5 +1,6 @@
 #include <ros/ros.h>
-#include <ltStar_temp.h>
+#include <ltStar_lib_ortho.h>
+// #include <ltStar_temp.h>
 #include <octomap_msgs/Octomap.h>
 #include <octomap_msgs/conversions.h>
 #include <visualization_msgs/Marker.h>

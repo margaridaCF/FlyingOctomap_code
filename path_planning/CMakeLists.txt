@@ -62,11 +62,11 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(analyzeData ${catkin_LIBRARIES} )
 
-  ## Octree @ collect results ##
-  catkin_add_gtest(collectResults 
-    test/collect_results.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(collectResults ${catkin_LIBRARIES} ltStar_lib)
+  # ## Octree @ collect results ##
+  # catkin_add_gtest(collectResults 
+  #   test/collect_results.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collectResults ${catkin_LIBRARIES} ltStar_lib)
 
   # ## Octree @ work in progress ##
   # catkin_add_gtest(workInProgress 
@@ -93,11 +93,11 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(openTests ${catkin_LIBRARIES} ltStar_lib)
 
-  # ## Lazy Theta Star ##
-  # # catkin_add_gtest(ltstarTests_ortho 
-  # #   test/lazyTheta_tests_ortho.cpp
-  # #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # # target_link_libraries(ltstarTests_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  # Lazy Theta Star ##
+  catkin_add_gtest(ltstarTests_ortho 
+    test/orthogonal_planes_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarTests_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
   # catkin_add_gtest(ltstarTests 
   #   test/lazyTheta_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)

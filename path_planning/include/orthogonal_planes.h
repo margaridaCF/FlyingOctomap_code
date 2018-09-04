@@ -75,23 +75,41 @@ namespace LazyThetaStarOctree{
 	}
 
 
-	
-
 	void generateRectanglePlaneIndexes(double margin, double resolution, std::vector<octomath::Vector3> & plane)
 	{
-		int loop_count = (margin/resolution) * 2;
-		double x = -margin + resolution/2;
-		double z = x;
+	}
+
+	void generateCirclePlaneIndexes(double margin, double resolution, std::vector<octomath::Vector3> & plane)
+	{
+		int n = margin/ resolution;
+		ROS_WARN_STREAM("N " << n);
+		int loop_count =   n * 2  + 1;
 		int array_index = 0;
+		double  x, y, y_, z_;
+		x = y = y_ = z_ = 0;
+
+		double rectSquare = ( margin / resolution ) * ( margin / resolution );
+
+		ROS_WARN_STREAM("rectSquare " << rectSquare);
+
 		for (int i = 0; i < loop_count; ++i)
 		{
+			x = std::abs (i - n) - 0.5;
 			for (int j = 0; j < loop_count; ++j)
 			{
-				plane.emplace(plane.end(), 0, x + i*resolution, z + j*resolution);
-				array_index++;
+				y = std::abs(j - n) - 0.5;
+
+				if( x*x + y*y  <= rectSquare )
+				{
+					y_ = (i - n) * resolution;
+					z_ = (j - n) * resolution;
+					plane.emplace(plane.end(), 0, y_, z_);
+					array_index++;
+				}
 			}
 		}
 	}
+
 }
 
 #endif // ORTHOGONAL_PLANES_H
