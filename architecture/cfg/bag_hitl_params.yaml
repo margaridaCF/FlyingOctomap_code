@@ -34,8 +34,7 @@ scan_filter_chain:
   type: LaserScanIntensityFilter
   params:
     lower_threshold: 400
-    upper_threshold: 2000
+    upper_threshold: 1200
     lower_range_threshold: 0.7
     upper_range_threshold: 15
     upper_replacement_value: 16
-
