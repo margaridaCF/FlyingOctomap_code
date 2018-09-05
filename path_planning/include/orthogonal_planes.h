@@ -5,6 +5,7 @@
 #include <ltStarOctree_common.h>
 #include <ros/ros.h>
 
+#include <Eigen/Dense>
 
 
 namespace LazyThetaStarOctree{
@@ -65,10 +66,23 @@ namespace LazyThetaStarOctree{
 
 	octomath::Vector3 rotateAndTranslate(CoordinateFrame coordinate_frame, octomath::Vector3 offsetPoint, octomath::Vector3 start, octomath::Vector3 goalWithMargin)
 	{
+		Eigen::MatrixXd m(3, 3);
+		m(0, 0) = coordinate_frame.direction.x();
+		m(1, 0) = coordinate_frame.direction.y();
+		m(2, 0) = coordinate_frame.direction.z();
+
+		m(0, 1) = coordinate_frame.orthogonalA.x();
+		m(1, 1) = coordinate_frame.orthogonalA.y();
+		m(2, 1) = coordinate_frame.orthogonalA.z();
+
+		m(0, 2) = coordinate_frame.orthogonalB.x();
+		m(1, 2) = coordinate_frame.orthogonalB.y();
+		m(2, 2) = coordinate_frame.orthogonalB.z();
 		// Matrix r = (direction.x, orthogonalA.x, orthogonalB.x )
 		//            (direction.y, orthogonalA.y, orthogonalB.y )
 		//            (direction.z, orthogonalA.z, orthogonalB.z )
 
+		ROS_WARN_STREAM(m);
 		// rotated_point = r * offsetPoint;
 		// rotated_start = rotated_point + start;
 		// rotated_goalWithMargin  = rotated_point + goalWithMargin ;
@@ -109,6 +123,28 @@ namespace LazyThetaStarOctree{
 			}
 		}
 	}
+
+	void generateSemiSphereOut(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
+	{
+		double depth;
+		double safety_range = margin + 0.5 * resolution;
+		for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
+		{
+			depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
+			semiSphere.emplace(semiSphere.end(), depth, i->y(), i->z());
+		}
+	} 
+
+	void generateSemiSphereIn(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
+	{
+		double depth;
+		double safety_range = margin + 0.5 * resolution;
+		for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
+		{
+			depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
+			semiSphere.emplace(semiSphere.end(), -depth, i->y(), i->z());
+		}
+	} 
 
 }
 

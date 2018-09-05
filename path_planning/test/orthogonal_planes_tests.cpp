@@ -275,17 +275,57 @@ namespace LazyThetaStarOctree{
 	// 	ASSERT_EQ(25, plane.size());
 	// }
 
-	TEST(OrthogonalPlanesTest, generateCircle)
+	// TEST(OrthogonalPlanesTest, generateCircle)
+	// {
+	// 	double margin = 1;
+	// 	double resolution = 0.5;
+	// 	std::vector<octomath::Vector3> plane = {};
+	// 	generateCirclePlaneIndexes(margin, resolution, plane);
+	// 	ASSERT_EQ(21, plane.size());
+	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
+	// 	{
+	// 		ROS_WARN_STREAM(*i);	
+	// 	}
+	// }
+
+	// TEST(OrthogonalPlanesTest, generateCircle)
+	// {
+	// 	double margin = 1;
+	// 	double resolution = 0.5;
+	// 	std::vector<octomath::Vector3> plane = {};
+	// 	generateCirclePlaneIndexes(margin, resolution, plane);
+	// 	ASSERT_EQ(21, plane.size());
+	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
+	// 	{
+	// 		ROS_WARN_STREAM(*i);	
+	// 	}
+	// }
+
+	// TEST(OrthogonalPlanesTest, generateSemiSphere)
+	// {
+	// 	double margin = 1;
+	// 	double resolution = 0.5;
+	// 	std::vector<octomath::Vector3> plane = {};
+	// 	std::vector<octomath::Vector3> semiSphere = {};
+	// 	generateCirclePlaneIndexes(margin, resolution, plane);
+	// 	generateSemiSphereOut(margin, resolution, plane, semiSphere);
+	// 	ASSERT_EQ(21, plane.size());
+	// 	ASSERT_EQ(21, semiSphere.size());
+	// 	for (std::vector<octomath::Vector3>::iterator i = semiSphere.begin(); i != semiSphere.end(); ++i)
+	// 	{
+	// 		ROS_WARN_STREAM(*i);	
+	// 	}
+	// }
+
+	
+	TEST(OrthogonalPlanesTest, generateCoordinateFrame)
 	{
-		double margin = 1;
-		double resolution = 0.5;
-		std::vector<octomath::Vector3> plane = {};
-		generateCirclePlaneIndexes(margin, resolution, plane);
-		ASSERT_EQ(21, plane.size());
-		for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
-		{
-			ROS_WARN_STREAM(*i);	
-		}
+		octomath::Vector3 start (0, 0,0 );
+		octomath::Vector3 goal (-0.333, 2, 40);
+	    CoordinateFrame coord = generateCoordinateFrame(start, goal);
+	    ROS_WARN_STREAM("direction " << coord.direction);
+	    ROS_WARN_STREAM("orthogonalA " << coord.orthogonalA);
+	    ROS_WARN_STREAM("orthogonalB " << coord.orthogonalB);
 	}
 }
 
