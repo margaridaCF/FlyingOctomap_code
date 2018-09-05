@@ -323,9 +323,78 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 start (0, 0,0 );
 		octomath::Vector3 goal (-0.333, 2, 40);
 	    CoordinateFrame coord = generateCoordinateFrame(start, goal);
-	    ROS_WARN_STREAM("direction " << coord.direction);
-	    ROS_WARN_STREAM("orthogonalA " << coord.orthogonalA);
-	    ROS_WARN_STREAM("orthogonalB " << coord.orthogonalB);
+	    // ROS_WARN_STREAM("direction " << coord.direction);
+	    // ROS_WARN_STREAM("orthogonalA " << coord.orthogonalA);
+	    // ROS_WARN_STREAM("orthogonalB " << coord.orthogonalB);
+	    testCoordinateFrame(start, goal);
+	}
+
+
+	TEST(OrthogonalPlanesTest, rotation)
+	{
+		octomath::Vector3 start (0, 0,0 );
+		octomath::Vector3 goal (-0.333, 2, 40);
+		CoordinateFrame coordinate_frame = generateCoordinateFrame(start, goal);
+
+		double margin = 1;
+		double resolution = 0.5;
+		Eigen::MatrixXd points(3, 3);
+
+		points( 0, 0) = 1;
+		points( 1, 0) = 0;
+		points( 2, 0) = 0;
+		
+		points(0, 1) = 0;
+		points(1, 1) = 1;
+		points(2, 1) = 0;
+
+		points(0, 2) = 0;
+		points(1, 2) = 0;
+		points(2, 2) = 1;
+
+		ROS_WARN_STREAM(points);
+	    ROS_WARN_STREAM( rotate_many(coordinate_frame, points) );
+	}
+
+
+
+	TEST(OrthogonalPlanesTest, rotationTranslation)
+	{
+		octomath::Vector3 start (-0.333, 2, 40 );
+		octomath::Vector3 goal (1, 1, 1);
+		CoordinateFrame coordinate_frame = generateCoordinateFrame(start, goal);
+
+		double margin = 1;
+		double resolution = 0.5;
+		
+		std::vector<Eigen::Vector3d> plane = {};
+		generateCirclePlaneIndexes(margin, resolution, plane);
+		
+		Eigen::MatrixXd point_matrix (3, plane.size());
+		int index = 0;
+		for (std::vector<Eigen::Vector3d>::iterator i = plane.begin(); i != plane.end(); ++i)
+		{
+			point_matrix(0, index) = i->x();
+			point_matrix(1, index) = i->y();
+			point_matrix(2, index) = i->z();
+			index++;
+		}
+
+		// ROS_WARN_STREAM(point_matrix);
+
+	    Eigen::MatrixXd rotated_points = rotate_many(coordinate_frame, point_matrix);
+	    Eigen::Vector3d start_eigen ((double)start.x(), (double) start.y(), (double) start.z());
+	    for (int i = 0; i < plane.size(); ++i)
+	    {
+	    	Eigen::Vector3d point(rotated_points(0, i), rotated_points(1, i), rotated_points(2, i) ) ;
+
+
+
+	    	ROS_WARN_STREAM("Translation and rotation: " << translateStartGoal_many(point, start_eigen));
+	    }
+
+	    // Eigen::MatrixXd  result = translateStartGoal_many(rotated_points, start_eigen);
+	    // ROS_WARN_STREAM(result);
 	}
 }
 

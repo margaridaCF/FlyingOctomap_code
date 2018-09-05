@@ -64,7 +64,7 @@ namespace LazyThetaStarOctree{
 		return goal + scale;
 	}
 
-	octomath::Vector3 rotateAndTranslate(CoordinateFrame coordinate_frame, octomath::Vector3 offsetPoint, octomath::Vector3 start, octomath::Vector3 goalWithMargin)
+	Eigen::Vector3d rotate(CoordinateFrame coordinate_frame, Eigen::Vector3d offsetPoint)
 	{
 		Eigen::MatrixXd m(3, 3);
 		m(0, 0) = coordinate_frame.direction.x();
@@ -82,10 +82,38 @@ namespace LazyThetaStarOctree{
 		//            (direction.y, orthogonalA.y, orthogonalB.y )
 		//            (direction.z, orthogonalA.z, orthogonalB.z )
 
-		ROS_WARN_STREAM(m);
-		// rotated_point = r * offsetPoint;
-		// rotated_start = rotated_point + start;
-		// rotated_goalWithMargin  = rotated_point + goalWithMargin ;
+		// ROS_WARN_STREAM(m);
+		return m * offsetPoint;
+	}
+
+	Eigen::MatrixXd rotate_many(CoordinateFrame coordinate_frame, Eigen::MatrixXd offsetPoints)
+	{
+		Eigen::MatrixXd m(3, 3);
+		m(0, 0) = coordinate_frame.direction.x();
+		m(1, 0) = coordinate_frame.direction.y();
+		m(2, 0) = coordinate_frame.direction.z();
+
+		m(0, 1) = coordinate_frame.orthogonalA.x();
+		m(1, 1) = coordinate_frame.orthogonalA.y();
+		m(2, 1) = coordinate_frame.orthogonalA.z();
+
+		m(0, 2) = coordinate_frame.orthogonalB.x();
+		m(1, 2) = coordinate_frame.orthogonalB.y();
+		m(2, 2) = coordinate_frame.orthogonalB.z();
+		// Matrix r = (direction.x, orthogonalA.x, orthogonalB.x )
+		//            (direction.y, orthogonalA.y, orthogonalB.y )
+		//            (direction.z, orthogonalA.z, orthogonalB.z )
+
+
+
+		Eigen::MatrixXd result =  m * offsetPoints;
+		return result;
+	}
+
+	Eigen::MatrixXd translateStartGoal_many(Eigen::Vector3d rotated_points, Eigen::Vector3d offset)
+	{
+
+		return  rotated_points + offset;
 	}
 
 
@@ -93,10 +121,10 @@ namespace LazyThetaStarOctree{
 	{
 	}
 
-	void generateCirclePlaneIndexes(double margin, double resolution, std::vector<octomath::Vector3> & plane)
+	void generateCirclePlaneIndexes(double margin, double resolution, std::vector<Eigen::Vector3d> & plane)
 	{
 		int n = margin/ resolution;
-		ROS_WARN_STREAM("N " << n);
+		// ROS_WARN_STREAM("N " << n);
 		int loop_count =   n * 2  + 1;
 		int array_index = 0;
 		double  x, y, y_, z_;
@@ -104,7 +132,7 @@ namespace LazyThetaStarOctree{
 
 		double rectSquare = ( margin / resolution ) * ( margin / resolution );
 
-		ROS_WARN_STREAM("rectSquare " << rectSquare);
+		// ROS_WARN_STREAM("rectSquare " << rectSquare);
 
 		for (int i = 0; i < loop_count; ++i)
 		{
