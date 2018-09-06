@@ -41,10 +41,17 @@ namespace LazyThetaStarOctree{
 	// ros::ServiceClient pauseGazebo_;
 	// ros::ServiceClient unpauseGazebo_;
 
-	void generateOffsets(double resolution, double safety_margin, Eigen::MatrixXd (*startShapeGenerator)(double, double), Eigen::MatrixXd (*goalShapeGenerator)(double, double) )
+	void generateOffsets(double resolution, double safety_margin, double (*startDepthGenerator)(double, double, double), double (*goalDepthGenerator)(double, double, double) )
 	{
-		startOffsets = startShapeGenerator(safety_margin/2, resolution);
-		goalOffsets = goalShapeGenerator(safety_margin/2, resolution);
+		// startOffsets = startShapeGenerator(safety_margin/2.0, resolution);
+		// goalOffsets = goalShapeGenerator(safety_margin/2.0, resolution);
+
+
+
+		startOffsets = generateOffsetMatrix(safety_margin/2.0, resolution, startDepthGenerator);
+		goalOffsets = generateOffsetMatrix(safety_margin/2.0, resolution, goalDepthGenerator);
+
+		ROS_WARN_STREAM("start point amount " << startOffsets.cols() << " goal points " << goalOffsets.cols());
 	}
 
 
@@ -179,6 +186,8 @@ namespace LazyThetaStarOctree{
 				return false;
 			}
 		}
+		// ROS_WARN_STREAM("Start " << input.start << " goal "  << input.goal);
+
 		octomath::Vector3 dummy;
 		octomath::Vector3 direction = input.goal - input.start;
 		bool has_hit_obstacle = input.octree.castRay( input.start, direction, dummy, ignoreUnknown, direction.norm());
@@ -213,8 +222,8 @@ namespace LazyThetaStarOctree{
 		CoordinateFrame coordinate_frame = generateCoordinateFrame(input.start, input.goal);
 		Eigen::MatrixXd transformation_matrix_start = generateRotationTranslationMatrix(coordinate_frame, input.start);
 
-		octomath::Vector3 goalWithMargin = calculateGoalWithMargin(input.start, input.goal, input.margin);
-		Eigen::MatrixXd transformation_matrix_goal = generateRotationTranslationMatrix(coordinate_frame, goalWithMargin);
+		// octomath::Vector3 goalWithMargin = calculateGoalWithMargin(input.start, input.goal, input.margin);
+		Eigen::MatrixXd transformation_matrix_goal = generateRotationTranslationMatrix(coordinate_frame, input.goal);
 
 		Eigen::MatrixXd points_around_start = transformation_matrix_start * startOffsets;
 		Eigen::MatrixXd points_around_goal = transformation_matrix_goal * goalOffsets;
@@ -237,17 +246,17 @@ namespace LazyThetaStarOctree{
 				} 
 				// return CellStatus::kOccupied; 
 			}   
-			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
-			{ 
-				if(publish_input.publish) 
-				{ 
-					// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << input.start + offset << std::endl ; 
-					rviz_interface::build_arrow_type(temp_goal, temp_start, marker_array, id_unreachable, true);
-					id_unreachable++;
-					publish_input.marker_pub.publish(marker_array);
-				} 
-				// return CellStatus::kOccupied; 
-			}   
+			// else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
+			// { 
+			// 	if(publish_input.publish) 
+			// 	{ 
+			// 		// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << input.start + offset << std::endl ; 
+			// 		rviz_interface::build_arrow_type(temp_goal, temp_start, marker_array, id_unreachable, true);
+			// 		id_unreachable++;
+			// 		publish_input.marker_pub.publish(marker_array);
+			// 	} 
+			// 	// return CellStatus::kOccupied; 
+			// }   
 			else 
 			{ 
 			  if(publish_input.publish) 

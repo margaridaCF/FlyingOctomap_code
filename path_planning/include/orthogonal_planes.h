@@ -29,6 +29,13 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 oA, oB;
 
 
+		if(equal(start, goal))
+		{
+			CoordinateFrame coord (octomath::Vector3(1, 0, 0), octomath::Vector3(0, 1, 0), octomath::Vector3(0, 0, 1));
+			return coord;
+		}
+
+
 		octomath::Vector3 direction = goal - start;
 		direction.normalize();
 
@@ -42,14 +49,7 @@ namespace LazyThetaStarOctree{
 		}
 
 		oA.normalize();
-
-		// ROS_WARN_STREAM("direction: " << direction);
-		// ROS_WARN_STREAM("orthogonalA: " << oA);
-		// ROS_WARN_STREAM(direction << ".dot(" << oA << ") =  " << direction.dot(oA));
-
 		oB = direction.cross(oA);
-		// ROS_WARN_STREAM("orthogonalB: " << oB);
-
 
 		CoordinateFrame coord (direction, oA, oB);
 		return coord;
@@ -110,10 +110,10 @@ namespace LazyThetaStarOctree{
 
 		for (int i = 0; i < loop_count; ++i)
 		{
-			x = std::abs (i - n) - 0.5;
+			x = std::abs (i - n);
 			for (int j = 0; j < loop_count; ++j)
 			{
-				y = std::abs(j - n) - 0.5;
+				y = std::abs(j - n);
 
 				if( x*x + y*y  <= rectSquare )
 				{
@@ -141,58 +141,69 @@ namespace LazyThetaStarOctree{
 	}
 
 
-	// void generateCirclePlaneIndexes(double margin, double resolution, std::vector<Eigen::Vector3d> & plane)
-	// {
-	// 	int n = margin/ resolution;
-	// 	// ROS_WARN_STREAM("N " << n);
-	// 	int loop_count =   n * 2  + 1;
-	// 	int array_index = 0;
-	// 	double  x, y, y_, z_;
-	// 	x = y = y_ = z_ = 0;
+	Eigen::MatrixXd generateOffsetMatrix(double margin, double resolution, double (*calculateDepth)(double, double, double)  )
+	{
+		std::vector<Eigen::Vector3d> plane = {};
+		int n = margin/ resolution;
+		// ROS_WARN_STREAM("N " << n);
+		int loop_count =   n * 2  + 1;
+		int array_index = 0;
+		double  x, y, y_, z_, depth;
+		x = y = y_ = z_ = 0;
 
-	// 	double rectSquare = ( margin / resolution ) * ( margin / resolution );
+		double rectSquare = ( margin / resolution ) * ( margin / resolution );
 
-	// 	// ROS_WARN_STREAM("rectSquare " << rectSquare);
+		// ROS_WARN_STREAM("rectSquare " << rectSquare);
 
-	// 	for (int i = 0; i < loop_count; ++i)
-	// 	{
-	// 		x = std::abs (i - n) - 0.5;
-	// 		for (int j = 0; j < loop_count; ++j)
-	// 		{
-	// 			y = std::abs(j - n) - 0.5;
+		for (int i = 0; i < loop_count; ++i)
+		{
+			x = std::abs (i - n);
+			for (int j = 0; j < loop_count; ++j)
+			{
+				y = std::abs(j - n);
 
-	// 			if( x*x + y*y  <= rectSquare )
-	// 			{
-	// 				y_ = (i - n) * resolution;
-	// 				z_ = (j - n) * resolution;
-	// 				plane.emplace(plane.end(), 0, y_, z_);
-	// 				array_index++;
-	// 			}
-	// 		}
-	// 	}
-	// }
+				if( x*x + y*y  <= rectSquare )
+				{
+					y_ = (i - n) * resolution;
+					z_ = (j - n) * resolution;
+					depth = calculateDepth( margin, y_, z_);
+					plane.emplace(plane.end(), depth, y_, z_);
+					array_index++;
+				}
+			}
+		}
 
-	// void generateSemiSphereOut(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
-	// {
-	// 	double depth;
-	// 	double safety_range = margin + 0.5 * resolution;
-	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
-	// 	{
-	// 		depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
-	// 		semiSphere.emplace(semiSphere.end(), depth, i->y(), i->z());
-	// 	}
-	// } 
 
-	// void generateSemiSphereIn(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
-	// {
-	// 	double depth;
-	// 	double safety_range = margin + 0.5 * resolution;
-	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
-	// 	{
-	// 		depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
-	// 		semiSphere.emplace(semiSphere.end(), -depth, i->y(), i->z());
-	// 	}
-	// } 
+		Eigen::MatrixXd point_matrix (4, plane.size());
+		int index = 0;
+		for (std::vector<Eigen::Vector3d>::iterator i = plane.begin(); i != plane.end(); ++i)
+		{
+			point_matrix(0, index) = i->x();
+			point_matrix(1, index) = i->y();
+			point_matrix(2, index) = i->z();
+			point_matrix(3, index) = 1;
+			index++;
+		}
+
+		return point_matrix;
+	}
+
+	double dephtZero(double margin, double y, double z)
+	{
+		return 0;
+	}
+
+	double semiSphereOut(double margin, double y, double z)
+	{
+		return 0.05 + std::sqrt( margin * margin  -  y*y  -   z*z);
+	}
+
+	double semiSphereIn(double margin, double y, double z)
+	{
+		return -semiSphereOut(margin, y, z);
+	}
+
+
 
 }
 
