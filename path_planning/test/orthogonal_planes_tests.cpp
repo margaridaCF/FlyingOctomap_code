@@ -329,69 +329,6 @@ namespace LazyThetaStarOctree{
 	//     testCoordinateFrame(start, goal);
 	// }
 
-	// TEST(OrthogonalPlanesTest, rotation)
-	// {
-	// 	// octomath::Vector3 start (-0.333, 2, 40 );
-	// 	octomath::Vector3 start (0, 0, 0 );
-	// 	octomath::Vector3 goal (1, 1, 1);
-	// 	CoordinateFrame coordinate_frame = generateCoordinateFrame(start, goal);
-
-	// 	double margin = 1;
-	// 	double resolution = 0.5;
-		
-	// 	std::vector<Eigen::Vector3d> plane = {};
-	// 	generateCirclePlaneIndexes(margin, resolution, plane);
-		
-	// 	Eigen::MatrixXd point_matrix (3, plane.size());
-	// 	int index = 0;
-	// 	for (std::vector<Eigen::Vector3d>::iterator i = plane.begin(); i != plane.end(); ++i)
-	// 	{
-	// 		point_matrix(0, index) = i->x();
-	// 		point_matrix(1, index) = i->y();
-	// 		point_matrix(2, index) = i->z();
-	// 		index++;
-	// 	}
-
-	// 	// ROS_WARN_STREAM(point_matrix);
-
-	// 	std::vector<Eigen::Vector3d> correct;
-	// 	correct.emplace(correct.end(), 0.166708,  3.00011,  39.9914);
-	// 	correct.emplace(correct.end(), -0.333, 2.99967, 39.9744);
-	// 	correct.emplace(correct.end(), -0.832708, 2.99923, 39.9573);
-	// 	correct.emplace(correct.end(), 0.666417, 2.50071, 40.0213);
-	// 	correct.emplace(correct.end(), 0.166708, 2.50027, 40.0043);
-	// 	correct.emplace(correct.end(), -0.333, 2.49984, 39.9872);
-	// 	correct.emplace(correct.end(), -0.832708, 2.4994, 39.9701);
-	// 	correct.emplace(correct.end(), -1.33242, 2.49896, 39.953);
-	// 	correct.emplace(correct.end(), 0.666417, 2.00088, 40.0341);
-	// 	correct.emplace(correct.end(), 0.166708, 2.00044, 40.0171);
-	// 	correct.emplace(correct.end(), -0.333, 2, 40);
-	// 	correct.emplace(correct.end(), -0.832708, 1.99956, 39.9829);
-	// 	correct.emplace(correct.end(), -1.33242, 1.99912, 39.9659);
-	// 	correct.emplace(correct.end(), 0.666417, 1.50104, 40.047);
-	// 	correct.emplace(correct.end(), 0.166708, 1.5006, 40.0299);
-	// 	correct.emplace(correct.end(), -0.333, 1.50016, 40.0128);
-	// 	correct.emplace(correct.end(), -0.832708, 1.49973, 39.9957);
-	// 	correct.emplace(correct.end(), -1.33242, 1.49929, 39.9787);
-	// 	correct.emplace(correct.end(), 0.166708, 1.00077, 40.0427);
-	// 	correct.emplace(correct.end(), -0.333, 1.00033, 40.0256);
-	// 	correct.emplace(correct.end(), -0.832708, 0.999891, 40.0086);
-
-
-	//     Eigen::MatrixXd rotated_points = rotate_many(coordinate_frame, point_matrix);
-	//     Eigen::Vector3d start_eigen ((double)start.x(), (double) start.y(), (double) start.z());
-	//     for (int i = 0; i < plane.size(); ++i)
-	//     {
-	//     	Eigen::Vector3d point(rotated_points(0, i), rotated_points(1, i), rotated_points(2, i) ) ;
-	//     	point = translateStartGoal(point, start_eigen);
-	//     	ROS_WARN_STREAM("correct.emplace(correct.end(), " << point[0] << ",  " << point[1] << ",  " << point[2] << ");");
-
-	//     	// ASSERT_TRUE ( correct[i].isApprox(point, 0.00001) ) << i;
-	//     }
-
-	// }
-
-
 	TEST(OrthogonalPlanesTest, rotationTranslation_v2_rotation)
 	{
 		std::vector<Eigen::Vector3d> correct;
@@ -444,6 +381,7 @@ namespace LazyThetaStarOctree{
 
 	TEST(OrthogonalPlanesTest, rotationTranslation_v2)
 	{
+		//ARRANGE
 		std::vector<Eigen::Vector3d> correct;
 		correct.emplace(correct.end(), 0.166708,  3.00011,  39.9914);
 		correct.emplace(correct.end(), -0.333, 2.99967, 39.9744);
@@ -473,7 +411,7 @@ namespace LazyThetaStarOctree{
 		double margin = 1;
 		double resolution = 0.5;
 		
-
+		// ACT
 		// On initialization		
 		Eigen::MatrixXd circle_plane_matrix = generateCirclePlaneMatrix(margin, resolution);
 		Eigen::MatrixXd temp_point (4, 2);
@@ -491,43 +429,13 @@ namespace LazyThetaStarOctree{
 		Eigen::MatrixXd transformation_matrix = generateRotationTranslationMatrix(coordinate_frame, start);
 		Eigen::MatrixXd points_around_start = transformation_matrix * circle_plane_matrix;
 
-
-
-
+		// ASSERT
 	    for (int i = 0; i < circle_plane_matrix.cols(); ++i)
 	    {
 	    	Eigen::Vector3d point (points_around_start(0, i), points_around_start(1, i), points_around_start(2, i));
 	    	EXPECT_TRUE ( correct[i].isApprox(point, 0.00001) ) << i << " - Correct: " << correct[i] << " - But computed instead: " << point ;
 	    }
-
-	    // ROS_WARN_STREAM(" Correct " << correct);
-	    // ROS_WARN_STREAM("Result " << points_around_start);
 	}
-
-
-	// TEST(OrthogonalPlanesTest, rotationTranslationMatrix)
-	// {
-	// 	// Initial conditions
-	// 	octomath::Vector3 start (-0.333, 2, 40 );
-	// 	octomath::Vector3 goal (1, 1, 1);
-	// 	double margin = 1;
-	// 	double resolution = 0.5;
-	// 	CoordinateFrame coordinate_frame = generateCoordinateFrame(start, goal);
-
-	// 	Eigen::MatrixXd point_matrix (3, 3);
-	// 	Eigen::MatrixXd rotated_points = rotate_many(coordinate_frame, point_matrix);
-	// 	Eigen::MatrixXd transformation_matrix = generateRotationTranslationMatrix(coordinate_frame, start);
-	// 	ROS_WARN_STREAM(transformation_matrix);
-
-	//     // for (int i = 0; i < circle_plane_matrix.cols(); ++i)
-	//     // {
-	//     // 	Eigen::Vector3d point (points_around_start(0, i), points_around_start(1, i), points_around_start(2, i));
-	//     // 	EXPECT_TRUE ( correct[i].isApprox(point, 0.00001) ) << "Correct: " << correct[i] << " - But computed instead: " << point ;
-	//     // }
-
-	//     // // ROS_WARN_STREAM(" Correct " << correct);
-	//     // ROS_WARN_STREAM("Result " << points_around_start);
-	// }
 }
 
 int main(int argc, char **argv){
