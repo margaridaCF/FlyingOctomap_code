@@ -22,7 +22,8 @@ namespace std
 }
 
 namespace LazyThetaStarOctree{
-	std::string folder_name = "/ros_ws/src/data/current";
+	std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
+	// std::string folder_name = "/ros_ws/src/data/current";
 
 
 	int obstacle_avoidance_time;
@@ -547,8 +548,7 @@ namespace LazyThetaStarOctree{
 		updateVertex_time = 0;
 
 		std::ofstream log_file;
-    	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
-		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
+    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
 		auto start = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_search_iterations);
 
@@ -936,7 +936,7 @@ namespace LazyThetaStarOctree{
 
 
 		std::ofstream csv_file;
-		csv_file.open ("/ros_ws/src/data/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		csv_file.open (folder_name + "/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
 		csv_file << millis.count();
