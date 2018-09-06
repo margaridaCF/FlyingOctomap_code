@@ -4,7 +4,7 @@
 #include <orthogonal_planes.h>
 
 #define SAVE_CSV 1
-#define RUNNING_ROS 0
+// #define RUNNING_ROS 0
 
 
 namespace std
@@ -26,11 +26,6 @@ namespace LazyThetaStarOctree{
 	// std::string folder_name = "/ros_ws/src/data/current";
 
 
-	// == Algorithm constantes ==
-	Eigen::MatrixXd  startOffsets;
-	Eigen::MatrixXd  goalOffsets;
-	 // double* sidelength_lookup_table;
-	// ==========================
 
 	int obstacle_avoidance_time;
 	int obstacle_avoidance_calls;
@@ -239,8 +234,8 @@ namespace LazyThetaStarOctree{
 				if(publish_input.publish) 
 				{ 
 					// log_file << "[LTStar] 1 Has obstacles from " << input.start + offset << " to " << end + offset << std::endl ; 
-				  	rviz_interface::build_arrow_type(temp_start, temp_goal, marker_array, id_unreachable, true);
-					publish_input.marker_pub.publish(marker_array);
+				 //  	rviz_interface::build_arrow_type(temp_start, temp_goal, marker_array, id_unreachable, true);
+					// publish_input.marker_pub.publish(marker_array);
 				  	id_unreachable++; 
 				  
 				} 
@@ -262,12 +257,15 @@ namespace LazyThetaStarOctree{
 			  if(publish_input.publish) 
 			  { 
 			    // log_file << "[LTStar] 3 Free from " << end + offset << " to " << input.start + offset + offset << std::endl; 
-			    rviz_interface::build_arrow_type(temp_start, temp_goal, marker_array, id_unreachable, false);
+			    // rviz_interface::build_arrow_type(temp_start, temp_goal, marker_array, id_unreachable, false);
 				id_unreachable++; 
 			  } 
 			} 
 		}
-		publish_input.marker_pub.publish(marker_array);
+		// if(publish_input.publish) 
+		// {
+		// 	publish_input.marker_pub.publish(marker_array);
+		// }
 		return CellStatus::kFree; 
 	}
 
@@ -932,7 +930,8 @@ namespace LazyThetaStarOctree{
 		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
 		csv_file << "," << request.safety_margin;
 		csv_file << "," << request.max_search_iterations ;
-		csv_file << "," << statistical_data.iterations_used << std::endl;
+		csv_file << "," << statistical_data.iterations_used ;
+		csv_file << "," << publish_input.dataset_name << std::endl;
 		csv_file.close();
 #endif
 		ROS_WARN_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");

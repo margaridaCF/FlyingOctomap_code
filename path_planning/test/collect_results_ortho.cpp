@@ -16,12 +16,14 @@ namespace LazyThetaStarOctree
 
     void testResults(path_planning_msgs::LTStarRequest request, octomap::OcTree & octree, std::string dataset_name)
     {
+    	ROS_WARN_STREAM("Here I am.");
+
 		ros::Publisher marker_pub;
 		path_planning_msgs::LTStarReply reply;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
 	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 
-
+		LazyThetaStarOctree::generateOffsets(octree.getResolution(), request.safety_margin, dephtZero, semiSphereOut );
 
 	   
 		bool is_start_clear = LazyThetaStarOctree::is_flight_corridor_free(LazyThetaStarOctree::InputData(octree, octomath::Vector3(request.start.x, request.start.y, request.start.z), octomath::Vector3(request.start.x, request.start.y, request.start.z+0.6), request.safety_margin), PublishingInput(marker_pub, false));
@@ -63,7 +65,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw" );
+		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
 	}
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_2)
 	{
@@ -79,7 +81,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw" );
+		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
 	}
 
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_3)
@@ -96,7 +98,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 3;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw" );
+		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
 	}
 
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_4)
@@ -113,7 +115,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw" );
+		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
 	}
 
 
@@ -148,7 +150,7 @@ namespace LazyThetaStarOctree
 		request.start.z = 3;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw_far_back" );
+		testResults(request, octree, "20180821_1110_42712_raw_far_back_ortho" );
 	}
 
 
@@ -166,7 +168,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 3;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw_straight_far" );
+		testResults(request, octree, "20180821_1110_42712_raw_straight_far_ortho" );
 	}
 
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_far_straight_back)
@@ -183,7 +185,7 @@ namespace LazyThetaStarOctree
 		request.start.z = 3;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw_far_straight_back" );
+		testResults(request, octree, "20180821_1110_42712_raw_far_straight_back_ortho" );
 	}
 
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42936_raw_1)
@@ -200,7 +202,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42936_raw" );
+		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
 	}
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42936_raw_2)
 	{
@@ -216,7 +218,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42936_raw" );
+		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
 	}
 
 
@@ -235,7 +237,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_43042_raw" );
+		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
 	}
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_43042_raw_2)
 	{
@@ -251,7 +253,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_43042_raw" );
+		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
 	}
 
 
@@ -269,7 +271,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1207_5647_filtered_approxGoal" );
+		testResults(request, octree, "20180821_1207_5647_filtered_approxGoal_ortho" );
 	}
 
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1207_5647_filtered_back)
@@ -286,7 +288,7 @@ namespace LazyThetaStarOctree
 		request.start.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1207_5647_filtered_approxGoal_back" );
+		testResults(request, octree, "20180821_1207_5647_filtered_approxGoal_back_ortho" );
 	}
 }
 

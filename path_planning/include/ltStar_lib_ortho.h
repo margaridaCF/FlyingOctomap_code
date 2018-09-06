@@ -29,8 +29,9 @@ namespace LazyThetaStarOctree{
 	public:
 		ros::Publisher const& marker_pub;
 		const bool publish;
-		PublishingInput(ros::Publisher const& marker_pub, bool publish = false)
-			: marker_pub(marker_pub), publish(publish)
+		const std::string dataset_name;
+		PublishingInput(ros::Publisher const& marker_pub, bool publish = false, std::string dataset_name = "unamed")
+			: marker_pub(marker_pub), dataset_name(dataset_name), publish(publish)
 		{}
 	};
 
@@ -114,5 +115,12 @@ namespace LazyThetaStarOctree{
 
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input);
 
+
+
+	// == Algorithm constantes ==
+	Eigen::MatrixXd  startOffsets;
+	Eigen::MatrixXd  goalOffsets;
+	 // double* sidelength_lookup_table;
+	// ==========================
     
 }
