@@ -442,58 +442,67 @@ namespace LazyThetaStarOctree{
 	}
 
 
-	// TEST(OrthogonalPlanesTest, rotationTranslation_v2)
-	// {
-	// 	std::vector<Eigen::Vector3d> correct;
-	// 	correct.emplace(correct.end(), 0.166708,  3.00011,  39.9914);
-	// 	correct.emplace(correct.end(), -0.333, 2.99967, 39.9744);
-	// 	correct.emplace(correct.end(), -0.832708, 2.99923, 39.9573);
-	// 	correct.emplace(correct.end(), 0.666417, 2.50071, 40.0213);
-	// 	correct.emplace(correct.end(), 0.166708, 2.50027, 40.0043);
-	// 	correct.emplace(correct.end(), -0.333, 2.49984, 39.9872);
-	// 	correct.emplace(correct.end(), -0.832708, 2.4994, 39.9701);
-	// 	correct.emplace(correct.end(), -1.33242, 2.49896, 39.953);
-	// 	correct.emplace(correct.end(), 0.666417, 2.00088, 40.0341);
-	// 	correct.emplace(correct.end(), 0.166708, 2.00044, 40.0171);
-	// 	correct.emplace(correct.end(), -0.333, 2, 40);
-	// 	correct.emplace(correct.end(), -0.832708, 1.99956, 39.9829);
-	// 	correct.emplace(correct.end(), -1.33242, 1.99912, 39.9659);
-	// 	correct.emplace(correct.end(), 0.666417, 1.50104, 40.047);
-	// 	correct.emplace(correct.end(), 0.166708, 1.5006, 40.0299);
-	// 	correct.emplace(correct.end(), -0.333, 1.50016, 40.0128);
-	// 	correct.emplace(correct.end(), -0.832708, 1.49973, 39.9957);
-	// 	correct.emplace(correct.end(), -1.33242, 1.49929, 39.9787);
-	// 	correct.emplace(correct.end(), 0.166708, 1.00077, 40.0427);
-	// 	correct.emplace(correct.end(), -0.333, 1.00033, 40.0256);
-	// 	correct.emplace(correct.end(), -0.832708, 0.999891, 40.0086);
+	TEST(OrthogonalPlanesTest, rotationTranslation_v2)
+	{
+		std::vector<Eigen::Vector3d> correct;
+		correct.emplace(correct.end(), 0.166708,  3.00011,  39.9914);
+		correct.emplace(correct.end(), -0.333, 2.99967, 39.9744);
+		correct.emplace(correct.end(), -0.832708, 2.99923, 39.9573);
+		correct.emplace(correct.end(), 0.666417, 2.50071, 40.0213);
+		correct.emplace(correct.end(), 0.166708, 2.50027, 40.0043);
+		correct.emplace(correct.end(), -0.333, 2.49984, 39.9872);
+		correct.emplace(correct.end(), -0.832708, 2.4994, 39.9701);
+		correct.emplace(correct.end(), -1.33242, 2.49896, 39.953);
+		correct.emplace(correct.end(), 0.666417, 2.00088, 40.0341);
+		correct.emplace(correct.end(), 0.166708, 2.00044, 40.0171);
+		correct.emplace(correct.end(), -0.333, 2, 40);
+		correct.emplace(correct.end(), -0.832708, 1.99956, 39.9829);
+		correct.emplace(correct.end(), -1.33242, 1.99912, 39.9659);
+		correct.emplace(correct.end(), 0.666417, 1.50104, 40.047);
+		correct.emplace(correct.end(), 0.166708, 1.5006, 40.0299);
+		correct.emplace(correct.end(), -0.333, 1.50016, 40.0128);
+		correct.emplace(correct.end(), -0.832708, 1.49973, 39.9957);
+		correct.emplace(correct.end(), -1.33242, 1.49929, 39.9787);
+		correct.emplace(correct.end(), 0.166708, 1.00077, 40.0427);
+		correct.emplace(correct.end(), -0.333, 1.00033, 40.0256);
+		correct.emplace(correct.end(), -0.832708, 0.999891, 40.0086);
 
-	// 	// Initial conditions
-	// 	// octomath::Vector3 start (-0.333, 2, 40 );
-	// 	octomath::Vector3 start (0, 0, 0 );
-	// 	octomath::Vector3 goal (1, 1, 1);
-	// 	double margin = 1;
-	// 	double resolution = 0.5;
+		// Initial conditions
+		octomath::Vector3 start (-0.333, 2, 40 );
+		octomath::Vector3 goal (1, 1, 1);
+		double margin = 1;
+		double resolution = 0.5;
 		
 
-	// 	// On initialization		
-	// 	Eigen::MatrixXd circle_plane_matrix = generateCirclePlaneMatrix(margin, resolution);
-	// 	ROS_WARN_STREAM(circle_plane_matrix(0) );
+		// On initialization		
+		Eigen::MatrixXd circle_plane_matrix = generateCirclePlaneMatrix(margin, resolution);
+		Eigen::MatrixXd temp_point (4, 2);
+		temp_point (0,0) = circle_plane_matrix(0,0);
+		temp_point (1,0) = circle_plane_matrix(1,0);
+		temp_point (2,0) = circle_plane_matrix(2,0);
+		temp_point (3,0) = circle_plane_matrix(3,0);
 		
-	// 	// For each start and goal
-	// 	CoordinateFrame coordinate_frame = generateCoordinateFrame(start, goal);
-	// 	Eigen::MatrixXd transformation_matrix = generateRotationTranslationMatrix(coordinate_frame, start);
-	// 	Eigen::MatrixXd points_around_start = transformation_matrix * circle_plane_matrix;
-	// 	ROS_WARN_STREAM(transformation_matrix);
+		temp_point (0,1) = circle_plane_matrix(0,1);
+		temp_point (1,1) = circle_plane_matrix(1,1);
+		temp_point (2,1) = circle_plane_matrix(2,1);
+		temp_point (3,1) = circle_plane_matrix(3,1);
+		// For each start and goal
+		CoordinateFrame coordinate_frame = generateCoordinateFrame(start, goal);
+		Eigen::MatrixXd transformation_matrix = generateRotationTranslationMatrix(coordinate_frame, start);
+		Eigen::MatrixXd points_around_start = transformation_matrix * circle_plane_matrix;
 
-	//     for (int i = 0; i < circle_plane_matrix.cols(); ++i)
-	//     {
-	//     	Eigen::Vector3d point (points_around_start(0, i), points_around_start(1, i), points_around_start(2, i));
-	//     	EXPECT_TRUE ( correct[i].isApprox(point, 0.00001) ) << "Correct: " << correct[i] << " - But computed instead: " << point ;
-	//     }
 
-	//     // ROS_WARN_STREAM(" Correct " << correct);
-	//     ROS_WARN_STREAM("Result " << points_around_start);
-	// }
+
+
+	    for (int i = 0; i < circle_plane_matrix.cols(); ++i)
+	    {
+	    	Eigen::Vector3d point (points_around_start(0, i), points_around_start(1, i), points_around_start(2, i));
+	    	EXPECT_TRUE ( correct[i].isApprox(point, 0.00001) ) << i << " - Correct: " << correct[i] << " - But computed instead: " << point ;
+	    }
+
+	    // ROS_WARN_STREAM(" Correct " << correct);
+	    // ROS_WARN_STREAM("Result " << points_around_start);
+	}
 
 
 	// TEST(OrthogonalPlanesTest, rotationTranslationMatrix)

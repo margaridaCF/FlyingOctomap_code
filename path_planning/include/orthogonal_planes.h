@@ -240,7 +240,7 @@ namespace LazyThetaStarOctree{
 			point_matrix(0, index) = i->x();
 			point_matrix(1, index) = i->y();
 			point_matrix(2, index) = i->z();
-			point_matrix(3, index) = 0;
+			point_matrix(3, index) = 1;
 			index++;
 		}
 
