@@ -197,6 +197,8 @@ namespace LazyThetaStarOctree{
 		PublishingInput const& publish_input,
 		bool ignoreUnknown = false) 
 	{
+		id_unreachable = 0 ;
+		visualization_msgs::MarkerArray marker_array;
 		CoordinateFrame coordinate_frame = generateCoordinateFrame(input.start, input.goal);
 		Eigen::MatrixXd transformation_matrix_start = generateRotationTranslationMatrix(coordinate_frame, input.start);
 
@@ -217,30 +219,32 @@ namespace LazyThetaStarOctree{
 				if(publish_input.publish) 
 				{ 
 				  // log_file << "[LTStar] 1 Has obstacles from " << input.start + offset << " to " << end + offset << std::endl ; 
-				  rviz_interface::publish_arrow_path_unreachable(temp_start, temp_goal , publish_input.marker_pub, id_unreachable);   
+				  rviz_interface::build_arrow_type(temp_start, temp_goal, marker_array, id_unreachable, true);
+				  id_unreachable++; 
+				} 
+				// return CellStatus::kOccupied; 
+			}   
+			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
+			{ 
+				if(publish_input.publish) 
+				{ 
+				  // log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << input.start + offset << std::endl ; 
+				  rviz_interface::publish_arrow_path_unreachable(temp_goal, temp_start, publish_input.marker_pub, id_unreachable);   
 				  id_unreachable++; 
 				} 
 				return CellStatus::kOccupied; 
 			}   
-			// else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
-			// { 
-			// 	if(publish_input.publish) 
-			// 	{ 
-			// 	  // log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << input.start + offset << std::endl ; 
-			// 	  rviz_interface::publish_arrow_path_unreachable(temp_goal, temp_start, publish_input.marker_pub, id_unreachable);   
-			// 	  id_unreachable++; 
-			// 	} 
-			// 	return CellStatus::kOccupied; 
-			// }   
 			else 
 			{ 
 			  if(publish_input.publish) 
 			  { 
 			    // log_file << "[LTStar] 3 Free from " << end + offset << " to " << input.start + offset + offset << std::endl; 
-			    rviz_interface::publish_arrow_corridor(temp_start, temp_goal, publish_input.marker_pub);   
+			    rviz_interface::build_arrow_type(temp_start, temp_goal, marker_array, id_unreachable, false);
+				id_unreachable++; 
 			  } 
 			} 
 		}
+		publish_input.marker_pub.publish(marker_array);
 	}
 
 	bool is_flight_corridor_free(InputData const& input, PublishingInput const& publish_input, const Eigen::MatrixXd & planeOffsets, bool ignoreUnknown)
@@ -853,7 +857,6 @@ namespace LazyThetaStarOctree{
 
 	bool processLTStarRequest(octomap::OcTree & octree, path_planning_msgs::LTStarRequest const& request, path_planning_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input)
 	{
-		ROS_INFO_STREAM("Here I am");
 
 // 		std::srand(std::time(0));
 // 		ResultSet statistical_data;
