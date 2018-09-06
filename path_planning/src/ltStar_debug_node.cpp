@@ -73,28 +73,12 @@ namespace LazyThetaStarOctree
 			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, generateCirclePlaneMatrix, generateCirclePlaneMatrix );
 
 			LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
-			// if(reply.waypoint_amount == 1)
-			// {
-			// 	ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
-			// }
-			// ltstar_reply_pub.publish(reply);
-			// publishResultingPath(reply, 9);
-
-			// LazyThetaStarOctree::processLTStarRequest_sparse(*octree, request_vanilla, reply, sidelength_lookup_table, marker_pub, true);
-			// if(reply.waypoint_amount == 1)
-			// {
-			// 	ROS_ERROR_STREAM("[LTStar] [Margin] The resulting path has only one waypoint. Request: " << *path_request);
-			// }
-			// ltstar_reply_pub.publish(reply);
-			// publishResultingPath(reply, 2);
-
-			// LazyThetaStarOctree::processLTStarRequest_margin(*octree, *path_request, reply, sidelength_lookup_table, marker_pub, true);
-			// if(reply.waypoint_amount == 1)
-			// {
-			// 	ROS_ERROR_STREAM("[LTStar] [Margin] The resulting path has only one waypoint. Request: " << *path_request);
-			// }
-			// ltstar_reply_pub.publish(reply);
-			// publishResultingPath(reply, 2);
+			if(reply.waypoint_amount == 1)
+			{
+				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
+			}
+			ltstar_reply_pub.publish(reply);
+			publishResultingPath(reply, 9);
 		}
 		else
 		{
