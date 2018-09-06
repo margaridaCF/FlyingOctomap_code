@@ -72,13 +72,20 @@ namespace LazyThetaStarOctree
 			request_vanilla.max_search_iterations = path_request->max_search_iterations;
 			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, generateCirclePlaneMatrix, generateCirclePlaneMatrix );
 
-			LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
-			if(reply.waypoint_amount == 1)
-			{
-				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
-			}
-			ltstar_reply_pub.publish(reply);
-			publishResultingPath(reply, 9);
+			// LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
+			// if(reply.waypoint_amount == 1)
+			// {
+			// 	ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
+			// }
+			// ltstar_reply_pub.publish(reply);
+			// publishResultingPath(reply, 9);
+
+
+
+			octomath::Vector3 disc_initial(path_request->start.x, path_request->start.y, path_request->start.z);
+			octomath::Vector3 disc_final(path_request->goal.x, path_request->goal.y, path_request->goal.z);
+			bool has_flight_corridor_free = is_flight_corridor_free( InputData(*octree, disc_initial, disc_final, path_request->safety_margin), PublishingInput( marker_pub, true), false);
+
 		}
 		else
 		{
