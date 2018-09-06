@@ -46,9 +46,9 @@ namespace LazyThetaStarOctree{
 	CellStatus 	getLineStatus 				(InputData const& input);
 	CellStatus 	getLineStatusBoundingBox	(InputData const& input);
 	bool 		hasLineOfSight				(InputData const& input, bool ignoreUnknown = false);
-	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input, const std::vector<octomath::Vector3> & planeOffsets, bool ignoreUnknown = false);
+	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input, const Eigen::MatrixXd & planeOffsets, bool ignoreUnknown = false);
 	float 		weightedDistance			(octomath::Vector3 const& start, octomath::Vector3 const& end);
-	bool 		normalizeToVisibleEndCenter (octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], const std::vector<octomath::Vector3> & planeOffsets, bool ignoreUnknownF = false);
+	bool 		normalizeToVisibleEndCenter (octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], const Eigen::MatrixXd & planeOffsets, bool ignoreUnknownF = false);
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
 	 *
@@ -67,7 +67,7 @@ namespace LazyThetaStarOctree{
 		std::ofstream 											& log_file,
 		PublishingInput 										const& publish_input, 
 		const double sidelength_lookup_table[],
-		const std::vector<octomath::Vector3> & planeOffsets,
+		const Eigen::MatrixXd & planeOffsets,
 		bool ignoreUnknown = false);
 
 	/**
@@ -107,8 +107,8 @@ namespace LazyThetaStarOctree{
 		InputData const& input,
 		ResultSet & resultSet,
 		const double sidelength_lookup_table[],
+		Eigen::MatrixXd const& planeOffsets,
 		PublishingInput const& publish_input,
-		std::vector<octomath::Vector3> & planeOffsets,
 		int const& max_search_iterations = 55,
 		bool print_resulting_path = false);
 

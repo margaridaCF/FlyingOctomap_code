@@ -67,60 +67,6 @@ namespace LazyThetaStarOctree{
 	void generateRectanglePlaneIndexes(double margin, double resolution, std::vector<octomath::Vector3> & plane)
 	{
 	}
-
-	// void generateCirclePlaneIndexes(double margin, double resolution, std::vector<Eigen::Vector3d> & plane)
-	// {
-	// 	int n = margin/ resolution;
-	// 	// ROS_WARN_STREAM("N " << n);
-	// 	int loop_count =   n * 2  + 1;
-	// 	int array_index = 0;
-	// 	double  x, y, y_, z_;
-	// 	x = y = y_ = z_ = 0;
-
-	// 	double rectSquare = ( margin / resolution ) * ( margin / resolution );
-
-	// 	// ROS_WARN_STREAM("rectSquare " << rectSquare);
-
-	// 	for (int i = 0; i < loop_count; ++i)
-	// 	{
-	// 		x = std::abs (i - n) - 0.5;
-	// 		for (int j = 0; j < loop_count; ++j)
-	// 		{
-	// 			y = std::abs(j - n) - 0.5;
-
-	// 			if( x*x + y*y  <= rectSquare )
-	// 			{
-	// 				y_ = (i - n) * resolution;
-	// 				z_ = (j - n) * resolution;
-	// 				plane.emplace(plane.end(), 0, y_, z_);
-	// 				array_index++;
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	// void generateSemiSphereOut(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
-	// {
-	// 	double depth;
-	// 	double safety_range = margin + 0.5 * resolution;
-	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
-	// 	{
-	// 		depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
-	// 		semiSphere.emplace(semiSphere.end(), depth, i->y(), i->z());
-	// 	}
-	// } 
-
-	// void generateSemiSphereIn(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
-	// {
-	// 	double depth;
-	// 	double safety_range = margin + 0.5 * resolution;
-	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
-	// 	{
-	// 		depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
-	// 		semiSphere.emplace(semiSphere.end(), -depth, i->y(), i->z());
-	// 	}
-	// } 
-
 	Eigen::MatrixXd generateRotationTranslationMatrix(CoordinateFrame coordinate_frame, octomath::Vector3 translationOffset)
 	{
 		Eigen::MatrixXd m(4, 4);
@@ -193,6 +139,60 @@ namespace LazyThetaStarOctree{
 
 		return point_matrix;
 	}
+
+
+	// void generateCirclePlaneIndexes(double margin, double resolution, std::vector<Eigen::Vector3d> & plane)
+	// {
+	// 	int n = margin/ resolution;
+	// 	// ROS_WARN_STREAM("N " << n);
+	// 	int loop_count =   n * 2  + 1;
+	// 	int array_index = 0;
+	// 	double  x, y, y_, z_;
+	// 	x = y = y_ = z_ = 0;
+
+	// 	double rectSquare = ( margin / resolution ) * ( margin / resolution );
+
+	// 	// ROS_WARN_STREAM("rectSquare " << rectSquare);
+
+	// 	for (int i = 0; i < loop_count; ++i)
+	// 	{
+	// 		x = std::abs (i - n) - 0.5;
+	// 		for (int j = 0; j < loop_count; ++j)
+	// 		{
+	// 			y = std::abs(j - n) - 0.5;
+
+	// 			if( x*x + y*y  <= rectSquare )
+	// 			{
+	// 				y_ = (i - n) * resolution;
+	// 				z_ = (j - n) * resolution;
+	// 				plane.emplace(plane.end(), 0, y_, z_);
+	// 				array_index++;
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	// void generateSemiSphereOut(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
+	// {
+	// 	double depth;
+	// 	double safety_range = margin + 0.5 * resolution;
+	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
+	// 	{
+	// 		depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
+	// 		semiSphere.emplace(semiSphere.end(), depth, i->y(), i->z());
+	// 	}
+	// } 
+
+	// void generateSemiSphereIn(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
+	// {
+	// 	double depth;
+	// 	double safety_range = margin + 0.5 * resolution;
+	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
+	// 	{
+	// 		depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
+	// 		semiSphere.emplace(semiSphere.end(), -depth, i->y(), i->z());
+	// 	}
+	// } 
 
 }
 
