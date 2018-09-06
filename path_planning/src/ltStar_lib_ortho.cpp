@@ -29,7 +29,6 @@ namespace LazyThetaStarOctree{
 	// == Algorithm constantes ==
 	Eigen::MatrixXd  startOffsets;
 	Eigen::MatrixXd  goalOffsets;
-	Eigen::MatrixXd  planeOffsets;
 	 double* sidelength_lookup_table;
 	// ==========================
 
@@ -47,7 +46,6 @@ namespace LazyThetaStarOctree{
 		LazyThetaStarOctree::fillLookupTable(resolution, treeDepth, sidelength_lookup_table); 
 		startOffsets = startShapeGenerator(safety_margin/2, resolution);
 		goalOffsets = goalShapeGenerator(safety_margin/2, resolution);
-		planeOffsets = goalShapeGenerator(safety_margin/2, resolution);
 	}
 
 
@@ -208,7 +206,6 @@ namespace LazyThetaStarOctree{
 
 	CellStatus getCorridorOccupancy_byPlanes(
 		InputData const& input,
-		const Eigen::MatrixXd & planeOffsets,
 		PublishingInput const& publish_input,
 		bool ignoreUnknown = false) 
 	{
@@ -220,8 +217,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 goalWithMargin = calculateGoalWithMargin(input.start, input.goal, input.margin);
 		Eigen::MatrixXd transformation_matrix_goal = generateRotationTranslationMatrix(coordinate_frame, goalWithMargin);
 
-		Eigen::MatrixXd points_around_start = transformation_matrix_start * planeOffsets;
-		Eigen::MatrixXd points_around_goal = transformation_matrix_goal * planeOffsets;
+		Eigen::MatrixXd points_around_start = transformation_matrix_start * startOffsets;
+		Eigen::MatrixXd points_around_goal = transformation_matrix_goal * goalOffsets;
 
 		octomath::Vector3 temp_start, temp_goal;
 		for (int i = 0; i < points_around_start.cols(); ++i)
@@ -265,11 +262,11 @@ namespace LazyThetaStarOctree{
 		return CellStatus::kFree; 
 	}
 
-	bool is_flight_corridor_free(InputData const& input, PublishingInput const& publish_input, const Eigen::MatrixXd & planeOffsets, bool ignoreUnknown)
+	bool is_flight_corridor_free(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown)
 	{
 		auto start_count = std::chrono::high_resolution_clock::now();
 		// bool free = getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
-		bool free = getCorridorOccupancy_byPlanes(input, planeOffsets, publish_input) == CellStatus::kFree;
+		bool free = getCorridorOccupancy_byPlanes(input, publish_input) == CellStatus::kFree;
 		auto finish_count = std::chrono::high_resolution_clock::now();
 		auto time_span = finish_count - start_count;
 		obstacle_avoidance_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
@@ -277,7 +274,7 @@ namespace LazyThetaStarOctree{
 		return free;
 	}
 
-	bool normalizeToVisibleEndCenter(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], const Eigen::MatrixXd & planeOffsets, bool ignoreUnknown)
+	bool normalizeToVisibleEndCenter(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], bool ignoreUnknown)
 	{
 		auto res_node = octree.search(end->x(), end->y(), end->z());
 		if(!res_node)
@@ -286,7 +283,7 @@ namespace LazyThetaStarOctree{
 			return false;
 		}
 		updatePointerToCellCenterAndFindSize(end, octree, cell_size, sidelength_lookup_table);
-		return is_flight_corridor_free( InputData(octree, *start, *end, safety_margin ), publish_input, planeOffsets, ignoreUnknown);
+		return is_flight_corridor_free( InputData(octree, *start, *end, safety_margin ), publish_input, ignoreUnknown);
 	}
 
 	
@@ -309,7 +306,6 @@ namespace LazyThetaStarOctree{
 		double 															safety_margin,
 		PublishingInput 										const& 	publish_input,
 		const double 													sidelength_lookup_table[],
-		const Eigen::MatrixXd									& 		planeOffsets,
 		bool ignoreUnknown)	// TODO optimization where the neighbors are pruned here, will do this when it is a proper class
 	{
 		auto start_count = std::chrono::high_resolution_clock::now();
@@ -321,7 +317,7 @@ namespace LazyThetaStarOctree{
 		// //  -> will leave this for if implementation is not fast enough
 		// ln 35 if NOT lineofsight(parent(s), s) then
 		// Path 1 by considering the path from s_start to each expanded visible neighbor s′′ of s′
-		if(    !is_flight_corridor_free( InputData( octree, *(s->coordinates), *(s->parentNode->coordinates), safety_margin ), publish_input, planeOffsets, ignoreUnknown  )   )
+		if(    !is_flight_corridor_free( InputData( octree, *(s->coordinates), *(s->parentNode->coordinates), safety_margin ), publish_input, ignoreUnknown  )   )
 		{
 			// g(s)		= length of the shortest path from the start vertex to s found so far.
 			// c(s,s') 	= straight line distance between vertices s and s'	
@@ -342,7 +338,7 @@ namespace LazyThetaStarOctree{
 			{
 				try
 				{
-					if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, publish_input, sidelength_lookup_table, planeOffsets, ignoreUnknown))
+					if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, publish_input, sidelength_lookup_table, ignoreUnknown))
 					{
 						// auto res_node = octree.search(*n_coordinates);
 						// if(res_node == NULL)
@@ -544,7 +540,7 @@ namespace LazyThetaStarOctree{
 
 
 	// TODO 	When making objects out of this, the things that can be set on algorithm configuration are 
-	// 			sidelength_lookup_table and planeOffsets
+	// 			sidelength_lookup_table, startOffsets and goalOffsets
 	// h(s)		= straight line distance between goal and s vertex
 	// V 		= set of all grid vertices
 	// s 		= current vertice
@@ -703,7 +699,7 @@ namespace LazyThetaStarOctree{
 			if(s->hasSameCoordinates(s->parentNode, resolution ) == false)
 			{
 				bool ignoreUnknown = weightedDistance(*(s->coordinates), cell_center_coordinates_goal) < input.margin;
-				if (!setVertex(input.octree, s, closed, open, neighbors, log_file, input.margin, publish_input, sidelength_lookup_table, planeOffsets, ignoreUnknown))
+				if (!setVertex(input.octree, s, closed, open, neighbors, log_file, input.margin, publish_input, sidelength_lookup_table, ignoreUnknown))
 				{
 					input.octree.writeBinaryConst(folder_name + "/octree_noPath1s.bt");
 					ROS_ERROR_STREAM ("[LTStar] no neighbor of " << *s << " had line of sight. Start " << input.start << " goal " << input.goal);
@@ -742,7 +738,7 @@ namespace LazyThetaStarOctree{
 			{
 				// Find minimum value for those with visibility and that it is in closed
 				bool ignoreUnknown = weightedDistance(*n_coordinates, cell_center_coordinates_goal) < input.margin;
-				if(!normalizeToVisibleEndCenter(input.octree, s->coordinates, n_coordinates, cell_size, input.margin, publish_input, sidelength_lookup_table, planeOffsets, ignoreUnknown))
+				if(!normalizeToVisibleEndCenter(input.octree, s->coordinates, n_coordinates, cell_size, input.margin, publish_input, sidelength_lookup_table, ignoreUnknown))
 				{
 					// Unknown neighbor, treat as obstacle
 					continue;
@@ -801,7 +797,7 @@ namespace LazyThetaStarOctree{
 			bool initial_pos_far_from_initial_voxel_center = equal(input.start, cell_center_coordinates_start, resolution/2) == false;
 			std::list<octomath::Vector3>::iterator it= path.begin();
 			it++;
-			bool free_path_from_current_to_second_waypoint = is_flight_corridor_free( InputData(input.octree, input.start, *it, input.margin), publish_input, planeOffsets, false);
+			bool free_path_from_current_to_second_waypoint = is_flight_corridor_free( InputData(input.octree, input.start, *it, input.margin), publish_input, false);
 			if(!free_path_from_current_to_second_waypoint)
 			{
 				ROS_ERROR_STREAM("[ltstar] end There are obstacles between initial point " << input.start << " and its center " << cell_center_coordinates_start);
@@ -911,8 +907,7 @@ namespace LazyThetaStarOctree{
 		generated_path_distance_ss << "             total = " << distance_total << "\n";
 		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
 
-		Eigen::MatrixXd planeOffsets = generateCirclePlaneMatrix(request.safety_margin, octree.getResolution());
-		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), PublishingInput( publish_input.marker_pub, true), planeOffsets, false);
+		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), PublishingInput( publish_input.marker_pub, true), false);
 		qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
 
 
