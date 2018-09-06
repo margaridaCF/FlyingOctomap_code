@@ -5,6 +5,7 @@
 #include <ltStarOctree_common.h>
 #include <ros/ros.h>
 
+#include <Eigen/Dense>
 
 
 namespace LazyThetaStarOctree{
@@ -63,35 +64,136 @@ namespace LazyThetaStarOctree{
 		return goal + scale;
 	}
 
-	octomath::Vector3 rotateAndTranslate(CoordinateFrame coordinate_frame, octomath::Vector3 offsetPoint, octomath::Vector3 start, octomath::Vector3 goalWithMargin)
-	{
-		// Matrix r = (direction.x, orthogonalA.x, orthogonalB.x )
-		//            (direction.y, orthogonalA.y, orthogonalB.y )
-		//            (direction.z, orthogonalA.z, orthogonalB.z )
-
-		// rotated_point = r * offsetPoint;
-		// rotated_start = rotated_point + start;
-		// rotated_goalWithMargin  = rotated_point + goalWithMargin ;
-	}
-
-
-	
-
 	void generateRectanglePlaneIndexes(double margin, double resolution, std::vector<octomath::Vector3> & plane)
 	{
-		int loop_count = (margin/resolution) * 2;
-		double x = -margin + resolution/2;
-		double z = x;
+	}
+	Eigen::MatrixXd generateRotationTranslationMatrix(CoordinateFrame coordinate_frame, octomath::Vector3 translationOffset)
+	{
+		Eigen::MatrixXd m(4, 4);
+		m(0, 0) = coordinate_frame.direction.x();
+		m(1, 0) = coordinate_frame.direction.y();
+		m(2, 0) = coordinate_frame.direction.z();
+		m(3, 0) = 0;
+
+		m(0, 1) = coordinate_frame.orthogonalA.x();
+		m(1, 1) = coordinate_frame.orthogonalA.y();
+		m(2, 1) = coordinate_frame.orthogonalA.z();
+		m(3, 1) = 0;
+
+		m(0, 2) = coordinate_frame.orthogonalB.x();
+		m(1, 2) = coordinate_frame.orthogonalB.y();
+		m(2, 2) = coordinate_frame.orthogonalB.z();
+		m(3, 2) = 0;
+
+		m(0, 3) = translationOffset.x();
+		m(1, 3) = translationOffset.y();
+		m(2, 3) = translationOffset.z();
+		m(3, 3) = 1;
+
+		return m;
+	}
+
+
+	Eigen::MatrixXd generateCirclePlaneMatrix(double margin, double resolution)
+	{
+		std::vector<Eigen::Vector3d> plane = {};
+		int n = margin/ resolution;
+		// ROS_WARN_STREAM("N " << n);
+		int loop_count =   n * 2  + 1;
 		int array_index = 0;
+		double  x, y, y_, z_;
+		x = y = y_ = z_ = 0;
+
+		double rectSquare = ( margin / resolution ) * ( margin / resolution );
+
+		// ROS_WARN_STREAM("rectSquare " << rectSquare);
+
 		for (int i = 0; i < loop_count; ++i)
 		{
+			x = std::abs (i - n) - 0.5;
 			for (int j = 0; j < loop_count; ++j)
 			{
-				plane.emplace(plane.end(), 0, x + i*resolution, z + j*resolution);
-				array_index++;
+				y = std::abs(j - n) - 0.5;
+
+				if( x*x + y*y  <= rectSquare )
+				{
+					y_ = (i - n) * resolution;
+					z_ = (j - n) * resolution;
+					plane.emplace(plane.end(), 0, y_, z_);
+					array_index++;
+				}
 			}
 		}
+
+
+		Eigen::MatrixXd point_matrix (4, plane.size());
+		int index = 0;
+		for (std::vector<Eigen::Vector3d>::iterator i = plane.begin(); i != plane.end(); ++i)
+		{
+			point_matrix(0, index) = i->x();
+			point_matrix(1, index) = i->y();
+			point_matrix(2, index) = i->z();
+			point_matrix(3, index) = 1;
+			index++;
+		}
+
+		return point_matrix;
 	}
+
+
+	// void generateCirclePlaneIndexes(double margin, double resolution, std::vector<Eigen::Vector3d> & plane)
+	// {
+	// 	int n = margin/ resolution;
+	// 	// ROS_WARN_STREAM("N " << n);
+	// 	int loop_count =   n * 2  + 1;
+	// 	int array_index = 0;
+	// 	double  x, y, y_, z_;
+	// 	x = y = y_ = z_ = 0;
+
+	// 	double rectSquare = ( margin / resolution ) * ( margin / resolution );
+
+	// 	// ROS_WARN_STREAM("rectSquare " << rectSquare);
+
+	// 	for (int i = 0; i < loop_count; ++i)
+	// 	{
+	// 		x = std::abs (i - n) - 0.5;
+	// 		for (int j = 0; j < loop_count; ++j)
+	// 		{
+	// 			y = std::abs(j - n) - 0.5;
+
+	// 			if( x*x + y*y  <= rectSquare )
+	// 			{
+	// 				y_ = (i - n) * resolution;
+	// 				z_ = (j - n) * resolution;
+	// 				plane.emplace(plane.end(), 0, y_, z_);
+	// 				array_index++;
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	// void generateSemiSphereOut(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
+	// {
+	// 	double depth;
+	// 	double safety_range = margin + 0.5 * resolution;
+	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
+	// 	{
+	// 		depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
+	// 		semiSphere.emplace(semiSphere.end(), depth, i->y(), i->z());
+	// 	}
+	// } 
+
+	// void generateSemiSphereIn(double margin, double resolution, std::vector<octomath::Vector3> & plane, std::vector<octomath::Vector3> & semiSphere)
+	// {
+	// 	double depth;
+	// 	double safety_range = margin + 0.5 * resolution;
+	// 	for (std::vector<octomath::Vector3>::iterator i = plane.begin(); i != plane.end(); ++i)
+	// 	{
+	// 		depth = std::sqrt( safety_range * safety_range  -  i->y()*i->y()  -   i->z()*i->z());
+	// 		semiSphere.emplace(semiSphere.end(), -depth, i->y(), i->z());
+	// 	}
+	// } 
+
 }
 
 #endif // ORTHOGONAL_PLANES_H
