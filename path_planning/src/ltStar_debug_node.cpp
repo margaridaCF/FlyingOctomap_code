@@ -55,22 +55,6 @@ namespace LazyThetaStarOctree
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
 	    LazyThetaStarOctree::fillLookupTable(octree->getResolution(), octree->getTreeDepth(), sidelength_lookup_table); 
 		octomap_init = true;
-		// path_planning_msgs::LTStarRequest request;
-		// request.header.seq = 2;
-		// request.request_id = 3;
-		// request.start.x = 1.38375;
-		// request.start.y = -0.677482;
-		// request.start.z = 2.88732;
-		// // // 9.5, -4.5, 1.5
-		// // request.start.x = 9.5;
-		// // request.start.y = -4.5;
-		// // request.start.z = 1.5;
-		// request.goal.x = 10.5;
-		// request.goal.y = -5.5;
-		// request.goal.z = 2.5;
-		// request.max_search_iterations = 5000;
-		// request.safety_margin = 2;
-		// runLazyThetaStar(request);
 	}
 
 	void ltstar_benchmark_callback(const path_planning_msgs::LTStarBenchmarkRequest::ConstPtr& path_request)
@@ -86,9 +70,9 @@ namespace LazyThetaStarOctree
 			request_vanilla.goal  = path_request->goal;
 			request_vanilla.safety_margin = path_request->safety_margin; 
 			request_vanilla.max_search_iterations = path_request->max_search_iterations;
-			LazyThetaStarOctree::lazyThetaStarCustomization(octree->getTreeDepth(), octree->getResolution(), path_request->safety_margin, generateCirclePlaneMatrix, generateCirclePlaneMatrix );
+			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, generateCirclePlaneMatrix, generateCirclePlaneMatrix );
 
-			// LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
+			LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
 			// if(reply.waypoint_amount == 1)
 			// {
 			// 	ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
