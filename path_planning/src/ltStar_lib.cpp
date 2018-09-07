@@ -25,7 +25,6 @@ namespace LazyThetaStarOctree{
 	std::string folder_name = "/ros_ws/src/data";
 	// std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
 
-
 	int obstacle_avoidance_time;
 	int obstacle_avoidance_calls;
 	int setVertex_time;
