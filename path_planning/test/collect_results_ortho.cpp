@@ -133,7 +133,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 3;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw_far" );
+		testResults(request, octree, "20180821_1110_42712_raw_far_ortho" );
 	}
 
     TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_far_back)
