@@ -731,12 +731,12 @@ namespace LazyThetaStarOctree{
 				rviz_interface::publish_closed(*(s->coordinates), publish_input.marker_pub);
 			}
 #endif
-			if(publish_input.publish && print_resulting_path)
-			{
-				log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
+			// if(publish_input.publish && print_resulting_path)
+			// {
+			// 	log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
 				
-				writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
-			}
+				// writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
+			// }
 
 			// TODO check code repetition to go over the neighbors of s
 			double cell_size = 0;

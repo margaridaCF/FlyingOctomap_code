@@ -62,12 +62,11 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(analyzeData ${catkin_LIBRARIES} )
 
-  # # ## Octree @ collect results ##
-  # catkin_add_gtest(collectResults 
-  #   test/collect_results.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(collectResults ${catkin_LIBRARIES} ltStar_lib)
-
+  # ## Octree @ collect results ##
+  catkin_add_gtest(collectResults 
+    test/collect_results.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(collectResults ${catkin_LIBRARIES} ltStar_lib)
   catkin_add_gtest(collectResults_ortho 
     test/collect_results_ortho.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)

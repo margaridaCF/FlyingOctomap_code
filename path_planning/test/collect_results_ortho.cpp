@@ -38,7 +38,7 @@ namespace LazyThetaStarOctree
 		int waypoint_amount = reply.waypoint_amount;
 		auto waypoints = reply.waypoints;
 		ASSERT_EQ(reply.success, success);
-		for (int i = 0; i < 1; ++i)
+		for (int i = 0; i < 20; ++i)
 		{
 			processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, dataset_name)  );
 			ASSERT_EQ(reply.success, success);
