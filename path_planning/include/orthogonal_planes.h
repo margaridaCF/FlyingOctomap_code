@@ -195,7 +195,13 @@ namespace LazyThetaStarOctree{
 
 	double semiSphereOut(double margin, double y, double z)
 	{
-		return 0.05 + std::sqrt( margin * margin  -  y*y  -   z*z);
+		double depth = 0.05 + std::sqrt( margin * margin  -  y*y  -   z*z);
+		if(std::isnan(depth))
+		{
+			depth = 0.05;
+		}
+
+		return depth;
 	}
 
 	double semiSphereIn(double margin, double y, double z)
