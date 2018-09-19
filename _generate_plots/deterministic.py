@@ -147,6 +147,73 @@ def plot_finalLength_scatter(dataSparse, dataOrtho):
 	)
 	fig=dict(data=data, layout=layout)
 	plotly.offline.plot(fig, filename='./scatter_time_pathLenght.html', image='png')
+
+def create_polyFitTrace(data):
+	# calculate polynomial
+	x_original = data['path_lenght_total_meters']
+	y_original = data['computation_time_millis']
+
+	z = np.polyfit(x_original, y_original, 2)
+	f = np.poly1d(z)
+
+	# calculate new x's and y's
+	x_new = np.linspace(x_original[0], x_original[len(x_original)-1], 100)
+	y_new = f(x_new)
+
+	trace = go.Scatter(
+                  x=x_new,
+                  y=y_new,
+                  mode='lines',
+                  marker=go.Marker(color='rgb(31, 119, 180)'),
+                  name='Fit'
+                  )
+
+	return trace
+
+
+def plot_polynomialFit_scatter(dataSparse, dataOrtho):
+	traceSparse = go.Scatter(
+	    x = dataSparse['path_lenght_total_meters'],
+	    y = dataSparse['computation_time_millis'],
+	    mode = 'markers',
+        name='Sparse Neighbors (SN)'
+	)
+
+	traceOrtho = go.Scatter(
+	    x = dataOrtho['path_lenght_total_meters'],
+	    y = dataOrtho['computation_time_millis'],
+	    mode = 'markers',
+        name='SN + Geometric obstacle avoidance'
+	)
+
+	trace_poly_sparse = create_polyFitTrace(dataSparse)
+	trace_poly_ortho = create_polyFitTrace(dataOrtho)
+
+
+
+	data = [traceSparse, traceOrtho, trace_poly_sparse, trace_poly_ortho]
+
+	layout = go.Layout(
+	    title='Final path (meters)',
+	    xaxis=dict(
+	        title='Path lenght (meters)',
+	        titlefont=dict(
+	            family='Courier New, monospace',
+	            size=18,
+	            color='#7f7f7f'
+	        )
+	    ),
+	    yaxis=dict(
+	        title='Computation time (millis)',
+	        titlefont=dict(
+	            family='Courier New, monospace',
+	            size=18,
+	            color='#7f7f7f'
+	        )
+	    )
+	)
+	fig=dict(data=data, layout=layout)
+	plotly.offline.plot(fig, filename='./scatter_time_pathLenght.html', image='png')
 	
 
 def scatter_time_length (csv_filepathSparse, csv_filepathOrtho):
