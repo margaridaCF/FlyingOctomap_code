@@ -148,7 +148,7 @@ def plot_finalLength_scatter(dataSparse, dataOrtho):
 	fig=dict(data=data, layout=layout)
 	plotly.offline.plot(fig, filename='./scatter_time_pathLenght.html', image='png')
 
-def create_polyFitTrace(data):
+def create_polyFitTrace(data, trace_color):
 	# calculate polynomial
 	x_original = data['path_lenght_total_meters']
 	y_original = data['computation_time_millis']
@@ -157,25 +157,26 @@ def create_polyFitTrace(data):
 	f = np.poly1d(z)
 
 	# calculate new x's and y's
-	x_new = np.linspace(x_original[0], x_original[len(x_original)-1], 100)
+	x_new = np.linspace(0, max(x_original)+5, 100)
 	y_new = f(x_new)
 
 	trace = go.Scatter(
                   x=x_new,
                   y=y_new,
                   mode='lines',
-                  marker=go.Marker(color='rgb(31, 119, 180)'),
-                  name='Fit'
+                  marker=go.Marker(color=trace_color),
+                  name='2 degree polynomial fit'
                   )
 
 	return trace
 
 
-def plot_polynomialFit_scatter(dataSparse, dataOrtho):
+def plot_polynomialFit_scatter(dataSparse, dataOrtho, security_margin):
 	traceSparse = go.Scatter(
 	    x = dataSparse['path_lenght_total_meters'],
 	    y = dataSparse['computation_time_millis'],
 	    mode = 'markers',
+	    marker=go.Marker(color='rgb(44,123,182)'),
         name='Sparse Neighbors (SN)'
 	)
 
@@ -183,20 +184,21 @@ def plot_polynomialFit_scatter(dataSparse, dataOrtho):
 	    x = dataOrtho['path_lenght_total_meters'],
 	    y = dataOrtho['computation_time_millis'],
 	    mode = 'markers',
+	    marker=go.Marker(color='rgb(253,174,97)'),
         name='SN + Geometric obstacle avoidance'
 	)
 
-	trace_poly_sparse = create_polyFitTrace(dataSparse)
-	trace_poly_ortho = create_polyFitTrace(dataOrtho)
+	trace_poly_sparse = create_polyFitTrace(dataSparse, 'rgb(171,217,233)')
+	trace_poly_ortho = create_polyFitTrace(dataOrtho, 'rgb(255,255,191)')
 
 
 
 	data = [traceSparse, traceOrtho, trace_poly_sparse, trace_poly_ortho]
 
 	layout = go.Layout(
-	    title='Final path (meters)',
+	    title='Performance change in obstacle detection method for ' + security_margin + ' m security margin',
 	    xaxis=dict(
-	        title='Path lenght (meters)',
+	        title='Distance between points (in meters)',
 	        titlefont=dict(
 	            family='Courier New, monospace',
 	            size=18,
@@ -213,7 +215,7 @@ def plot_polynomialFit_scatter(dataSparse, dataOrtho):
 	    )
 	)
 	fig=dict(data=data, layout=layout)
-	plotly.offline.plot(fig, filename='./scatter_time_pathLenght.html', image='png')
+	plotly.offline.iplot(fig, filename='./scatter_time_pathLenght.html', image='png')
 	
 
 def scatter_time_length (csv_filepathSparse, csv_filepathOrtho):
