@@ -22,8 +22,6 @@ namespace std
 }
 
 namespace LazyThetaStarOctree{
-	std::string folder_name = "/ros_ws/src/data";
-	// std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
 
 	int obstacle_avoidance_time;
 	int obstacle_avoidance_calls;
@@ -248,7 +246,7 @@ namespace LazyThetaStarOctree{
 						// 	rviz_interface::publish_arrow_path_unreachable(input.start + offset, input.goal + offset, publish_input.marker_pub, id_unreachable);	
 						// 	id_unreachable++;
 						// }
-						return CellStatus::kOccupied;
+						// return CellStatus::kOccupied;
 					}	
 					else if(hasLineOfSight( InputData(input.octree, input.goal + offset, input.start + offset, input.margin), ignoreUnknown) == false)
 					{
@@ -258,7 +256,7 @@ namespace LazyThetaStarOctree{
 						// 	rviz_interface::publish_arrow_path_unreachable(input.goal + offset, input.start + offset, publish_input.marker_pub, id_unreachable);	
 						// 	id_unreachable;
 						// }
-						return CellStatus::kOccupied;
+						// return CellStatus::kOccupied;
 					}	
 					// else
 					// {

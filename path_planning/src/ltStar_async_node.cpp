@@ -18,7 +18,6 @@
 
 namespace LazyThetaStarOctree
 {
-	std::string folder_name;
 
 
     octomap::OcTree* octree;

@@ -22,8 +22,6 @@ namespace std
 }
 
 namespace LazyThetaStarOctree{
-	std::string folder_name = "/ros_ws/src/data";
-	// std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
 
 	int obstacle_avoidance_time;
 	int obstacle_avoidance_calls;
@@ -31,20 +29,11 @@ namespace LazyThetaStarOctree{
 	int updateVertex_time;
 	std::ofstream log_file;
 	int id_unreachable;
-	// ros::ServiceClient pauseGazebo_;
-	// ros::ServiceClient unpauseGazebo_;
 
 	void generateOffsets(double resolution, double safety_margin, double (*startDepthGenerator)(double, double, double), double (*goalDepthGenerator)(double, double, double) )
 	{
-		// startOffsets = startShapeGenerator(safety_margin/2.0, resolution);
-		// goalOffsets = goalShapeGenerator(safety_margin/2.0, resolution);
-
-
-
 		startOffsets = generateOffsetMatrix(safety_margin/2.0, resolution, startDepthGenerator);
 		goalOffsets = generateOffsetMatrix(safety_margin/2.0, resolution, goalDepthGenerator);
-
-		ROS_WARN_STREAM("start point amount " << startOffsets.cols() << " goal points " << goalOffsets.cols());
 	}
 
 
@@ -239,17 +228,17 @@ namespace LazyThetaStarOctree{
 				} 
 				// return CellStatus::kOccupied; 
 			}   
-			// else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
-			// { 
-			// 	if(publish_input.publish) 
-			// 	{ 
-			// 		// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << input.start + offset << std::endl ; 
-			// 		rviz_interface::build_arrow_type(temp_goal, temp_start, marker_array, id_unreachable, true);
-			// 		id_unreachable++;
-			// 		publish_input.marker_pub.publish(marker_array);
-			// 	} 
-			// 	// return CellStatus::kOccupied; 
-			// }   
+			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
+			{ 
+				if(publish_input.publish) 
+				{ 
+					// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << input.start + offset << std::endl ; 
+					rviz_interface::build_arrow_type(temp_goal, temp_start, marker_array, id_unreachable, true);
+					id_unreachable++;
+					publish_input.marker_pub.publish(marker_array);
+				} 
+				// return CellStatus::kOccupied; 
+			}   
 			else 
 			{ 
 			  if(publish_input.publish) 
@@ -260,10 +249,10 @@ namespace LazyThetaStarOctree{
 			  } 
 			} 
 		}
-		// if(publish_input.publish) 
-		// {
-		// 	publish_input.marker_pub.publish(marker_array);
-		// }
+		if(publish_input.publish) 
+		{
+			publish_input.marker_pub.publish(marker_array);
+		}
 		return CellStatus::kFree; 
 	}
 

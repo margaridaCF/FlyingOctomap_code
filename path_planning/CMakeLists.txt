@@ -63,14 +63,24 @@ if (CATKIN_ENABLE_TESTING)
   # target_link_libraries(analyzeData ${catkin_LIBRARIES} )
 
   # ## Octree @ collect results ##
-  catkin_add_gtest(collectResults 
-    test/collect_results.cpp
+  # catkin_add_gtest(collectResults 
+  #   test/collect_results.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collectResults ${catkin_LIBRARIES} ltStar_lib)
+  # catkin_add_gtest(collectResults_ortho 
+  #   test/collect_results_ortho.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collectResults_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  
+  catkin_add_gtest(collectResults_obstacleAvoidance_ortho 
+    test/collect_results_obstacleAvoidance_ortho.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(collectResults ${catkin_LIBRARIES} ltStar_lib)
-  catkin_add_gtest(collectResults_ortho 
-    test/collect_results_ortho.cpp
+  target_link_libraries(collectResults_obstacleAvoidance_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+
+  catkin_add_gtest(collectResults_obstacleAvoidance
+    test/collect_results_obstacleAvoidance.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(collectResults_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  target_link_libraries(collectResults_obstacleAvoidance ${catkin_LIBRARIES} ltStar_lib)
 
   # ## Octree @ work in progress ##
   # catkin_add_gtest(workInProgress 

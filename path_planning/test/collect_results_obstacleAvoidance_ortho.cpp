@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <ltStar_temp.h>
+#include <ltStar_lib_ortho.h>
 
 namespace LazyThetaStarOctree
 {	
@@ -69,11 +69,16 @@ namespace LazyThetaStarOctree
 
 
 		request.safety_margin = 2;
-		runAndWriteCSV(request, octree, publish_input, distance_label, distance_meters, "/lazyThetaStar_obstacle_avoidance_computation_time_margin_2.csv");
+		LazyThetaStarOctree::generateOffsets(octree.getResolution(), request.safety_margin, dephtZero, semiSphereOut );
+		runAndWriteCSV(request, octree, publish_input, distance_label, distance_meters, "/lazyThetaStar_obstacle_avoidance_computation_time_margin_2_ortho.csv");
+
 		request.safety_margin = 5;
-		runAndWriteCSV(request, octree, publish_input, distance_label, distance_meters, "/lazyThetaStar_obstacle_avoidance_computation_time_margin_5.csv");
+		LazyThetaStarOctree::generateOffsets(octree.getResolution(), request.safety_margin, dephtZero, semiSphereOut );
+		runAndWriteCSV(request, octree, publish_input, distance_label, distance_meters, "/lazyThetaStar_obstacle_avoidance_computation_time_margin_5_ortho.csv");
+		
 		request.safety_margin = 8;
-		runAndWriteCSV(request, octree, publish_input, distance_label, distance_meters, "/lazyThetaStar_obstacle_avoidance_computation_time_margin_8.csv");
+		LazyThetaStarOctree::generateOffsets(octree.getResolution(), request.safety_margin, dephtZero, semiSphereOut );
+		runAndWriteCSV(request, octree, publish_input, distance_label, distance_meters, "/lazyThetaStar_obstacle_avoidance_computation_time_margin_8_ortho.csv");
 
     }
 
