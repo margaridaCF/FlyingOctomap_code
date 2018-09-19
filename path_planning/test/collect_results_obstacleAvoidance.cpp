@@ -91,7 +91,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1207_5647_filtered_ortho" );
+		testResults(request, octree, "20180821_1207_5647_filtered" );
 
 		request.start.x = 11.3;
 		request.start.y = -6.71;
@@ -99,7 +99,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -8.34;
 		request.goal.y = -10.9;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1207_5647_filtered_ortho" );
+		testResults(request, octree, "20180821_1207_5647_filtered" );
 
 		request.start.x = -5.35;
 		request.start.y = -14;
@@ -107,7 +107,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 4.12;
 		request.goal.y = -2.21;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1207_5647_filtered_ortho" );
+		testResults(request, octree, "20180821_1207_5647_filtered" );
 
 
 		request.start.x = -3.9;
@@ -116,7 +116,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 7.49;
 		request.goal.y = -6.98;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1207_5647_filtered_ortho" );
+		testResults(request, octree, "20180821_1207_5647_filtered" );
 
 		request.start.x =  16.8;
 		request.start.y = -4.22;
@@ -124,7 +124,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -23.5;
 		request.goal.y = -28.4;
 		request.goal.z = 3;
-		testResults(request, octree, "20180821_1207_5647_filtered_ortho" );
+		testResults(request, octree, "20180821_1207_5647_filtered" );
 
 		request.start.x =  -15.7;
 		request.start.y = -5.08;
@@ -132,7 +132,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 13.9;
 		request.goal.y = -18.2;
 		request.goal.z = 3;
-		testResults(request, octree, "20180821_1207_5647_filtered_ortho" );
+		testResults(request, octree, "20180821_1207_5647_filtered" );
 	}
 
 	TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_43042_raw_all)
@@ -149,7 +149,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
+		testResults(request, octree, "20180821_1110_43042_raw" );
 
 		request.start.x = 11.3;
 		request.start.y = -6.71;
@@ -157,7 +157,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -8.34;
 		request.goal.y = -10.9;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
+		testResults(request, octree, "20180821_1110_43042_raw" );
 
 		request.start.x = -5.35;
 		request.start.y = -14;
@@ -165,7 +165,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 4.12;
 		request.goal.y = -2.21;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
+		testResults(request, octree, "20180821_1110_43042_raw" );
 
 
 		request.start.x = -3.9;
@@ -174,7 +174,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 7.49;
 		request.goal.y = -6.98;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
+		testResults(request, octree, "20180821_1110_43042_raw" );
 
 		request.start.x =  16.8;
 		request.start.y = -4.22;
@@ -182,7 +182,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -23.5;
 		request.goal.y = -28.4;
 		request.goal.z = 3;
-		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
+		testResults(request, octree, "20180821_1110_43042_raw" );
 
 		request.start.x =  -15.7;
 		request.start.y = -5.08;
@@ -190,7 +190,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 13.9;
 		request.goal.y = -18.2;
 		request.goal.z = 3;
-		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
+		testResults(request, octree, "20180821_1110_43042_raw" );
 	}
 
 	TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42936_raw_all)
@@ -207,7 +207,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42936_raw" );
 
 		request.start.x = 11.3;
 		request.start.y = -6.71;
@@ -215,7 +215,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -8.34;
 		request.goal.y = -10.9;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42936_raw" );
 
 		request.start.x = -5.35;
 		request.start.y = -14;
@@ -223,7 +223,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 4.12;
 		request.goal.y = -2.21;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42936_raw" );
 
 
 		request.start.x = -3.9;
@@ -232,7 +232,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 7.49;
 		request.goal.y = -6.98;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42936_raw" );
 
 		request.start.x =  16.8;
 		request.start.y = -4.22;
@@ -240,7 +240,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -23.5;
 		request.goal.y = -28.4;
 		request.goal.z = 3;
-		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42936_raw" );
 
 		request.start.x =  -15.7;
 		request.start.y = -5.08;
@@ -248,7 +248,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 13.9;
 		request.goal.y = -18.2;
 		request.goal.z = 3;
-		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42936_raw" );
 	}
 
 
@@ -266,7 +266,7 @@ namespace LazyThetaStarOctree
 		request.goal.z = 7;
 		request.max_search_iterations = 120;
 		request.safety_margin = 5;
-		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42712_raw" );
 
 		request.start.x = 11.3;
 		request.start.y = -6.71;
@@ -274,7 +274,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -8.34;
 		request.goal.y = -10.9;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42712_raw" );
 
 		request.start.x = -5.35;
 		request.start.y = -14;
@@ -282,7 +282,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 4.12;
 		request.goal.y = -2.21;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42712_raw" );
 
 
 		request.start.x = -3.9;
@@ -291,7 +291,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 7.49;
 		request.goal.y = -6.98;
 		request.goal.z = 7;
-		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42712_raw" );
 
 		request.start.x =  16.8;
 		request.start.y = -4.22;
@@ -299,7 +299,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -23.5;
 		request.goal.y = -28.4;
 		request.goal.z = 3;
-		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42712_raw" );
 
 		request.start.x =  -15.7;
 		request.start.y = -5.08;
@@ -307,7 +307,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 13.9;
 		request.goal.y = -18.2;
 		request.goal.z = 3;
-		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
+		testResults(request, octree, "20180821_1110_42712_raw" );
 	}
 }
 
