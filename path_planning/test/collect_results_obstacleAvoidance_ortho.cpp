@@ -20,7 +20,7 @@ namespace LazyThetaStarOctree
  		std::chrono::duration<double> time_span;
 		std::chrono::milliseconds millis;
 		bool is_start_clear;
-		double number_of_trials = 10;
+		double number_of_trials = 100;
 
 	 	start = std::chrono::system_clock::now();
 		for (int i = 0; i < number_of_trials; ++i)
