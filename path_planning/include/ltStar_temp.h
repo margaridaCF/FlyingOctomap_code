@@ -134,7 +134,7 @@ namespace LazyThetaStarOctree{
 		ResultSet & resultSet,
 		const double sidelength_lookup_table[],
 		PublishingInput const& publish_input,
-		int const& max_search_iterations = 55);
+		int const& max_time_secs = 55);
 
 	std::list<octomath::Vector3> lazyThetaStar_original(
 		octomap::OcTree   & octree, 
@@ -144,7 +144,7 @@ namespace LazyThetaStarOctree{
 		double safety_margin,
 		const double sidelength_lookup_table[],
 		PublishingInput const& publish_input,
-		int const& max_search_iterations = 55,
+		int const& max_time_secs = 55,
 		bool print_resulting_path = false);
 
 

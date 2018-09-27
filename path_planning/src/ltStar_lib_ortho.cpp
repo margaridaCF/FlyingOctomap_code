@@ -555,7 +555,7 @@ namespace LazyThetaStarOctree{
 		ResultSet & resultSet,
 		const double sidelength_lookup_table[],
 		PublishingInput const& publish_input,
-		int const& max_search_iterations,
+		int const& max_time_secs,
 		bool print_resulting_path)
 	{
 		int generate_neighbors_time = 0;
@@ -567,7 +567,7 @@ namespace LazyThetaStarOctree{
 		std::ofstream log_file;
     	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
 		auto start = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_search_iterations);
+		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_time_secs);
 		std::list<octomath::Vector3> path;
 
 		if (!isExplored(input.start, input.octree))
@@ -875,7 +875,7 @@ namespace LazyThetaStarOctree{
 		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 #endif
 		InputData input (octree, disc_initial, disc_final, request.safety_margin);
-		resulting_path = lazyThetaStar_( input, statistical_data, sidelength_lookup_table, publish_input, request.max_search_iterations, true);
+		resulting_path = lazyThetaStar_( input, statistical_data, sidelength_lookup_table, publish_input, request.max_time_secs, true);
 #ifdef SAVE_CSV
 		std::stringstream generated_path_distance_ss;
     	generated_path_distance_ss << "Generated path distance:\n";
@@ -916,7 +916,7 @@ namespace LazyThetaStarOctree{
 		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
 		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
 		csv_file << "," << request.safety_margin;
-		csv_file << "," << request.max_search_iterations ;
+		csv_file << "," << request.max_time_secs ;
 		csv_file << "," << statistical_data.iterations_used ;
 		csv_file << "," << publish_input.dataset_name << std::endl;
 		csv_file.close();

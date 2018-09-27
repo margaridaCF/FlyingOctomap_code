@@ -89,7 +89,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 0.69;
 		request.goal.y = -11.2;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1207_5647_filtered" );
 
@@ -147,7 +147,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 0.69;
 		request.goal.y = -11.2;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_43042_raw" );
 
@@ -205,7 +205,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 0.69;
 		request.goal.y = -11.2;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42936_raw" );
 
@@ -264,7 +264,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 0.69;
 		request.goal.y = -11.2;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw" );
 

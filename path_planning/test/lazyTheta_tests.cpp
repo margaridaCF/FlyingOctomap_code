@@ -6,7 +6,7 @@
 namespace LazyThetaStarOctree{
 
 	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_search_iterations = 55)
+		int const& max_time_secs = 55)
 	{
 		double sidelength_lookup_table  [octree.getTreeDepth()];
 	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
@@ -27,7 +27,13 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, safety_margin), statistical_data, sidelength_lookup_table, marker_pub, max_search_iterations, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(
+			InputData( octree, disc_initial, disc_final, safety_margin), 
+			statistical_data, 
+			sidelength_lookup_table, 
+			PublishingInput(marker_pub, true), 
+			max_time_secs);
+
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -238,7 +244,7 @@ namespace LazyThetaStarOctree{
 	// }
 	
 	void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_search_iterations = 55, double safety_margin = 2)
+		int const& max_time_secs = 55, double safety_margin = 2)
 	{
 
 		double sidelength_lookup_table  [octree.getTreeDepth()];
@@ -259,7 +265,7 @@ namespace LazyThetaStarOctree{
 		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
 
 		ResultSet statistical_data;
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, safety_margin), statistical_data,  sidelength_lookup_table, marker_pub, max_search_iterations);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, safety_margin), statistical_data,  sidelength_lookup_table, marker_pub, max_time_secs);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0) << safety_margin;
 		// 2 waypoints: The center of start voxel & The center of the goal voxel
@@ -302,7 +308,7 @@ namespace LazyThetaStarOctree{
 		request.goal.x = -8.5;
 		request.goal.y = 6.5;
 		request.goal.z = 3.5;
-		request.max_search_iterations = 1000;
+		request.max_time_secs = 1000;
 		request.safety_margin = 1;
 		path_planning_msgs::LTStarReply reply;
 		processLTStarRequest(octree, request, reply, sidelength_lookup_table, marker_pub);
@@ -326,7 +332,7 @@ namespace LazyThetaStarOctree{
 		request.goal.x = -8.5;
 		request.goal.y = 6.5;
 		request.goal.z = 3.5;
-		request.max_search_iterations = 500;
+		request.max_time_secs = 500;
 		request.safety_margin = 0.5;
 		path_planning_msgs::LTStarReply reply;
 		processLTStarRequest(octree, request, reply, sidelength_lookup_table, marker_pub);
@@ -444,10 +450,10 @@ namespace LazyThetaStarOctree{
 	// 	// Point found as error case during assessment of find depth for voxel centers
  //        octomath::Vector3 disc_initial(-0.102492, 0.00635417, 10.1225);
  //        octomath::Vector3 disc_final(-0.5, -2.5, 2.5);
- //        int max_search_iterations = 500;
+ //        int max_time_secs = 500;
  //        ResultSet statistical_data;
  //                                 // LazyThetaStarOctree::lazyThetaStar_(octomap::OcTree const&, octomath::Vector3 const&, octomath::Vector3 const&, LazyThetaStarOctree::ResultSet&, int const&, bool)
-	// 	std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, 				 disc_initial, 			   disc_final, 				 statistical_data, 				  max_search_iterations, true);
+	// 	std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, 				 disc_initial, 			   disc_final, 				 statistical_data, 				  max_time_secs, true);
 	// 	// std::list<octomath::Vector3>                  lazyThetaStar_(octomap::OcTree const&, octomath::Vector3 const&, octomath::Vector3 const&,                      ResultSet&, int const&, bool )
 	// }
 }

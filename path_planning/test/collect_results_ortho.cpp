@@ -63,7 +63,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 7.49;
 		request.goal.y = -6.98;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
 	}
@@ -79,7 +79,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -3.9;
 		request.goal.y = -14.76;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
 	}
@@ -96,7 +96,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 7.49;
 		request.goal.y = -6.98;
 		request.goal.z = 3;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
 	}
@@ -113,7 +113,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -3.9;
 		request.goal.y = -14.76;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw_ortho" );
 	}
@@ -131,7 +131,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 13.9;
 		request.goal.y = -18.2;
 		request.goal.z = 3;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw_far_ortho" );
 	}
@@ -148,7 +148,7 @@ namespace LazyThetaStarOctree
 		request.start.x = 13.9;
 		request.start.y = -18.2;
 		request.start.z = 3;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw_far_back_ortho" );
 	}
@@ -166,7 +166,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -23.5;
 		request.goal.y = -28.4;
 		request.goal.z = 3;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw_straight_far_ortho" );
 	}
@@ -183,7 +183,7 @@ namespace LazyThetaStarOctree
 		request.start.x = -23.5;
 		request.start.y = -28.4;
 		request.start.z = 3;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42712_raw_far_straight_back_ortho" );
 	}
@@ -200,7 +200,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 7.49;
 		request.goal.y = -6.98;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
 	}
@@ -216,7 +216,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -3.9;
 		request.goal.y = -14.76;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_42936_raw_ortho" );
 	}
@@ -235,7 +235,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 7.49;
 		request.goal.y = -6.98;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
 	}
@@ -251,7 +251,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = -3.9;
 		request.goal.y = -14.76;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1110_43042_raw_ortho" );
 	}
@@ -269,7 +269,7 @@ namespace LazyThetaStarOctree
 		request.goal.x = 4.12;
 		request.goal.y = -2.21;
 		request.goal.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1207_5647_filtered_approxGoal_ortho" );
 	}
@@ -286,7 +286,7 @@ namespace LazyThetaStarOctree
 		request.start.x = 4.12;
 		request.start.y = -2.21;
 		request.start.z = 7;
-		request.max_search_iterations = 120;
+		request.max_time_secs = 120;
 		request.safety_margin = 5;
 		testResults(request, octree, "20180821_1207_5647_filtered_approxGoal_back_ortho" );
 	}

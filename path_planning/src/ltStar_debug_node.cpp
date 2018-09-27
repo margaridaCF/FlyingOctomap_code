@@ -69,7 +69,7 @@ namespace LazyThetaStarOctree
 			request_vanilla.start = path_request->start;
 			request_vanilla.goal  = path_request->goal;
 			request_vanilla.safety_margin = path_request->safety_margin; 
-			request_vanilla.max_search_iterations = path_request->max_search_iterations;
+			request_vanilla.max_time_secs = path_request->max_time_secs;
 			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, semiSphereIn, semiSphereOut );
 
 			// LazyThetaStarOctree::processLTStarRequest(*octree, request_vanilla, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );

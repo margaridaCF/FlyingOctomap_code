@@ -17,7 +17,7 @@ namespace LazyThetaStarOctree{
     public:
         LazyThetaStarDispatcher(ros::NodeHandle nh);
         ~LazyThetaStarDispatcher();
-        std::list<octomath::Vector3> extractResults (octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, std::string dataset_name, int max_search_iterations);
+        std::list<octomath::Vector3> extractResults (octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, std::string dataset_name, int max_time_secs);
         RVizMarker createMarker(int id);
         void chatterCallback(const path_planning::StartGoal::ConstPtr& msg);
     private:
