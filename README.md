@@ -54,7 +54,7 @@ This package was developed using px4's sitl inside a docker container. The instr
 The funtion that implements Lazy Theta Star is lazyThetaStar_, inside path_planning/ltStar_lib.cpp
 
 
-==== Acknowlegements ====
+# Acknowlegements
 
 This project has received funding from the European Union’s Horizon 2020 research and innovation programme under the Marie Sklodowska-Curie grant agreement No 642153
 
