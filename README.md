@@ -54,6 +54,22 @@ This package was developed using px4's sitl inside a docker container. The instr
 The funtion that implements Lazy Theta Star is lazyThetaStar_, inside path_planning/ltStar_lib.cpp
 
 
+
+
+There is a paper that gives more technical details on the implementation and considerations. If you find this code helpful please cite the following paper:
+> @article{Faria2018,
+> doi = {10.1007/s10846-018-0798-4},
+> issn = {1573-0409},
+> journal = {Journal of Intelligent {\&} Robotic Systems},
+> month = {mar},
+> title = {{Applying Frontier Cells Based Exploration and Lazy Theta* Path Planning over Single Grid-Based World Representation for Autonomous Inspection of Large 3D Structures with an UAS}},
+> year = {2018}
+> }
+
+You can download the paper [here]( https://www.researchgate.net/publication/323994301_Applying_Frontier_Cells_Based_Exploration_and_Lazy_Theta_Path_Planning_over_Single_Grid-Based_World_Representation_for_Autonomous_Inspection_of_Large_3D_Structures_with_an_UAS)
+
+
+
 # Acknowlegements
 
 This project has received funding from the European Union’s Horizon 2020 research and innovation programme under the Marie Sklodowska-Curie grant agreement No 642153
