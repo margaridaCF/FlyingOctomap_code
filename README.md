@@ -23,7 +23,7 @@ Lazy Theta * is implemented over octomap, which also brings features:
 - Online. The grouping of the search space enables it to be conducted online for more cases.
 In the talk includes a quick outline of the algorithm, the paths it yields, how to set it up and how to reason if it is an appropriate planner for your scenario.
 
-Run unit tests:
+## Run unit tests:
 1. Create data folder inside test folder
 2. Move there the datasets
 	- (-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt - http://margaridacf.weebly.com/uploads/4/9/7/5/4975687/run_2.bt
@@ -31,7 +31,7 @@ Run unit tests:
 	- run_2.bt - http://margaridacf.weebly.com/uploads/4/9/7/5/4975687/run_2.bt
 	- offShoreOil_1m.bt https://github.com/margaridaCF/FlyingOctomap/blob/master/path_planning/test/data/offShoreOil_1m.bt
 
-How to use ltStar_async_node:
+## How to use ltStar_async_node:
 
 - The ltStar_async_node.cpp encapsulates the calling of the API.
 - path_planning package contains the source code. The path_planning_msgs contains the messages and services used with the ltStar_asyncply node.
@@ -53,8 +53,23 @@ This package was developed using px4's sitl inside a docker container. The instr
 
 The funtion that implements Lazy Theta Star is lazyThetaStar_, inside path_planning/ltStar_lib.cpp
 
+The package has been introduced at Roscon 2018! 
+A link to the video of the talk will appear here as soon as it is available.
 
+## Integrate kinematic constraints
 
+One question that popped up a lot was how to integrate kinematic constraints directly at trajectory generation level. For the benefit of everyone, here is the answer.
+
+The original use case has holonomic vehicles in mind (rotary wing UAVs). However, it is possible to modify the implementation to include any constraints that need to be considered to evaluate a position as a candidate for the path.
+
+When neighbors are generated, the obstacle avoidance is the check done currently. The method could be extended to include any constraint,  kinematics being on example. Another place to look is the generation of neighbors.
+The places in the code to look into are at ltStar_lib.cpp (for the main branch): 
+- generate neighbors method at line 743 that refers to neighbors.cpp line 18. The neighbors considered are up, down, left, right (it is over a sparse occupancy grid - octomap) 
+- the line of sight checks at line 310 currently look for obstacles
+
+If you need this in your work just let me know to start working on it.
+
+## Corresponding paper
 
 There is a paper that gives more technical details on the implementation and considerations. If you find this code helpful please cite the following paper:
 > @article{Faria2018,
