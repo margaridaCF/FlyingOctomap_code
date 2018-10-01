@@ -4,7 +4,7 @@
 #include <orthogonal_planes.h>
 
 #define SAVE_CSV 1
-// #define RUNNING_ROS 0
+#define RUNNING_ROS 0
 
 
 namespace std
