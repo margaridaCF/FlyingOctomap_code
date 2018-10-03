@@ -23,7 +23,7 @@
 
     <param name="/use_sim_time" value="true" />
 
-    <rosparam file="$(find architecture)/cfg/realUav_hitl_params.yaml" command="load" />
+    <rosparam file="$(find architecture)/cfg/sim_hitl_params.yaml" command="load" />
     <!-- #######################  Rviz    ######################################### -->
    <!--  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" /> -->
     <!-- #######################  Gazebo  ######################################### -->
@@ -51,9 +51,10 @@
 
     <!-- #######################  Hokuyo  ############################# -->
     <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
-        <rosparam command="load" file="$(find architecture)/cfg/bag_hitl_params.yaml" />
+        <rosparam command="load" file="$(find architecture)/cfg/sim_hitl_params.yaml" />
         <param name="target_frame"   value="base_link" />
         <remap from="cloud_filtered" to="free_cloud" />
+        <remap from="scan" to="hokuyo_laser_scan" />
     </node>
     <!-- #######################  Octomap  ######################################## -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
@@ -74,7 +75,7 @@
     </node>
     <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
     <!-- #######################  Architecture nodes  ############################# -->
-    <!-- <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
+   <!--  <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
     <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
     <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" /> -->
