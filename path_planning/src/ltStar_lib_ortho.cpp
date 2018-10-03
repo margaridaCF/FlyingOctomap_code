@@ -822,12 +822,12 @@ namespace LazyThetaStarOctree{
 		disc_initial_cell_center = NULL;
 		std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 		int total_in_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(time_lapse).count();
-		ROS_WARN_STREAM("[ltstar] [ortho] Total time " << total_in_microseconds << " microseconds.");
-		ROS_WARN_STREAM("[ltstar] [ortho] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [ortho] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "%  "  );
-		ROS_WARN_STREAM("[ltstar] [ortho] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [ortho] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
-		ROS_WARN_STREAM("[ltstar] [ortho] obstacle_avoidance_calls count " << obstacle_avoidance_calls  );
+		// ROS_WARN_STREAM("[ltstar] [ortho] Total time " << total_in_microseconds << " microseconds.");
+		// ROS_WARN_STREAM("[ltstar] [ortho] generate_neighbors_time took " << generate_neighbors_time << " - " << generate_neighbors_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [ortho] obstacle_avoidance_time took " << obstacle_avoidance_time << " - " << obstacle_avoidance_time*100.0/total_in_microseconds << "%  "  );
+		// ROS_WARN_STREAM("[ltstar] [ortho] setVertex_time took " << setVertex_time << " - " << setVertex_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [ortho] updateVertex_time took " << updateVertex_time << " - " << updateVertex_time*100/total_in_microseconds << "%");
+		// ROS_WARN_STREAM("[ltstar] [ortho] obstacle_avoidance_calls count " << obstacle_avoidance_calls  );
 		return path;
 	}
 	// ln 19 end
@@ -874,6 +874,9 @@ namespace LazyThetaStarOctree{
 #ifdef SAVE_CSV
 		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 #endif
+	    std::stringstream octomap_name_stream;
+		octomap_name_stream << std::setprecision(2) << folder_name << "/from_" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << "_to_"<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ".bt";
+			octree.writeBinary(octomap_name_stream.str());
 		InputData input (octree, disc_initial, disc_final, request.safety_margin);
 		resulting_path = lazyThetaStar_( input, statistical_data, sidelength_lookup_table, publish_input, request.max_time_secs, true);
 #ifdef SAVE_CSV
@@ -931,7 +934,7 @@ namespace LazyThetaStarOctree{
 		if(resulting_path.size()==0)
 		{
 			reply.success = false;
-			std::stringstream octomap_name_stream;
+			// std::stringstream octomap_name_stream;
 			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
 			octree.writeBinary(octomap_name_stream.str());
 			std::stringstream to_log_file_ss;

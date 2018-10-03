@@ -12,19 +12,19 @@
 namespace LazyThetaStarOctree
 {
 	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_time_secs = 55)
+		int const& max_time_secs = 55, double safety_margin = 0.1)
 	{
 		double sidelength_lookup_table  [octree.getTreeDepth()];
 	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ros::Publisher marker_pub;
-		double safety_margin = 0.1;
+		
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
-		ASSERT_TRUE(originNode);
+		ASSERT_TRUE(originNode) << "Start node in unknown space";
 		ASSERT_FALSE(octree.isNodeOccupied(originNode));
 		// Final node is not occupied
 		octomap::OcTreeNode* finalNode = octree.search(disc_final);
-		ASSERT_TRUE(finalNode);
+		ASSERT_TRUE(finalNode) << "Final node in unknown space";
 		ASSERT_FALSE(octree.isNodeOccupied(finalNode));
 		// The path is clear from start to finish
 		octomath::Vector3 direction (1, 0, 0);
@@ -35,7 +35,8 @@ namespace LazyThetaStarOctree
 		ResultSet statistical_data;
 		std::vector<octomath::Vector3> planeOffsets;
 		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(InputData( octree, disc_initial, disc_final, safety_margin), statistical_data, sidelength_lookup_table, PublishingInput( marker_pub), planeOffsets, max_time_secs, true);
+		InputData input( octree, disc_initial, disc_final, safety_margin);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub), max_time_secs, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -67,13 +68,15 @@ namespace LazyThetaStarOctree
 		}
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 	}
+
 	TEST(LazyThetaStarTests, LazyThetaStar_CoreDumped_Test)
 	{
-		// (-8.3 -8.3 0.5) to (-7.3 -8.3 0.5)
-		octomap::OcTree octree ("data/offShoreOil_1m.bt");
-		octomath::Vector3 disc_initial(-8.3, -8.3, 0.5);
-		octomath::Vector3 disc_final  (-7.3, -8.3, 0.5);
-		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
+		int max_time_secs= 120;
+		double safety_margin = 3;
+		octomap::OcTree octree ("data/from_-0.64_-0.0003_5_to_0.5_-2.5_6.5.bt");
+		octomath::Vector3 disc_initial(-0.680292, 0.000908941, 5.0156);
+		octomath::Vector3 disc_final  (-2.5, -3.5, 6.5);
+		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final, max_time_secs, safety_margin);
 	}
 }
 

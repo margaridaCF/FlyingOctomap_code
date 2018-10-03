@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <ltStar_temp.h>
+#include <ltStar_lib_ortho.h>
 #include <octomap_msgs/Octomap.h>
 #include <octomap_msgs/conversions.h>
 #include <visualization_msgs/Marker.h>
@@ -88,6 +88,7 @@ namespace LazyThetaStarOctree
 			// {
 			// 	publish_free_corridor_arrows = false;
 			// }
+			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, dephtZero, semiSphereOut );
 			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
 			if(reply.waypoint_amount == 1)
 			{

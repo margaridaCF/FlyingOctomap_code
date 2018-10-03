@@ -32,8 +32,8 @@
 #include <path_planning_msgs/LTStarNodeStatus.h>
 
 
-// #define SAVE_CSV 1
-// #define SAVE_LOG 1
+#define SAVE_CSV 1
+#define SAVE_LOG 1
 
 
 namespace state_manager_node
@@ -684,7 +684,7 @@ int main(int argc, char **argv)
     // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
     csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
     csv_file.close();
-    state_manager_node::start = std::chrono::high_resolution_clock::now();
+    // state_manager_node::start = std::chrono::high_resolution_clock::now();
 #endif
     state_manager_node::timer = nh.createTimer(ros::Duration(1), state_manager_node::main_loop);
     ros::spin();

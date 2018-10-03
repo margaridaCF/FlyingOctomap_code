@@ -120,10 +120,10 @@
       <pose frame=''>-32.6523 -15.4464 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
-      <sim_time>144 23000000</sim_time>
-      <real_time>144 291004781</real_time>
-      <wall_time>1538041467 230382986</wall_time>
-      <iterations>144023</iterations>
+      <sim_time>233 697000000</sim_time>
+      <real_time>89 816648618</real_time>
+      <wall_time>1538581966 817236906</wall_time>
+      <iterations>89674</iterations>
       <model name='ground_plane'>
         <pose frame=''>0 0 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -135,10 +135,10 @@
         </link>
       </model>
       <model name='puzzle_world'>
-        <pose frame=''>-32.6523 -15.4464 0 0 -0 0</pose>
+        <pose frame=''>-28.9587 -10.6134 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>-32.6523 -15.4464 0.01 0 -0 0</pose>
+          <pose frame=''>-28.9587 -10.6134 0.01 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -150,7 +150,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>-7.65487 -96.426 59.0038 0 0.223642 1.51219</pose>
+        <pose frame=''>-0.178341 4.53854 33.5121 0.799511 1.57071 -2.3346</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
