@@ -16,7 +16,7 @@ namespace rviz_interface
         marker.points.push_back(end);
     }
 
-    void build_cube_wire(visualization_msgs::Marker & marker, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& marker_pub, octomath::Vector3 color = octomath::Vector3(1, 1, 1))
+    void build_cube_wire(visualization_msgs::Marker & marker, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, octomath::Vector3 color = octomath::Vector3(1, 1, 1))
     {
         uint32_t shape = visualization_msgs::Marker::LINE_LIST; 
         // Set the frame ID and timestamp.  See the TF tutorials for information on these. 
@@ -54,17 +54,17 @@ namespace rviz_interface
         push_segment(marker, E, F); 
     }
 
-	void publish_geofence(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& marker_pub) 
+	void publish_geofence (octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, visualization_msgs::MarkerArray & marker_array)
     { 
         visualization_msgs::Marker marker; 
         // Set the frame ID and timestamp.  See the TF tutorials for information on these. 
         marker.ns = "geofence"; 
         marker.id = 20; 
         marker.lifetime = ros::Duration(); 
-        build_cube_wire(marker, geofence_min, geofence_max, marker_pub);
-        marker_pub.publish(marker); 
+        build_cube_wire(marker, geofence_min, geofence_max);
+        marker_array.markers.push_back(marker);
     } 
-    void publish_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id) 
+    void publish_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, visualization_msgs::MarkerArray marker_array, int id) 
     { 
         visualization_msgs::Marker marker;
         octomath::Vector3  max = octomath::Vector3(frontier.x - safety_margin, frontier.y - safety_margin, frontier.z - safety_margin);
@@ -72,8 +72,8 @@ namespace rviz_interface
         marker.lifetime = ros::Duration();
         marker.ns = "frontier_safety_margin";
         marker.id = id;
-        build_cube_wire(marker, min, max, marker_pub);
-        marker_pub.publish(marker); 
+        build_cube_wire(marker, min, max);
+        marker_array.markers.push_back(marker);
     } 
 
     void publish_markerArray_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id)
@@ -84,7 +84,7 @@ namespace rviz_interface
         marker.lifetime = ros::Duration();
         marker.ns = "frontier_safety_margin";
         marker.id = id;
-        build_cube_wire(marker, min, max, marker_pub);
+        build_cube_wire(marker, min, max);
         visualization_msgs::MarkerArray marker_array;
         marker_array.markers.push_back(marker);
         marker_pub.publish(marker_array); 
@@ -171,12 +171,14 @@ namespace rviz_interface
         marker_pub.publish(marker);
     }
 
-    void publish_current_position(octomath::Vector3 & candidate, ros::Publisher const& marker_pub)
+    void publish_current_position(octomath::Vector3 & candidate, visualization_msgs::MarkerArray marker_array)
     {
         float red = 0.0f;
         float green = 1.0f;
         float blue = 1.0f;
-        publish_small_marker(candidate, marker_pub,red,  green,  blue, "current_position", 21);
+        visualization_msgs::Marker marker;
+        build_small_marker(candidate, marker, red, green, blue, "current_position", 21);
+        marker_array.markers.push_back(marker);
     }
 
     void publish_start(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)

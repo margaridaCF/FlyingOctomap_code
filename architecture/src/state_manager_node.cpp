@@ -32,8 +32,8 @@
 #include <path_planning_msgs/LTStarNodeStatus.h>
 
 
-#define SAVE_CSV 1
-#define SAVE_LOG 1
+// #define SAVE_CSV 1
+// #define SAVE_LOG 1
 
 
 namespace state_manager_node
@@ -526,15 +526,17 @@ namespace state_manager_node
                         geometry_msgs::Point current_position;
                         if(getUavPositionServiceCall(current_position))
                         {
-                            rviz_interface::publish_safety_margin(get_current_frontier(), state_data.frontiers_request.safety_margin, marker_pub, 102);
-                
+                            visualization_msgs::MarkerArray marker_array;
+                            rviz_interface::publish_safety_margin(get_current_frontier(), state_data.frontiers_request.safety_margin, marker_array, 102);
                             octomath::Vector3 current_position_v (current_position.x, current_position.y, current_position.z);
-                            rviz_interface::publish_current_position(current_position_v, marker_pub);
+                            rviz_interface::publish_current_position(current_position_v, marker_array);
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 goal (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                             askForObstacleAvoidingPath(start, goal, ltstar_request_pub);
                             state_data.exploration_state = waiting_path_response;
                             state_data.cycles_waited_for_path = 0;
+
+                            marker_pub.publish(marker_array);
                         }
                     }
                 }
@@ -608,7 +610,9 @@ namespace state_manager_node
     {
         if( state_data.exploration_state != finished_exploring) 
         {
-            rviz_interface::publish_geofence(geofence_min, geofence_max, marker_pub);
+            visualization_msgs::MarkerArray marker_array;
+            rviz_interface::publish_geofence(geofence_min, geofence_max, marker_array);
+            marker_pub.publish(marker_array);
             update_state(geofence_min, geofence_max);
         }
         else
@@ -667,7 +671,7 @@ int main(int argc, char **argv)
     // Topic publishers
     state_manager_node::ltstar_request_pub = nh.advertise<path_planning_msgs::LTStarRequest>("ltstar_request", 10);
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
-    state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("state_manager_viz", 1);
+    state_manager_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("state_manager_viz", 1);
 
 #ifdef SAVE_LOG
     state_manager_node::log_file.open (state_manager_node::folder_name+"/current/state_manager.log", std::ofstream::app);
