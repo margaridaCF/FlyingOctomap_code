@@ -122,10 +122,8 @@ namespace LazyThetaStarOctree
 
 int main(int argc, char **argv)
 {
-	LazyThetaStarOctree::folder_name = "/ros_ws/src/data/current";
 
 #ifdef STANDALONE
-	LazyThetaStarOctree::folder_name = "/home/mfaria/Flying_Octomap_code/src/data/";
 	auto timestamp_chrono = std::chrono::high_resolution_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     std::stringstream folder_name_stream;
@@ -136,10 +134,10 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef SAVE_CSV
-	ROS_WARN_STREAM("[main] Saving to " << LazyThetaStarOctree::folder_name << "/lazyThetaStar_computation_time.csv");
+	ROS_WARN_STREAM("[main] Saving to " << LazyThetaStarOctree::folder_name << "/current/lazyThetaStar_computation_time.csv");
 
 	std::ofstream csv_file;
-	csv_file.open (LazyThetaStarOctree::folder_name+"/lazyThetaStar_computation_time.csv", std::ofstream::app);
+	csv_file.open (LazyThetaStarOctree::folder_name+"/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 	csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,dataset_name" << std::endl;
 	csv_file.close();
 #endif

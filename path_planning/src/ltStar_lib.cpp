@@ -606,7 +606,7 @@ namespace LazyThetaStarOctree{
 		setVertex_time = 0;
 		updateVertex_time = 0;
 
-    	log_file.open(folder_name+"/lazyThetaStar.log", std::ios_base::app);
+    	log_file.open(folder_name+"/current/lazyThetaStar.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
 		auto start = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_time_secs);
@@ -705,7 +705,7 @@ namespace LazyThetaStarOctree{
 		int used_search_iterations = 0;
 		if(publish_input.publish)
 		{
-	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
+	    	log_file.open(folder_name + "/current/lazyThetaStar.log", std::ios_base::app);
 		}
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
@@ -916,7 +916,7 @@ namespace LazyThetaStarOctree{
 
 	void qualityCheck(octomap::OcTree const& octree, octomath::Vector3 const& disc_initial, octomath::Vector3 const& disc_final, double straigh_line_distance, double distance_total, bool has_flight_corridor_free,  std::list<octomath::Vector3> const&resulting_path, std::stringstream const& generated_path_distance_ss)
 	{
-    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
+    	log_file.open(folder_name + "/current/lazyThetaStar.log", std::ios_base::app);
 		std::stringstream to_log_file_ss;
 		if(straigh_line_distance > distance_total)
 		{
@@ -982,10 +982,10 @@ namespace LazyThetaStarOctree{
 		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), PublishingInput( publish_input.marker_pub, false), false);
 
 		qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
-		ROS_WARN_STREAM("[processLTStarRequest] Saving to " << folder_name << "/lazyThetaStar_computation_time.csv");
+		ROS_WARN_STREAM("[processLTStarRequest] Saving to " << folder_name << "/current/lazyThetaStar_computation_time.csv");
 
 		std::ofstream csv_file;
-		csv_file.open (folder_name+"/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		csv_file.open (folder_name+"/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
 		csv_file << millis.count();
@@ -1018,7 +1018,7 @@ namespace LazyThetaStarOctree{
 			to_log_file_ss << "Straight line length " << weightedDistance(disc_initial, disc_final);
 			to_log_file_ss <<  std::setprecision(2) << " from  " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" ;
 			to_log_file_ss <<  std::setprecision(2) << " to " << "(" << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
-    		log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);log_file << to_log_file_ss.str();
+    		log_file.open(folder_name + "/current/lazyThetaStar.log", std::ios_base::app);log_file << to_log_file_ss.str();
 	    	log_file.close();
 		}
 		else
@@ -1077,7 +1077,7 @@ namespace LazyThetaStarOctree{
 		updateVertex_time = 0;
 
 		std::ofstream log_file;
-    	log_file.open("/ros_ws/src/data/out.log", std::ios_base::app);
+    	log_file.open(folder_name+"/out.log", std::ios_base::app);
 		// octomath::Vector3 target_n(10.5, -5.5, 2.5);
 		auto start = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> max_search_time = std::chrono::duration<double>(max_time_secs);
@@ -1176,7 +1176,7 @@ namespace LazyThetaStarOctree{
 		int used_search_iterations = 0;
 		if(publish_input.publish)
 		{
-	    	log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
+	    	log_file.open(folder_name + "/current/lazyThetaStar.log", std::ios_base::app);
 		}
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do

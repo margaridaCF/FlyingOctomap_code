@@ -31,12 +31,15 @@
 #include <path_planning_msgs/LTStarRequest.h>
 #include <path_planning_msgs/LTStarNodeStatus.h>
 
+
 #define SAVE_CSV 1
 #define SAVE_LOG 1
 
 
 namespace state_manager_node
 {
+    // std::string folder_name = "/ros_ws/src/data";
+    std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
 
     struct Vector3Hash
     {
@@ -623,7 +626,7 @@ namespace state_manager_node
             double volume_meters = x * y * z;
             // WRITE
             std::ofstream csv_file;
-            csv_file.open ("/ros_ws/src/data/exploration_time.csv", std::ofstream::app);
+            csv_file.open (folder_name+"/exploration_time.csv", std::ofstream::app);
             csv_file << millis.count() << "," << volume_meters << "," << is_successfull_exploration << std::endl; 
             csv_file.close();
 #endif
@@ -641,9 +644,8 @@ int main(int argc, char **argv)
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     // std::string timestamp (std::put_time(std::localtime(&now_c), "%F %T") );
     std::stringstream folder_name_stream;
-    folder_name_stream << "/ros_ws/src/data/" << (std::put_time(std::localtime(&now_c), "%F %T") );
-    // std::string folder_name = "/ros_ws/src/data/" + (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::string sym_link_name = "/ros_ws/src/data/current";
+    folder_name_stream << state_manager_node::folder_name+"/" << (std::put_time(std::localtime(&now_c), "%F %T") );
+    std::string sym_link_name = state_manager_node::folder_name+"/current";
 
     boost::filesystem::create_directories(folder_name_stream.str());
     boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
@@ -668,13 +670,13 @@ int main(int argc, char **argv)
     state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("state_manager_viz", 1);
 
 #ifdef SAVE_LOG
-    state_manager_node::log_file.open ("/ros_ws/src/data/current/state_manager.log", std::ofstream::app);
+    state_manager_node::log_file.open (state_manager_node::folder_name+"/current/state_manager.log", std::ofstream::app);
 #endif
     state_manager_node::init_state_variables(state_manager_node::state_data);
 
 #ifdef SAVE_CSV
     std::ofstream csv_file;
-    csv_file.open ("/ros_ws/src/data/exploration_time.csv", std::ofstream::app);
+    csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
     // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
     csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
     csv_file.close();
