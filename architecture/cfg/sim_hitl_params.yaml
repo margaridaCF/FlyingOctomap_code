@@ -8,7 +8,7 @@ laser_angle: 0.872665
 
 odometry_error: 0
 
-offboard_enabled: false
+offboard_enabled: true
 frontier/safety_margin: 3
 
 geofence_min/x: -5
