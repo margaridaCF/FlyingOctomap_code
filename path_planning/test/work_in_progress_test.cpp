@@ -34,7 +34,7 @@ namespace LazyThetaStarOctree
 
 		ResultSet statistical_data;
 		std::vector<octomath::Vector3> planeOffsets;
-		generateRectanglePlaneIndexes(safety_margin, octree.getResolution(), planeOffsets);
+		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
 		InputData input( octree, disc_initial, disc_final, safety_margin);
 		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub), max_time_secs, true);
 		// NO PATH
@@ -73,9 +73,9 @@ namespace LazyThetaStarOctree
 	{
 		int max_time_secs= 120;
 		double safety_margin = 3;
-		octomap::OcTree octree ("data/from_-0.64_-0.0003_5_to_0.5_-2.5_6.5.bt");
-		octomath::Vector3 disc_initial(-0.680292, 0.000908941, 5.0156);
-		octomath::Vector3 disc_final  (-2.5, -3.5, 6.5);
+		octomap::OcTree octree ("data/from_-0.49_0.089_1.9_to_-8.5_-12_4.5.bt");
+		octomath::Vector3 disc_initial(-0.488766, 0.0890607, 1.91693);
+		octomath::Vector3 disc_final  (-8.5, -12.5, 4.5);
 		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final, max_time_secs, safety_margin);
 	}
 }
