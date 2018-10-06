@@ -221,12 +221,12 @@ namespace LazyThetaStarOctree{
 				if(publish_input.publish) 
 				{ 
 					// log_file << "[LTStar] 1 Has obstacles from " << input.start + offset << " to " << end + offset << std::endl ; 
-				 //  	rviz_interface::build_arrow_type(temp_start, temp_goal, marker_array, id_unreachable, true);
+				  	rviz_interface::build_arrow_type(temp_start, temp_goal, marker_array, id_unreachable, true);
 					// publish_input.marker_pub.publish(marker_array);
 				  	id_unreachable++; 
 				  
 				} 
-				// return CellStatus::kOccupied; 
+				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
 			{ 
@@ -234,10 +234,11 @@ namespace LazyThetaStarOctree{
 				{ 
 					// log_file << "[LTStar] 2 Has obstacles from " << end + offset << " to " << input.start + offset << std::endl ; 
 					rviz_interface::build_arrow_type(temp_goal, temp_start, marker_array, id_unreachable, true);
+
 					id_unreachable++;
 					publish_input.marker_pub.publish(marker_array);
 				} 
-				// return CellStatus::kOccupied; 
+				return CellStatus::kOccupied; 
 			}   
 			else 
 			{ 
@@ -664,7 +665,7 @@ namespace LazyThetaStarOctree{
 			// open.printNodes("========= Starting state of open ");
 			// ln 7 s := open.Pop();	
 			// [Footnote] open.Pop() removes a vertex with the smallest key from open and returns it
-			if(publish_input.publish && print_resulting_path)
+			if(publish_input.publish)
 			{
 				open.printNodes(" ========== Before pop ========== ", log_file);
 			}
@@ -682,12 +683,12 @@ namespace LazyThetaStarOctree{
 			resultSet.addOcurrance(s->cell_size);
 			unordered_set_pointers neighbors;
 
-			auto start_count = std::chrono::high_resolution_clock::now();
+			// auto start_count = std::chrono::high_resolution_clock::now();
 			generateNeighbors_filter_pointers(neighbors, *(s->coordinates), s->cell_size, resolution, input.octree);
 
-			auto finish_count = std::chrono::high_resolution_clock::now();
-			auto time_span = finish_count - start_count;
-			generate_neighbors_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
+			// auto finish_count = std::chrono::high_resolution_clock::now();
+			// auto time_span = finish_count - start_count;
+			// generate_neighbors_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
 			// ln 8 SetVertex(s);
 			// It is it's own parent, this happens on the first node when the initial position is the center of the voxel (by chance)
 			if(s->hasSameCoordinates(s->parentNode, resolution ) == false)
@@ -705,8 +706,11 @@ namespace LazyThetaStarOctree{
 				// ln 10 return "path found"
 				solution_found = true;
 				solution_end_node = s;
-				ROS_WARN_STREAM("[Vanilla] at iteration " << used_search_iterations << " open size is " << open.size() );
-				// ROS_WARN_STREAM( "Solution end node:" << *s << " == " << *disc_final_cell_center );
+				if(publish_input.publish)
+				{
+					log_file  << "[Ortho] at iteration " << used_search_iterations << " open size is " << open.size() << std::endl;
+					log_file  << "Solution end node:" << *s << " == " << *disc_final_cell_center ;
+				}
 				continue;
 			}
 			// ln 11 closed := closed U {s}
@@ -718,12 +722,6 @@ namespace LazyThetaStarOctree{
 				rviz_interface::publish_closed(*(s->coordinates), publish_input.marker_pub);
 			}
 #endif
-			// if(publish_input.publish && print_resulting_path)
-			// {
-			// 	log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
-				
-				// writeToFileWaypoint(*(s->coordinates), s->cell_size, "closed");
-			// }
 
 			// TODO check code repetition to go over the neighbors of s
 			double cell_size = 0;
@@ -875,7 +873,7 @@ namespace LazyThetaStarOctree{
 		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 #endif
 	    std::stringstream octomap_name_stream;
-		octomap_name_stream << std::setprecision(2) << folder_name << "/from_" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << "_to_"<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ".bt";
+		octomap_name_stream << std::setprecision(2) << folder_name << "/current/from_" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << "_to_"<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ".bt";
 			octree.writeBinary(octomap_name_stream.str());
 		InputData input (octree, disc_initial, disc_final, request.safety_margin);
 		resulting_path = lazyThetaStar_( input, statistical_data, sidelength_lookup_table, publish_input, request.max_time_secs, true);

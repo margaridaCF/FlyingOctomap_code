@@ -11,14 +11,14 @@ odometry_error: 0
 offboard_enabled: true
 frontier/safety_margin: 3
 
-geofence_min/x: -5
-geofence_max/x: 15
+geofence_min/x: -55
+geofence_max/x: 55
 
-geofence_min/y: -10
-geofence_max/y: 10
+geofence_min/y: -40
+geofence_max/y: 40
 
-geofence_min/z: 5
-geofence_max/z: 15
+geofence_min/z: 2
+geofence_max/z: 60
 
 path/max_time_secs: 120
 path/max_cycles_waited_for_path: 50

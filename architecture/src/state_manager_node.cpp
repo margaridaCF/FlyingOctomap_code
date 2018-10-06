@@ -475,7 +475,7 @@ namespace state_manager_node
                     geometry_msgs::Pose waypoint;
                     waypoint.position.x = current_position.x;
                     waypoint.position.y = current_position.y;
-                    waypoint.position.z = geofence_max.z();
+                    waypoint.position.z = std::min(geofence_max.z(), 30.f);
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.position.x = current_position.x;
