@@ -304,9 +304,6 @@ namespace LazyThetaStarOctree{
 		double resolution = 0.5;
 
 		// On initialization		
-
-	// Eigen::MatrixXd  startOffsets;
-	// Eigen::MatrixXd  goalOffsets;
 		generateOffsets(margin, resolution, dephtZero, dephtZero );
 		
 		// For each start and goal
@@ -314,63 +311,8 @@ namespace LazyThetaStarOctree{
 		Eigen::MatrixXd transformation_matrix = generateRotationTranslationMatrix(coordinate_frame, start);
 		Eigen::MatrixXd points_around_start = transformation_matrix * startOffsets;
 
-	 //    for (int i = 0; i < startOffsets.cols(); ++i)
-	 //    {
-	 //    	Eigen::Vector3d point (points_around_start(0, i), points_around_start(1, i), points_around_start(2, i));
-	 //    	EXPECT_TRUE ( correct[i].isApprox(point, 0.00001) ) << "Correct: " << correct[i] << " - But computed instead: " << point ;
-	 //    }
 	}
 
-
-	// TEST(OrthogonalPlanesTest, rotationTranslation_v2)
-	// {
-	// 	//ARRANGE
-	// 	std::vector<Eigen::Vector3d> correct;
-	// 	correct.emplace(correct.end(), 0.166708,  3.00011,  39.9914);
-	// 	correct.emplace(correct.end(), -0.333, 2.99967, 39.9744);
-	// 	correct.emplace(correct.end(), -0.832708, 2.99923, 39.9573);
-	// 	correct.emplace(correct.end(), 0.666417, 2.50071, 40.0213);
-	// 	correct.emplace(correct.end(), 0.166708, 2.50027, 40.0043);
-	// 	correct.emplace(correct.end(), -0.333, 2.49984, 39.9872);
-	// 	correct.emplace(correct.end(), -0.832708, 2.4994, 39.9701);
-	// 	correct.emplace(correct.end(), -1.33242, 2.49896, 39.953);
-	// 	correct.emplace(correct.end(), 0.666417, 2.00088, 40.0341);
-	// 	correct.emplace(correct.end(), 0.166708, 2.00044, 40.0171);
-	// 	correct.emplace(correct.end(), -0.333, 2, 40);
-	// 	correct.emplace(correct.end(), -0.832708, 1.99956, 39.9829);
-	// 	correct.emplace(correct.end(), -1.33242, 1.99912, 39.9659);
-	// 	correct.emplace(correct.end(), 0.666417, 1.50104, 40.047);
-	// 	correct.emplace(correct.end(), 0.166708, 1.5006, 40.0299);
-	// 	correct.emplace(correct.end(), -0.333, 1.50016, 40.0128);
-	// 	correct.emplace(correct.end(), -0.832708, 1.49973, 39.9957);
-	// 	correct.emplace(correct.end(), -1.33242, 1.49929, 39.9787);
-	// 	correct.emplace(correct.end(), 0.166708, 1.00077, 40.0427);
-	// 	correct.emplace(correct.end(), -0.333, 1.00033, 40.0256);
-	// 	correct.emplace(correct.end(), -0.832708, 0.999891, 40.0086);
-
-	// 	// Initial conditions
-	// 	octomath::Vector3 start (-0.333, 2, 40 );
-	// 	octomath::Vector3 goal (1, 1, 1);
-	// 	double margin = 1;
-	// 	double resolution = 0.5;
-		
-	// 	// ACT
-	// 	// On initialization	
-	// Eigen::MatrixXd  startOffsets;
-	// Eigen::MatrixXd  goalOffsets;	
-	// 	generateOffsets(margin, resolution, dephtZero, dephtZero);
-	// 	// For each start and goal
-	// 	CoordinateFrame coordinate_frame = generateCoordinateFrame(start, goal);
-	// 	Eigen::MatrixXd transformation_matrix = generateRotationTranslationMatrix(coordinate_frame, start);
-	// 	Eigen::MatrixXd points_around_start = transformation_matrix * startOffsets;
-
-	// 	// ASSERT
-	//     for (int i = 0; i < startOffsets.cols(); ++i)
-	//     {
-	//     	Eigen::Vector3d point (points_around_start(0, i), points_around_start(1, i), points_around_start(2, i));
-	//     	EXPECT_TRUE ( correct[i].isApprox(point, 0.00001) ) << i << " - Correct: " << correct[i] << " - But computed instead: " << point ;
-	//     }
-	// }
 }
 
 int main(int argc, char **argv){

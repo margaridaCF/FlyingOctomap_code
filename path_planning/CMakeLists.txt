@@ -88,11 +88,11 @@ if (CATKIN_ENABLE_TESTING)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib_ortho)
 
-  # ## Lazy Theta Star @ orthogonal planes ##
-  # catkin_add_gtest(orthogonalPlanesTests 
-  #   test/orthogonal_planes_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(orthogonalPlanesTests ${catkin_LIBRARIES} ltStar_lib)
+  ## Lazy Theta Star @ orthogonal planes ##
+  catkin_add_gtest(orthogonalPlanesTests 
+    test/orthogonal_planes_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(orthogonalPlanesTests ${catkin_LIBRARIES} ltStar_lib_ortho)
 
   # ## Octree @ depth and size ##
   # catkin_add_gtest(depthSizeTest 
@@ -101,17 +101,22 @@ if (CATKIN_ENABLE_TESTING)
   # target_link_libraries(depthSizeTest ${catkin_LIBRARIES} ltStar_lib)
 
 
-  # ## Lazy Theta Star @ open ##
-  # catkin_add_gtest(openTests 
-  #   test/open_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(openTests ${catkin_LIBRARIES} ltStar_lib)
+  ## Lazy Theta Star @ open ##
+  catkin_add_gtest(openTests 
+    test/open_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(openTests ${catkin_LIBRARIES} )
 
-  # # Lazy Theta Star ##
-  # catkin_add_gtest(ltstarTests_ortho 
-  #   test/orthogonal_planes_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarTests_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  # Lazy Theta Star ##
+  catkin_add_gtest(ltstarTests_ortho 
+    test/orthogonal_planes_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarTests_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  
+  catkin_add_gtest(ltstarOrthoTests 
+    test/lazyTheta_tests_ortho.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarOrthoTests ${catkin_LIBRARIES} ltStar_lib_ortho)
   # catkin_add_gtest(ltstarTests 
   #   test/lazyTheta_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
