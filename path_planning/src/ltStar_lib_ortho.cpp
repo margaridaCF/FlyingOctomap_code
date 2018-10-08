@@ -294,7 +294,7 @@ namespace LazyThetaStarOctree{
 		// //  -> will leave this for if implementation is not fast enough
 		// ln 35 if NOT lineofsight(parent(s), s) then
 		// Path 1 by considering the path from s_start to each expanded visible neighbor s′′ of s′
-		if(    !is_flight_corridor_free( InputData( octree, *(s->coordinates), *(s->parentNode->coordinates), safety_margin ), publish_input, ignoreUnknown  )   )
+		if(    !is_flight_corridor_free( InputData( octree, *(s->parentNode->coordinates), *(s->coordinates), safety_margin ), publish_input, ignoreUnknown  )   )
 		{
 			// g(s)		= length of the shortest path from the start vertex to s found so far.
 			// c(s,s') 	= straight line distance between vertices s and s'	
