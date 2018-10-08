@@ -171,6 +171,7 @@ namespace LazyThetaStarOctree{
                 toAdd = getCellCenter(toAdd, octree);
             }
             catch (const std::out_of_range& oor) {
+                ROS_ERROR_STREAM("addSparseNeighbor out_of_range");
             }
         }
         addIfUniqueValue(neighbors, toAdd);

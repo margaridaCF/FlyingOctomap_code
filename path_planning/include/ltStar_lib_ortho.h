@@ -66,7 +66,6 @@ namespace LazyThetaStarOctree{
 		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
 		Open 													& 		open, 
 		unordered_set_pointers									const& 	neighbors,
-		std::ofstream 											& log_file,
 		PublishingInput 										const& publish_input, 
 		const double sidelength_lookup_table[],
 		bool ignoreUnknown = false);

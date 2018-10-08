@@ -36,7 +36,7 @@ namespace LazyThetaStarOctree
 		std::vector<octomath::Vector3> planeOffsets;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
 		InputData input( octree, disc_initial, disc_final, safety_margin);
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub), max_time_secs, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub, true), max_time_secs, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
