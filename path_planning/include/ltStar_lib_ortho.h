@@ -46,10 +46,8 @@ namespace LazyThetaStarOctree{
 	double scale_float						(float value);
 	CellStatus 	getLineStatus 				(InputData const& input);
 	CellStatus 	getLineStatusBoundingBox	(InputData const& input);
-	bool 		hasLineOfSight				(InputData const& input, bool ignoreUnknown = false);
 	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown = false);
 	float 		weightedDistance			(octomath::Vector3 const& start, octomath::Vector3 const& end);
-	bool 		normalizeToVisibleEndCenter (octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], bool ignoreUnknownF = false);
 	void generateOffsets(double resolution, double safety_margin, double (*startDepthGenerator)(double, double, double), double (*goalDepthGenerator)(double, double, double) );
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.

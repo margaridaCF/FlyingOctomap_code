@@ -252,18 +252,6 @@ namespace LazyThetaStarOctree{
 		return free;
 	}
 
-	bool normalizeToVisibleEndCenter(octomap::OcTree const& octree, std::shared_ptr<octomath::Vector3> const& start, std::shared_ptr<octomath::Vector3> & end, double& cell_size, const double safety_margin, PublishingInput const& publish_input, const double sidelength_lookup_table[], bool ignoreUnknown)
-	{
-		auto res_node = octree.search(end->x(), end->y(), end->z());
-		if(!res_node)
-		{
-			// log_file << " [N] " << *(end) << " does not correspond to a node in this octree  ==> this neighbor is unknown" << std::endl;
-			return false;
-		}
-		updatePointerToCellCenterAndFindSize(end, octree, cell_size, sidelength_lookup_table);
-		return is_flight_corridor_free( InputData(octree, *start, *end, safety_margin ), publish_input, ignoreUnknown);
-	}
-
 	
 	/**
 	 * @brief      Set vertex portion of pseudo code, ln 34.
@@ -315,7 +303,8 @@ namespace LazyThetaStarOctree{
 			{
 				try
 				{
-					if(!normalizeToVisibleEndCenter(octree, s->coordinates, n_coordinates, cell_size, safety_margin, publish_input, sidelength_lookup_table, ignoreUnknown))
+
+					if( ! is_flight_corridor_free( InputData( octree, *(s->coordinates), *n_coordinates, safety_margin ), publish_input, ignoreUnknown  ) )
 					{
 						// auto res_node = octree.search(*n_coordinates);
 						// if(res_node == NULL)
@@ -710,9 +699,11 @@ namespace LazyThetaStarOctree{
 			{
 				// Find minimum value for those with visibility and that it is in closed
 				bool ignoreUnknown = weightedDistance(*n_coordinates, cell_center_coordinates_goal) < input.margin;
-				if(!normalizeToVisibleEndCenter(input.octree, s->coordinates, n_coordinates, cell_size, input.margin, publish_input, sidelength_lookup_table, ignoreUnknown))
+
+
+				if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input, ignoreUnknown) )
 				{
-					// Unknown neighbor, treat as obstacle
+					log_file << "  [N] " << *n_coordinates << " has obstacle." << std::endl;
 					continue;
 				}
 				// ln 13 if s' !€ closed then
@@ -722,6 +713,10 @@ namespace LazyThetaStarOctree{
 					// ln 14 if s' !€ open then
 					if( !open.existsInMap(*n_coordinates) )
 					{
+						octomap::OcTreeKey key = input.octree.coordToKey(*n_coordinates);
+			            int depth = getNodeDepth_Octomap(key, input.octree);
+			            cell_size = findSideLenght(input.octree.getTreeDepth(), depth, sidelength_lookup_table);
+
 						// ln 15 g(s') := infinity;
 						double g_distanceFromInitialPoint = std::numeric_limits<double>::max();
 						// ln 16 parent(s') := NULL;
