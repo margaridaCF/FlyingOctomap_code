@@ -164,7 +164,7 @@ namespace LazyThetaStarOctree{
     {
         octomath::Vector3 toAdd (x, y, z);
         auto res_node = octree.search(x, y, z);
-        if(res_node)
+        if(res_node) // Non zero is true
         {
             try
             {
@@ -173,8 +173,8 @@ namespace LazyThetaStarOctree{
             catch (const std::out_of_range& oor) {
                 ROS_ERROR_STREAM("addSparseNeighbor out_of_range");
             }
+            addIfUniqueValue(neighbors, toAdd);
         }
-        addIfUniqueValue(neighbors, toAdd);
     }
 
 
