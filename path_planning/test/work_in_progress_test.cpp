@@ -11,12 +11,15 @@
 
 namespace LazyThetaStarOctree
 {
-	void testStraightLinesForwardNoObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_time_secs = 55, double safety_margin = 0.1)
+	void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
+		int const& max_time_secs = 55, double safety_margin = 2)
 	{
-		double sidelength_lookup_table  [octree.getTreeDepth()];
-	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ros::Publisher marker_pub;
+		ResultSet statistical_data;
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+		InputData input( octree, disc_initial, disc_final, safety_margin);
+	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
 		
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
@@ -26,16 +29,9 @@ namespace LazyThetaStarOctree
 		octomap::OcTreeNode* finalNode = octree.search(disc_final);
 		ASSERT_TRUE(finalNode) << "Final node in unknown space";
 		ASSERT_FALSE(octree.isNodeOccupied(finalNode));
-		// The path is clear from start to finish
-		octomath::Vector3 direction (1, 0, 0);
-		octomath::Vector3 end;
-		bool isOccupied = octree.castRay(disc_initial, direction, end, false, weightedDistance(disc_initial, disc_final));
-		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
+		// The path is clear from start to finish  
+		ASSERT_FALSE( hasLineOfSight(input) ) << "This is a test with obstacles but there are none.";
 
-		ResultSet statistical_data;
-		std::vector<octomath::Vector3> planeOffsets;
-		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-		InputData input( octree, disc_initial, disc_final, safety_margin);
 		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub, true), max_time_secs, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
@@ -69,15 +65,53 @@ namespace LazyThetaStarOctree
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 	}
 
-	TEST(LazyThetaStarTests, LazyThetaStar_CoreDumped_Test)
+	// TEST(LazyThetaStarTests, ObstaclePath_10m_Test_16)
+	// {
+		
+	//     octomath::Vector3 disc_initial(0, 5, 1.5); 
+	//     octomath::Vector3 disc_final  (2, -5, 1.5); 
+	//     octomap::OcTree octree ("data/run_2.bt");
+	//     std::string dataset_name = "run 2";
+	//     testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 1000, 1.6);
+	// }
+
+	TEST(LazyThetaStarTests, ObstaclePath_BadNode_2)
 	{
-		int max_time_secs= 120;
-		double safety_margin = 3;
-		octomap::OcTree octree ("data/from_-0.49_0.089_1.9_to_-8.5_-12_4.5.bt");
-		octomath::Vector3 disc_initial(-0.488766, 0.0890607, 1.91693);
-		octomath::Vector3 disc_final  (-8.5, -12.5, 4.5);
-		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final, max_time_secs, safety_margin);
+		// s node (-16.5 27.5 30.5) has no line of sight with the current parent (-22 10 6)(path 2)  and node of the neighbors are visible either (path 1). 
+		// (-17 27 29) path 1
+	    octomath::Vector3 disc_initial(-21.7403, 8.64695, 4.5147); 
+	    octomath::Vector3 disc_final  (-0.5, 13.5, 10.5); 
+	    octomap::OcTree octree ("data/from_-22_8.6_4.5_to_-0.5_14_10_noPath1.bt");
+	    std::string dataset_name = "run 2";
+	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 120, 3);
 	}
+
+
+	// TEST(LazyThetaStarTests, LazyThetaStar_AddingBadNode)
+	// {
+	// 	ros::Publisher marker_pub;
+	// 	// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
+	// 	octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+	// 	double sidelength_lookup_table  [octree.getTreeDepth()];
+	//    	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+	// 	path_planning_msgs::LTStarRequest request;
+	// 	request.header.seq = 2;
+	// 	request.request_id = 3;
+	// 	request.start.x = -10.3054;
+	// 	request.start.y = -18.2637;
+	// 	request.start.z = 2.34813;
+	// 	request.goal.x = -8.5;
+	// 	request.goal.y = 6.5;
+	// 	request.goal.z = 3.5;
+	// 	request.max_time_secs = 500;
+	// 	request.safety_margin = 0.5;
+	// 	path_planning_msgs::LTStarReply reply;
+	// 	generateOffsets(octree.getResolution(), request.safety_margin, dephtZero, semiSphereOut );
+	// 	processLTStarRequest(octree, request, reply, sidelength_lookup_table, marker_pub);
+	// 	ASSERT_TRUE(reply.success);
+	// 	ASSERT_GT(reply.waypoint_amount, 2);
+	// 	ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+	// }
 }
 
 int main(int argc, char **argv){

@@ -366,6 +366,7 @@ namespace LazyThetaStarOctree{
 		request.max_time_secs = 500;
 		request.safety_margin = 0.5;
 		path_planning_msgs::LTStarReply reply;
+		generateOffsets(octree.getResolution(), request.safety_margin, dephtZero, semiSphereOut );
 		processLTStarRequest(octree, request, reply, sidelength_lookup_table, marker_pub);
 		ASSERT_TRUE(reply.success);
 		ASSERT_GT(reply.waypoint_amount, 2);
