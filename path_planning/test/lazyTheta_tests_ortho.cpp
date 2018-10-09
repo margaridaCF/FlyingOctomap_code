@@ -244,23 +244,26 @@ namespace LazyThetaStarOctree{
 		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final, 100);
 	}
 
-	// // commenting out because checking voxel status by key lookup indentifies more unknown cells and this is not a straight path anymore
-	// TEST(LazyThetaStarTests, LazyThetaStar_Long_Test)
-	// {
-	// 	// (-6.900000095 -2.5 0.5) to (-5.900000095 -2.5 0.5)
-	// 	octomap::OcTree octree ("data/offShoreOil_1m.bt");
-	// 	octomath::Vector3 disc_initial(-6.900000095, -2.5, 0.5);
-	// 	octomath::Vector3 disc_final  (-5.900000095, -2.5, 0.5);
-	// 	testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
-	// }
+	// commenting out because checking voxel status by key lookup indentifies more unknown cells and this is not a straight path anymore
+	TEST(LazyThetaStarTests, LazyThetaStar_Long_Test)
+	{
+		// (-6.900000095 -2.5 0.5) to (-5.900000095 -2.5 0.5)
+		octomap::OcTree octree ("data/offShoreOil_1m.bt");
+		octomath::Vector3 disc_initial(-6.900000095, -2.5, 0.5);
+		octomath::Vector3 disc_final  (-5.900000095, -2.5, 0.5);
+		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
+	}
 	
-	void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
+void testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_time_secs = 55, double safety_margin = 2)
 	{
-
-		double sidelength_lookup_table  [octree.getTreeDepth()];
-	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		ros::Publisher marker_pub;
+		ResultSet statistical_data;
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+		PublishingInput publish_input( marker_pub, true);
+		InputData input( octree, disc_initial, disc_final, safety_margin);
+	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
 		
 		// Initial node is not occupied
 		octomap::OcTreeNode* originNode = octree.search(disc_initial);
@@ -270,16 +273,10 @@ namespace LazyThetaStarOctree{
 		octomap::OcTreeNode* finalNode = octree.search(disc_final);
 		ASSERT_TRUE(finalNode) << "Final node in unknown space";
 		ASSERT_FALSE(octree.isNodeOccupied(finalNode));
-		// The path is clear from start to finish
-		octomath::Vector3 direction (1, 0, 0);
-		octomath::Vector3 end;
-		bool isOccupied = octree.castRay(disc_initial, direction, end, false, weightedDistance(disc_initial, disc_final));
-		ASSERT_FALSE(isOccupied); // false if the maximum range or octree bounds are reached, or if an unknown node was hit.
+		// The path is clear from start to finish  
+		ASSERT_FALSE( is_flight_corridor_free	(input, publish_input, false) ) << "This is a test with obstacles but there are none.";
 
-		ResultSet statistical_data;
-		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-		InputData input( octree, disc_initial, disc_final, safety_margin);
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub, true), max_time_secs, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, publish_input, max_time_secs, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -454,6 +451,31 @@ namespace LazyThetaStarOctree{
 	}
 
 	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_merge_4)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+		octomath::Vector3 start(-10.5, -13.5, 3.5);
+		octomath::Vector3 end(-10.5, -12.5, 3.5);
+		double safety_margin = 0;
+		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub) );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub) );
+		ASSERT_EQ(start_to_end, end_to_start);
+	}
+
+	
+
+	TEST(LazyThetaStarTests, ObstaclePath_10m_Test_16) // Solved
+	{
+		
+	    octomath::Vector3 disc_initial(0, 5, 1.5); 
+	    octomath::Vector3 disc_final  (2, -5, 1.5); 
+	    octomap::OcTree octree ("data/run_2.bt");
+	    std::string dataset_name = "run 2";
+	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 60, 1.6);
+	}
+
+	TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_merge_4) // Solved
 	{
 		ros::Publisher marker_pub;
 		octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
