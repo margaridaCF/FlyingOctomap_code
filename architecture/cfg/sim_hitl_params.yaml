@@ -1,24 +1,25 @@
 exploration_maneuver_duration_secs: 18
 exploration_maneuver_phases_duration_secs: 5
-px4_loiter_radius: 0.5
+px4_loiter_radius: 1
 px4/flight_speed: 3
+px4/yaw_rate: 100
 offboard_enabled: true
 laser_range: 9.5
 laser_angle: 0.872665
 
-odometry_error: 0
+odometry_error: 0.1
 
 offboard_enabled: true
 frontier/safety_margin: 3
 
-geofence_min/x: -55
+geofence_min/x: -30
 geofence_max/x: 55
 
-geofence_min/y: -40
-geofence_max/y: 40
+geofence_min/y: -20
+geofence_max/y: 50
 
 geofence_min/z: 2
-geofence_max/z: 60
+geofence_max/z: 70
 
 path/max_time_secs: 120
 path/max_cycles_waited_for_path: 50
@@ -36,5 +37,5 @@ scan_filter_chain:
     lower_threshold: 0
     upper_threshold: 200000
     lower_range_threshold: 0.7
-    upper_range_threshold: 15
-    upper_replacement_value: 16
+    upper_range_threshold: 50
+    upper_replacement_value: 51

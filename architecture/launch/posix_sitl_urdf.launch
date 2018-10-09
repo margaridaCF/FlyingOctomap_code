@@ -62,7 +62,7 @@
         <remap from="cloud_in" to="/free_cloud" />
         <param name="latch"                     value="false" />
         <param name="publish_free_space"        value="true"/>
-        <param name="sensor_model/max_range"    value="15"/>
+        <param name="sensor_model/max_range"    value="50"/>
         
         <param name="sensor_model/hit"          value="0.74"/>
         <param name="sensor_model/miss"         value="0.48464"/>
