@@ -303,8 +303,10 @@ namespace LazyThetaStarOctree{
 			{
 				try
 				{
-
-					if( ! is_flight_corridor_free( InputData( octree, *(s->coordinates), *n_coordinates, safety_margin ), publish_input, ignoreUnknown  ) )
+					// Here the rule parent -> s -> neighbor for line of sight is not followed
+					// Because when we are looking for path 1, we are replicating the test that was made to do open.insert
+					//     at this point the neighbor was the current s
+					if( ! is_flight_corridor_free( InputData( octree, *n_coordinates, *(s->coordinates), safety_margin ), publish_input, ignoreUnknown  ) )
 					{
 						// auto res_node = octree.search(*n_coordinates);
 						// if(res_node == NULL)

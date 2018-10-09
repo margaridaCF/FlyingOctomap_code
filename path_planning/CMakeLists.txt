@@ -107,12 +107,6 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(openTests ${catkin_LIBRARIES} )
 
-  # # Lazy Theta Star ##
-  # catkin_add_gtest(ltstarTests_ortho 
-  #   test/orthogonal_planes_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarTests_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
-  
   # catkin_add_gtest(ltstarOrthoTests 
   #   test/lazyTheta_tests_ortho.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)

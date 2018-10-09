@@ -17,6 +17,7 @@ namespace LazyThetaStarOctree
 		ros::Publisher marker_pub;
 		ResultSet statistical_data;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
+		PublishingInput publish_input( marker_pub, true);
 		InputData input( octree, disc_initial, disc_final, safety_margin);
 	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
@@ -30,9 +31,9 @@ namespace LazyThetaStarOctree
 		ASSERT_TRUE(finalNode) << "Final node in unknown space";
 		ASSERT_FALSE(octree.isNodeOccupied(finalNode));
 		// The path is clear from start to finish  
-		ASSERT_FALSE( hasLineOfSight(input) ) << "This is a test with obstacles but there are none.";
+		ASSERT_FALSE( is_flight_corridor_free	(input, publish_input, false) ) << "This is a test with obstacles but there are none.";
 
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub, true), max_time_secs, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, publish_input, max_time_secs, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -65,17 +66,30 @@ namespace LazyThetaStarOctree
 		ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
 	}
 
-	// TEST(LazyThetaStarTests, ObstaclePath_10m_Test_16)
+	// TEST(LazyThetaStarTests, ObstaclePath_10m_Test_16) // Solved
 	// {
 		
 	//     octomath::Vector3 disc_initial(0, 5, 1.5); 
 	//     octomath::Vector3 disc_final  (2, -5, 1.5); 
 	//     octomap::OcTree octree ("data/run_2.bt");
 	//     std::string dataset_name = "run 2";
-	//     testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 1000, 1.6);
+	//     testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 60, 1.6);
 	// }
 
-	TEST(LazyThetaStarTests, ObstaclePath_BadNode_2)
+	// TEST(LazyThetaStarTests, LazyThetaStar_corridorFree_merge_4) // Solved
+	// {
+	// 	ros::Publisher marker_pub;
+	// 	octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
+	// 	octomath::Vector3 start(-10.5, -13.5, 3.5);
+	// 	octomath::Vector3 end(-10.5, -12.5, 3.5);
+	// 	double safety_margin = 0;
+	// 	generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
+	// 	bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub) );
+	// 	bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub) );
+	// 	ASSERT_EQ(start_to_end, end_to_start);
+	// }
+
+	TEST(LazyThetaStarTests, ObstaclePath_BadNode_2) // No solution 60
 	{
 		// s node (-16.5 27.5 30.5) has no line of sight with the current parent (-22 10 6)(path 2)  and node of the neighbors are visible either (path 1). 
 		// (-17 27 29) path 1
@@ -86,32 +100,24 @@ namespace LazyThetaStarOctree
 	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 120, 3);
 	}
 
-
-	// TEST(LazyThetaStarTests, LazyThetaStar_AddingBadNode)
+	// TEST(LazyThetaStarTests, ObstaclePath_NoSolution) // No solution at all
 	// {
-	// 	ros::Publisher marker_pub;
-	// 	// (0.420435 0.313896 1.92169) to (-2.5 -10.5 3.5)
-	// 	octomap::OcTree octree ("data/(-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt");
-	// 	double sidelength_lookup_table  [octree.getTreeDepth()];
-	//    	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-	// 	path_planning_msgs::LTStarRequest request;
-	// 	request.header.seq = 2;
-	// 	request.request_id = 3;
-	// 	request.start.x = -10.3054;
-	// 	request.start.y = -18.2637;
-	// 	request.start.z = 2.34813;
-	// 	request.goal.x = -8.5;
-	// 	request.goal.y = 6.5;
-	// 	request.goal.z = 3.5;
-	// 	request.max_time_secs = 500;
-	// 	request.safety_margin = 0.5;
-	// 	path_planning_msgs::LTStarReply reply;
-	// 	generateOffsets(octree.getResolution(), request.safety_margin, dephtZero, semiSphereOut );
-	// 	processLTStarRequest(octree, request, reply, sidelength_lookup_table, marker_pub);
-	// 	ASSERT_TRUE(reply.success);
-	// 	ASSERT_GT(reply.waypoint_amount, 2);
-	// 	ASSERT_EQ(0, ThetaStarNode::OustandingObjects());
+	//     octomath::Vector3 disc_initial(0.0463786, 0.0995141, 1.92746); 
+	//     octomath::Vector3 disc_final  (-34.5, -38.5, 6.5); 
+	//     octomap::OcTree octree ("data/from_-0.53_-0.27_1.9_to_-38_-38_4.5_noSolution.bt");
+	//     std::string dataset_name = "run 2";
+	//     testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 60, 3);
 	// }
+
+	TEST(LazyThetaStarTests, ObstaclePath_BadNode_3)//  No solution 60
+	{
+	    octomath::Vector3 disc_initial(-10.6757, 27.9446, 7.54406); 
+	    octomath::Vector3 disc_final  (-19.5, 38.5, 4.5); 
+	    octomap::OcTree octree ("data/from_-11_28_7.5_to_-20_38_4.5_noPath1.bt");
+	    std::string dataset_name = "from_-11_28_7.5_to_-20_38_4.5_noPath1";
+	    testStraightLinesForwardWithObstacles(octree, disc_initial, disc_final, 120, 3);
+	}
+
 }
 
 int main(int argc, char **argv){
