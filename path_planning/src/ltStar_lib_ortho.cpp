@@ -218,11 +218,13 @@ namespace LazyThetaStarOctree{
 			if(hasLineOfSight( InputData( input.octree, temp_start, temp_goal, input.margin), ignoreUnknown) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
+				obstacle_hit_count++;
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
+				obstacle_hit_count++;
 				return CellStatus::kOccupied; 
 			}   
 			// else
@@ -396,6 +398,7 @@ namespace LazyThetaStarOctree{
 		{
 			if( current->parentNode == NULL )
 			{
+				log_file << "[ERROR]  The node with no parent is " << *current << std::endl;
 				ROS_ERROR_STREAM("The node with no parent is " << *current);
 				return false;
 			}
@@ -412,6 +415,7 @@ namespace LazyThetaStarOctree{
 			safety_count++;
 			if(safety_count >= max_steps_count)
 			{
+				log_file << "[ERROR]  Possible recursion in generated path detected while extracted path. Full path trunkated at node "<< max_steps_count << std::endl;
 				ROS_ERROR_STREAM("Possible recursion in generated path detected while extracted path. Full path trunkated at node "<< max_steps_count);
 				success = false;
 				break;
@@ -440,6 +444,7 @@ namespace LazyThetaStarOctree{
 	{ 
 		if(s.parentNode == NULL)
 		{
+			log_file << "[ERROR] Parent node of s (" << s << ") is null. @ CalculateCost" << std::endl;
 			ROS_ERROR_STREAM("Parent node of s (" << s << ") is null. @ CalculateCost");
 		}
 		float g_parent_s =  s.parentNode->distanceFromInitialPoint;
@@ -526,6 +531,7 @@ namespace LazyThetaStarOctree{
 		int const& max_time_secs,
 		bool print_resulting_path)
 	{
+		obstacle_hit_count = 0;
 		int generate_neighbors_time = 0;
 		obstacle_avoidance_time = 0;
 		obstacle_avoidance_calls = 0;
@@ -540,11 +546,13 @@ namespace LazyThetaStarOctree{
 		if (!isExplored(input.start, input.octree))
 		{
 			ROS_ERROR_STREAM("[LTStar] Start " << input.start << " is unknown.");
+			log_file << "[ERROR] " << "[LTStar] Start " << input.start << " is unknown." << std::endl;
 			return path;	
 		} 
 		if (!isExplored(input.goal, input.octree))
 		{
 			ROS_ERROR_STREAM("[LTStar] Goal " << input.goal << " is unknown.");
+			log_file << "[ERROR] " << "[LTStar] Goal " << input.goal << " is unknown." << std::endl;
 			return path;	
 		} 
 		
@@ -668,6 +676,7 @@ namespace LazyThetaStarOctree{
 				if (!setVertex(input.octree, s, closed, open, neighbors, input.margin, publish_input, sidelength_lookup_table, ignoreUnknown))
 				{
 					input.octree.writeBinaryConst(folder_name + "/octree_noPath1s.bt");
+					log_file << "[ERROR] no neighbor of " << *s << " had line of sight. Start " << input.start << " goal " << input.goal << std::endl;
 					ROS_ERROR_STREAM ("[LTStar] no neighbor of " << *s << " had line of sight. Start " << input.start << " goal " << input.goal);
 				}
 			}
@@ -680,7 +689,7 @@ namespace LazyThetaStarOctree{
 				if(publish_input.publish)
 				{
 					log_file  << "[Ortho] at iteration " << used_search_iterations << " open size is " << open.size() << std::endl;
-					log_file  << "Solution end node:" << *s << " == " << *disc_final_cell_center ;
+					log_file  << "Solution end node:" << *s << " == " << *disc_final_cell_center << std::endl ;
 				}
 				continue;
 			}
@@ -741,6 +750,7 @@ namespace LazyThetaStarOctree{
 			std::chrono::duration<double> time_lapse = std::chrono::high_resolution_clock::now() - start;
 			if(time_lapse > max_search_time)
 			{
+				log_file << "[ERROR] Reached maximum time for A*. Breaking out" << std::endl;
 				ROS_ERROR_STREAM("Reached maximum time for A*. Breaking out");
 				break;	
 			}
@@ -766,11 +776,12 @@ namespace LazyThetaStarOctree{
 			bool initial_pos_far_from_initial_voxel_center = equal(input.start, cell_center_coordinates_start, resolution/2) == false;
 			std::list<octomath::Vector3>::iterator it= path.begin();
 			it++;
-			bool free_path_from_current_to_second_waypoint = is_flight_corridor_free( InputData(input.octree, input.start, *it, input.margin), publish_input, false);
-			if(!free_path_from_current_to_second_waypoint)
-			{
-				ROS_ERROR_STREAM("[ltstar] end There are obstacles between initial point " << input.start << " and its center " << cell_center_coordinates_start);
-			}
+			bool free_path_from_current_to_second_waypoint = is_flight_corridor_free( InputData(input.octree, input.start, cell_center_coordinates_start, input.margin), publish_input, false);
+			// if(!free_path_from_current_to_second_waypoint)
+			// {
+			// 	ROS_ERROR_STREAM("[ltstar] end There are obstacles between initial point " << input.start << " and its center " << cell_center_coordinates_start);
+			// 	log_file << "[ltstar] end There are obstacles between initial point " << input.start << " and its center " << cell_center_coordinates_start << std::endl;
+			// }
 			if(initial_pos_far_from_initial_voxel_center && !free_path_from_current_to_second_waypoint)
 			{
 				path.push_front( input.start );
@@ -779,12 +790,16 @@ namespace LazyThetaStarOctree{
 		if(path.size() == 1)
 		{
 			ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. It should always have at least start and goal. Path: ");
+			log_file << "[ERROR]  The resulting path has only one waypoint. It should always have at least start and goal. Path: " << std::endl;
 			for (auto v : path)
 			{
+				log_file << "[ERROR]  " << v << std::endl;
         		ROS_ERROR_STREAM("[LTStar]" << v );
 			}
 			ROS_ERROR_STREAM("[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start);
 			ROS_ERROR_STREAM("[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal);
+			log_file << "[ERROR]  Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start << std::endl;
+			log_file << "[ERROR]  Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal << std::endl;
 		}
 		if(publish_input.publish)
 		{
@@ -850,8 +865,8 @@ namespace LazyThetaStarOctree{
 		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 #endif
 	    std::stringstream octomap_name_stream;
-		octomap_name_stream << std::setprecision(2) << folder_name << "/current/from_" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << "_to_"<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ".bt";
-			octree.writeBinary(octomap_name_stream.str());
+		// octomap_name_stream << std::setprecision(2) << folder_name << "/current/from_" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << "_to_"<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ".bt";
+		// 	octree.writeBinary(octomap_name_stream.str());
 		InputData input (octree, disc_initial, disc_final, request.safety_margin);
 		resulting_path = lazyThetaStar_( input, statistical_data, sidelength_lookup_table, publish_input, request.max_time_secs, true);
 #ifdef SAVE_CSV
@@ -896,10 +911,12 @@ namespace LazyThetaStarOctree{
 		csv_file << "," << request.safety_margin;
 		csv_file << "," << request.max_time_secs ;
 		csv_file << "," << statistical_data.iterations_used ;
+		csv_file << "," << obstacle_hit_count ;
+		csv_file << "," << obstacle_avoidance_calls ;
 		csv_file << "," << publish_input.dataset_name << std::endl;
 		csv_file.close();
 #endif
-		ROS_WARN_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
+		// ROS_WARN_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
 #ifdef RUNNING_ROS
 		if(publish_input.publish)
 		{
@@ -911,7 +928,7 @@ namespace LazyThetaStarOctree{
 			reply.success = false;
 			// std::stringstream octomap_name_stream;
 			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
-			octree.writeBinary(octomap_name_stream.str());
+			// octree.writeBinary(octomap_name_stream.str());
 			std::stringstream to_log_file_ss;
 			to_log_file_ss << "!!! No path !!!   " ;
 			to_log_file_ss << "Straight line length " << weightedDistance(disc_initial, disc_final);
