@@ -129,7 +129,7 @@ int main(int argc, char **argv)
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     std::stringstream folder_name_stream;
     folder_name_stream << LazyThetaStarOctree::folder_name << (std::put_time(std::localtime(&now_c), "%F %T") );
-	LazyThetaStarOctree::folder_name = LazyThetaStarOctree::folder_name + "current";
+	LazyThetaStarOctree::folder_name = LazyThetaStarOctree::folder_name + "/current";
     boost::filesystem::create_directories(folder_name_stream.str());
     boost::filesystem::create_directory_symlink(folder_name_stream.str(), LazyThetaStarOctree::folder_name);
 #endif

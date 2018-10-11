@@ -83,10 +83,14 @@ if (CATKIN_ENABLE_TESTING)
   # target_link_libraries(collectResults_obstacleAvoidance ${catkin_LIBRARIES} ltStar_lib)
 
   ## Octree @ work in progress ##
-  catkin_add_gtest(workInProgress 
-    test/work_in_progress_test.cpp
+  # catkin_add_gtest(workInProgress 
+  #   test/work_in_progress_test.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib_ortho)
+  catkin_add_gtest(lazyTheta_measurments 
+    test/lazyTheta_measurments.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib_ortho)
+  target_link_libraries(lazyTheta_measurments ${catkin_LIBRARIES} ltStar_lib_ortho)
 
   # ## Lazy Theta Star @ orthogonal planes ##
   # catkin_add_gtest(orthogonalPlanesTests 

@@ -3,7 +3,7 @@
 #include <std_srvs/Empty.h>
 #include <orthogonal_planes.h>
 
-// #define SAVE_CSV 1
+#define SAVE_CSV 1
 // #define RUNNING_ROS 0
 
 
@@ -705,7 +705,7 @@ namespace LazyThetaStarOctree{
 
 				if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input, ignoreUnknown) )
 				{
-					log_file << "  [N] " << *n_coordinates << " has obstacle." << std::endl;
+					// log_file << "  [N] " << *n_coordinates << " has obstacle." << std::endl;
 					continue;
 				}
 				// ln 13 if s' !€ closed then
