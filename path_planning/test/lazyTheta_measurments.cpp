@@ -7,12 +7,12 @@ namespace LazyThetaStarOctree{
 
 	
 	bool testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_time_secs = 55, double safety_margin = 2)
+		int const& max_time_secs = 55, double safety_margin = 2, std::string dataset_name = "unnamed")
 	{
 		ros::Publisher marker_pub;
 		ResultSet statistical_data;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
-		PublishingInput publish_input( marker_pub, true, "3Dpuzzle");
+		PublishingInput publish_input( marker_pub, true, dataset_name);
 		InputData input( octree, disc_initial, disc_final, safety_margin);
 	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
@@ -103,72 +103,62 @@ namespace LazyThetaStarOctree{
 		}
 	}
 
-	TEST(LazyThetaStarMeasurements, AllCombinations)
+	void collectDate(octomap::OcTree & octree, double max_time_secs, double safety_margin, std::string dataset_name)
 	{
-		std::ofstream csv_file;
-		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
-		csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
-		csv_file.close();
-	  		std::list<octomath::Vector3> points = {
+	  	std::list<octomath::Vector3> points = {
 		  		/*A = */octomath::Vector3 (0.28, 13.3, 90),
 		  		/*B = */octomath::Vector3 (-21.6, 20.3, 63),
-		  		/*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
-		  		/*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
-		  		/*E = */octomath::Vector3 (41.4, 22.4, 32),
-		  		/*F = */octomath::Vector3 (21.6, 23.5, 12.5),
-		  		octomath::Vector3 (0, 0, 50),
-				octomath::Vector3 (0, -20, 30),
-				octomath::Vector3 (-70, -20, 30),
-				octomath::Vector3 (-70, 10, 90),
-				octomath::Vector3 (50, 10, 90),
-				octomath::Vector3 (50, 10, 65),
-				octomath::Vector3 (-70, 10, 65),
-				octomath::Vector3 (-35, 10, 50),
-				octomath::Vector3 (-35, 10, 10),
-				octomath::Vector3 (-70, 10, 10),
-				octomath::Vector3 (-70, 20, 30),
-				octomath::Vector3 (20, 20, 30),
-				octomath::Vector3 (-20, 20, 50),
-				octomath::Vector3 (-20, 20, 65) ,
-				octomath::Vector3 (70, 20, 65),
-				octomath::Vector3 (30, 20, 65),
-				octomath::Vector3 (0, 13, 60)  ,
-				octomath::Vector3 (0, 30, 100),
-				octomath::Vector3 (0, 30, 80),
-				octomath::Vector3 (0, 30, 100),
-				octomath::Vector3 (0, 0, 100),
-				octomath::Vector3 (0, 0, 75),
-				octomath::Vector3 (10, 0, 75),
-				octomath::Vector3 (10, 15, 75),
-				octomath::Vector3 (14, 15, 75),
-				octomath::Vector3 (14, 15, 20),
-				octomath::Vector3 (1, 15, 20),
-				octomath::Vector3 (1, 15, 10),
-				octomath::Vector3 (19.6, 29.7, 10),
-				octomath::Vector3 (19.6, 29.7,100),
-				octomath::Vector3 (19.6, 29.7, 30),
-				octomath::Vector3 (24.4, 16.8, 32),
-				octomath::Vector3 (32.5, 18.5, 32),
-				octomath::Vector3 (51.5, 33.5, 32),
-				octomath::Vector3 (51.5, 33.5, 12),
-				octomath::Vector3 (40.2, 26.8, 12),
-				octomath::Vector3 (40.2, 50, 12),
-				octomath::Vector3 (-30, 50, 12),
-				octomath::Vector3 (0, 50, 12),
-				octomath::Vector3 (0, 30, 25),
-				octomath::Vector3 (0, -10, 25),
-				octomath::Vector3 (0, -10, 10),
-				octomath::Vector3 (0, -30, 10),
-				octomath::Vector3 (-20, -30, 10),
-				octomath::Vector3 (-20, 0, 10)
+		  		// /*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
+		  		// /*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
+		  		// /*E = */octomath::Vector3 (41.4, 22.4, 32),
+		  		// /*F = */octomath::Vector3 (21.6, 23.5, 12.5),
+		  		// octomath::Vector3 (0, 0, 50),
+				// octomath::Vector3 (0, -20, 30),
+				// octomath::Vector3 (-70, -20, 30),
+				// octomath::Vector3 (-70, 10, 90),
+				// octomath::Vector3 (50, 10, 90),
+				// octomath::Vector3 (50, 10, 65),
+				// octomath::Vector3 (-70, 10, 65),
+				// octomath::Vector3 (-35, 10, 50),
+				// octomath::Vector3 (-35, 10, 10),
+				// octomath::Vector3 (-70, 10, 10),
+				// octomath::Vector3 (-70, 20, 30),
+				// octomath::Vector3 (20, 20, 30),
+				// octomath::Vector3 (-20, 20, 50),
+				// octomath::Vector3 (-20, 20, 65) ,
+				// octomath::Vector3 (70, 20, 65),
+				// octomath::Vector3 (30, 20, 65),
+				// octomath::Vector3 (0, 13, 60)  ,
+				// octomath::Vector3 (0, 30, 100),
+				// octomath::Vector3 (0, 30, 80),
+				// octomath::Vector3 (0, 30, 100),
+				// octomath::Vector3 (0, 0, 100),
+				// octomath::Vector3 (0, 0, 75),
+				// octomath::Vector3 (10, 0, 75),
+				// octomath::Vector3 (10, 15, 75),
+				// octomath::Vector3 (14, 15, 75),
+				// octomath::Vector3 (14, 15, 20),
+				// octomath::Vector3 (1, 15, 20),
+				// octomath::Vector3 (1, 15, 10),
+				// octomath::Vector3 (19.6, 29.7, 10),
+				// octomath::Vector3 (19.6, 29.7,100),
+				// octomath::Vector3 (19.6, 29.7, 30),
+				// octomath::Vector3 (24.4, 16.8, 32),
+				// octomath::Vector3 (32.5, 18.5, 32),
+				// octomath::Vector3 (51.5, 33.5, 32),
+				// octomath::Vector3 (51.5, 33.5, 12),
+				// octomath::Vector3 (40.2, 26.8, 12),
+				// octomath::Vector3 (40.2, 50, 12),
+				// octomath::Vector3 (-30, 50, 12),
+				// octomath::Vector3 (0, 50, 12),
+				// octomath::Vector3 (0, 30, 25),
+				// octomath::Vector3 (0, -10, 25),
+				// octomath::Vector3 (0, -10, 10),
+				// octomath::Vector3 (0, -30, 10),
+				// octomath::Vector3 (-20, -30, 10),
+				// octomath::Vector3 (-20, 0, 10)
 			};
-
-	    octomap::OcTree octree ("data/3Dpuzzle_sparse_complete.bt");
-	    std::string dataset_name = "3Dpuzzle";
-	    double max_time_secs = 60;
-	    double safety_margin = 3;
-
-	    int count = points.size()-1;
+		int count = points.size()-1;
 	    int i;
 	    for ( i = 0; i < count; )
 	    {
@@ -176,12 +166,79 @@ namespace LazyThetaStarOctree{
 	    	points.erase(points.begin());
 	    	for (std::list<octomath::Vector3>::iterator it = points.begin(); it != points.end(); ++it)
 	    	{
-	    		testStraightLinesForwardWithObstacles(octree, current, *it, max_time_secs, safety_margin);
-	    		testStraightLinesForwardWithObstacles(octree, *it, current, max_time_secs, safety_margin);
+	    		testStraightLinesForwardWithObstacles(octree, current, *it, max_time_secs, safety_margin, dataset_name);
+	    		testStraightLinesForwardWithObstacles(octree, *it, current, max_time_secs, safety_margin, dataset_name);
 	    	}
 	    	++i;
 	    }
-	    ROS_INFO_STREAM( "Checked " << i << " pairs, both ways.");
+	}
+
+	TEST(LazyThetaStarMeasurements, AllCombinations)
+	{
+		std::ofstream csv_file;
+		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+		csv_file.close();
+	  	std::list<octomath::Vector3> points = {
+		  		/*A = */octomath::Vector3 (0.28, 13.3, 90),
+		  		/*B = */octomath::Vector3 (-21.6, 20.3, 63),
+		  		// /*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
+		  		// /*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
+		  		// /*E = */octomath::Vector3 (41.4, 22.4, 32),
+		  		// /*F = */octomath::Vector3 (21.6, 23.5, 12.5),
+		  		// octomath::Vector3 (0, 0, 50),
+				// octomath::Vector3 (0, -20, 30),
+				// octomath::Vector3 (-70, -20, 30),
+				// octomath::Vector3 (-70, 10, 90),
+				// octomath::Vector3 (50, 10, 90),
+				// octomath::Vector3 (50, 10, 65),
+				// octomath::Vector3 (-70, 10, 65),
+				// octomath::Vector3 (-35, 10, 50),
+				// octomath::Vector3 (-35, 10, 10),
+				// octomath::Vector3 (-70, 10, 10),
+				// octomath::Vector3 (-70, 20, 30),
+				// octomath::Vector3 (20, 20, 30),
+				// octomath::Vector3 (-20, 20, 50),
+				// octomath::Vector3 (-20, 20, 65) ,
+				// octomath::Vector3 (70, 20, 65),
+				// octomath::Vector3 (30, 20, 65),
+				// octomath::Vector3 (0, 13, 60)  ,
+				// octomath::Vector3 (0, 30, 100),
+				// octomath::Vector3 (0, 30, 80),
+				// octomath::Vector3 (0, 30, 100),
+				// octomath::Vector3 (0, 0, 100),
+				// octomath::Vector3 (0, 0, 75),
+				// octomath::Vector3 (10, 0, 75),
+				// octomath::Vector3 (10, 15, 75),
+				// octomath::Vector3 (14, 15, 75),
+				// octomath::Vector3 (14, 15, 20),
+				// octomath::Vector3 (1, 15, 20),
+				// octomath::Vector3 (1, 15, 10),
+				// octomath::Vector3 (19.6, 29.7, 10),
+				// octomath::Vector3 (19.6, 29.7,100),
+				// octomath::Vector3 (19.6, 29.7, 30),
+				// octomath::Vector3 (24.4, 16.8, 32),
+				// octomath::Vector3 (32.5, 18.5, 32),
+				// octomath::Vector3 (51.5, 33.5, 32),
+				// octomath::Vector3 (51.5, 33.5, 12),
+				// octomath::Vector3 (40.2, 26.8, 12),
+				// octomath::Vector3 (40.2, 50, 12),
+				// octomath::Vector3 (-30, 50, 12),
+				// octomath::Vector3 (0, 50, 12),
+				// octomath::Vector3 (0, 30, 25),
+				// octomath::Vector3 (0, -10, 25),
+				// octomath::Vector3 (0, -10, 10),
+				// octomath::Vector3 (0, -30, 10),
+				// octomath::Vector3 (-20, -30, 10),
+				// octomath::Vector3 (-20, 0, 10)
+			};
+
+	    octomap::OcTree octree ("data/3Dpuzzle_sparse_complete.bt");
+	    double max_time_secs = 60;
+
+	    collectDate(octree, max_time_secs, 2, "3Dpuzzle_ortho_2margin");
+	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_5margin");
+	    collectDate(octree, max_time_secs, 8, "3Dpuzzle_ortho_8margin");
 	}
 
 }
