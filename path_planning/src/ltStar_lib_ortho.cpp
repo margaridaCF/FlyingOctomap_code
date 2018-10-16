@@ -672,7 +672,7 @@ namespace LazyThetaStarOctree{
 			// It is it's own parent, this happens on the first node when the initial position is the center of the voxel (by chance)
 			if(s->hasSameCoordinates(s->parentNode, resolution ) == false)
 			{
-				bool ignoreUnknown = weightedDistance(*(s->coordinates), cell_center_coordinates_goal) < input.margin;
+				bool ignoreUnknown = weightedDistance(*(s->coordinates), cell_center_coordinates_goal) < input.margin/2;
 				if (!setVertex(input.octree, s, closed, open, neighbors, input.margin, publish_input, sidelength_lookup_table, ignoreUnknown))
 				{
 					input.octree.writeBinaryConst(folder_name + "/octree_noPath1s.bt");
@@ -709,7 +709,7 @@ namespace LazyThetaStarOctree{
 			for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
 			{
 				// Find minimum value for those with visibility and that it is in closed
-				bool ignoreUnknown = weightedDistance(*n_coordinates, cell_center_coordinates_goal) < input.margin;
+				bool ignoreUnknown = weightedDistance(*n_coordinates, cell_center_coordinates_goal) < input.margin/2;
 
 
 				if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input, ignoreUnknown) )
