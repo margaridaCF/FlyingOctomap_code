@@ -84,42 +84,42 @@ if (CATKIN_ENABLE_TESTING)
   #   test/work_in_progress_test.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib_ortho)
-  catkin_add_gtest(lazyTheta_measurments 
-    test/collect_results_3d_puzzle_ortho.cpp
+  # catkin_add_gtest(lazyTheta_measurments 
+  #   test/collect_results_3d_puzzle_ortho.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(lazyTheta_measurments ${catkin_LIBRARIES} ltStar_lib_ortho)
+
+  ## Lazy Theta Star @ orthogonal planes ##
+  catkin_add_gtest(orthogonalPlanesTests 
+    test/orthogonal_planes_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(lazyTheta_measurments ${catkin_LIBRARIES} ltStar_lib_ortho)
+  target_link_libraries(orthogonalPlanesTests ${catkin_LIBRARIES} ltStar_lib_ortho)
 
-  # ## Lazy Theta Star @ orthogonal planes ##
-  # catkin_add_gtest(orthogonalPlanesTests 
-  #   test/orthogonal_planes_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(orthogonalPlanesTests ${catkin_LIBRARIES} ltStar_lib_ortho)
-
-  # ## Octree @ depth and size ##
-  # catkin_add_gtest(depthSizeTest 
-  #   test/depth_voxelSide_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(depthSizeTest ${catkin_LIBRARIES} ltStar_lib)
+  ## Octree @ depth and size ##
+  catkin_add_gtest(depthSizeTest 
+    test/depth_voxelSide_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(depthSizeTest ${catkin_LIBRARIES} ltStar_lib)
 
 
-  # ## Lazy Theta Star @ open ##
-  # catkin_add_gtest(openTests 
-  #   test/open_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(openTests ${catkin_LIBRARIES} )
+  ## Lazy Theta Star @ open ##
+  catkin_add_gtest(openTests 
+    test/open_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(openTests ${catkin_LIBRARIES} )
 
-  # catkin_add_gtest(ltstarOrthoTests 
-  #   test/lazyTheta_tests_ortho.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarOrthoTests ${catkin_LIBRARIES} ltStar_lib_ortho)
-  # catkin_add_gtest(ltstarTests 
-  #   test/lazyTheta_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarTests ${catkin_LIBRARIES} ltStar_lib)
-  # catkin_add_gtest(ltstarTestsFixture 
-  #   test/lazyTheta_tests_Fixture.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
+  catkin_add_gtest(ltstarOrthoTests 
+    test/lazyTheta_tests_ortho.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarOrthoTests ${catkin_LIBRARIES} ltStar_lib_ortho)
+  catkin_add_gtest(ltstarTests 
+    test/lazyTheta_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarTests ${catkin_LIBRARIES} ltStar_lib)
+  catkin_add_gtest(ltstarTestsFixture 
+    test/lazyTheta_tests_Fixture.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
 
 endif()
 
