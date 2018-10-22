@@ -209,6 +209,7 @@ namespace LazyThetaStarOctree{
 		Eigen::MatrixXd points_around_start = transformation_matrix_start * startOffsets;
 		Eigen::MatrixXd points_around_goal = transformation_matrix_goal * goalOffsets;
 
+		visualization_msgs::Marker marker;
 		octomath::Vector3 temp_start, temp_goal;
 		for (int i = 0; i < points_around_start.cols(); ++i)
 		{
@@ -219,18 +220,21 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
+    			// rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
 			{ 
-				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
+				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
+    			// rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
 				obstacle_hit_count++;
 				return CellStatus::kOccupied; 
 			}   
-			// else
-			// {
-			// 	ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
-			// }
+			else
+			{
+    			// rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true);
+				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
+			}
 		}
 		return CellStatus::kFree; 
 	}
@@ -694,13 +698,13 @@ namespace LazyThetaStarOctree{
 				continue;
 			}
 			// ln 11 closed := closed U {s}
-			// ROS_WARN_STREAM("@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s);
+			log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
 			closed.insert( std::pair<octomath::Vector3, std::shared_ptr<ThetaStarNode>>( *(s->coordinates), s));
 #ifdef RUNNING_ROS
-			if(publish_input.publish)
-			{
+			// if(publish_input.publish)
+			// {
 				rviz_interface::publish_closed(*(s->coordinates), publish_input.marker_pub);
-			}
+			// }
 #endif
 
 			// TODO check code repetition to go over the neighbors of s
