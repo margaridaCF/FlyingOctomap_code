@@ -21,7 +21,8 @@
 namespace LazyThetaStarOctree{
 	int obstacle_hit_count;
 
-
+	// path to log folder
+	// Keep in mind that a folder is created for each run. And a symbolic link to it that is used everywhere
 	// std::string folder_name = "/ros_ws/src/data";
 	std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
 
