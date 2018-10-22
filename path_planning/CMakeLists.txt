@@ -88,7 +88,7 @@ if (CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib_ortho)
   catkin_add_gtest(lazyTheta_measurments 
-    test/lazyTheta_measurments.cpp
+    test/collect_results_3d_puzzle_ortho.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   target_link_libraries(lazyTheta_measurments ${catkin_LIBRARIES} ltStar_lib_ortho)
 

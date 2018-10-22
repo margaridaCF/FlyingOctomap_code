@@ -16,8 +16,6 @@ namespace LazyThetaStarOctree
 
     void testResults(path_planning_msgs::LTStarRequest request, octomap::OcTree & octree, std::string dataset_name)
     {
-    	ROS_WARN_STREAM("Here I am.");
-
 		ros::Publisher marker_pub;
 		path_planning_msgs::LTStarReply reply;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
@@ -32,6 +30,9 @@ namespace LazyThetaStarOctree
 
 		bool is_goal_clear = LazyThetaStarOctree::is_flight_corridor_free(LazyThetaStarOctree::InputData(octree, octomath::Vector3(request.goal.x, request.goal.y, request.goal.z), octomath::Vector3(request.goal.x, request.goal.y, request.goal.z+0.6), request.safety_margin), PublishingInput(marker_pub, false));
 	   	ASSERT_TRUE(is_goal_clear);
+
+
+	   	// TODO missing check that there are obstacles between start and goal
 
 		bool success = true;
 		processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, dataset_name)  );
