@@ -26,7 +26,7 @@
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
-    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="/ros_ws/src/path_planning/test/data/d.bt">
+    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="/ros_ws/src/lazy_theta_star/test/data/d.bt">
         <param name="frame_id" type="string" value="map" />   
         <remap from="cloud_in" to="/free_cloud" />
         <param name="latch" value="false" />
@@ -40,7 +40,7 @@
     </node> -->
     <!-- ########################################################################## --> 
   <!-- Lazy theta * --> 
-  <node pkg="path_planning" type="ltStar_async_node" name="ltstar_printer" output="screen"/>
+  <node pkg="lazy_theta_star" type="ltStar_debug_node" name="ltstar_printer" output="screen"/>
   <!-- ########################################################################## -->
     <!-- Architecture nodes -->
 

@@ -1,0 +1,103 @@
+<launch>
+
+    
+
+    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
+    <!-- <param name="world_frame_name"      type="str" value="world" />
+    <param name="uav_base_frame_name"   type="str" value="uav_base_link" />
+    <param name="hokuyo_frame_name"     type="str" value="hokuyo" /> -->
+    <arg name="world_frame_name"    default="world"/>
+    <arg name="uav_frame_name" default="uav_base_link"/>
+    <arg name="hokuyo_frame_name"   default="hokuyo"/>
+    <!-- #######################  Gazebo  ######################################### -->
+    
+    <!-- <param name="robot_description" textfile="/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" /> -->
+    <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="50.0" />
+        <param name="tf_prefix" type="string" value=""/>
+    </node> -->
+    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="true"/>
+    </node> -->
+    <!-- <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/> -->
+        
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/exploration_ltstarPaths.rviz" /> -->
+
+    <!-- #######################  Octomap  ######################################## -->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+        <param name="frame_id" type="string" value="map" />   
+        <remap from="cloud_in" to="/free_cloud" />
+        <!-- <remap from="cloud_in" to="/velodyne_points" /> -->
+        <param name="latch" value="false" />
+        <param name="resolution" value="0.5" />
+        <param name="pointcloud_min" value="0"/>
+        <param name="pointcloud_max" value="2"/>
+        <param name="occupancy_min" value="1"/>
+        <param name="publish_free_space" value="true"/>
+        <param name="sensor_model/max_range" value="10"/>
+        <param name="sensor_model/hit" value="0.7"/>
+        <param name="sensor_model/miss" value="0.3"/>
+    </node>
+    <!-- #######################  Architecture nodes  ############################# -->
+    <node pkg="laser_free_to_cloud" type="free_cloud_node" name="free_cloud" />
+    <!-- <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" /> -->
+    <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
+    <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
+    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="lazy_theta_star" output="screen" />
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
+
+    <!-- vim: set ft=xml noet : -->
+    <!-- example launch script for PX4 based FCU's -->
+
+    <!-- #######################  Mavros  ############################# -->
+    <!-- <arg name="fcu_url" default="/dev/ttyACM0:921600" />
+    <arg name="gcs_url" default="" />
+    <arg name="tgt_system" default="1" />
+    <arg name="tgt_component" default="1" />
+    <arg name="log_output" default="screen" />
+    <arg name="fcu_protocol" default="v2.0" />
+    <arg name="respawn_mavros" default="false" />
+
+    <include file="$(find mavros)/launch/node.launch">
+        <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
+        <arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
+
+        <arg name="fcu_url" value="$(arg fcu_url)" />
+        <arg name="gcs_url" value="$(arg gcs_url)" />
+        <arg name="tgt_system" value="$(arg tgt_system)" />
+        <arg name="tgt_component" value="$(arg tgt_component)" />
+        <arg name="log_output" value="$(arg log_output)" />
+        <arg name="fcu_protocol" value="$(arg fcu_protocol)" />
+        <arg name="respawn_mavros" default="$(arg respawn_mavros)" />
+    </include> -->
+    <include file="$(find mavros)/launch/px4.launch">
+        <arg name="fcu_url" value="/dev/ttyACM0:921600" />
+    </include>
+
+
+
+    <!-- #######################    TF    ############################# -->    
+    <node pkg="architecture" type="gps_utm_tf_broadcaster_node" name="gps_utm_tf_broadcaster" >
+        <param name="uav_frame"     type="str" value=$(arg uav_frame_name) />
+        <param name="world_frame"   type="str" value=$(arg world_frame_name) />
+    </node>
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0 0 0 0 0 0 1 $(arg uav_frame_name) $(arg hokuyo_frame_name) 100" />
+
+
+    <!-- #######################  Hokuyo  ############################# -->
+    <node name="hokuyo"         pkg="urg_node"      type="urg_node" output="screen" >
+        <param name="ip_address" value="192.168.0.10"/>
+    </node>
+
+
+    <!-- #######################    Log   ############################# -->
+    <!-- Bag to generate surface mesh -->
+    <node pkg="rosbag" type="record" name="rosbag_record"
+       args="record -O /$(find architecture)/../data/current/cloud_bag /tf /scan /mavros/global_position/local /mavros/global_position/global"/>   
+    <!-- Bag to replay algorithm results -->
+    <node pkg="rosbag" type="record" name="rosbag_record"
+       args="record -O /$(find architecture)/../data/current/diagnostic_bag /tf /mavros/global_position/local /mavros/global_position/global /occupied_cells_vis_array /free_cells_vis_array /ltstar_path /frontiers_reply /frontiers_request /ltstar_request /ltstar_reply /mavros/setpoint_position/local "/> 
+</launch>
+
+<!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->
