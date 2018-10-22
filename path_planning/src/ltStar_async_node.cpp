@@ -119,6 +119,20 @@ namespace LazyThetaStarOctree
 		}
 		octomap_init = true;
 	}
+
+	void line_of_sight_callback(const path_planning_msgs::LTStarRequest::ConstPtr& request)
+	{
+		LazyThetaStarOctree::generateOffsets(octree->getResolution(), request->safety_margin, dephtZero, semiSphereOut );
+			
+		octomath::Vector3 disc_initial(request->start.x, request->start.y, request->start.z);
+		octomath::Vector3 disc_final(request->goal.x, request->goal.y, request->goal.z);
+		InputData input (*octree, disc_initial, disc_final, request->safety_margin);
+		PublishingInput publish_input( marker_pub, true);
+		if( is_flight_corridor_free(input, publish_input))
+		{
+			ROS_INFO_STREAM("Free");
+		}
+	}
 }
 
 int main(int argc, char **argv)
@@ -148,6 +162,7 @@ int main(int argc, char **argv)
 	ros::ServiceServer ltstar_status_service = nh.advertiseService("ltstar_status", LazyThetaStarOctree::check_status);
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, LazyThetaStarOctree::octomap_callback);
 	ros::Subscriber ltstar_sub = nh.subscribe<path_planning_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
+	ros::Subscriber lineOfSight_sub = nh.subscribe<path_planning_msgs::LTStarRequest>("check_line_of_sight", 10, LazyThetaStarOctree::line_of_sight_callback);
 	LazyThetaStarOctree::ltstar_reply_pub = nh.advertise<path_planning_msgs::LTStarReply>("ltstar_reply", 10);
 	LazyThetaStarOctree::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("ltstar_path", 1);
 
