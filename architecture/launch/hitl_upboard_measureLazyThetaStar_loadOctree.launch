@@ -1,6 +1,0 @@
-<launch>
-    <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" />
-
-    <!-- #######################  Architecture nodes  ############################# -->
-    <node pkg="lazy_theta_star" type="ltStar_debug_node" name="ltstar_printer" output="screen"/>
-</launch>

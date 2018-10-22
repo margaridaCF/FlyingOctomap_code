@@ -34,9 +34,6 @@ cs_add_library(ltStar_lib_ortho src/ltStar_lib_ortho.cpp)
 cs_add_executable(ltStar_async_node src/ltStar_async_node.cpp )
 target_link_libraries(ltStar_async_node  ${catkin_LIBRARIES} ltStar_lib_ortho )
 
-cs_add_executable(ltStar_debug_node src/ltStar_debug_node.cpp )
-target_link_libraries(ltStar_debug_node  ${catkin_LIBRARIES} ltStar_lib_ortho)
-
 cs_add_executable(ltStar_command_path_node src/ltStar_command_path_node.cpp )
 target_link_libraries(ltStar_command_path_node  ${catkin_LIBRARIES} ltStar_lib )
 
