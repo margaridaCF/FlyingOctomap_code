@@ -899,17 +899,18 @@ namespace LazyThetaStarOctree{
 		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
 
 		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), PublishingInput( publish_input.marker_pub, true), false);
-		qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
+		// qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
 
 
 		std::ofstream csv_file;
 		csv_file.open (folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
-		csv_file << millis.count();
+		csv_file << (resulting_path.size()>0);
+		csv_file << "," << millis.count();
 		csv_file << "," << straigh_line_distance;
 		csv_file << "," << distance_total;
-		csv_file << "," << has_flight_corridor_free;
+		csv_file << "," << !has_flight_corridor_free;
 		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
 		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
 		csv_file << "," << request.safety_margin;

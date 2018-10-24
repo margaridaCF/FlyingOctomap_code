@@ -23,12 +23,12 @@ namespace LazyThetaStarOctree{
 		if(  originNode  ){}
 		else
 		{
-			ROS_ERROR("Start node in unknown space");
+			ROS_ERROR("[Precondition failed] Start node in unknown space");
 			return false;
 		}
 		if(octree.isNodeOccupied(originNode) != false)
 		{
-			ROS_ERROR("Start node in occupied space");
+			ROS_ERROR("[Precondition failed] Start node in occupied space");
 			return false;
 		}
 		// Final node is not occupied
@@ -36,18 +36,18 @@ namespace LazyThetaStarOctree{
 		if(  finalNode  ) {}
 		else
 		{
-			ROS_ERROR("Final node in unknown space");
+			ROS_ERROR("[Precondition failed] Final node in unknown space");
 			return false;
 		}
 		if(octree.isNodeOccupied(finalNode) != false)
 		{
-			ROS_ERROR("Final node in occupied space");
+			ROS_ERROR("[Precondition failed] Final node in occupied space");
 			return false;
 		}
 		// The path is clear from start to finish  
 		if(is_flight_corridor_free	(input, publish_input, false))
 		{
-			ROS_ERROR("This is a test with obstacles but there are none, skipping");
+			ROS_ERROR("[Precondition failed] This is a test with obstacles but there are none, skipping");
 			return false;
 
 		}
@@ -177,7 +177,7 @@ namespace LazyThetaStarOctree{
 	{
 		std::ofstream csv_file;
 		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
-		csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
 		csv_file.close();
 
 	    octomap::OcTree octree ("data/3Dpuzzle_sparse_complete.bt");
