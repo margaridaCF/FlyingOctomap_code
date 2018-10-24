@@ -183,9 +183,9 @@ namespace LazyThetaStarOctree{
 	    octomap::OcTree octree ("data/3Dpuzzle_sparse_complete.bt");
 	    double max_time_secs = 60;
 
-	    collectDate(octree, max_time_secs, 2, "3Dpuzzle_ortho_2margin");
-	    collectDate(octree, max_time_secs, 3.8, "3Dpuzzle_ortho_3.8margin");
-	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_8margin");
+	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_5margin");
+	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin");
+	    collectDate(octree, max_time_secs, 7, "3Dpuzzle_ortho_7margin");
 	}
 
 }
