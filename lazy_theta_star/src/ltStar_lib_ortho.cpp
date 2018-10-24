@@ -692,13 +692,13 @@ namespace LazyThetaStarOctree{
 				solution_end_node = s;
 				if(publish_input.publish)
 				{
-					log_file  << "[Ortho] at iteration " << used_search_iterations << " open size is " << open.size() << std::endl;
-					log_file  << "Solution end node:" << *s << " == " << *disc_final_cell_center << std::endl ;
+					// log_file  << "[Ortho] at iteration " << used_search_iterations << " open size is " << open.size() << std::endl;
+					// log_file  << "Solution end node:" << *s << " == " << *disc_final_cell_center << std::endl ;
 				}
 				continue;
 			}
 			// ln 11 closed := closed U {s}
-			log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
+			// log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
 			closed.insert( std::pair<octomath::Vector3, std::shared_ptr<ThetaStarNode>>( *(s->coordinates), s));
 #ifdef RUNNING_ROS
 			// if(publish_input.publish)
@@ -921,7 +921,6 @@ namespace LazyThetaStarOctree{
 		csv_file << "," << publish_input.dataset_name << std::endl;
 		csv_file.close();
 #endif
-		// ROS_WARN_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
 #ifdef RUNNING_ROS
 		if(publish_input.publish)
 		{
@@ -937,8 +936,8 @@ namespace LazyThetaStarOctree{
 			std::stringstream to_log_file_ss;
 			to_log_file_ss << "!!! No path !!!   " ;
 			to_log_file_ss << "Straight line length " << weightedDistance(disc_initial, disc_final);
-			to_log_file_ss <<  std::setprecision(2) << " from  " << "(" << disc_initial.x() << disc_initial.y() << disc_initial.z() << ")" ;
-			to_log_file_ss <<  std::setprecision(2) << " to " << "(" << disc_final.x() << disc_final.y() << disc_final.z() << ")" << std::endl;
+			to_log_file_ss <<  std::setprecision(2) << " from  " << "(" << disc_initial.x() << ", " << disc_initial.y() <<  ", " << disc_initial.z() << ")" ;
+			to_log_file_ss <<  std::setprecision(2) << " to " << "(" << disc_final.x() <<  ", " << disc_final.y() <<  ", " << disc_final.z() << ")" << std::endl;
 			std::ofstream log_file;
     		log_file.open(folder_name + "/current/lazyThetaStar.log", std::ios_base::app);
     		log_file << to_log_file_ss.str();

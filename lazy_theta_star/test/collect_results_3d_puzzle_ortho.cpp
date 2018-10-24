@@ -9,6 +9,12 @@ namespace LazyThetaStarOctree{
 	bool testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_time_secs = 55, double safety_margin = 2, std::string dataset_name = "unnamed")
 	{
+
+		std::ofstream log_file_;
+		log_file_.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
+		log_file_ << "Testing from " << disc_initial << " to " << disc_final << "; safety_margin: " << safety_margin << "; max_time_secs: " << max_time_secs << std::endl;
+		log_file_.close();
+
 		ros::Publisher marker_pub;
 		ResultSet statistical_data;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
@@ -23,12 +29,18 @@ namespace LazyThetaStarOctree{
 		if(  originNode  ){}
 		else
 		{
-			ROS_ERROR("[Precondition failed] Start node in unknown space");
+			std::ofstream log_file;
+			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
+			log_file << "[Precondition failed] Start node in unknown space. " << disc_initial << std::endl;
+			log_file.close();
 			return false;
 		}
 		if(octree.isNodeOccupied(originNode) != false)
 		{
-			ROS_ERROR("[Precondition failed] Start node in occupied space");
+			std::ofstream log_file;
+			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
+			log_file << "[Precondition failed] Start node in occupied space" << disc_initial << std::endl;
+			log_file.close();
 			return false;
 		}
 		// Final node is not occupied
@@ -36,18 +48,27 @@ namespace LazyThetaStarOctree{
 		if(  finalNode  ) {}
 		else
 		{
-			ROS_ERROR("[Precondition failed] Final node in unknown space");
+			std::ofstream log_file;
+			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
+			log_file << "[Precondition failed] Final node in unknown space" << disc_final << std::endl;
+			log_file.close();
 			return false;
 		}
 		if(octree.isNodeOccupied(finalNode) != false)
 		{
-			ROS_ERROR("[Precondition failed] Final node in occupied space");
+			std::ofstream log_file;
+			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
+			log_file << "[Precondition failed] Final node in occupied space" << disc_final << std::endl;
+			log_file.close();
 			return false;
 		}
 		// The path is clear from start to finish  
 		if(is_flight_corridor_free	(input, publish_input, false))
 		{
-			ROS_ERROR("[Precondition failed] This is a test with obstacles but there are none, skipping");
+			std::ofstream log_file;
+			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
+			log_file << "[Precondition failed] This is a test with obstacles but there are none, skipping. From " << disc_initial << " to " << disc_final << std::endl;
+			log_file.close();
 			return false;
 
 		}
@@ -74,33 +95,35 @@ namespace LazyThetaStarOctree{
 		}
 		else
 		{
-			// CANONICAL: straight line, no issues
-			// 2 waypoints: The center of start voxel & The center of the goal voxel
-			octomath::Vector3 result_start (reply.waypoints[0].position.x, reply.waypoints[0].position.y, reply.waypoints[0].position.z);
-			int last_waypoint_index = reply.waypoint_amount - 1;
-			octomath::Vector3 result_goal (reply.waypoints[last_waypoint_index].position.x, reply.waypoints[last_waypoint_index].position.y, reply.waypoints[last_waypoint_index].position.z);
+			if(reply.success)
+			{
+				octomath::Vector3 result_start (reply.waypoints[0].position.x, reply.waypoints[0].position.y, reply.waypoints[0].position.z);
+				int last_waypoint_index = reply.waypoint_amount - 1;
+				octomath::Vector3 result_goal (reply.waypoints[last_waypoint_index].position.x, reply.waypoints[last_waypoint_index].position.y, reply.waypoints[last_waypoint_index].position.z);
 
-			double cell_size_goal = -1;
-			octomath::Vector3 cell_center_coordinates_goal = disc_final;
-			updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
-			if(result_goal.distance( cell_center_coordinates_goal ) >= cell_size_goal   )
-			{
-				ROS_ERROR_STREAM("Distance from result last point " << result_goal << " and center of the voxel the goal is in " << cell_center_coordinates_goal << " is larger than the size of that voxel." << cell_size_goal);
-				return false;
-			}
-			double cell_size_start = -1;
-			octomath::Vector3 cell_center_coordinates_start = disc_initial;
-			updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
-			if( result_start.distance( cell_center_coordinates_start ) >=  cell_size_start   )
-			{
-				ROS_ERROR_STREAM("Distance from result first point " << result_start << " and center of the voxel the start is in " << cell_center_coordinates_start << " is larger than the size of that voxel." << cell_size_start);
-				return false;
+				double cell_size_goal = -1;
+				octomath::Vector3 cell_center_coordinates_goal = disc_final;
+				updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
+				if(result_goal.distance( cell_center_coordinates_goal ) >= cell_size_goal   )
+				{
+					ROS_ERROR_STREAM("Distance from result last point " << result_goal << " and center of the voxel the goal is in " << cell_center_coordinates_goal << " is larger than the size of that voxel." << cell_size_goal);
+					return false;
+				}
+				double cell_size_start = -1;
+				octomath::Vector3 cell_center_coordinates_start = disc_initial;
+				updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
+				if( result_start.distance( cell_center_coordinates_start ) >=  cell_size_start   )
+				{
+					ROS_ERROR_STREAM("Distance from result first point " << result_start << " and center of the voxel the start is in " << cell_center_coordinates_start << " is larger than the size of that voxel." << cell_size_start);
+					return false;
+				}
 			}
 		}
 		if(0 != ThetaStarNode::OustandingObjects())
 		{
 			ROS_ERROR_STREAM("Memory leak from ThetaStarNode objects.");
 		}
+		return true;
 	}
 
 	void collectDate(octomap::OcTree & octree, double max_time_secs, double safety_margin, std::string dataset_name)
