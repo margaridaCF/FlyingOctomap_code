@@ -13,8 +13,8 @@
     <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
 
-    <arg name="headless" default="false"/>
-    <arg name="gui" default="true"/>
+    <arg name="headless" default="true"/>
+    <arg name="gui" default="false"/>
     <arg name="ns" default="/"/>
 
     <arg name="debug" default="false"/>
