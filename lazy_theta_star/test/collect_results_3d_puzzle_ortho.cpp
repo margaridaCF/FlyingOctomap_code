@@ -62,6 +62,16 @@ namespace LazyThetaStarOctree{
 			log_file.close();
 			return false;
 		}
+		float distance = weightedDistance(disc_initial, disc_final);
+		if( distance > octree.getResolution()*100)
+		{
+			std::ofstream log_file;
+			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
+			log_file << "[Precondition failed] Distance too big. From " << disc_initial << " to " << disc_final << " is " << distance << " ( > " << octree.getResolution()*100 << " ) " << std::endl;
+			log_file.close();
+			return false;
+
+		}
 		// The path is clear from start to finish  
 		if(is_flight_corridor_free	(input, publish_input, false))
 		{
