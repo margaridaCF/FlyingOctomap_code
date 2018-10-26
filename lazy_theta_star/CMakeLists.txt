@@ -34,6 +34,9 @@ cs_add_library(ltStar_lib_ortho src/ltStar_lib_ortho.cpp)
 cs_add_executable(ltStar_async_node src/ltStar_async_node.cpp )
 target_link_libraries(ltStar_async_node  ${catkin_LIBRARIES} ltStar_lib_ortho )
 
+cs_add_executable(ltStar_async_node_sparse src/ltStar_async_node_sparse.cpp )
+target_link_libraries(ltStar_async_node_sparse  ${catkin_LIBRARIES} ltStar_lib )
+
 cs_add_executable(ltStar_command_path_node src/ltStar_command_path_node.cpp )
 target_link_libraries(ltStar_command_path_node  ${catkin_LIBRARIES} ltStar_lib )
 
@@ -84,10 +87,6 @@ if (CATKIN_ENABLE_TESTING)
   #   test/work_in_progress_test.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib_ortho)
-  catkin_add_gtest(lazyTheta_measurments 
-    test/collect_results_3d_puzzle_ortho.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(lazyTheta_measurments ${catkin_LIBRARIES} ltStar_lib_ortho)
 
   # ## Lazy Theta Star @ orthogonal planes ##
   # catkin_add_gtest(orthogonalPlanesTests 
@@ -120,6 +119,17 @@ if (CATKIN_ENABLE_TESTING)
   #   test/lazyTheta_tests_Fixture.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
+
+
+  # ## Lazy Theta Star @ Collect measurements for 3d puzzle ## 
+  # catkin_add_gtest(collect_results_3d_puzzle_ortho 
+  #   test/collect_results_3d_puzzle_ortho.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collect_results_3d_puzzle_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  catkin_add_gtest(collect_results_3d_puzzle_sparse 
+    test/collect_results_3d_puzzle_sparse.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(collect_results_3d_puzzle_sparse ${catkin_LIBRARIES} ltStar_lib)
 
 endif()
 

@@ -246,7 +246,7 @@ namespace LazyThetaStarOctree{
 						// 	rviz_interface::publish_arrow_path_unreachable(input.start + offset, input.goal + offset, publish_input.marker_pub, id_unreachable);	
 						// 	id_unreachable++;
 						// }
-						// return CellStatus::kOccupied;
+						return CellStatus::kOccupied;
 					}	
 					else if(hasLineOfSight( InputData(input.octree, input.goal + offset, input.start + offset, input.margin), ignoreUnknown) == false)
 					{
@@ -256,7 +256,7 @@ namespace LazyThetaStarOctree{
 						// 	rviz_interface::publish_arrow_path_unreachable(input.goal + offset, input.start + offset, publish_input.marker_pub, id_unreachable);	
 						// 	id_unreachable;
 						// }
-						// return CellStatus::kOccupied;
+						return CellStatus::kOccupied;
 					}	
 					// else
 					// {
@@ -301,6 +301,7 @@ namespace LazyThetaStarOctree{
 
 	bool is_flight_corridor_free(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown)
 	{
+
 		auto start_count = std::chrono::high_resolution_clock::now();
 		// bool free = getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
 		bool free = getCorridorOccupancy(input, publish_input) == CellStatus::kFree;
@@ -308,6 +309,7 @@ namespace LazyThetaStarOctree{
 		auto time_span = finish_count - start_count;
 		obstacle_avoidance_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
 		obstacle_avoidance_calls ++;
+		// ROS_INFO_STREAM("is_flight_corridor_free@sparse. Request: From " << input.start << " to " << input.goal << " with margin " << input.margin << ". Free " << free );
 		return free;
 	}
 
@@ -994,7 +996,8 @@ namespace LazyThetaStarOctree{
 		csv_file.open (folder_name+"/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
-		csv_file << millis.count();
+		csv_file << (resulting_path.size()>0);
+		csv_file << "," << millis.count();
 		csv_file << "," << straigh_line_distance;
 		csv_file << "," << distance_total;
 		csv_file << "," << !has_flight_corridor_free;
@@ -1003,6 +1006,8 @@ namespace LazyThetaStarOctree{
 		csv_file << "," << request.safety_margin;
 		csv_file << "," << request.max_time_secs ;
 		csv_file << "," << statistical_data.iterations_used ;
+		csv_file << "," << obstacle_hit_count ;
+		csv_file << "," << obstacle_avoidance_calls ;
 		csv_file << "," << publish_input.dataset_name << std::endl;
 		csv_file.close();
 #endif

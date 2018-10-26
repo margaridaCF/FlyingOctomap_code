@@ -1,4 +1,4 @@
-#include <ltStar_lib_ortho.h>
+#include <ltStar_temp.h>
 #include <gtest/gtest.h>
 #include <queue>
 
@@ -12,7 +12,7 @@ namespace LazyThetaStarOctree{
 
 		std::ofstream log_file_;
 		log_file_.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-		log_file_ << "[Ortho] Testing from " << disc_initial << " to " << disc_final << "; safety_margin: " << safety_margin << "; max_time_secs: " << max_time_secs << std::endl;
+		log_file_ << "[Spars] Testing from " << disc_initial << " to " << disc_final << "; safety_margin: " << safety_margin << "; max_time_secs: " << max_time_secs << std::endl;
 		log_file_.close();
 
 		ros::Publisher marker_pub;
@@ -21,7 +21,6 @@ namespace LazyThetaStarOctree{
 		PublishingInput publish_input( marker_pub, true, dataset_name);
 		InputData input( octree, disc_initial, disc_final, safety_margin);
 	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
 		
 		bool success = false;
 		// Initial node is not occupied
@@ -77,7 +76,7 @@ namespace LazyThetaStarOctree{
 		{
 			std::ofstream log_file;
 			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-			log_file << "[Precondition failed] This is a test with obstacles but there are none, skipping. From " << disc_initial << " to " << disc_final << std::endl;
+			log_file << "[Spars][Precondition failed] This is a test with obstacles but there are none, skipping. From " << disc_initial << " to " << disc_final << std::endl;
 			log_file.close();
 			return false;
 
@@ -201,11 +200,11 @@ namespace LazyThetaStarOctree{
 		csv_file.close();
 
 	    octomap::OcTree octree ("data/3dPuzzle_05.bt");
-	    double max_time_secs = 1;
+	    double max_time_secs = 60;
 
-	    collectDate(octree, max_time_secs, 3.9, "3Dpuzzle_ortho_3.9margin_ortho");
-	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_5margin_ortho");
-	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin_ortho");
+	    collectDate(octree, max_time_secs, 3.9, "3Dpuzzle_ortho_3.9margin_sparse");
+	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_5margin");
+	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin");
 	}
 
 }
