@@ -4,6 +4,8 @@
 
 
 namespace LazyThetaStarOctree{
+	typedef bool (*lazyThetaStar_function)(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input) ;
+
 
 	bool checkPreconditions(InputData input, PublishingInput publish_input)
 	{		

@@ -6,7 +6,7 @@
 namespace LazyThetaStarOctree{
 
 	
-	bool testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
+	bool testStraightLinesForwardWithObstacles(octomap::OcTree & octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
 		int const& max_time_secs = 55, double safety_margin = 2, std::string dataset_name = "unnamed")
 	{
 
