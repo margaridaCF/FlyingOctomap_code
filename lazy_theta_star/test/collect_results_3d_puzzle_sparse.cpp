@@ -69,9 +69,35 @@ namespace LazyThetaStarOctree{
 		}
 		return true;
 	}
+
+	bool checkPostConditions(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarReply reply, InputData input)
+	{
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+		octomath::Vector3 result_start (reply.waypoints[0].position.x, reply.waypoints[0].position.y, reply.waypoints[0].position.z);
+		int last_waypoint_index = reply.waypoint_amount - 1;
+		octomath::Vector3 result_goal (reply.waypoints[last_waypoint_index].position.x, reply.waypoints[last_waypoint_index].position.y, reply.waypoints[last_waypoint_index].position.z);
+
+		double cell_size_goal = -1;
+		octomath::Vector3 cell_center_coordinates_goal = input.goal;
+		updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
+		if(result_goal.distance( cell_center_coordinates_goal ) >= cell_size_goal   )
+		{
+			ROS_ERROR_STREAM("Distance from result last point " << result_goal << " and center of the voxel the goal is in " << cell_center_coordinates_goal << " is larger than the size of that voxel." << cell_size_goal);
+			return false;
+		}
+		double cell_size_start = -1;
+		octomath::Vector3 cell_center_coordinates_start = input.start;
+		updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
+		if( result_start.distance( cell_center_coordinates_start ) >=  cell_size_start   )
+		{
+			ROS_ERROR_STREAM("Distance from result first point " << result_start << " and center of the voxel the start is in " << cell_center_coordinates_start << " is larger than the size of that voxel." << cell_size_start);
+			return false;
+		}
+		return true;
+	}
 	
-	bool testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_time_secs = 55, double safety_margin = 2, std::string dataset_name = "unnamed")
+	bool testStraightLinesForwardWithObstacles(octomap::OcTree & octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, lazyThetaStar_function processLazyThetaStar, int const& max_time_secs = 55, double safety_margin = 2, std::string dataset_name = "unnamed")
 	{
 		ros::Publisher marker_pub;
 		PublishingInput publish_input( marker_pub, true, dataset_name);
@@ -106,7 +132,7 @@ namespace LazyThetaStarOctree{
         request.safety_margin = safety_margin;
         lazy_theta_star_msgs::LTStarReply reply;
 
-		if( ! processLTStarRequest(octree, request, reply, sidelength_lookup_table, publish_input) )
+		if( ! processLazyThetaStar(octree, request, reply, sidelength_lookup_table, publish_input) )
 		{
 			ROS_ERROR_STREAM("Failure from " << disc_initial << " to " << disc_final);
 			return false;
@@ -115,26 +141,7 @@ namespace LazyThetaStarOctree{
 		{
 			if(reply.success)
 			{
-				octomath::Vector3 result_start (reply.waypoints[0].position.x, reply.waypoints[0].position.y, reply.waypoints[0].position.z);
-				int last_waypoint_index = reply.waypoint_amount - 1;
-				octomath::Vector3 result_goal (reply.waypoints[last_waypoint_index].position.x, reply.waypoints[last_waypoint_index].position.y, reply.waypoints[last_waypoint_index].position.z);
-
-				double cell_size_goal = -1;
-				octomath::Vector3 cell_center_coordinates_goal = disc_final;
-				updateToCellCenterAndFindSize( cell_center_coordinates_goal, octree, cell_size_goal, sidelength_lookup_table);
-				if(result_goal.distance( cell_center_coordinates_goal ) >= cell_size_goal   )
-				{
-					ROS_ERROR_STREAM("Distance from result last point " << result_goal << " and center of the voxel the goal is in " << cell_center_coordinates_goal << " is larger than the size of that voxel." << cell_size_goal);
-					return false;
-				}
-				double cell_size_start = -1;
-				octomath::Vector3 cell_center_coordinates_start = disc_initial;
-				updateToCellCenterAndFindSize( cell_center_coordinates_start, octree, cell_size_start, sidelength_lookup_table);
-				if( result_start.distance( cell_center_coordinates_start ) >=  cell_size_start   )
-				{
-					ROS_ERROR_STREAM("Distance from result first point " << result_start << " and center of the voxel the start is in " << cell_center_coordinates_start << " is larger than the size of that voxel." << cell_size_start);
-					return false;
-				}
+				if (!checkPostConditions(octree, reply, input)) return false;
 			}
 		}
 		if(0 != ThetaStarNode::OustandingObjects())
@@ -144,7 +151,7 @@ namespace LazyThetaStarOctree{
 		return true;
 	}
 
-	void collectDate(octomap::OcTree & octree, double max_time_secs, double safety_margin, std::string dataset_name)
+	void collectDate(octomap::OcTree & octree, double max_time_secs, double safety_margin, std::string dataset_name, lazyThetaStar_function processLazyThetaStar)
 	{
 	  	std::list<octomath::Vector3> points = {
 		  		/*A = */octomath::Vector3 (0.28, 13.3, 90),
@@ -194,8 +201,8 @@ namespace LazyThetaStarOctree{
 	    	points.erase(points.begin());
 	    	for (std::list<octomath::Vector3>::iterator it = points.begin(); it != points.end(); ++it)
 	    	{
-	    		testStraightLinesForwardWithObstacles(octree, current, *it, max_time_secs, safety_margin, dataset_name);
-	    		testStraightLinesForwardWithObstacles(octree, *it, current, max_time_secs, safety_margin, dataset_name);
+	    		testStraightLinesForwardWithObstacles(octree, current, *it, processLazyThetaStar, max_time_secs, safety_margin, dataset_name);
+	    		testStraightLinesForwardWithObstacles(octree, *it, current, processLazyThetaStar, max_time_secs, safety_margin, dataset_name);
 	    	}
 	    	++i;
 	    }
@@ -210,10 +217,11 @@ namespace LazyThetaStarOctree{
 
 	    octomap::OcTree octree ("data/3dPuzzle_05.bt");
 	    double max_time_secs = 60;
+	    lazyThetaStar_function processLazyThetaStar = processLTStarRequest;
 
-	    collectDate(octree, max_time_secs, 3.9, "3Dpuzzle_ortho_3.9margin_sparse");
-	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_5margin");
-	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin");
+	    collectDate(octree, max_time_secs, 3.9, "3Dpuzzle_ortho_3.9margin_sparse", 	processLazyThetaStar);
+	    collectDate(octree, max_time_secs, 5, 	"3Dpuzzle_ortho_5margin_sparse", 	processLazyThetaStar);
+	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin_sparse", 	processLazyThetaStar);
 	}
 
 
@@ -226,10 +234,11 @@ namespace LazyThetaStarOctree{
 
 	    octomap::OcTree octree ("data/3dPuzzle_05.bt");
 	    double max_time_secs = 60;
+	    lazyThetaStar_function processLazyThetaStar = processLTStarRequest_original;
 
-	    collectDate(octree, max_time_secs, 3.9, "3Dpuzzle_ortho_3.9margin_sparse");
-	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_5margin");
-	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin");
+	    collectDate(octree, max_time_secs, 3.9, "3Dpuzzle_ortho_3.9margin_original", 	processLazyThetaStar);
+	    collectDate(octree, max_time_secs, 5, 	"3Dpuzzle_ortho_5margin_original", 		processLazyThetaStar);
+	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin_original", 	processLazyThetaStar);
 	}
 
 }
