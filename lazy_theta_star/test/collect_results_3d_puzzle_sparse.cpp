@@ -5,68 +5,52 @@
 
 namespace LazyThetaStarOctree{
 
-	
-	bool testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
-		int const& max_time_secs = 55, double safety_margin = 2, std::string dataset_name = "unnamed")
-	{
-
-		std::ofstream log_file_;
-		log_file_.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-		log_file_ << "[Spars] Testing from " << disc_initial << " to " << disc_final << "; safety_margin: " << safety_margin << "; max_time_secs: " << max_time_secs << std::endl;
-		log_file_.close();
-
-		ros::Publisher marker_pub;
-		ResultSet statistical_data;
-		double sidelength_lookup_table  [octree.getTreeDepth()];
-		PublishingInput publish_input( marker_pub, true, dataset_name);
-		InputData input( octree, disc_initial, disc_final, safety_margin);
-	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-		
-		bool success = false;
+	bool checkPreconditions(InputData input, PublishingInput publish_input)
+	{		
 		// Initial node is not occupied
-		octomap::OcTreeNode* originNode = octree.search(disc_initial);
+		octomap::OcTreeNode* originNode = input.octree.search(input.start);
 		if(  originNode  ){}
 		else
 		{
 			std::ofstream log_file;
 			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-			log_file << "[Precondition failed] Start node in unknown space. " << disc_initial << std::endl;
+			log_file << "[Precondition failed] Start node in unknown space. " << input.start << std::endl;
 			log_file.close();
 			return false;
 		}
-		if(octree.isNodeOccupied(originNode) != false)
+		if(input.octree.isNodeOccupied(originNode) != false)
 		{
 			std::ofstream log_file;
 			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-			log_file << "[Precondition failed] Start node in occupied space" << disc_initial << std::endl;
+			log_file << "[Precondition failed] Start node in occupied space" << input.start << std::endl;
 			log_file.close();
 			return false;
 		}
 		// Final node is not occupied
-		octomap::OcTreeNode* finalNode = octree.search(disc_final);
+		octomap::OcTreeNode* finalNode = input.octree.search(input.goal);
 		if(  finalNode  ) {}
 		else
 		{
 			std::ofstream log_file;
 			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-			log_file << "[Precondition failed] Final node in unknown space" << disc_final << std::endl;
+			log_file << "[Precondition failed] Final node in unknown space" << input.goal << std::endl;
 			log_file.close();
 			return false;
 		}
-		if(octree.isNodeOccupied(finalNode) != false)
+		if(input.octree.isNodeOccupied(finalNode) != false)
 		{
 			std::ofstream log_file;
 			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-			log_file << "[Precondition failed] Final node in occupied space" << disc_final << std::endl;
+			log_file << "[Precondition failed] Final node in occupied space" << input.goal << std::endl;
 			log_file.close();
 			return false;
 		}
-		float distance = weightedDistance(disc_initial, disc_final);
-		if( distance > octree.getResolution()*100)
+		float distance = weightedDistance(input.start, input.goal);
+		if( distance > input.octree.getResolution()*100)
 		{
 			std::ofstream log_file;
 			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-			log_file << "[Precondition failed] Distance too big. From " << disc_initial << " to " << disc_final << " is " << distance << " ( > " << octree.getResolution()*100 << " ) " << std::endl;
+			log_file << "[Precondition failed] Distance too big. From " << input.start << " to " << input.goal << " is " << distance << " ( > " << input.octree.getResolution()*100 << " ) " << std::endl;
 			log_file.close();
 			return false;
 
@@ -76,13 +60,36 @@ namespace LazyThetaStarOctree{
 		{
 			std::ofstream log_file;
 			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-			log_file << "[Spars][Precondition failed] This is a test with obstacles but there are none, skipping. From " << disc_initial << " to " << disc_final << std::endl;
+			log_file << "[Spars][Precondition failed] This is a test with obstacles but there are none, skipping. From " << input.start << " to " << input.goal << std::endl;
 			log_file.close();
 			return false;
 
 		}
+		return true;
+	}
+	
+	bool testStraightLinesForwardWithObstacles(octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final,
+		int const& max_time_secs = 55, double safety_margin = 2, std::string dataset_name = "unnamed")
+	{
+		ros::Publisher marker_pub;
+		PublishingInput publish_input( marker_pub, true, dataset_name);
+		InputData input( octree, disc_initial, disc_final, safety_margin);
+		ResultSet statistical_data;
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+
+
+		std::ofstream log_file_;
+		log_file_.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
+		log_file_ << "[Spars] Testing from " << input.start << " to " << input.goal << "; safety_margin: " << safety_margin << "; max_time_secs: " << max_time_secs << std::endl;
+		log_file_.close();
 		
 		// std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, publish_input, max_time_secs, true);
+
+		if(!checkPreconditions(input, publish_input))
+		{
+			return false;
+		}
 
 		lazy_theta_star_msgs::LTStarRequest request;
         request.request_id = 0;
@@ -192,7 +199,23 @@ namespace LazyThetaStarOctree{
 	    }
 	}
 
-	TEST(LazyThetaStarMeasurements, AllCombinations)
+	TEST(LazyThetaStarMeasurements, SparseNeighbors)
+	{
+		std::ofstream csv_file;
+		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+		csv_file.close();
+
+	    octomap::OcTree octree ("data/3dPuzzle_05.bt");
+	    double max_time_secs = 60;
+
+	    collectDate(octree, max_time_secs, 3.9, "3Dpuzzle_ortho_3.9margin_sparse");
+	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_5margin");
+	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin");
+	}
+
+
+	TEST(LazyThetaStarMeasurements, OriginalCode)
 	{
 		std::ofstream csv_file;
 		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
