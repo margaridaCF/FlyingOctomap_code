@@ -63,11 +63,11 @@ namespace LazyThetaStarOctree{
 			return false;
 		}
 		float distance = weightedDistance(disc_initial, disc_final);
-		if( distance > octree.getResolution()*100)
+		if( distance > octree.getResolution()*200)
 		{
 			std::ofstream log_file;
 			log_file.open (LazyThetaStarOctree::folder_name + "/current/tests.log", std::ofstream::app);
-			log_file << "[Precondition failed] Distance too big. From " << disc_initial << " to " << disc_final << " is " << distance << " ( > " << octree.getResolution()*100 << " ) " << std::endl;
+			log_file << "[Precondition failed] Distance too big. From " << disc_initial << " to " << disc_final << " is " << distance << " ( > " << octree.getResolution()*200 << " ) " << std::endl;
 			log_file.close();
 			return false;
 
@@ -83,7 +83,7 @@ namespace LazyThetaStarOctree{
 
 		}
 		
-		// std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, publish_input, max_time_secs, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, publish_input, max_time_secs, true);
 
 		lazy_theta_star_msgs::LTStarRequest request;
         request.request_id = 0;
@@ -136,48 +136,9 @@ namespace LazyThetaStarOctree{
 		return true;
 	}
 
-	void collectDate(octomap::OcTree & octree, double max_time_secs, double safety_margin, std::string dataset_name)
+	void collectDate(octomap::OcTree & octree, double max_time_secs, double safety_margin, std::string dataset_name, std::list<octomath::Vector3>  points)
 	{
-	  	std::list<octomath::Vector3> points = {
-		  		/*A = */octomath::Vector3 (0.28, 13.3, 90),
-		  		/*B = */octomath::Vector3 (-21.6, 20.3, 63),
-		  		/*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
-		  		/*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
-		  		/*E = */octomath::Vector3 (41.4, 22.4, 32),
-		  		/*F = */octomath::Vector3 (21.6, 23.5, 12.5),
-	  			octomath::Vector3 (0.0, -5.0, 10),
-	  			octomath::Vector3 (-5.0, 0.0, 40),
-	  			octomath::Vector3 (-20, 12.5, 40.0),
-	  			octomath::Vector3 (0, 32, 40.0),
-	  			octomath::Vector3 (0, 32, 15.0),
-	  			octomath::Vector3 (30, 47, 15.0),
-	  			octomath::Vector3 (30, 47, 50.0),
-	  			octomath::Vector3 (48, 4, 50.0),
-	  			octomath::Vector3 (48, 4, 20.0),
-	  			octomath::Vector3 (31, 2, 20.0),
-	  			octomath::Vector3 (31, 2, 45.0),
-	  			octomath::Vector3 (16, 37, 45.0),
-	  			octomath::Vector3 (16, 37, 10.0),
-	  			octomath::Vector3 (-3, 31, 77.0),
-	  			octomath::Vector3 (-7, 13, 26),
-	  			octomath::Vector3 (10, 17, 26),
-	  			octomath::Vector3 (10, 17, 46),
-	  			octomath::Vector3 (14, 0, 46),
-	  			octomath::Vector3 (14, 0, 26),
-	  			octomath::Vector3 (-10, 18, 63),
-	  			octomath::Vector3 (6, -6, 63),
-	  			octomath::Vector3 (6, -6, 63),
-	  			octomath::Vector3 (5, 32, 63),
-	  			octomath::Vector3 (27, 30, 63),
-	  			octomath::Vector3 (37, 9, 63),
-	  			octomath::Vector3 (-2.8, 0.7, 10),
-	  			octomath::Vector3 (-2.8, 0.7, 15),
-	  			octomath::Vector3 (-2.2, 9.7, 20),
-	  			octomath::Vector3 (-3, 6.7, 20),
-	  			octomath::Vector3 (8.7, 22.7, 20),
-	  			octomath::Vector3 (5.46, 25.9, 15),
-	  			octomath::Vector3 (7, 21.7, 20),
-			};
+		// ROS_ERROR_STREAM("Start collectDate");
 		int count = points.size()-1;
 	    int i;
 	    for ( i = 0; i < count; )
@@ -186,28 +147,111 @@ namespace LazyThetaStarOctree{
 	    	points.erase(points.begin());
 	    	for (std::list<octomath::Vector3>::iterator it = points.begin(); it != points.end(); ++it)
 	    	{
+	    		// ROS_ERROR_STREAM("Before test");
 	    		testStraightLinesForwardWithObstacles(octree, current, *it, max_time_secs, safety_margin, dataset_name);
-	    		testStraightLinesForwardWithObstacles(octree, *it, current, max_time_secs, safety_margin, dataset_name);
+	    		// ROS_ERROR_STREAM("Here I am");
+	    		// testStraightLinesForwardWithObstacles(octree, *it, current, max_time_secs, safety_margin, dataset_name);
 	    	}
 	    	++i;
 	    }
 	}
 
-	TEST(LazyThetaStarMeasurements, AllCombinations)
+	void collectData_differentMargins(octomap::OcTree & octree, std::list<octomath::Vector3>  points, std::string dataset_name)
 	{
+
+	    double max_time_secs = 1;
+
+	    collectDate(octree, max_time_secs, 3.9, dataset_name+"_ortho", points);
+	    collectDate(octree, max_time_secs, 5, dataset_name+"_ortho", points);
+	    // ROS_ERROR_STREAM("This is me");
+	    collectDate(octree, max_time_secs, 5.4, dataset_name+"_ortho", points);
+	}
+
+	// TEST(LazyThetaStarMeasurements, 3dPuzzle)
+	// {
+	//   	std::list<octomath::Vector3> points = {
+	// 	  		/*A = */octomath::Vector3 (0.28, 13.3, 90),
+	// 	  		/*B = */octomath::Vector3 (-21.6, 20.3, 63),
+	// 	  		/*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
+	// 	  		/*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
+	// 	  		/*E = */octomath::Vector3 (41.4, 22.4, 32),
+	// 	  		/*F = */octomath::Vector3 (21.6, 23.5, 12.5),
+	//   			octomath::Vector3 (0.0, -5.0, 10),
+	//   			octomath::Vector3 (-5.0, 0.0, 40),
+	//   			octomath::Vector3 (-20, 12.5, 40.0),
+	//   			octomath::Vector3 (0, 32, 40.0),
+	//   			octomath::Vector3 (0, 32, 15.0),
+	//   			octomath::Vector3 (30, 47, 15.0),
+	//   			octomath::Vector3 (30, 47, 50.0),
+	//   			octomath::Vector3 (48, 4, 50.0),
+	//   			octomath::Vector3 (48, 4, 20.0),
+	//   			octomath::Vector3 (31, 2, 20.0),
+	//   			octomath::Vector3 (31, 2, 45.0),
+	//   			octomath::Vector3 (16, 37, 45.0),
+	//   			octomath::Vector3 (16, 37, 10.0),
+	//   			octomath::Vector3 (-3, 31, 77.0),
+	//   			octomath::Vector3 (-7, 13, 26),
+	//   			octomath::Vector3 (10, 17, 26),
+	//   			octomath::Vector3 (10, 17, 46),
+	//   			octomath::Vector3 (14, 0, 46),
+	//   			octomath::Vector3 (14, 0, 26),
+	//   			octomath::Vector3 (-10, 18, 63),
+	//   			octomath::Vector3 (6, -6, 63),
+	//   			octomath::Vector3 (5, 32, 63),
+	//   			octomath::Vector3 (27, 30, 63),
+	//   			octomath::Vector3 (37, 9, 63),
+	//   			octomath::Vector3 (-2.8, 0.7, 10),
+	//   			octomath::Vector3 (-2.8, 0.7, 15),
+	//   			octomath::Vector3 (-2.2, 9.7, 20),
+	//   			octomath::Vector3 (-3, 6.7, 20),
+	//   			octomath::Vector3 (8.7, 22.7, 20),
+	//   			octomath::Vector3 (5.46, 25.9, 15),
+	//   			octomath::Vector3 (7, 21.7, 20),
+	// 		};
+	// 	std::ofstream csv_file;
+	// 	csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+	// 	csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+	// 	csv_file.close();
+
+	//     octomap::OcTree octree ("data/3dPuzzle_05.bt");
+
+	//     collectData_differentMargins(octree, points, "3Dpuzzle_05res");
+	// }
+
+
+	TEST(LazyThetaStarMeasurements, Experiemntal)
+	{
+	  	std::list<octomath::Vector3> points = {
+			octomath::Vector3 (6.22, -7.23, 7),
+			octomath::Vector3 (0.69, -11.2, 7),
+			octomath::Vector3 (-23.5, -28.4, 3),
+			octomath::Vector3 (-15.7, -5.08, 5),
+			octomath::Vector3 (-8.34, -10.9, 7),
+			octomath::Vector3 (-5.35, -14, 7),
+			octomath::Vector3 (-3.9, -14.76, 7),
+			octomath::Vector3 (4.12, -2.21, 7),
+			octomath::Vector3 (7.49, -6.98, 7),
+			octomath::Vector3 (11.3, -6.71, 7),
+			octomath::Vector3 (16.8, -4.22, 5),
+			octomath::Vector3 (13.9, -18.2, 3),
+			};
 		std::ofstream csv_file;
 		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
 		csv_file.close();
 
-	    octomap::OcTree octree ("data/3dPuzzle_05.bt");
-	    double max_time_secs = 1;
+	    octomap::OcTree octree ("data/20180821_1207_5647_filtered.bt");
+	    collectData_differentMargins(octree, points, "20180821_1207_5647_filtered_experimental_ortho");
 
-	    collectDate(octree, max_time_secs, 3.9, "3Dpuzzle_ortho_3.9margin_ortho");
-	    collectDate(octree, max_time_secs, 5, "3Dpuzzle_ortho_5margin_ortho");
-	    collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin_ortho");
+	    octomap::OcTree octree_2 ("data/20180821_1110_42936_raw.bt");
+	    collectData_differentMargins(octree_2, points, "20180821_1110_42936_raw_experimental_ortho");
+
+	    octomap::OcTree octree_4 ("data/20180821_1110_42712_raw.bt");
+	    collectData_differentMargins(octree_4, points, "20180821_1110_42712_raw_experimental_ortho");
+
 	}
 
+	
 }
 
 int main(int argc, char **argv){
