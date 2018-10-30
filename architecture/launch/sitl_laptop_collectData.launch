@@ -25,7 +25,7 @@
 
     <rosparam file="$(find architecture)/cfg/sim_hitl_params.yaml" command="load" />
     <!-- #######################  Rviz    ######################################### -->
-   <!--  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" /> -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
     <!-- #######################  Gazebo  ######################################### -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="headless" value="$(arg headless)"/>
@@ -35,7 +35,7 @@
         <arg name="verbose" value="$(arg verbose)" />
         <arg name="paused" value="$(arg paused)" />
     </include>
-    <param name="robot_description" textfile="/home/mfaria/src/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
+    <param name="robot_description" textfile="/home/hector/src/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" type="string" value=""/>
@@ -76,7 +76,7 @@
     <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
     <!-- #######################  Architecture nodes  ############################# -->
     <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="lazy_theta_star" output="screen" /> 
-    <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
+    <!-- <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" /> -->
     <!-- <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" /> --> 
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
  
