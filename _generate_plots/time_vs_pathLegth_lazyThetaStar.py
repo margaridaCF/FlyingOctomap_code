@@ -14,8 +14,7 @@ def extract_lazy_theta_star_data(csv_filepath):
     data = pd.read_csv(csv_filepath)
     return data
 
-
-def create_polyFitTrace(data, trace_color, polynomial_degree):
+def create_polyFitTrace(data, trace_color, polynomial_degree, start):
 	# calculate polynomial
 	x_original = data['path_lenght_total_meters']
 	y_original = data['computation_time_millis']
@@ -24,7 +23,7 @@ def create_polyFitTrace(data, trace_color, polynomial_degree):
 	f = np.poly1d(z)
 
 	# calculate new x's and y's
-	x_new = np.linspace(0, max(x_original)+5, 100)
+	x_new = np.linspace(start, max(x_original)+5, 120)
 	y_new = f(x_new)
 
 	trace = go.Scatter(
@@ -38,16 +37,20 @@ def create_polyFitTrace(data, trace_color, polynomial_degree):
 	return trace
 
 
-def plot_polynomialFit_scatter(dataSparse, dataOrtho, security_margin, polynomial_degree):
-	# dataSparse.loc[:,'computation_time_millis'] /= 1000
-	# dataOrtho.loc[:,'computation_time_millis'] /= 1000
-
+def plot_polynomialFit_scatter(dataSparse, dataOrtho, dataOriginal, security_margin, polynomial_degree, start):
+	traceOriginal = go.Scatter(
+	    x = dataOriginal['path_lenght_total_meters'],
+	    y = dataOriginal['computation_time_millis'],
+	    mode = 'markers',
+	    marker=go.Marker(color='rgb(255,255,191)'),
+        name='Lazy Theta * Offline'
+	)
 
 	traceSparse = go.Scatter(
 	    x = dataSparse['path_lenght_total_meters'],
 	    y = dataSparse['computation_time_millis'],
 	    mode = 'markers',
-	    marker=go.Marker(color='rgb(44,123,182)'),
+	    marker=go.Marker(color='rgb(252,141,89)'),
         name='Sparse Neighbors (SN)'
 	)
 
@@ -55,17 +58,14 @@ def plot_polynomialFit_scatter(dataSparse, dataOrtho, security_margin, polynomia
 	    x = dataOrtho['path_lenght_total_meters'],
 	    y = dataOrtho['computation_time_millis'],
 	    mode = 'markers',
-	    marker=go.Marker(color='rgb(253,174,97)'),
+	    marker=go.Marker(color='rgb(145,191,219)'),
         name='SN + Geometric obstacle avoidance'
 	)
+	trace_poly_sparse 	= create_polyFitTrace(dataSparse, 'rgb(252,141,89)', polynomial_degree, start)
+	trace_poly_ortho 	= create_polyFitTrace(dataOrtho, 'rgb(145,191,219)', polynomial_degree, start)
+	trace_poly_original = create_polyFitTrace(dataOriginal, 'rgb(255,255,191)', polynomial_degree, start)
 
-	trace_poly_sparse = create_polyFitTrace(dataSparse, 'rgb(171,217,233)', polynomial_degree)
-	trace_poly_ortho = create_polyFitTrace(dataOrtho, 'rgb(255,255,191)', polynomial_degree)
-
-
-
-	data = [traceSparse, traceOrtho, trace_poly_sparse, trace_poly_ortho]
-
+	data = [traceSparse, traceOrtho, traceOriginal, trace_poly_sparse, trace_poly_ortho, trace_poly_original]
 	layout = go.Layout(
 	    title='Time to find path with ' + security_margin + ' m security margin',
 	    xaxis=dict(
@@ -90,6 +90,10 @@ def plot_polynomialFit_scatter(dataSparse, dataOrtho, security_margin, polynomia
 	
 def filterFailed(data):
 	data.drop(data[data['success'] == 0].index, inplace=True)
+	data.reset_index(drop=True, inplace=True)
+
+def filterTooLong(data):
+	data.drop(data[data['path_lenght_total_meters'] > 100].index, inplace=True)
 	data.reset_index(drop=True, inplace=True)
 
 # variables= {}
