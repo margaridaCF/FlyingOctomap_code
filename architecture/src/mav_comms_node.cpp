@@ -10,8 +10,16 @@
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/YawSpin.h>
 
+#include <iostream>
+#include <fstream>
+#include <chrono>
+
+
+
 namespace mav_comms
 {
+    std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
+
     bool offboard_enabled;
     ros::Duration exploration_maneuver_phases_duration_secs;
 	mavros_msgs::State current_state;
@@ -89,6 +97,15 @@ namespace mav_comms
 			position_state.waypoint_sequence = req.waypoint_sequence_id;
 			position_state.pose = req.pose;
             res.is_going_to_position = true;
+
+            std::ofstream csv_file;
+            csv_file.open (folder_name + "/current/current_position.csv", std::ofstream::app);
+
+            auto duration = std::chrono::system_clock::now().time_since_epoch();
+            auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+            csv_file << millis << ",,,," << req.pose.position.x << "," << req.pose.position.y << "," << req.pose.position.z << std::endl;
+            csv_file.close();
 		}
         return true;
 	}
@@ -200,6 +217,8 @@ int main(int argc, char **argv)
     mav_comms::param_set_client = nh.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
 
 
+    ROS_ERROR_STREAM("[mav_comms] Saving to "+mav_comms::folder_name + "/current/current_position.csv");
+
     mav_comms::state_variables_init(nh);
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(10);
@@ -269,7 +288,7 @@ int main(int argc, char **argv)
     bool offboard_on = false;
     while(ros::ok()) 
     {// Position is always sent regardeless of the state to keep vehicle in offboard mode
-        mav_comms::send_msg_to_px4();
+        // mav_comms::send_msg_to_px4();
 
         if(mav_comms::offboard_enabled)
         {
