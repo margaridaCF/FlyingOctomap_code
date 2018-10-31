@@ -101,7 +101,7 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
                 name=datasets_labels[x]
             )
         )
-        trace_poly_sparse   = create_polyFitTrace(datasets[x], datsets_colors[x], polynomial_degree, start)
+        traces.append(create_polyFitTrace(datasets[x], datsets_colors[x], polynomial_degree, start))
 
     
     layout = go.Layout(
