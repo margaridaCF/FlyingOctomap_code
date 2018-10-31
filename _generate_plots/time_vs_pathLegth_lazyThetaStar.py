@@ -88,6 +88,44 @@ def plot_polynomialFit_scatter(dataOriginal, dataSparse, dataOrtho, security_mar
 	fig=dict(data=data, layout=layout)
 	plotly.offline.iplot(fig, filename='./scatter_time_pathLenght.html', image='png')
 	
+
+def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, security_margin, polynomial_degree, start, title):
+
+    traces = []
+    for x in xrange(0,len(datasets)):
+        traces.append(go.Scatter(
+                x = datasets[x]['path_lenght_total_meters'],
+                y = datasets[x]['computation_time_millis'],
+                mode = 'markers',
+                marker=go.Marker(color=datsets_colors[x]),
+                name=datasets_labels[x]
+            )
+        )
+        trace_poly_sparse   = create_polyFitTrace(datasets[x], datsets_colors[x], polynomial_degree, start)
+
+    
+    layout = go.Layout(
+        title=title,
+        xaxis=dict(
+            title='Distance between points (in meters)',
+            titlefont=dict(
+                family='Courier New, monospace',
+                size=18,
+                color='#7f7f7f'
+            )
+        ),
+        yaxis=dict(
+            title='Computation time (seconds)',
+            titlefont=dict(
+                family='Courier New, monospace',
+                size=18,
+                color='#7f7f7f'
+            )
+        )
+    )
+    fig=dict(data=traces, layout=layout)
+    plotly.offline.iplot(fig, filename='./scatter_time_pathLenght.html', image='png')
+
 def filterFailed(data):
 	data.drop(data[data['success'] == 0].index, inplace=True)
 	data.reset_index(drop=True, inplace=True)
