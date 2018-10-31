@@ -37,7 +37,7 @@ def create_polyFitTrace(data, trace_color, polynomial_degree, start):
 	return trace
 
 
-def plot_polynomialFit_scatter(dataSparse, dataOrtho, dataOriginal, security_margin, polynomial_degree, start):
+def plot_polynomialFit_scatter(dataOriginal, dataSparse, dataOrtho, security_margin, polynomial_degree, start):
 	traceOriginal = go.Scatter(
 	    x = dataOriginal['path_lenght_total_meters'],
 	    y = dataOriginal['computation_time_millis'],
