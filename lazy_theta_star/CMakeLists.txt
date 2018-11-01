@@ -31,6 +31,9 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(ltStar_lib src/ltStar_lib.cpp)
 cs_add_library(ltStar_lib_ortho src/ltStar_lib_ortho.cpp)
 
+cs_add_executable(save_octomap_node src/save_octomap_node.cpp )
+target_link_libraries(save_octomap_node  ${catkin_LIBRARIES} ltStar_lib )
+
 cs_add_executable(ltStar_async_node src/ltStar_async_node.cpp )
 target_link_libraries(ltStar_async_node  ${catkin_LIBRARIES} ltStar_lib_ortho )
 
