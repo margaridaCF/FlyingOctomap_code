@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import plotly.plotly as py
 from plotly.graph_objs import *
 import plotly
@@ -14,7 +15,7 @@ def extract_lazy_theta_star_data(csv_filepath):
     data = pd.read_csv(csv_filepath)
     return data
 
-def create_polyFitTrace(data, trace_color, polynomial_degree, start):
+def create_polyFitTrace(data, trace_color, polynomial_degree, start, label):
 	# calculate polynomial
 	x_original = data['path_lenght_total_meters']
 	y_original = data['computation_time_millis']
@@ -25,13 +26,13 @@ def create_polyFitTrace(data, trace_color, polynomial_degree, start):
 	# calculate new x's and y's
 	x_new = np.linspace(start, max(x_original)+5, 120)
 	y_new = f(x_new)
-
+	degree_sym = u'\u00b0'.encode('utf-8').strip()
 	trace = go.Scatter(
                   x=x_new,
                   y=y_new,
                   mode='lines',
                   marker=go.Marker(color=trace_color),
-                  name=str(polynomial_degree)+' degree polynomial fit'
+                  name=str(polynomial_degree)+degree_sym+' poly fit of '+label
                   )
 
 	return trace
@@ -89,7 +90,7 @@ def plot_polynomialFit_scatter(dataOriginal, dataSparse, dataOrtho, security_mar
 	plotly.offline.iplot(fig, filename='./scatter_time_pathLenght.html', image='png')
 	
 
-def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, security_margin, polynomial_degree, start, title):
+def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, polynomial_degree, start, title):
 
     traces = []
     for x in xrange(0,len(datasets)):
@@ -101,7 +102,7 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
                 name=datasets_labels[x]
             )
         )
-        traces.append(create_polyFitTrace(datasets[x], datsets_colors[x], polynomial_degree, start))
+        traces.append(create_polyFitTrace(datasets[x], datsets_colors[x], polynomial_degree, start, datasets_labels[x]))
 
     
     layout = go.Layout(
