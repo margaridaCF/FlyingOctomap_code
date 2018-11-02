@@ -28,6 +28,7 @@ ros::ServiceServer current_position_service;
 enum movement_state_t
 {
     position,
+    position_quaternion,
     velocity,
     stop,
     yaw_spin
@@ -48,6 +49,7 @@ struct Position
     ros::Time yaw_spin_last_sent;
 };
 // mavros_msgs::PositionTarget stop_position;
+geometry_msgs::PoseStamped target_orientation;
 Position position_state, current_position;
 ros::ServiceClient param_set_client;
 
@@ -134,18 +136,33 @@ bool target_position_vel_cb(architecture_msgs::PositionRequest::Request &req,
                             architecture_msgs::PositionRequest::Response &res)
 {
     ROS_WARN_STREAM("[mav_comms] target_position_vel_cb");
-    // if (position_state.movement_state != velocity)
-    // {
-    //     ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.pose
-    //                                                       << ", wrong movement state");
-    //     res.is_going_to_position = false;
-    // }
-    // else
-    // {
-    position_state.movement_state = velocity;
-    position_state.pose = req.pose;
-    res.is_going_to_position = true;
-    // }
+    if (position_state.movement_state != position)
+    {
+        ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.pose
+                                                          << ", wrong movement state");
+        res.is_going_to_position = false;
+    }
+    else
+    {
+        if (target_orientation.pose.orientation.x != req.pose.orientation.x ||
+            target_orientation.pose.orientation.y != req.pose.orientation.y ||
+            target_orientation.pose.orientation.z != req.pose.orientation.z ||
+            target_orientation.pose.orientation.w != req.pose.orientation.w)
+        {
+            target_orientation.pose = req.pose;
+            target_orientation.pose.orientation = req.pose.orientation;
+            target_orientation.pose.position = current_pose.pose.position;
+            position_state.movement_state = position_quaternion;
+            position_state.pose = req.pose;
+            res.is_going_to_position = true;
+        }
+        else
+        {
+            position_state.movement_state = velocity;
+            position_state.pose.position = req.pose.position;
+            res.is_going_to_position = true;
+        }
+    }
     return true;
 }
 
@@ -180,24 +197,24 @@ geometry_msgs::TwistStamped calculateVelocity()
         velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed;
         velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed;
         velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed;
-        ROS_WARN_STREAM("[mav_comms] Velocity \n"
-                        << "x: " << velocity_vector.twist.linear.x << "\n"
-                        << "y: " << velocity_vector.twist.linear.y << "\n"
-                        << "z: " << velocity_vector.twist.linear.z << "\n");
+        // ROS_WARN_STREAM("[mav_comms] Velocity \n"
+        //                 << "x: " << velocity_vector.twist.linear.x << "\n"
+        //                 << "y: " << velocity_vector.twist.linear.y << "\n"
+        //                 << "z: " << velocity_vector.twist.linear.z << "\n");
     }
     else if (3 > magnitude_vec_to_target && magnitude_vec_to_target >= 1)
     {
         velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed / 2;
         velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed / 2;
         velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed / 2;
-        ROS_WARN_STREAM("[mav_comms] Velocity \n"
-                        << "x: " << velocity_vector.twist.linear.x << "\n"
-                        << "y: " << velocity_vector.twist.linear.y << "\n"
-                        << "z: " << velocity_vector.twist.linear.z << "\n");
+        // ROS_WARN_STREAM("[mav_comms] Velocity \n"
+        //                 << "x: " << velocity_vector.twist.linear.x << "\n"
+        //                 << "y: " << velocity_vector.twist.linear.y << "\n"
+        //                 << "z: " << velocity_vector.twist.linear.z << "\n");
     }
     else
     {
-        ROS_WARN_STREAM("[mav_comms] Goal!");
+        ROS_WARN_STREAM("[mav_comms] Goal! Stoping UAV.");
         velocity_vector.twist.linear.x = 0;
         velocity_vector.twist.linear.y = 0;
         velocity_vector.twist.linear.z = 0;
@@ -216,6 +233,16 @@ void send_msg_to_px4()
         geometry_msgs::PoseStamped point_to_pub;
         point_to_pub.pose = position_state.pose;
         local_pos_pub.publish(point_to_pub);
+        // ROS_INFO_STREAM("[mav_comms] Sending position " << point_to_pub.pose.position);
+        break;
+    }
+    case movement_state_t::position_quaternion:
+    {
+        geometry_msgs::PoseStamped point_to_pub;
+        point_to_pub.pose = target_orientation.pose;
+        local_pos_pub.publish(point_to_pub);
+        ros::Duration(4.0).sleep();
+        position_state.movement_state = velocity;
         // ROS_INFO_STREAM("[mav_comms] Sending position " << point_to_pub.pose.position);
         break;
     }
