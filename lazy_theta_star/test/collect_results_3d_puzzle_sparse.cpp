@@ -282,94 +282,168 @@ namespace LazyThetaStarOctree{
 	//     collectDate(octree, max_time_secs, 5.4, "3Dpuzzle_ortho_5.4margin_original", 	processLazyThetaStar, points);
 	// }
 
-	TEST(LazyThetaStarMeasurements, SparseNeighbors_experimental)
+	// TEST(LazyThetaStarMeasurements, SparseNeighbors_experimental)
+	// {
+	// 	std::ofstream csv_file;
+	// 	csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+	// 	csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+	// 	csv_file.close();
+
+	//     double max_time_secs = 1;
+	//     lazyThetaStar_function processLazyThetaStar = processLTStarRequest;
+
+	//     std::list<octomath::Vector3> points = {
+	// 		octomath::Vector3 (6.22, -7.23, 7),
+	// 		octomath::Vector3 (0.69, -11.2, 7),
+	// 		octomath::Vector3 (-23.5, -28.4, 3),
+	// 		octomath::Vector3 (-15.7, -5.08, 5),
+	// 		octomath::Vector3 (-8.34, -10.9, 7),
+	// 		octomath::Vector3 (-5.35, -14, 7),
+	// 		octomath::Vector3 (-3.9, -14.76, 7),
+	// 		octomath::Vector3 (4.12, -2.21, 7),
+	// 		octomath::Vector3 (7.49, -6.98, 7),
+	// 		octomath::Vector3 (11.3, -6.71, 7),
+	// 		octomath::Vector3 (16.8, -4.22, 5),
+	// 		octomath::Vector3 (13.9, -18.2, 3),
+	// 		};
+
+
+	//     octomap::OcTree octree_v1 ("data/20180821_1207_5647_filtered.bt");
+	//     collectDate(octree_v1, max_time_secs, 3.9, "20180821_1207_5647_filtered_experimental_sparse", 	processLazyThetaStar, points);
+	//     collectDate(octree_v1, max_time_secs, 5, 	"20180821_1207_5647_filtered_experimental_sparse", 	processLazyThetaStar, points);
+	//     collectDate(octree_v1, max_time_secs, 5.4, "20180821_1207_5647_filtered_experimental_sparse", 	processLazyThetaStar, points);
+
+
+	//     octomap::OcTree octree_v2 ("data/20180821_1110_42936_raw.bt");
+	//     collectDate(octree_v2, max_time_secs, 3.9, "20180821_1110_42936_raw_experimental_sparse", 	processLazyThetaStar, points);
+	//     collectDate(octree_v2, max_time_secs, 5, 	"20180821_1110_42936_raw_experimental_sparse", 	processLazyThetaStar, points);
+	//     collectDate(octree_v2, max_time_secs, 5.4, "20180821_1110_42936_raw_experimental_sparse", 	processLazyThetaStar, points);
+
+	//     octomap::OcTree octree_v3 ("data/20180821_1110_42712_raw.bt");
+	//     collectDate(octree_v3, max_time_secs, 3.9, "20180821_1110_42712_raw_experimental_sparse", 	processLazyThetaStar, points);
+	//     collectDate(octree_v3, max_time_secs, 5, 	"20180821_1110_42712_raw_experimental_sparse", 	processLazyThetaStar, points);
+	//     collectDate(octree_v3, max_time_secs, 5.4, "20180821_1110_42712_raw_experimental_sparse", 	processLazyThetaStar, points);
+	// }
+	
+	
+	TEST(LazyThetaStarMeasurements, SparseNeighbors_Original_duplicateRealFlights)
 	{
 		std::ofstream csv_file;
 		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
 		csv_file.close();
 
-	    double max_time_secs = 1;
+	    double max_time_secs = 60;
 	    lazyThetaStar_function processLazyThetaStar = processLTStarRequest;
 
 	    std::list<octomath::Vector3> points = {
-			octomath::Vector3 (6.22, -7.23, 7),
-			octomath::Vector3 (0.69, -11.2, 7),
-			octomath::Vector3 (-23.5, -28.4, 3),
-			octomath::Vector3 (-15.7, -5.08, 5),
-			octomath::Vector3 (-8.34, -10.9, 7),
-			octomath::Vector3 (-5.35, -14, 7),
-			octomath::Vector3 (-3.9, -14.76, 7),
-			octomath::Vector3 (4.12, -2.21, 7),
-			octomath::Vector3 (7.49, -6.98, 7),
-			octomath::Vector3 (11.3, -6.71, 7),
-			octomath::Vector3 (16.8, -4.22, 5),
-			octomath::Vector3 (13.9, -18.2, 3),
+			octomath::Vector3 (6, -6, 7),
+			octomath::Vector3 (7.49, -6.98, 7)
 			};
+	    octomap::OcTree octree_v1 ("data/20180821_1110_manyTrajectoriesBackAndForth_karting_1.bt");
+	    collectDate(octree_v1, max_time_secs, 5, 	"20180821_1110_manyTrajectoriesBackAndForth_karting_1_sparse", 	processLazyThetaStar, points);
+	    collectDate(octree_v1, max_time_secs, 5, 	"20180821_1110_manyTrajectoriesBackAndForth_karting_1_original", 	processLTStarRequest_original, points);
 
 
-	    octomap::OcTree octree_v1 ("data/20180821_1207_5647_filtered.bt");
-	    collectDate(octree_v1, max_time_secs, 3.9, "20180821_1207_5647_filtered_experimental_sparse", 	processLazyThetaStar, points);
-	    collectDate(octree_v1, max_time_secs, 5, 	"20180821_1207_5647_filtered_experimental_sparse", 	processLazyThetaStar, points);
-	    collectDate(octree_v1, max_time_secs, 5.4, "20180821_1207_5647_filtered_experimental_sparse", 	processLazyThetaStar, points);
+	    points = {
+			octomath::Vector3 (7.49, -6.98, 7),
+			octomath::Vector3 (-3.9, -14.76, 7)
+			};
+	    octomap::OcTree octree_v2 ("data/20180821_1110_manyTrajectoriesBackAndForth_karting_2.bt");
+	    collectDate(octree_v2, max_time_secs, 5, "20180821_1110_manyTrajectoriesBackAndForth_karting_2_sparse", processLazyThetaStar, points);
+	    collectDate(octree_v2, max_time_secs, 5, "20180821_1110_manyTrajectoriesBackAndForth_karting_2_original", processLTStarRequest_original, points);
 
 
-	    octomap::OcTree octree_v2 ("data/20180821_1110_42936_raw.bt");
-	    collectDate(octree_v2, max_time_secs, 3.9, "20180821_1110_42936_raw_experimental_sparse", 	processLazyThetaStar, points);
-	    collectDate(octree_v2, max_time_secs, 5, 	"20180821_1110_42936_raw_experimental_sparse", 	processLazyThetaStar, points);
-	    collectDate(octree_v2, max_time_secs, 5.4, "20180821_1110_42936_raw_experimental_sparse", 	processLazyThetaStar, points);
 
-	    octomap::OcTree octree_v3 ("data/20180821_1110_42712_raw.bt");
-	    collectDate(octree_v3, max_time_secs, 3.9, "20180821_1110_42712_raw_experimental_sparse", 	processLazyThetaStar, points);
-	    collectDate(octree_v3, max_time_secs, 5, 	"20180821_1110_42712_raw_experimental_sparse", 	processLazyThetaStar, points);
-	    collectDate(octree_v3, max_time_secs, 5.4, "20180821_1110_42712_raw_experimental_sparse", 	processLazyThetaStar, points);
+	    points = {
+			octomath::Vector3 (-3.9, -14.76, 7),
+			octomath::Vector3 (7.49, -6.98, 7)
+			};
+	    octomap::OcTree octree_v3 ("data/20180821_1110_manyTrajectoriesBackAndForth_karting_3.bt");
+	    collectDate(octree_v3, max_time_secs, 5, "20180821_1110_manyTrajectoriesBackAndForth_karting_3_sparse", processLazyThetaStar, points);
+	    collectDate(octree_v3, max_time_secs, 5, "20180821_1110_manyTrajectoriesBackAndForth_karting_3_original", processLTStarRequest_original, points);
 
+
+	    points = {
+			octomath::Vector3 (5.65, -9.26, 7),
+			octomath::Vector3 (-3.73, -17.2, 7)
+			};
+	    octomap::OcTree octree_v4 ("data/20180823_1115_twoRunsHasVideo_1.bt");
+	    collectDate(octree_v4, max_time_secs, 5, "20180823_1115_twoRunsHasVideo_1_sparse", 	processLazyThetaStar, points);
+	    collectDate(octree_v4, max_time_secs, 5, "20180823_1115_twoRunsHasVideo_1_original", 	processLTStarRequest_original, points);
+
+
+	    points = {
+			octomath::Vector3 (-6.61, -21, 7),
+			octomath::Vector3 (5.65, -9.26, 7)
+			};
+	    octomap::OcTree octree_v5 ("data/20180823_1115_twoRunsHasVideo_2.bt");
+	    collectDate(octree_v5, max_time_secs, 5, "20180823_1115_twoRunsHasVideo_2_sparse", 	processLazyThetaStar, points);
+	    collectDate(octree_v5, max_time_secs, 5, "20180823_1115_twoRunsHasVideo_2_original", 	processLTStarRequest_original, points);
+
+	    
+	    points = {
+			octomath::Vector3 (5.65, -9.26, 7),
+			octomath::Vector3 (-3.73, -17.2, 7)
+			};
+	    octomap::OcTree octree_v6 ("data/20180823_1315_oneRunGoesIntoWeirdDirection_1.bt");
+	    collectDate(octree_v6, max_time_secs, 5, "20180823_1315_oneRunGoesIntoWeirdDirection_1_sparse", processLazyThetaStar, points);
+	    collectDate(octree_v6, max_time_secs, 5, "20180823_1315_oneRunGoesIntoWeirdDirection_1_original", processLTStarRequest_original, points);
+
+	    
+	    points = {
+			octomath::Vector3 (6.65, -10.26, 7),
+			octomath::Vector3 (-3.73, -17.2, 7)
+			};
+	    octomap::OcTree octree_v7 ("data/20180823_1315_oneRunGoesIntoWeirdDirection_2.bt");
+	    collectDate(octree_v7, max_time_secs, 5, "20180823_1315_oneRunGoesIntoWeirdDirection_2_sparse", processLazyThetaStar, points);
+	    collectDate(octree_v7, max_time_secs, 5, "20180823_1315_oneRunGoesIntoWeirdDirection_2_original", processLTStarRequest_original, points);
 	}
 
 
-	TEST(LazyThetaStarMeasurements, Original_experimental)
-	{
-		std::ofstream csv_file;
-		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
-		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
-		csv_file.close();
+	// TEST(LazyThetaStarMeasurements, Original_experimental)
+	// {
+	// 	std::ofstream csv_file;
+	// 	csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+	// 	csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+	// 	csv_file.close();
 
-	    double max_time_secs = 1;
-	    lazyThetaStar_function processLazyThetaStar = processLTStarRequest_original;
+	//     double max_time_secs = 1;
+	//     lazyThetaStar_function processLazyThetaStar = processLTStarRequest_original;
 
-	    std::list<octomath::Vector3> points = {
-			octomath::Vector3 (6.22, -7.23, 7),
-			octomath::Vector3 (0.69, -11.2, 7),
-			octomath::Vector3 (-23.5, -28.4, 3),
-			octomath::Vector3 (-15.7, -5.08, 5),
-			octomath::Vector3 (-8.34, -10.9, 7),
-			octomath::Vector3 (-5.35, -14, 7),
-			octomath::Vector3 (-3.9, -14.76, 7),
-			octomath::Vector3 (4.12, -2.21, 7),
-			octomath::Vector3 (7.49, -6.98, 7),
-			octomath::Vector3 (11.3, -6.71, 7),
-			octomath::Vector3 (16.8, -4.22, 5),
-			octomath::Vector3 (13.9, -18.2, 3),
-			};
-
-
-	    octomap::OcTree octree_v1 ("data/20180821_1207_5647_filtered.bt");
-	    collectDate(octree_v1, max_time_secs, 3.9, "20180821_1207_5647_filtered_experimental_original", 	processLazyThetaStar, points);
-	    collectDate(octree_v1, max_time_secs, 5, 	"20180821_1207_5647_filtered_experimental_original", 	processLazyThetaStar, points);
-	    collectDate(octree_v1, max_time_secs, 5.4, "20180821_1207_5647_filtered_experimental_original", 	processLazyThetaStar, points);
+	//     std::list<octomath::Vector3> points = {
+	// 		octomath::Vector3 (6.22, -7.23, 7),
+	// 		octomath::Vector3 (0.69, -11.2, 7),
+	// 		octomath::Vector3 (-23.5, -28.4, 3),
+	// 		octomath::Vector3 (-15.7, -5.08, 5),
+	// 		octomath::Vector3 (-8.34, -10.9, 7),
+	// 		octomath::Vector3 (-5.35, -14, 7),
+	// 		octomath::Vector3 (-3.9, -14.76, 7),
+	// 		octomath::Vector3 (4.12, -2.21, 7),
+	// 		octomath::Vector3 (7.49, -6.98, 7),
+	// 		octomath::Vector3 (11.3, -6.71, 7),
+	// 		octomath::Vector3 (16.8, -4.22, 5),
+	// 		octomath::Vector3 (13.9, -18.2, 3),
+	// 		};
 
 
-	    octomap::OcTree octree_v2 ("data/20180821_1110_42936_raw.bt");
-	    collectDate(octree_v2, max_time_secs, 3.9, "20180821_1110_42936_raw_experimental_original", 	processLazyThetaStar, points);
-	    collectDate(octree_v2, max_time_secs, 5, 	"20180821_1110_42936_raw_experimental_original", 	processLazyThetaStar, points);
-	    collectDate(octree_v2, max_time_secs, 5.4, "20180821_1110_42936_raw_experimental_original", 	processLazyThetaStar, points);
+	//     octomap::OcTree octree_v1 ("data/20180821_1207_5647_filtered.bt");
+	//     collectDate(octree_v1, max_time_secs, 3.9, "20180821_1207_5647_filtered_experimental_original", 	processLazyThetaStar, points);
+	//     collectDate(octree_v1, max_time_secs, 5, 	"20180821_1207_5647_filtered_experimental_original", 	processLazyThetaStar, points);
+	//     collectDate(octree_v1, max_time_secs, 5.4, "20180821_1207_5647_filtered_experimental_original", 	processLazyThetaStar, points);
 
-	    octomap::OcTree octree_v3 ("data/20180821_1110_42712_raw.bt");
-	    collectDate(octree_v3, max_time_secs, 3.9, "20180821_1110_42712_raw_experimental_original", 	processLazyThetaStar, points);
-	    collectDate(octree_v3, max_time_secs, 5, 	"20180821_1110_42712_raw_experimental_original", 	processLazyThetaStar, points);
-	    collectDate(octree_v3, max_time_secs, 5.4, "20180821_1110_42712_raw_experimental_original", 	processLazyThetaStar, points);
 
-	}
+	//     octomap::OcTree octree_v2 ("data/20180821_1110_42936_raw.bt");
+	//     collectDate(octree_v2, max_time_secs, 3.9, "20180821_1110_42936_raw_experimental_original", 	processLazyThetaStar, points);
+	//     collectDate(octree_v2, max_time_secs, 5, 	"20180821_1110_42936_raw_experimental_original", 	processLazyThetaStar, points);
+	//     collectDate(octree_v2, max_time_secs, 5.4, "20180821_1110_42936_raw_experimental_original", 	processLazyThetaStar, points);
+
+	//     octomap::OcTree octree_v3 ("data/20180821_1110_42712_raw.bt");
+	//     collectDate(octree_v3, max_time_secs, 3.9, "20180821_1110_42712_raw_experimental_original", 	processLazyThetaStar, points);
+	//     collectDate(octree_v3, max_time_secs, 5, 	"20180821_1110_42712_raw_experimental_original", 	processLazyThetaStar, points);
+	//     collectDate(octree_v3, max_time_secs, 5.4, "20180821_1110_42712_raw_experimental_original", 	processLazyThetaStar, points);
+
+	// }
 
 
 }
