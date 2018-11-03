@@ -254,7 +254,7 @@ namespace LazyThetaStarOctree{
 		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
 		csv_file.close();
 
-	    double max_time_secs = 1;
+	    double max_time_secs = 120;
 
 	    std::list<octomath::Vector3> points = {
 			octomath::Vector3 (6, -6, 7),
