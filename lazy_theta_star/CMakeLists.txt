@@ -125,10 +125,10 @@ if (CATKIN_ENABLE_TESTING)
 
 
   # ## Lazy Theta Star @ Collect measurements for 3d puzzle ## 
-  # catkin_add_gtest(collect_results_3d_puzzle_ortho 
-  #   test/collect_results_3d_puzzle_ortho.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(collect_results_3d_puzzle_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  catkin_add_gtest(collect_results_3d_puzzle_ortho 
+    test/collect_results_3d_puzzle_ortho.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(collect_results_3d_puzzle_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
   catkin_add_gtest(collect_results_3d_puzzle_sparse 
     test/collect_results_3d_puzzle_sparse.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
