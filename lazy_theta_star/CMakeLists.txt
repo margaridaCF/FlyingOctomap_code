@@ -124,25 +124,25 @@ if (CATKIN_ENABLE_TESTING)
   # target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
 
 
-  # ## Lazy Theta Star @ Collect measurements for 3d puzzle ## 
+  ## Lazy Theta Star @ Collect measurements for 3d puzzle ## 
   # catkin_add_gtest(collect_results_3d_puzzle_ortho 
   #   test/collect_results_3d_puzzle_ortho.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(collect_results_3d_puzzle_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
-  # catkin_add_gtest(collect_results_3d_puzzle_sparse 
-  #   test/collect_results_3d_puzzle_sparse.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(collect_results_3d_puzzle_sparse ${catkin_LIBRARIES} ltStar_lib)
+  catkin_add_gtest(collect_results_3d_puzzle_sparse 
+    test/collect_results_3d_puzzle_sparse.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(collect_results_3d_puzzle_sparse ${catkin_LIBRARIES} ltStar_lib)
 
   # ## Lazy Theta Star @ Collect measurements for experimental snapshots ## 
-  catkin_add_gtest(collect_results_experimental_sparse 
-    test/collect_results_experimental_sparse.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(collect_results_experimental_sparse ${catkin_LIBRARIES} ltStar_lib)
-  catkin_add_gtest(collect_results_experimental_ortho
-    test/collect_results_experimental_ortho.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(collect_results_experimental_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  # catkin_add_gtest(collect_results_experimental_sparse 
+  #   test/collect_results_experimental_sparse.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collect_results_experimental_sparse ${catkin_LIBRARIES} ltStar_lib)
+  # catkin_add_gtest(collect_results_experimental_ortho
+  #   test/collect_results_experimental_ortho.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collect_results_experimental_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
 
 endif()
 
