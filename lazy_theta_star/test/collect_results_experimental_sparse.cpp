@@ -23,10 +23,6 @@ namespace LazyThetaStarOctree{
 		log_file_ << "[Spars] Testing from " << input.start << " to " << input.goal << "; safety_margin: " << safety_margin << "; max_time_secs: " << max_time_secs << std::endl;
 		log_file_.close();
 		
-		// if(!checkPreconditions(input, publish_input))
-		// {
-		// 	return false;
-		// }
 
 		lazy_theta_star_msgs::LTStarRequest request;
         request.request_id = 0;
@@ -45,13 +41,6 @@ namespace LazyThetaStarOctree{
 		{
 			ROS_ERROR_STREAM("Failure from " << disc_initial << " to " << disc_final);
 			return false;
-		}
-		else
-		{
-			if(reply.success)
-			{
-				if (!checkPostConditions(octree, reply, input)) return false;
-			}
 		}
 		if(0 != ThetaStarNode::OustandingObjects())
 		{
@@ -85,7 +74,6 @@ namespace LazyThetaStarOctree{
 		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
 		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
 		csv_file.close();
-		int margin  = 5;
 
 	    double max_time_secs = 60;
 	    lazyThetaStar_function processLazyThetaStar = processLTStarRequest;
