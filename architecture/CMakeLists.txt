@@ -34,6 +34,9 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_executable(mav_comms_node src/mav_comms_node.cpp)
 target_link_libraries(mav_comms_node)
 
+cs_add_executable(save_poses_node src/save_poses_node.cpp)
+target_link_libraries(save_poses_node)
+
 cs_add_executable(state_manager_node src/state_manager_node.cpp)
 target_link_libraries(state_manager_node )
 
