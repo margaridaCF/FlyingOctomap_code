@@ -87,7 +87,7 @@ def plot_polynomialFit_scatter(dataOriginal, dataSparse, dataOrtho, security_mar
         )
     )
     fig=dict(data=data, layout=layout)
-    plotly.offline.iplot(fig, filename='./scatter_time_pathLenght.html', image='png')
+    plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength_fit', image='png')
     
 
 def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, polynomial_degree, start, title):
@@ -117,6 +117,7 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
         ),
         yaxis=dict(
             title='Computation time (seconds)',
+            range = [0, 60],
             titlefont=dict(
                 family='Courier New, monospace',
                 size=18,
@@ -125,7 +126,7 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
         )
     )
     fig=dict(data=traces, layout=layout)
-    plotly.offline.iplot(fig, filename='./scatter_time_pathLenght.html', image='png')
+    plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength_fit_'+fname, image='png')
 
 def plot_scatter_dynamicTraces(datasets, datasets_labels, datsets_colors, title):
     traces = []
@@ -159,7 +160,7 @@ def plot_scatter_dynamicTraces(datasets, datasets_labels, datsets_colors, title)
         )
     )
     fig=dict(data=traces, layout=layout)
-    plotly.offline.iplot(fig, filename='./scatter_time_pathLenght.html', image='png')
+    plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength', image='png')
 
 def filterFailed(data):
     data.drop(data[data['success'] == 0].index, inplace=True)
@@ -168,6 +169,37 @@ def filterFailed(data):
 def filterTooLong(data):
     data.drop(data[data['path_lenght_total_meters'] > 100].index, inplace=True)
     data.reset_index(drop=True, inplace=True)
+
+def calculateObstacleDensity(row):
+    return row.obstacle_hit_count * 100 / row.total_obstacle_checks
+
+
+def plot_obstacleDensity_dynamicTraces(datasets, datasets_labels, datsets_colors, title):
+    traces = []
+    for x in xrange(0,len(datasets)):
+        traces.append(
+            Box(
+                y=datasets[x].apply (lambda row: calculateObstacleDensity (row),axis=1), 
+                name=datasets_labels[x], 
+                boxpoints='all', 
+                jitter=0.3, 
+                pointpos=-1.8))
+
+    
+    layout = Layout(
+        title=title,
+        yaxis=dict(
+            title='Obstacle presence (%)',
+            titlefont=dict(
+                family='Courier New, monospace',
+                size=18,
+                color='#7f7f7f'
+            )
+        ),
+        #showlegend=False
+    )
+    fig=dict(data=traces, layout=layout)
+    plotly.offline.iplot(fig, filename='./obstacleDensity', image='png')
 
 # variables= {}
 # execfile( "time_vs_pathLegth_lazyThetaStar.py", variables )
