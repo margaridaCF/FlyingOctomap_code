@@ -15,7 +15,7 @@ def extract_lazy_theta_star_data(csv_filepath):
     data = pd.read_csv(csv_filepath)
     return data
 
-def create_polyFitTrace(data, trace_color, polynomial_degree, start, label):
+def create_polyFitTrace(data, trace_color, polynomial_degree, start, label, legend=True):
     # calculate polynomial
     x_original = data['path_lenght_total_meters']
     y_original = data['computation_time_millis']
@@ -32,7 +32,8 @@ def create_polyFitTrace(data, trace_color, polynomial_degree, start, label):
                   y=y_new,
                   mode='lines',
                   marker=go.Marker(color=trace_color),
-                  name=str(polynomial_degree)+degree_sym+' poly fit of '+label
+                  name=str(polynomial_degree)+degree_sym+' poly fit of '+label,
+                  showlegend=legend
                   )
 
     return trace
@@ -117,7 +118,7 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
         ),
         yaxis=dict(
             title='Computation time (seconds)',
-            range = [0, 60],
+            range = [0, 5],
             titlefont=dict(
                 family='Courier New, monospace',
                 size=18,
@@ -126,7 +127,7 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
         )
     )
     fig=dict(data=traces, layout=layout)
-    plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength_fit_'+fname, image='png')
+    plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength_fit_', image='png')
 
 def plot_scatter_dynamicTraces(datasets, datasets_labels, datsets_colors, title):
     traces = []
