@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import csv
-
+import plotly.io as pio
 
 from collections import defaultdict
 
@@ -200,7 +200,8 @@ def plot_obstacleDensity_dynamicTraces(datasets, datasets_labels, datsets_colors
         #showlegend=False
     )
     fig=dict(data=traces, layout=layout)
-    plotly.offline.iplot(fig, filename='./obstacleDensity', image='png')
+    plotly.offline.iplot(fig)
+    pio.write_image(fig, '/home/mfaria/Downloads/box_obstacleDensity.svg')
 
 def plot_obstacleDetection(csv_filepathSparse, csv_filepathOrtho, margin, yMax, seconds=False):
     dataSparse = pd.read_csv(csv_filepathSparse)
