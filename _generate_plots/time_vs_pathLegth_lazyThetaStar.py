@@ -91,7 +91,7 @@ def plot_polynomialFit_scatter(dataOriginal, dataSparse, dataOrtho, security_mar
     plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength_fit', image='png')
     
 
-def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, polynomial_degree, start, title):
+def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, polynomial_degree, start, title, fname, yMax, yUnits='seconds'):
 
     traces = []
     for x in xrange(0,len(datasets)):
@@ -105,7 +105,7 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
         )
         traces.append(create_polyFitTrace(datasets[x], datsets_colors[x], polynomial_degree, start, datasets_labels[x]))
 
-    
+    range__ = [0, yMax]
     layout = go.Layout(
         title=title,
         xaxis=dict(
@@ -117,8 +117,8 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
             )
         ),
         yaxis=dict(
-            title='Computation time (seconds)',
-            range = [0, 5],
+            title='Computation time ('+yUnits+')',
+            range = [0, yMax],
             titlefont=dict(
                 family='Courier New, monospace',
                 size=18,
@@ -127,7 +127,7 @@ def plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, 
         )
     )
     fig=dict(data=traces, layout=layout)
-    plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength_fit_', image='png')
+    plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength_fit_'+fname, image='png')
 
 def plot_scatter_dynamicTraces(datasets, datasets_labels, datsets_colors, title):
     traces = []
@@ -201,6 +201,27 @@ def plot_obstacleDensity_dynamicTraces(datasets, datasets_labels, datsets_colors
     )
     fig=dict(data=traces, layout=layout)
     plotly.offline.iplot(fig, filename='./obstacleDensity', image='png')
+
+def plot_obstacleDetection(csv_filepathSparse, csv_filepathOrtho, margin, yMax, seconds=False):
+    dataSparse = pd.read_csv(csv_filepathSparse)
+    dataOrtho = pd.read_csv(csv_filepathOrtho)
+
+    if(seconds):
+        dataSparse.loc[:,'computation_time_millis'] /= 1000
+        dataOrtho.loc[:,'computation_time_millis'] /= 1000
+        yUnits = "seconds"
+    else:
+        yUnits = "millis"
+
+
+    datasets_labels = ['3d Discretization', 'Geometric Definition']
+    datsets_colors = ['rgb(252,141,89)', 'rgb(145,191,219)']
+    polynomial_degree = 2
+    start = 0
+    title = "Processing time for obstacle detection with a "+str(margin)+"-meter safety margin"
+    datasets = [dataSparse, dataOrtho]
+    plot_polynomialFit_dynamicTraces(datasets, datasets_labels, datsets_colors, polynomial_degree, start, title, "obstDetect_"+str(margin)+"m", yMax, yUnits=yUnits)
+
 
 # variables= {}
 # execfile( "time_vs_pathLegth_lazyThetaStar.py", variables )
