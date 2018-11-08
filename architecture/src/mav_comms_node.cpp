@@ -21,6 +21,7 @@ geometry_msgs::PoseStamped current_pose;
 // ros::Publisher setpoint_raw_pub;
 ros::Publisher local_pos_pub;
 ros::Publisher local_velocity_pub;
+ros::Publisher target_wp_pub;
 ros::ServiceServer yaw_spin_service;
 ros::ServiceServer target_position_service;
 ros::ServiceServer target_position_vel_service;
@@ -50,7 +51,7 @@ struct Position
     ros::Time yaw_spin_last_sent;
 };
 // mavros_msgs::PositionTarget stop_position;
-geometry_msgs::PoseStamped target_orientation, target_position;
+geometry_msgs::PoseStamped target_orientation;
 Position position_state, current_position;
 ros::ServiceClient param_set_client;
 
@@ -130,7 +131,6 @@ bool target_position_vel_cb(architecture_msgs::PositionRequest::Request &req,
     }
     else
     {
-        target_position.pose = req.pose;
         if (target_orientation.pose.orientation.x != req.pose.orientation.x ||
             target_orientation.pose.orientation.y != req.pose.orientation.y ||
             target_orientation.pose.orientation.z != req.pose.orientation.z ||
@@ -150,6 +150,9 @@ bool target_position_vel_cb(architecture_msgs::PositionRequest::Request &req,
             res.is_going_to_position = true;
         }
     }
+    geometry_msgs::PoseStamped wp_to_pub;
+    wp_to_pub.pose = position_state.pose;
+    target_wp_pub.publish(wp_to_pub);
     return true;
 }
 
@@ -170,7 +173,7 @@ void state_variables_init(ros::NodeHandle &nh)
 geometry_msgs::TwistStamped calculateVelocity()
 {
     geometry_msgs::TwistStamped velocity_vector, unit_vector;
-    double cruising_speed = 2.0;
+    double cruising_speed = 1.0;
     double magnitude_vec_to_target = sqrt(pow(position_state.pose.position.x - current_pose.pose.position.x, 2) +
                                           pow(position_state.pose.position.y - current_pose.pose.position.y, 2) +
                                           pow(position_state.pose.position.z - current_pose.pose.position.z, 2));
@@ -179,21 +182,27 @@ geometry_msgs::TwistStamped calculateVelocity()
     unit_vector.twist.linear.y = (position_state.pose.position.y - current_pose.pose.position.y) / magnitude_vec_to_target;
     unit_vector.twist.linear.z = (position_state.pose.position.z - current_pose.pose.position.z) / magnitude_vec_to_target;
 
-    if (magnitude_vec_to_target >= 3)
+    if (magnitude_vec_to_target >= 1)
     {
         velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed;
         velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed;
         velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed;
     }
-    else if (3 > magnitude_vec_to_target && magnitude_vec_to_target >= 1)
-    {
-        velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed / 2;
-        velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed / 2;
-        velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed / 2;
-    }
+    // else if (5 > magnitude_vec_to_target && magnitude_vec_to_target >= 2)
+    // {
+    //     velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed * 0.5;
+    //     velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed * 0.5;
+    //     velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed * 0.5;
+    // }
+    // else if (2 > magnitude_vec_to_target && magnitude_vec_to_target >= 0.2)
+    // {
+    //     velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed * 0.2;
+    //     velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed * 0.2;
+    //     velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed * 0.2;
+    // }
     else
     {
-        ROS_WARN_STREAM("[mav_comms] Goal! Stoping UAV.");
+        ROS_WARN_STREAM("[mav_comms] Close to Goal! Stoping UAV ...");
         velocity_vector.twist.linear.x = 0;
         velocity_vector.twist.linear.y = 0;
         velocity_vector.twist.linear.z = 0;
@@ -210,7 +219,7 @@ void send_msg_to_px4()
     case movement_state_t::hover:
     {
         geometry_msgs::PoseStamped point_to_pub;
-        point_to_pub.pose = target_position.pose;
+        point_to_pub.pose = position_state.pose;
         local_pos_pub.publish(point_to_pub);
         break;
     }
@@ -303,6 +312,7 @@ int main(int argc, char **argv)
 
     mav_comms::local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10);
     mav_comms::local_velocity_pub = nh.advertise<geometry_msgs::TwistStamped>("mavros/setpoint_velocity/cmd_vel", 10);
+    mav_comms::target_wp_pub = nh.advertise<geometry_msgs::PoseStamped>("target_wp", 10);
     // mav_comms::setpoint_raw_pub = nh.advertise<mavros_msgs::PositionTarget>("mavros/setpoint_raw/local", 10);
 
     mav_comms::yaw_spin_service = nh.advertiseService("yaw_spin", mav_comms::yaw_spin_cb);

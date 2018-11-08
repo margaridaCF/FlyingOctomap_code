@@ -102,6 +102,6 @@
 	</include>
 
     <!-- #######################  Save Poses Node  ############################# -->
-    <node name="save_poses" type="save_poses_node" pkg="architecture" required="true"/>
+    <node name="save_poses" type="save_poses_node" pkg="architecture" output="screen" required="true"/>
  
 </launch>
