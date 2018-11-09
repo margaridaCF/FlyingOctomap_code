@@ -116,6 +116,9 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
         position_state.pose = req.pose;
         res.is_going_to_position = true;
     }
+    geometry_msgs::PoseStamped wp_to_pub;
+    wp_to_pub.pose = position_state.pose;
+    target_wp_pub.publish(wp_to_pub);
     return true;
 }
 
