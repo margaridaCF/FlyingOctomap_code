@@ -28,6 +28,7 @@ ros::ServiceServer target_position_vel_service;
 ros::ServiceServer current_position_service;
 enum movement_state_t
 {
+    take_off,
     hover,
     position,
     yaw_then_velocity,
@@ -54,6 +55,77 @@ struct Position
 geometry_msgs::PoseStamped target_orientation;
 Position position_state, current_position;
 ros::ServiceClient param_set_client;
+
+bool flag_next_wp;
+std::vector<double> poseListX, poseListY, poseListZ;
+
+template <typename Real>
+int nearestNeighbourIndex(std::vector<Real> &x, Real &value)
+{
+    Real dist = std::numeric_limits<Real>::max();
+    Real newDist = dist;
+    size_t idx = 0;
+
+    for (size_t i = 0; i < x.size(); ++i)
+    {
+        newDist = std::abs(value - x[i]);
+        if (newDist <= dist)
+        {
+            dist = newDist;
+            idx = i;
+        }
+    }
+
+    return idx;
+}
+
+template <typename Real>
+std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new)
+{
+    std::vector<Real> y_new;
+    Real dx, dy, m, b;
+    size_t x_max_idx = x.size() - 1;
+    size_t x_new_size = x_new.size();
+
+    y_new.reserve(x_new_size);
+
+    for (size_t i = 0; i < x_new_size; ++i)
+    {
+        size_t idx = nearestNeighbourIndex(x, x_new[i]);
+
+        if (x[idx] > x_new[i])
+        {
+            dx = idx > 0 ? (x[idx] - x[idx - 1]) : (x[idx + 1] - x[idx]);
+            dy = idx > 0 ? (y[idx] - y[idx - 1]) : (y[idx + 1] - y[idx]);
+        }
+        else
+        {
+            dx = idx < x_max_idx ? (x[idx + 1] - x[idx]) : (x[idx] - x[idx - 1]);
+            dy = idx < x_max_idx ? (y[idx + 1] - y[idx]) : (y[idx] - y[idx - 1]);
+        }
+
+        m = dy / dx;
+        b = y[idx] - x[idx] * m;
+
+        y_new.push_back(x_new[i] * m + b);
+    }
+
+    return y_new;
+}
+
+std::vector<double> interpolation(double target, double actual)
+{
+    double num_interp = 5;
+    std::vector<double> x = {0.0, num_interp};
+    std::vector<double> y = {actual, target};
+    std::vector<double> newx;
+    for (int i = 0; i < num_interp; i++)
+    {
+        newx.push_back(i);
+    }
+    auto res = interp1(x, y, newx);
+    return res;
+}
 
 void state_cb(const mavros_msgs::State::ConstPtr &msg)
 {
@@ -151,6 +223,12 @@ bool target_position_vel_cb(architecture_msgs::PositionRequest::Request &req,
             position_state.movement_state = velocity;
             position_state.pose.position = req.pose.position;
             res.is_going_to_position = true;
+            poseListX = interpolation(position_state.pose.position.x, current_pose.pose.position.x);
+            poseListY = interpolation(position_state.pose.position.y, current_pose.pose.position.y);
+            poseListZ = interpolation(position_state.pose.position.z, current_pose.pose.position.z);
+            poseListX.push_back(position_state.pose.position.x);
+            poseListY.push_back(position_state.pose.position.y);
+            poseListZ.push_back(position_state.pose.position.z);
         }
     }
     geometry_msgs::PoseStamped wp_to_pub;
@@ -170,55 +248,57 @@ void state_variables_init(ros::NodeHandle &nh)
 
     offboard_enabled = false;
     nh.getParam("offboard_enabled", offboard_enabled);
-    ROS_WARN_STREAM("[mav_comms] offboard_enabled" << offboard_enabled);
+    ROS_WARN_STREAM("[mav_comms] offboard_enabled " << offboard_enabled);
 }
 
-geometry_msgs::TwistStamped calculateVelocity()
+geometry_msgs::TwistStamped calculateVelocity(geometry_msgs::PoseStamped target, bool last)
 {
     geometry_msgs::TwistStamped velocity_vector, unit_vector;
     double cruising_speed = 1.0;
-    double magnitude_vec_to_target = sqrt(pow(position_state.pose.position.x - current_pose.pose.position.x, 2) +
-                                          pow(position_state.pose.position.y - current_pose.pose.position.y, 2) +
-                                          pow(position_state.pose.position.z - current_pose.pose.position.z, 2));
-
-    unit_vector.twist.linear.x = (position_state.pose.position.x - current_pose.pose.position.x) / magnitude_vec_to_target;
-    unit_vector.twist.linear.y = (position_state.pose.position.y - current_pose.pose.position.y) / magnitude_vec_to_target;
-    unit_vector.twist.linear.z = (position_state.pose.position.z - current_pose.pose.position.z) / magnitude_vec_to_target;
-
-    if (magnitude_vec_to_target >= 1)
+    double magnitude_vec_to_target = sqrt(pow(target.pose.position.x - current_pose.pose.position.x, 2) +
+                                          pow(target.pose.position.y - current_pose.pose.position.y, 2) +
+                                          pow(target.pose.position.z - current_pose.pose.position.z, 2));
+    unit_vector.twist.linear.x = (target.pose.position.x - current_pose.pose.position.x) / magnitude_vec_to_target;
+    unit_vector.twist.linear.y = (target.pose.position.y - current_pose.pose.position.y) / magnitude_vec_to_target;
+    unit_vector.twist.linear.z = (target.pose.position.z - current_pose.pose.position.z) / magnitude_vec_to_target;
+    velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed;
+    velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed;
+    velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed;
+    if (0.2 >= magnitude_vec_to_target)
     {
-        velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed;
-        velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed;
-        velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed;
+        flag_next_wp = true;
     }
-    // else if (5 > magnitude_vec_to_target && magnitude_vec_to_target >= 2)
-    // {
-    //     velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed * 0.5;
-    //     velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed * 0.5;
-    //     velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed * 0.5;
-    // }
-    // else if (2 > magnitude_vec_to_target && magnitude_vec_to_target >= 0.2)
-    // {
-    //     velocity_vector.twist.linear.x = unit_vector.twist.linear.x * cruising_speed * 0.2;
-    //     velocity_vector.twist.linear.y = unit_vector.twist.linear.y * cruising_speed * 0.2;
-    //     velocity_vector.twist.linear.z = unit_vector.twist.linear.z * cruising_speed * 0.2;
-    // }
-    else
+    if (last == true)
     {
-        ROS_WARN_STREAM("[mav_comms] Close to Goal! Stoping UAV ...");
         velocity_vector.twist.linear.x = 0;
         velocity_vector.twist.linear.y = 0;
         velocity_vector.twist.linear.z = 0;
         position_state.movement_state = hover;
     }
-
     return velocity_vector;
 }
 
 void send_msg_to_px4()
 {
+    double take_off_altitude = 1.0;
+    if (current_pose.pose.position.z < take_off_altitude * 0.8)
+    {
+        position_state.movement_state = take_off;
+    }
+    if (position_state.pose.position.z == 0)
+    {
+        position_state.pose.position.z = take_off_altitude;
+    }
     switch (position_state.movement_state)
     {
+    case movement_state_t::take_off:
+    {
+        geometry_msgs::PoseStamped point_to_pub;
+        point_to_pub.pose.position.z = take_off_altitude;
+        local_pos_pub.publish(point_to_pub);
+        position_state.movement_state = hover;
+        break;
+    }
     case movement_state_t::hover:
     {
         geometry_msgs::PoseStamped point_to_pub;
@@ -245,8 +325,28 @@ void send_msg_to_px4()
     }
     case movement_state_t::velocity:
     {
-        geometry_msgs::TwistStamped velocity_to_pub = calculateVelocity();
-        local_velocity_pub.publish(velocity_to_pub);
+        for (int i = 1; i < poseListX.size(); i++)
+        {
+            while (flag_next_wp == false)
+            {
+                geometry_msgs::PoseStamped interpolated_target;
+                interpolated_target.pose.position.x = poseListX[i];
+                interpolated_target.pose.position.y = poseListY[i];
+                interpolated_target.pose.position.z = poseListZ[i];
+                geometry_msgs::TwistStamped velocity_to_pub = calculateVelocity(interpolated_target, false);
+                local_velocity_pub.publish(velocity_to_pub);
+                ros::spinOnce();
+                ros::Duration(0.1).sleep();
+                if (flag_next_wp == true && i != poseListX.size())
+                {
+                    std::cout << "Next waypoint" << std::endl;
+                }
+            }
+            flag_next_wp = false;
+        }
+        geometry_msgs::PoseStamped last_target;
+        last_target.pose = position_state.pose;
+        geometry_msgs::TwistStamped velocity_to_pub = calculateVelocity(last_target, true);
         break;
     }
 
@@ -326,7 +426,6 @@ int main(int argc, char **argv)
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
     mav_comms::param_set_client = nh.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
-    // mavros/local_position/pose
 
     mav_comms::state_variables_init(nh);
     //the setpoint publishing rate MUST be faster than 2Hz
@@ -375,17 +474,19 @@ int main(int argc, char **argv)
     // ROS_INFO_STREAM("[mav_comms] MPC_XY_P set to " << 0.5);
 
     // === SET POSITIONS ===
-    geometry_msgs::PoseStamped point_to_pub;
-    point_to_pub.pose.position.x = 0;
-    point_to_pub.pose.position.y = 0;
-    point_to_pub.pose.position.z = 2;
-    for (int i = 20; ros::ok() && i > 0; --i)
-    { //send a few setpoints before starting
-        mav_comms::local_pos_pub.publish(point_to_pub);
-        ros::spinOnce();
-        rate.sleep();
-    }
-    ROS_INFO_STREAM("[mav_comms] Safety waypoints set to  " << point_to_pub.pose.position);
+    /*  PROBLEMS AT STARTING NODE
+        geometry_msgs::PoseStamped point_to_pub;
+        point_to_pub.pose.position.x = 0;
+        point_to_pub.pose.position.y = 0;
+        point_to_pub.pose.position.z = 2;
+        for (int i = 20; ros::ok() && i > 0; --i)
+        { //send a few setpoints before starting
+            mav_comms::local_pos_pub.publish(point_to_pub);
+            ros::spinOnce();
+            rate.sleep();
+        }
+        ROS_INFO_STREAM("[mav_comms] Safety waypoints set to  " << point_to_pub.pose.position);
+    */
     // === MAIN LOOP ===
     mavros_msgs::SetMode offb_set_mode;
     offb_set_mode.request.custom_mode = "OFFBOARD";
