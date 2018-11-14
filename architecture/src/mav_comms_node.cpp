@@ -115,7 +115,7 @@ std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vecto
 
 std::vector<double> interpolation(double target, double actual)
 {
-    double num_interp = 5;
+    double num_interp = 100;
     std::vector<double> x = {0.0, num_interp};
     std::vector<double> y = {actual, target};
     std::vector<double> newx;
@@ -330,6 +330,19 @@ void send_msg_to_px4()
             while (flag_next_wp == false)
             {
                 geometry_msgs::PoseStamped interpolated_target;
+                double dist_to_target = sqrt(pow(poseListX[i] - current_pose.pose.position.x, 2) +
+                                             pow(poseListY[i] - current_pose.pose.position.y, 2) +
+                                             pow(poseListZ[i] - current_pose.pose.position.z, 2));
+                while (dist_to_target < 0.5 && i != poseListX.size() - 1)
+                {
+                    i++;
+                    dist_to_target = sqrt(pow(poseListX[i] - current_pose.pose.position.x, 2) +
+                                          pow(poseListY[i] - current_pose.pose.position.y, 2) +
+                                          pow(poseListZ[i] - current_pose.pose.position.z, 2));
+                    // ROS_WARN_STREAM("dist: " << dist_to_target << " m to [" << i << "]");
+                    ros::Duration(0.1).sleep();
+                }
+                // ROS_WARN_STREAM("[" << i << "]" << poseListX[i] << " " << poseListY[i] << " " << poseListZ[i]);
                 interpolated_target.pose.position.x = poseListX[i];
                 interpolated_target.pose.position.y = poseListY[i];
                 interpolated_target.pose.position.z = poseListZ[i];

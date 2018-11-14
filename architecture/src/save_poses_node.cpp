@@ -31,6 +31,16 @@ void target_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
     {
         target_pose_prev = *msg;
         init_target++;
+        uav_path_intendeed.header.frame_id = "map";
+        target_pose.pose.position.x = 0;
+        target_pose.pose.position.y = 0;
+        target_pose.pose.position.z = 1;
+        target_pose.pose.orientation.x = 0;
+        target_pose.pose.orientation.y = 0;
+        target_pose.pose.orientation.z = 0;
+        target_pose.pose.orientation.w = 0;
+        uav_path_intendeed.poses.push_back(target_pose);
+        uav_path_intendeed.poses.push_back(*msg);
     }
     else
     {
