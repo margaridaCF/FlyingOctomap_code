@@ -57,6 +57,7 @@ Position position_state, current_position;
 ros::ServiceClient param_set_client;
 
 bool flag_next_wp;
+double look_ahead = 1.0;
 std::vector<double> poseListX, poseListY, poseListZ;
 
 template <typename Real>
@@ -111,6 +112,67 @@ std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vecto
     }
 
     return y_new;
+}
+
+int calculateNormalDistancePosition()
+{
+    std::vector<double> distances_to_path;
+    double distance;
+    for (int i = 0; i < poseListX.size() - 1; i++)
+    {
+        distance = sqrt(pow(poseListX[i] - current_pose.pose.position.x, 2) +
+                        pow(poseListY[i] - current_pose.pose.position.y, 2) +
+                        pow(poseListZ[i] - current_pose.pose.position.z, 2));
+        distances_to_path.push_back(distance);
+    }
+    auto normal_distance = std::min_element(distances_to_path.begin(), distances_to_path.end());
+    auto normal_distance_position_on_path = normal_distance - distances_to_path.begin();
+    return normal_distance_position_on_path;
+}
+
+double calculateFromNormalDistance(double x1, double y1, double z1)
+{
+    double x2, y2, z2, res;
+    if (x1 < 0)
+        x2 = x1 - look_ahead;
+    if (x1 > 0)
+        x2 = x1 + look_ahead;
+    if (y1 < 0)
+        y2 = y1 - look_ahead;
+    if (y1 > 0)
+        y2 = y1 + look_ahead;
+    if (z1 < 0)
+        z2 = z1 - look_ahead;
+    if (z1 > 0)
+        z2 = z1 + look_ahead;
+
+    res = sqrt(pow((x2 - x1), 2) +
+               pow((y2 - y1), 2) +
+               pow((z2 - z1), 2));
+
+    // ROS_WARN_STREAM("Values: \n"
+    // << "z1: " << z1 << " z2: " << z2 << " LA: " << res);
+    return res;
+}
+
+float simplePurePursuit()
+{
+    double from_normal_distance;
+    std::vector<double> distances_from_normal;
+    std::vector<double>::iterator up;
+    int position_normal_distance = calculateNormalDistancePosition();
+    // Find the closest waypoint to the look ahead distance (from normal distance)
+    for (position_normal_distance; position_normal_distance < poseListX.size() - 1; position_normal_distance++)
+    {
+        from_normal_distance = calculateFromNormalDistance(poseListX[position_normal_distance],
+                                                           poseListY[position_normal_distance],
+                                                           poseListZ[position_normal_distance]);
+        distances_from_normal.push_back(from_normal_distance);
+    }
+    up = std::upper_bound(distances_from_normal.begin(), distances_from_normal.end(), look_ahead);
+    float target_position_on_path = up - distances_from_normal.begin();
+    // ROS_WARN_STREAM("target: " << target_position_on_path << " size: " << distances_from_normal.size());
+    return target_position_on_path;
 }
 
 std::vector<double> interpolation(double target, double actual)
@@ -342,7 +404,9 @@ void send_msg_to_px4()
                     // ROS_WARN_STREAM("dist: " << dist_to_target << " m to [" << i << "]");
                     ros::Duration(0.1).sleep();
                 }
-                // ROS_WARN_STREAM("[" << i << "]" << poseListX[i] << " " << poseListY[i] << " " << poseListZ[i]);
+                ROS_WARN_STREAM("Pure Pursuit\n"
+                                << "             i: " << i << " p: " << simplePurePursuit());
+                // simplePurePursuit();
                 interpolated_target.pose.position.x = poseListX[i];
                 interpolated_target.pose.position.y = poseListY[i];
                 interpolated_target.pose.position.z = poseListZ[i];
