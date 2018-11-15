@@ -56,6 +56,7 @@ geometry_msgs::PoseStamped target_orientation;
 Position position_state, current_position;
 ros::ServiceClient param_set_client;
 
+bool flying = false;
 bool flag_next_wp;
 std::vector<double> poseListX, poseListY, poseListZ;
 
@@ -223,13 +224,13 @@ bool target_position_vel_cb(architecture_msgs::PositionRequest::Request &req,
             position_state.movement_state = velocity;
             position_state.pose.position = req.pose.position;
             res.is_going_to_position = true;
-            poseListX = interpolation(position_state.pose.position.x, current_pose.pose.position.x);
-            poseListY = interpolation(position_state.pose.position.y, current_pose.pose.position.y);
-            poseListZ = interpolation(position_state.pose.position.z, current_pose.pose.position.z);
-            poseListX.push_back(position_state.pose.position.x);
-            poseListY.push_back(position_state.pose.position.y);
-            poseListZ.push_back(position_state.pose.position.z);
         }
+        poseListX = interpolation(position_state.pose.position.x, current_pose.pose.position.x);
+        poseListY = interpolation(position_state.pose.position.y, current_pose.pose.position.y);
+        poseListZ = interpolation(position_state.pose.position.z, current_pose.pose.position.z);
+        poseListX.push_back(position_state.pose.position.x);
+        poseListY.push_back(position_state.pose.position.y);
+        poseListZ.push_back(position_state.pose.position.z);
     }
     geometry_msgs::PoseStamped wp_to_pub;
     wp_to_pub.pose = position_state.pose;
@@ -281,13 +282,22 @@ geometry_msgs::TwistStamped calculateVelocity(geometry_msgs::PoseStamped target,
 void send_msg_to_px4()
 {
     double take_off_altitude = 1.0;
-    if (current_pose.pose.position.z < take_off_altitude * 0.8)
+    if (flying == false)
     {
-        position_state.movement_state = take_off;
-    }
-    if (position_state.pose.position.z == 0)
-    {
-        position_state.pose.position.z = take_off_altitude;
+        if (position_state.pose.position.z == 0)
+        {
+            position_state.pose.position.z = take_off_altitude;
+        }
+        if (current_pose.pose.position.z < take_off_altitude * 0.8)
+        {
+            ROS_WARN_STREAM("Taking Off");
+            position_state.movement_state = take_off;
+            flying = false;
+        }
+        else
+        {
+            flying = true;
+        }
     }
     switch (position_state.movement_state)
     {
@@ -362,7 +372,6 @@ void send_msg_to_px4()
         geometry_msgs::TwistStamped velocity_to_pub = calculateVelocity(last_target, true);
         break;
     }
-
     case movement_state_t::yaw_spin:
     {
         geometry_msgs::PoseStamped point_to_pub;
