@@ -8,7 +8,7 @@ Panels:
         - /Geofence1/Namespaces1
         - /Frontiers2/Namespaces1
         - /Lazy Theta Star1/Namespaces1
-        - /TwistStamped1
+        - /Path_intendeed1
       Splitter Ratio: 0.652941167
     Tree Height: 614
   - Class: rviz/Selection
@@ -113,27 +113,27 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         base_footprint:
-          Value: true
+          Value: false
         base_link:
-          Value: true
+          Value: false
         base_link_inertia:
-          Value: true
+          Value: false
         base_stabilized:
-          Value: true
+          Value: false
         fcu:
-          Value: true
+          Value: false
         fcu_frd:
-          Value: true
+          Value: false
         hokuyo:
-          Value: true
+          Value: false
         local_origin:
-          Value: true
+          Value: false
         local_origin_ned:
-          Value: true
+          Value: false
         map:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -266,16 +266,6 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: false
-    - Class: jsk_rviz_plugin/TwistStamped
-      Enabled: true
-      Name: TwistStamped
-      Topic: /uav_velocity
-      Unreliable: false
-      Value: true
-      angular color: 255; 0; 0
-      angular scale: 1
-      linear color: 0; 255; 0
-      linear scale: 1
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -284,7 +274,7 @@ Visualization Manager:
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
-      Line Style: Billboards
+      Line Style: Lines
       Line Width: 0.0299999993
       Name: Path_actual
       Offset:
@@ -307,7 +297,7 @@ Visualization Manager:
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
-      Line Style: Billboards
+      Line Style: Lines
       Line Width: 0.0299999993
       Name: Path_intendeed
       Offset:
@@ -322,6 +312,26 @@ Visualization Manager:
       Topic: /uav_path_intendeed
       Unreliable: false
       Value: true
+    - Class: jsk_rviz_plugin/TwistStamped
+      Enabled: true
+      Name: TwistStamped
+      Topic: /uav_velocity
+      Unreliable: false
+      Value: true
+      angular color: 255; 0; 0
+      angular scale: 1
+      linear color: 0; 255; 0
+      linear scale: 1
+    - Class: jsk_rviz_plugin/TwistStamped
+      Enabled: true
+      Name: TwistStamped
+      Topic: /test_velocity
+      Unreliable: false
+      Value: true
+      angular color: 255; 0; 0
+      angular scale: 1
+      linear color: 85; 255; 255
+      linear scale: 1
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -342,25 +352,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 27.7058029
+      Distance: 28.7038021
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -4.99185419
-        Y: 1.53058767
-        Z: -3.21175289
+        X: -5.34366798
+        Y: 4.37276936
+        Z: -0.420227766
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.734795868
+      Pitch: 0.514795601
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.83319616
+      Yaw: 5.80319834
     Saved: ~
 Window Geometry:
   Displays:

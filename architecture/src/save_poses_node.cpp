@@ -1,8 +1,8 @@
-#include <fstream>
-#include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <nav_msgs/Path.h>
+#include <ros/ros.h>
+#include <fstream>
 
 geometry_msgs::PoseStamped uav_pose, target_pose, target_pose_prev;
 geometry_msgs::TwistStamped uav_velocity;
@@ -11,66 +11,55 @@ std::vector<double> poseListX, poseListY, poseListZ;
 int init_target = 0;
 bool flag = false;
 
-void pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
-{
+void pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg) {
     uav_pose = *msg;
     uav_path_actual.header.frame_id = "map";
     uav_path_actual.poses.push_back(*msg);
 }
 
-void velocity_cb(const geometry_msgs::TwistStamped::ConstPtr &msg)
-{
+void velocity_cb(const geometry_msgs::TwistStamped::ConstPtr &msg) {
     uav_velocity = *msg;
     uav_velocity.header.frame_id = "base_link";
 }
 
-void target_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg)
-{
+void target_pose_cb(const geometry_msgs::PoseStamped::ConstPtr &msg) {
     target_pose = *msg;
-    if (init_target == 0)
-    {
+    if (init_target == 0) {
         target_pose_prev = *msg;
         init_target++;
         uav_path_intendeed.header.frame_id = "map";
         target_pose.pose.position.x = 0;
         target_pose.pose.position.y = 0;
-        target_pose.pose.position.z = 1;
+        target_pose.pose.position.z = 2;
         target_pose.pose.orientation.x = 0;
         target_pose.pose.orientation.y = 0;
         target_pose.pose.orientation.z = 0;
         target_pose.pose.orientation.w = 0;
         uav_path_intendeed.poses.push_back(target_pose);
         uav_path_intendeed.poses.push_back(*msg);
-    }
-    else
-    {
+    } else {
         if (target_pose.pose.position.x != target_pose_prev.pose.position.x ||
             target_pose.pose.position.y != target_pose_prev.pose.position.y ||
             target_pose.pose.position.z != target_pose_prev.pose.position.z ||
             target_pose.pose.orientation.x != target_pose_prev.pose.orientation.x ||
             target_pose.pose.orientation.y != target_pose_prev.pose.orientation.y ||
             target_pose.pose.orientation.z != target_pose_prev.pose.orientation.z ||
-            target_pose.pose.orientation.w != target_pose_prev.pose.orientation.w)
-        {
+            target_pose.pose.orientation.w != target_pose_prev.pose.orientation.w) {
             target_pose_prev = target_pose;
             flag = true;
             uav_path_intendeed.header.frame_id = "map";
             uav_path_intendeed.poses.push_back(target_pose);
-        }
-        else
-        {
+        } else {
             flag = false;
         }
     }
 }
 
-double calculateDistance(double x1, double y1, double z1, double x2, double y2, double z2)
-{
+double calculateDistance(double x1, double y1, double z1, double x2, double y2, double z2) {
     return sqrt(pow((x1 - x2), 2) + pow((y1 - y2), 2) + pow((z1 - z2), 2));
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     ros::init(argc, argv, "save_poses");
     ros::NodeHandle nh;
 
@@ -98,10 +87,8 @@ int main(int argc, char **argv)
     double start_time, distance_target;
 
     ros::Rate rate(10);
-    while (ros::ok())
-    {
-        if (cont_start_time == 0)
-        {
+    while (ros::ok()) {
+        if (cont_start_time == 0) {
             start_time = ros::Time::now().toSec();
             cont_start_time++;
         }
@@ -109,9 +96,8 @@ int main(int argc, char **argv)
         distance_target = calculateDistance(uav_pose.pose.position.x, uav_pose.pose.position.y, uav_pose.pose.position.z,
                                             target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
 
-        if (flag == true)
-        {
-            ROS_WARN_STREAM("[save_pose] Going to target");
+        if (flag == true) {
+            // ROS_WARN_STREAM("[save_pose] Going to target");
             file_target_wp << target_pose.pose.position.x << " "
                            << target_pose.pose.position.y << " "
                            << target_pose.pose.position.z << " "
@@ -125,14 +111,12 @@ int main(int argc, char **argv)
             flag = false;
         }
 
-        if (distance_target > 0.2 && cont_velocity != 0)
-        {
+        if (distance_target > 0.2 && cont_velocity != 0) {
             cont_velocity = 0;
         }
 
-        if (distance_target < 0.2 && cont_velocity == 0 && uav_pose.pose.position.z > 0.5)
-        {
-            ROS_WARN_STREAM("[save_pose] Goal!");
+        if (distance_target < 0.2 && cont_velocity == 0 && uav_pose.pose.position.z > 0.5) {
+            // ROS_WARN_STREAM("[save_pose] Goal!");
             file_target_wp_times << ros::Time::now().toSec() - start_time << " ";
             cont_velocity++;
         }
