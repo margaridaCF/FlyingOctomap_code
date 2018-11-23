@@ -32,7 +32,7 @@
 
 
     <!-- #######################    TF    ############################# -->    
-    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 3.14159 base_link laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.22 0 -0.2 0 -0.872665 3.14159 base_link laser 100" />
     <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" />
 
 
