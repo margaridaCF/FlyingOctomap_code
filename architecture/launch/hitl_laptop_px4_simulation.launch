@@ -21,7 +21,7 @@
     <arg name="verbose" default="false"/>
     <arg name="paused" default="false"/>
 
-    <rosparam file="$(find architecture)/cfg/realUav_hitl_params.yaml" command="load" />
+    <rosparam file="$(find architecture)/cfg/sim_sitl_collectData.yaml" command="load" />
     <!-- #######################  PX4  ############################################ -->
     <node name="sitl" pkg="px4" type="px4" output="screen"
         args="$(find px4) $(arg rcS)">

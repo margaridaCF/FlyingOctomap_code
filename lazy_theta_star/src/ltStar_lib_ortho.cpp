@@ -4,7 +4,7 @@
 #include <orthogonal_planes.h>
 
 #define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
-// #define RUNNING_ROS 0 	// enable to publish markers on rViz
+#define RUNNING_ROS 0 	// enable to publish markers on rViz
 
 
 namespace std

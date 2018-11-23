@@ -12,25 +12,24 @@ scan_filter_chain:
     upper_replacement_value: 16
 
 # == Px4 ==
-px4_loiter_radius: 0.5
 px4/flight_speed: 1
+px4_loiter_radius: 0.5
 offboard_enabled: false
 
 # == State Manager ==
 frontier/safety_margin: 3
 exploration_maneuver_duration_secs: 18
 exploration_maneuver_phases_duration_secs: 5
-px4_loiter_radius: 0.5
 odometry_error: 0
-laser_angle: 0.872665
 laser_range: 9.5
+laser_angle: 0.872665
 # Geofence
 geofence_min/x: -5
 geofence_max/x: 15
-#Y
+# Y
 geofence_min/y: -10
 geofence_max/y: 10
-#Z
+# Z
 geofence_min/z: 5
 geofence_max/z: 15
 

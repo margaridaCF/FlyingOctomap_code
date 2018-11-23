@@ -10,7 +10,7 @@
     
 
     <!-- #######################  Architecture nodes  ############################# -->
-    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
+    <!-- <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" /> -->
     <!-- <node name="mav_comms"     type="mav_comms_node"       pkg="architecture"  output="screen" /> -->
     <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
     <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
