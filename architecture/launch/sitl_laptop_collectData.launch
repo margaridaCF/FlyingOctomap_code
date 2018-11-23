@@ -67,7 +67,7 @@
         <param name="sensor_model/hit"          value="0.74"/>
         <param name="sensor_model/miss"         value="0.48464"/>
         
-        <param name="resolution"                value="1" />
+        <param name="resolution"                value="0.5" />
     </node>
     <!-- #######################  PX4  ############################################ -->
     <node name="sitl" pkg="px4" type="px4" output="screen"
@@ -76,7 +76,7 @@
     <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
     <!-- #######################  Architecture nodes  ############################# -->
     <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="lazy_theta_star" output="screen" /> 
-    <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
+    <!-- <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" /> -->
     <!-- <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" /> --> 
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
  
