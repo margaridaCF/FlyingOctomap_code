@@ -1,5 +1,8 @@
 <launch>
 
+
+    <!-- <node pkg="rosbag" type="play" name="rosbag_playback" output="screen" 
+       args="--clock /media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180705_karting_experiments/experimental_data/20180821_1110_manyRuns_karting_filterTfScanPose.bag "/> -->
    
     <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" />
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/bag_filterPointCloud.rviz" />
