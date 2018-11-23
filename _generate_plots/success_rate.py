@@ -9,7 +9,7 @@ import csv
 
 def calculate_success_rate(data, margin):
     count_success = data["success"][(data["success"] == 1) & (data["safety_margin_meters"] == margin) ].count()
-    print count_success
+    print "For margin " + str(margin) + " there were " + str(count_success) + " successes"
     count_total = data["success"][(data["safety_margin_meters"] == margin) ].count()
     success_rate = count_success * 100 / count_total
     return success_rate

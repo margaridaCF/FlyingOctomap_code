@@ -162,6 +162,7 @@ def plot_scatter_dynamicTraces(datasets, datasets_labels, datsets_colors, title)
     )
     fig=dict(data=traces, layout=layout)
     plotly.offline.iplot(fig, filename='./scatter_time_vs_pathLength', image='png')
+    pio.write_image(fig, '/home/mfaria/Downloads/plot_scatter_dynamicTraces.svg', scale=2)
 
 def filterFailed(data):
     data.drop(data[data['success'] == 0].index, inplace=True)
