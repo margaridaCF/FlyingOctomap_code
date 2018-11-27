@@ -27,81 +27,37 @@
     <!-- #######################  Rviz    ######################################### -->
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
     <!-- #######################  Gazebo  ######################################### -->
-    <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="headless" value="$(arg headless)"/>
-        <arg name="gui" value="$(arg gui)"/>
-        <arg name="world_name" value="$(arg world)" />
-        <arg name="debug" value="$(arg debug)" />
-        <arg name="verbose" value="$(arg verbose)" />
-        <arg name="paused" value="$(arg paused)" />
+    <include file="$(find uav_abstraction_layer)/launch/test_server.launch">
     </include>
-    <param name="robot_description" textfile="$(env HOME)/src/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
-        <param name="publish_frequency" type="double" value="50.0" />
-        <param name="tf_prefix" type="string" value=""/>
-    </node>
-   
-    <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
-        args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>s
-    <node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="screen">
-        <param name="odometry_topic" value="ground_truth_pose"/>
-        <param name="frame_id" value="map"/>
-        <param name="child_frame_id" type="string" value="base_link"/>
-    </node>
 
     <!-- #######################  Hokuyo  ############################# -->
     <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
         <rosparam command="load" file="$(find architecture)/cfg/sim_hitl_params.yaml" />
-        <param name="target_frame"   value="base_link" />
+        <param name="target_frame" value="uav_1" />
         <remap from="cloud_filtered" to="free_cloud" />
         <remap from="scan" to="hokuyo_laser_scan" />
     </node>
     <!-- #######################  Octomap  ######################################## -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
-        <param name="frame_id" type="string"    value="map" />   
+        <param name="frame_id" type="string" value="map" />
         <remap from="cloud_in" to="/free_cloud" />
-        <param name="latch"                     value="false" />
-        <param name="publish_free_space"        value="true"/>
-        <param name="sensor_model/max_range"    value="50"/>
-        
-        <param name="sensor_model/hit"          value="0.74"/>
-        <param name="sensor_model/miss"         value="0.48464"/>
-        
-        <param name="resolution"                value="1" />
+        <param name="latch" value="false" />
+        <param name="publish_free_space" value="true"/>
+        <param name="sensor_model/max_range" value="50"/>
+
+        <param name="sensor_model/hit" value="0.74"/>
+        <param name="sensor_model/miss" value="0.48464"/>
+
+        <param name="resolution" value="1" />
     </node>
-    <!-- #######################  PX4  ############################################ -->
-    <node name="sitl" pkg="px4" type="px4" output="screen"
-        args="$(find px4) $(arg rcS)">
-    </node>
-    <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
     <!-- #######################  Architecture nodes  ############################# -->
-    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="lazy_theta_star" output="screen" /> 
-    <!-- <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" /> -->
-    <!-- <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" /> --> 
-    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" />
-    <!-- #######################  Mavros  ######################################### -->
-    <arg name="fcu_url" default="udp://:14540@127.0.0.1:14557" />
-	<arg name="gcs_url" default="" />
-	<arg name="tgt_system" default="1" />
-	<arg name="tgt_component" default="1" />
-	<arg name="log_output" default="screen" />
-	<arg name="fcu_protocol" default="v2.0" />
-	<arg name="respawn_mavros" default="false" />
+    <!-- <node name="lazy_theta_star" type="ltStar_async_node" pkg="lazy_theta_star" output="screen" /> -->
+    <!-- <node name="state_manager" type="state_manager_node" pkg="architecture" output="screen" /> -->
+    <!-- <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers" output="screen" /> -->
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture" output="screen" />
 
-	<include file="$(find mavros)/launch/node.launch">
-		<arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
-		<arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
-
-		<arg name="fcu_url" value="$(arg fcu_url)" />
-		<arg name="gcs_url" value="$(arg gcs_url)" />
-		<arg name="tgt_system" value="$(arg tgt_system)" />
-		<arg name="tgt_component" value="$(arg tgt_component)" />
-		<arg name="log_output" value="$(arg log_output)" />
-		<arg name="fcu_protocol" value="$(arg fcu_protocol)" />
-		<arg name="respawn_mavros" default="$(arg respawn_mavros)" />
-	</include>
 
     <!-- #######################  Save Poses Node  ############################# -->
     <node name="save_poses" type="save_poses_node" pkg="architecture" output="screen" required="true"/>
- 
+
 </launch>
