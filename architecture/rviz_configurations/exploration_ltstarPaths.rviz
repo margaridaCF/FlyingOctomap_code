@@ -4,11 +4,13 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
+        - /RobotModel1/Status1
+        - /TF1
         - /Frontiers1/Namespaces1
         - /Geofence1/Namespaces1
         - /Frontiers2/Namespaces1
         - /Lazy Theta Star1/Namespaces1
-        - /Path_intendeed1
       Splitter Ratio: 0.652941167
     Tree Height: 591
   - Class: rviz/Selection
@@ -28,7 +30,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Hokuyo
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -60,11 +62,49 @@ Visualization Manager:
       Collision Enabled: false
       Enabled: true
       Links:
+        /imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link_inertia:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hokuyo:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rotor_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rotor_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rotor_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rotor_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -76,10 +116,16 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        base_link:
+          Value: true
+        base_link_inertia:
+          Value: true
         fcu:
           Value: false
         fcu_frd:
           Value: false
+        hokuyo:
+          Value: true
         local_origin:
           Value: false
         local_origin_ned:
@@ -99,7 +145,11 @@ Visualization Manager:
         map:
           uav_1_home:
             uav_1:
-              {}
+              base_link:
+                base_link_inertia:
+                  {}
+                hokuyo:
+                  {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -183,7 +233,7 @@ Visualization Manager:
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        {}
+        map: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -288,7 +338,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: uav_1_home
     Frame Rate: 30
   Name: root
   Tools:
@@ -304,25 +354,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.7038021
+      Distance: 46.244194
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -5.34366798
-        Y: 4.37276936
-        Z: -0.420227766
+        X: -2.19839311
+        Y: 5.13829279
+        Z: 0.0246327966
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.289795816
+      Pitch: 0.384795725
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.79319811
+      Yaw: 5.39819241
     Saved: ~
 Window Geometry:
   Displays:
