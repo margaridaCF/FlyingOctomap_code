@@ -35,7 +35,7 @@
         <arg name="verbose" value="$(arg verbose)" />
         <arg name="paused" value="$(arg paused)" />
     </include>
-    <param name="robot_description" textfile="/home/mfaria/src/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
+    <param name="robot_description" textfile="$(env HOME)/src/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
         <param name="publish_frequency" type="double" value="50.0" />
         <param name="tf_prefix" type="string" value=""/>
