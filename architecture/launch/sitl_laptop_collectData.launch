@@ -35,7 +35,7 @@
     <!-- #######################  Hokuyo  ############################# -->
     <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
         <rosparam command="load" file="$(find architecture)/cfg/sim_hitl_params.yaml" />
-        <param name="target_frame" value="uav_1" />
+        <param name="target_frame" value="base_link" />
         <remap from="cloud_filtered" to="free_cloud" />
         <remap from="scan" to="hokuyo_laser_scan" />
     </node>
