@@ -4,9 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /RobotModel1/Status1
-        - /TF1
         - /Frontiers1/Namespaces1
         - /Geofence1/Namespaces1
         - /Frontiers2/Namespaces1
@@ -233,7 +230,7 @@ Visualization Manager:
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        map: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -268,72 +265,6 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: false
-    - Alpha: 1
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 25; 255; 0
-      Enabled: true
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: Path_actual
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /uav_path_actual
-      Unreliable: false
-      Value: true
-    - Alpha: 1
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 255; 255; 255
-      Enabled: true
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: Path_intendeed
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /uav_path_intendeed
-      Unreliable: false
-      Value: true
-    - Class: jsk_rviz_plugin/TwistStamped
-      Enabled: true
-      Name: TwistStamped
-      Topic: /uav_velocity
-      Unreliable: false
-      Value: true
-      angular color: 255; 0; 0
-      angular scale: 1
-      linear color: 0; 255; 0
-      linear scale: 1
-    - Class: jsk_rviz_plugin/TwistStamped
-      Enabled: true
-      Name: TwistStamped
-      Topic: /test_velocity
-      Unreliable: false
-      Value: true
-      angular color: 255; 0; 0
-      angular scale: 1
-      linear color: 85; 255; 255
-      linear scale: 1
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -354,25 +285,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 46.244194
+      Distance: 34.2866135
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -2.19839311
-        Y: 5.13829279
-        Z: 0.0246327966
+        X: -1.60864663
+        Y: 2.33978605
+        Z: 0.0240570754
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.384795725
+      Pitch: 1.56979632
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.39819241
+      Yaw: 0.0100120353
     Saved: ~
 Window Geometry:
   Displays:
