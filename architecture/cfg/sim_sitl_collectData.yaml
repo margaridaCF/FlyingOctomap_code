@@ -24,17 +24,17 @@ odometry_error: 0
 laser_range: 9.5
 laser_angle: 0.872665
 # Geofence
-geofence_min/x: -30
-geofence_max/x: 55
+geofence_min/x: -10
+geofence_max/x: 20
 # Y
-geofence_min/y: -20
-geofence_max/y: 50
+geofence_min/y: -10
+geofence_max/y: 20
 # Z
 geofence_min/z: 2
-geofence_max/z: 70
+geofence_max/z: 20
 
 
 # == Lazy Theta Star ==
-path/max_time_secs: 60
+path/max_time_secs: 30
 path/safety_margin: 3
 

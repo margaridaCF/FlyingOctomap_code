@@ -1038,7 +1038,7 @@ namespace LazyThetaStarOctree{
 			std::ofstream pathWaypoints;
 			if(publish_input.publish)
 			{
-		        pathWaypoints.open (folder_name + "/final_path.txt", std::ofstream::out | std::ofstream::app);
+		        pathWaypoints.open (folder_name + "/current/final_path.txt", std::ofstream::out | std::ofstream::app);
 		    }
 
 			for (std::list<octomath::Vector3>::iterator i = resulting_path.begin(); i != resulting_path.end(); ++i)
@@ -1156,7 +1156,7 @@ namespace LazyThetaStarOctree{
 			std::ofstream pathWaypoints;
 			if(publish_input.publish)
 			{
-		        pathWaypoints.open (folder_name + "/final_path.txt", std::ofstream::out | std::ofstream::app);
+		        pathWaypoints.open (folder_name + "/current/final_path.txt", std::ofstream::out | std::ofstream::app);
 		    }
 
 			for (std::list<octomath::Vector3>::iterator i = resulting_path.begin(); i != resulting_path.end(); ++i)

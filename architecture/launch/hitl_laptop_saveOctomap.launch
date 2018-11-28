@@ -6,7 +6,7 @@
    
     <rosparam file="$(find architecture)/cfg/sim_sitl_collectData.yaml" command="load" />
     <!-- <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" /> -->
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/bag_filterPointCloud.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
