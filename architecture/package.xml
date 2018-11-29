@@ -8,7 +8,7 @@
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>catkin_simple</build_depend> 
+  <build_depend>catkin_simple</build_depend>
   <test_depend>gtest</test_depend>
   <depend>roscpp</depend>
   <depend>mavros_msgs</depend>
@@ -24,5 +24,6 @@
   <depend>rviz_interface</depend>
   <depend>tf</depend>
   <depend>laser_filters</depend>
+  <depend>uav_abstraction_layer</depend>
 
 </package>
