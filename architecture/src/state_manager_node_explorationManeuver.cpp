@@ -84,7 +84,7 @@ namespace state_manager_node
     octomath::Vector3 geofence_min (-5, -5, 1);
     octomath::Vector3 geofence_max (5, 5, 10);
     enum follow_path_state_t{init, on_route, arrived_at_waypoint, finished_sequence};
-    enum exploration_state_t {clear_from_ground, exploration_start, generating_path, waiting_path_response, visit_waypoints, finished_exploring, gather_data_maneuver};
+    enum exploration_state_t {clear_from_ground, find_frontier, generating_path, waiting_path_response, visit_waypoints, finished_exploring, gather_data_maneuver};
     struct StateData { 
         int frontier_request_id;       // id for the request in use
         int frontier_request_count;      // generate id for new frontier requests
@@ -245,11 +245,11 @@ namespace state_manager_node
 #endif        
         if (state_data.frontier_index >= state_data.frontiers_msg.frontiers_found-1)
         {
-            state_data.exploration_state = exploration_start;
+            state_data.exploration_state = find_frontier;
 #ifdef SAVE_LOG
-            log_file << "[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left. Total unreachable frontiers " << state_data.unobservable_set.size() << " @ " << log_id << std::endl;
+            log_file << "[State manager][Exploration] find_frontier (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left. Total unreachable frontiers " << state_data.unobservable_set.size() << " @ " << log_id << std::endl;
 #endif
-            ROS_WARN_STREAM("[State manager][Exploration] exploration_start (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left. Total unreachable frontiers " << state_data.unobservable_set.size() << "@ " << log_id);
+            ROS_WARN_STREAM("[State manager][Exploration] find_frontier (unreachable frontier " << unreachable << ", frontier index " << state_data.frontier_index << " of " << state_data.frontiers_msg.frontiers_found << " )  - no more frontiers left. Total unreachable frontiers " << state_data.unobservable_set.size() << "@ " << log_id);
         }
         else
         {
@@ -312,7 +312,7 @@ namespace state_manager_node
             is_successfull_exploration = true;
             state_data.exploration_state = finished_exploring;
         }
-        else if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
+        else if(msg->frontiers_found > 0 && state_data.exploration_state == find_frontier)
         {
             state_data.frontier_request_id = msg->request_id;
             state_data.exploration_state = generating_path;
@@ -497,7 +497,7 @@ namespace state_manager_node
 
                 break;
             }
-            case exploration_start:
+            case find_frontier:
             {
                 state_data.exploration_maneuver_started = false;
                 state_data.waypoint_index = -1;
@@ -583,7 +583,7 @@ namespace state_manager_node
                     ros::Duration time_lapse = ros::Time::now() - state_data.request_exploration_maneuver;
                     if(time_lapse > exploration_maneuver_duration_secs)
                     {
-                        state_data.exploration_state = exploration_start;
+                        state_data.exploration_state = find_frontier;
                         state_data.frontier_index = 0;
                         bool is_frontier = askIsFrontierServiceCall(get_current_frontier());
                         if(is_frontier)
