@@ -1,5 +1,8 @@
 <launch>
 
+	<!-- #######################  Architecture nodes  ############################# -->
+	<!-- csv_exploration -->
+
     <!-- #######################   Rviz   ############################# -->
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/realUAV.rviz" />
 

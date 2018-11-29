@@ -153,7 +153,8 @@ int main(int argc, char **argv)
 
 	std::ofstream csv_file;
 	csv_file.open (LazyThetaStarOctree::folder_name+"/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
-	csv_file << "computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,dataset_name" << std::endl;
+	csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+
 	csv_file.close();
 #endif
 	LazyThetaStarOctree::publish_free_corridor_arrows = true;

@@ -262,7 +262,7 @@ Visualization Manager:
       Marker Topic: /position_log
       Name: Current Position
       Namespaces:
-        {}
+        position_log: true
       Queue Size: 100
       Value: false
     - Alpha: 1

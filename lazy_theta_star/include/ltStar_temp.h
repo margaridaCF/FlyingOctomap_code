@@ -146,7 +146,7 @@ namespace LazyThetaStarOctree{
 		int const& max_time_secs = 55,
 		bool print_resulting_path = false);
 
-	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, ros::Publisher const& marker_pub, bool publish = false);
+	bool processLTStarRequest_original(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input);
 
 	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input);
 

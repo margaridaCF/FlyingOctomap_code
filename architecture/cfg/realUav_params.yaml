@@ -1,44 +1,42 @@
-# Linked with px4 params
-px4_loiter_radius: 0.5
-px4/flight_speed: 3
-odometry_error: 0
-
-# Linked with hardware
+# == Laser ==
 current_position_topic: "/mavros/local_position/pose"
 uav/laser_topic: "scan_filtered"
-
-# Hokuyo
-laser_range: 9.5
-laser_angle: 0.872665
-exploration_maneuver_duration_secs: 33
-exploration_maneuver_phases_duration_secs: 10
 scan_filter_chain:
-- name: intensityRange
+- name: intensity
   type: LaserScanIntensityFilter
   params:
     lower_threshold: 400
-    upper_threshold: 2000
+    upper_threshold: 1200
     lower_range_threshold: 0.7
     upper_range_threshold: 15
     upper_replacement_value: 16
 
-
+# == Px4 ==
+px4_loiter_radius: 0.5
+px4/flight_speed: 1
 offboard_enabled: false
 
-
+# == State Manager ==
 frontier/safety_margin: 3
-
+exploration_maneuver_duration_secs: 18
+exploration_maneuver_phases_duration_secs: 5
+px4_loiter_radius: 0.5
+odometry_error: 0
+laser_angle: 0.872665
+laser_range: 9.5
+# Geofence
 geofence_min/x: -5
 geofence_max/x: 15
-
+#Y
 geofence_min/y: -10
 geofence_max/y: 10
-
+#Z
 geofence_min/z: 5
 geofence_max/z: 15
 
-path/max_time_secs: 120
-path/max_cycles_waited_for_path: 50
+
+# == Lazy Theta Star ==
+path/max_time_secs: 60
 path/safety_margin: 3
 
 
