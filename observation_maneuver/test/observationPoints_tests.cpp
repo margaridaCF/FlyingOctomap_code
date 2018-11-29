@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+	#include <gtest/gtest.h>
 #include <observation_maneuver.h>
 
 
@@ -128,6 +128,30 @@ namespace ObservationManeuver
 		ASSERT_NEAR(directionTest(0), 0.87, tolerance);
 		ASSERT_NEAR(directionTest(1), 0.5, tolerance);
 		ASSERT_NEAR(directionTest(2), 0, tolerance);
+	}
+
+	TEST(ObservationManeuverTest, observationStart_frontier)
+	{
+		Eigen::Vector3d trig_circle_point (1, 0, 0);
+		Eigen::Vector3d frontier(0, 12, 0);
+		Eigen::Vector3d uav_pos(0, 0, 0);
+		double distance = 1;
+		Eigen::Vector3d observationStart = calculatePointTranslation(trig_circle_point, frontier, uav_pos, distance, calculateTrigStart);
+		ASSERT_NEAR(1, observationStart(0), tolerance);
+		ASSERT_NEAR(11, observationStart(1), tolerance);
+		ASSERT_NEAR(0, observationStart(2), tolerance);
+	}
+
+	TEST(ObservationManeuverTest, observationEnd_frontier)
+	{
+		Eigen::Vector3d trig_circle_point (1, 0, 0);
+		Eigen::Vector3d frontier(0, 12, 0);
+		Eigen::Vector3d uav_pos(0, 0, 0);
+		double distance = 1;
+		Eigen::Vector3d observationStart = calculatePointTranslation(trig_circle_point, frontier, uav_pos, distance, calculateTrigEnd);
+		ASSERT_NEAR(1, observationStart(0), tolerance);
+		ASSERT_NEAR(13, observationStart(1), tolerance);
+		ASSERT_NEAR(0, observationStart(2), tolerance);
 	}
 }
 

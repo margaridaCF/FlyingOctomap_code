@@ -6,65 +6,29 @@ namespace ObservationManeuver
 {
 	double tolerance = 0.0000000001;
 
-	TEST(ObservationManeuverTest, direction_q1)
+	TEST(ObservationManeuverTest, observationStart_auto)
 	{
-
-		Eigen::Vector3d point_circle (0.5, 0.87, 0);
+		Eigen::Vector3d trig_circle_point (1, 0, 0);
 		Eigen::Vector3d frontier(0, 12, 0);
 		Eigen::Vector3d uav_pos(0, 0, 0);
-		Eigen::Vector3d directionTest = calculateDirectionTest(point_circle, frontier, uav_pos);
-		ASSERT_NEAR(directionTest(0), -0.87, tolerance);
-		ASSERT_NEAR(directionTest(1), 0.5, tolerance);
-		ASSERT_NEAR(directionTest(2), 0, tolerance);
-
-		// ROS_INFO_STREAM(directionTest);
+		double distance = 1;
+		Eigen::Vector3d observationStart = calculatePointTranslation(trig_circle_point, frontier, uav_pos, distance, calculateTrigStart);
+		ASSERT_NEAR(1, observationStart(0), tolerance);
+		ASSERT_NEAR(11, observationStart(1), tolerance);
+		ASSERT_NEAR(0, observationStart(2), tolerance);
 	}
 
-
-	TEST(ObservationManeuverTest, direction_q2)
+	TEST(ObservationManeuverTest, observationEnd_auto)
 	{
-
-		Eigen::Vector3d point_circle (-0.5, 0.87, 0);
+		Eigen::Vector3d trig_circle_point (1, 0, 0);
 		Eigen::Vector3d frontier(0, 12, 0);
 		Eigen::Vector3d uav_pos(0, 0, 0);
-		Eigen::Vector3d directionTest = calculateDirectionTest(point_circle, frontier, uav_pos);
-		ASSERT_NEAR(directionTest(0), 0.87, tolerance);
-		ASSERT_NEAR(directionTest(1), 0.5, tolerance);
-		ASSERT_NEAR(directionTest(2), 0, tolerance);
-
-		// ROS_INFO_STREAM(directionTest);
+		double distance = 1;
+		Eigen::Vector3d observationStart = calculatePointTranslation(trig_circle_point, frontier, uav_pos, distance, calculateTrigEnd);
+		ASSERT_NEAR(1, observationStart(0), tolerance);
+		ASSERT_NEAR(13, observationStart(1), tolerance);
+		ASSERT_NEAR(0, observationStart(2), tolerance);
 	}
-
-
-	TEST(ObservationManeuverTest, direction_q3)
-	{
-
-		Eigen::Vector3d point_circle (-0.5, -0.87, 0);
-		Eigen::Vector3d frontier(0, 12, 0);
-		Eigen::Vector3d uav_pos(0, 0, 0);
-		Eigen::Vector3d directionTest = calculateDirectionTest(point_circle, frontier, uav_pos);
-		ASSERT_NEAR(directionTest(0), -0.87, tolerance);
-		ASSERT_NEAR(directionTest(1), 0.5, tolerance);
-		ASSERT_NEAR(directionTest(2), 0, tolerance);
-
-		// ROS_INFO_STREAM(directionTest);
-	}
-
-
-	TEST(ObservationManeuverTest, direction_q4)
-	{
-
-		Eigen::Vector3d point_circle (0.5, -0.87, 0);
-		Eigen::Vector3d frontier(0, 12, 0);
-		Eigen::Vector3d uav_pos(0, 0, 0);
-		Eigen::Vector3d directionTest = calculateDirectionTest(point_circle, frontier, uav_pos);
-		ASSERT_NEAR(directionTest(0), 0.87, tolerance);
-		ASSERT_NEAR(directionTest(1), 0.5, tolerance);
-		ASSERT_NEAR(directionTest(2), 0, tolerance);
-
-		// ROS_INFO_STREAM(directionTest);
-	}
-
 }
 
 int main(int argc, char **argv){

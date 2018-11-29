@@ -29,4 +29,21 @@ namespace ObservationManeuver
 		}
 		return directionTest;
 	}
+
+	Eigen::Vector3d calculateTrigStart(Eigen::Vector3d const& trig_point_test, Eigen::Vector3d const& directionTest, double distance)
+	{
+		return trig_point_test - distance * directionTest;
+	}
+
+	Eigen::Vector3d calculateTrigEnd(Eigen::Vector3d const& trig_point_test, Eigen::Vector3d const& directionTest, double distance)
+	{
+		return trig_point_test + distance * directionTest;
+	}
+
+	Eigen::Vector3d calculatePointTranslation(Eigen::Vector3d const& trig_circle_point, Eigen::Vector3d const& frontier, Eigen::Vector3d const& uav_pos, double distance, translationCalculation translationOp)
+	{
+		Eigen::Vector3d frontier_circle_point = frontier + trig_circle_point;
+		Eigen::Vector3d directionFlyBy = calculateDirectionTest(trig_circle_point, frontier, uav_pos);
+		return translationOp(frontier_circle_point, directionFlyBy, distance);
+	}
 }
