@@ -146,7 +146,7 @@ int main(int _argc, char **_argv) {
         current_pose = ual.pose();
         double d_to_target = (target_point - current_point).norm();
         while (d_to_target > 0.8 && new_target) {
-            velocity = calculateSmoothVelocity(current_point, target_point, d_to_target);
+            velocity = calculateVelocity(current_point, target_point, d_to_target);
             ual.setVelocity(velocity);
             uav_current_path.poses.push_back(ual.pose());
             pub_current_path.publish(uav_current_path);
