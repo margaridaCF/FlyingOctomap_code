@@ -16,7 +16,7 @@ namespace rviz_interface
 	void publish_safety_margin 		(geometry_msgs::Point const& frontier, double safety_margin, visualization_msgs::MarkerArray marker_array, int id);
 	void publish_markerArray_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id);
 	// ARROWS
-	void build_arrow_path 			(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker, int series = 9);
+	void build_arrow_path 			(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker, int series = 9, std::string ns = "lazy_theta_star_path");
 	void publish_arrow_path_occupancyState(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free);
 	void publish_arrow_path_unreachable(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int id);
 	void publish_arrow_path_father	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
@@ -41,6 +41,10 @@ namespace rviz_interface
 	void publish_sensing_position 	(octomath::Vector3 const& position, ros::Publisher const& marker_pub);
 	void publish_start_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
 	void publish_goal_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
+
+	// SPHERES
+	void build_sphere(octomath::Vector3 & candidate, double size, int green_base, int marker_id, visualization_msgs::Marker & marker, int red_base, std::string ns);
+
     // OTHER
 	void publish_deleteAll  		(ros::Publisher const& marker_pub);
 	void build_neighbor_array 		(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, visualization_msgs::MarkerArray & marker_array);

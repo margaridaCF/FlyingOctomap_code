@@ -421,13 +421,13 @@ namespace rviz_interface
         marker_pub.publish(marker);
     }
 
-    void build_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker, int series )
+    void build_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker, int series, std::string ns )
     {
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.ns = "lazy_theta_star_path";
+        marker.ns = ns;
         marker.id = request_id;
         marker.type = shape;
         geometry_msgs::Point goal_point;
@@ -813,5 +813,31 @@ namespace rviz_interface
         marker.color.b = 50;
         marker.header.seq++;
         return marker;
+    }
+
+    void build_sphere(octomath::Vector3 & candidate, double size, int green_base, int marker_id, visualization_msgs::Marker & marker, int red_base, std::string ns)
+    {   
+        uint32_t shape = visualization_msgs::Marker::SPHERE;
+        // Set the frame ID and timestamp.  See the TF tutorials for information on these.
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.ns = ns;
+        marker.id = marker_id;
+        marker.type = shape;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position.x = candidate.x();
+        marker.pose.position.y = candidate.y();
+        marker.pose.position.z = candidate.z();
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = size;
+        marker.scale.y = size;
+        marker.scale.z = size;
+        marker.color.r = red_base * 0.1;//0.9f;
+        marker.color.g = green_base+0.4;
+        marker.color.b = 1.0f;
+        // ROS_WARN_STREAM("[RVIZ PUB] color " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b << " i: " << waypoint_id);
+        marker.color.a = 1.0f;
+        
+        marker.lifetime = ros::Duration();
     }
 }
