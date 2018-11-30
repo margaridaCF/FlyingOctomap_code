@@ -34,25 +34,26 @@ namespace observation_node
 
 		Eigen::MatrixXd circle_pointCloud (3, circle_divisions);
 		observation_lib::generateCirclePoints(circle_divisions, circle_pointCloud);
-		for (int i = 0; i < circle_divisions; ++i)
+		// for (int i = 0; i < circle_divisions; ++i)
+		int i = 1;
 		{
-			Eigen::Vector3d trig_circle_point (circle_pointCloud.col(i));
 			Eigen::Vector3d observationStart = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_behind, observation_lib::calculateTrigStart);
-			// Eigen::Vector3d observationEnd   = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_inFront, observation_lib::calculateTrigEnd);
-			// Plot
+			Eigen::Vector3d observationEnd   = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_inFront, observation_lib::calculateTrigEnd);
+			ROS_ERROR_STREAM("End " << observationEnd);
 			// Circle point
 			int marker_id = i;
 			octomath::Vector3 trig_circle_point_octoVec(circle_pointCloud.col(i)(0), circle_pointCloud.col(i)(1), circle_pointCloud.col(i)(2));
     		rviz_interface::build_sphere(trig_circle_point_octoVec, size, green_base, marker_id, marker, red_base, "trig_circle_point");
 			waypoint_array.markers.push_back( marker );
-			// Start and end (points)
 			// Testing direction (arrow)
-			// octomath::Vector3 observationStart_octoVec (observationStart.col(i)(0),  observationStart.col(i)(1),  observationStart.col(i)(2));
-			// octomath::Vector3 observationEnd_octoVec   (observationEnd.col(i)(0),    observationEnd.col(i)(1),    observationEnd.col(i)(2));
-			// marker = visualization_msgs::Marker();
-			// marker_id = i;
-   //  		rviz_interface::build_arrow_path(observationStart_octoVec, observationEnd_octoVec, 100+marker_id, marker, red_base, "testing_direction");
-			// waypoint_array.markers.push_back( marker );
+			octomath::Vector3 observationStart_octoVec (observationStart(0),  observationStart(1),  observationStart(2));
+			octomath::Vector3 observationEnd_octoVec   (observationEnd(0),    observationEnd(1),    observationEnd(2));
+
+
+			marker = visualization_msgs::Marker();
+			marker_id = i;
+    		rviz_interface::build_arrow_path(observationStart_octoVec, observationEnd_octoVec, 100+marker_id, marker, red_base, "testing_direction");
+			waypoint_array.markers.push_back( marker );
 		}
 		marker_pub.publish(waypoint_array);
 	}
