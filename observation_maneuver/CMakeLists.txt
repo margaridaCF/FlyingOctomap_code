@@ -27,9 +27,10 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # add_library
 # target_link_libraries(my_lib ${catkin_LIBRARIES}) to link your new library against any catkin libraries you have build depended on in your package.xml
 # does some bookkeeping so that your library target can be implicitly used later
-cs_add_library(observation_maneuver src/observation_maneuver.cpp)
-# cs_add_targets_to_package(frontiers_msgs)
+cs_add_library(observation_maneuver_lib src/observation_maneuver.cpp)
 
+cs_add_executable(observation_maneuver_node src/observation_maneuver_node.cpp )
+target_link_libraries(observation_maneuver_node  ${catkin_LIBRARIES} observation_maneuver_lib )
 
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
@@ -49,14 +50,14 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(workInProgress_observation_maneuver
     test/work_in_progress_observationPoints_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress_observation_maneuver ${catkin_LIBRARIES} observation_maneuver)
+  target_link_libraries(workInProgress_observation_maneuver ${catkin_LIBRARIES} observation_maneuver_lib)
 
   # # WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # # Observation maneuver ##
   # catkin_add_gtest(observation_maneuver_test
   #   test/observationPoints_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(observation_maneuver_test ${catkin_LIBRARIES} observation_maneuver)
+  # target_link_libraries(observation_maneuver_test ${catkin_LIBRARIES} observation_maneuver_lib)
 
 endif()
 

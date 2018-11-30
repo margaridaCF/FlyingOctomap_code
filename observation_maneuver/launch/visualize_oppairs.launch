@@ -1,0 +1,9 @@
+<launch>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find observation_maneuver)/rviz_config/visualize_oppairs.rviz" />
+
+    <node name="oppairs_viz" pkg="observation_maneuver" type="observation_maneuver_node" />
+
+</launch>
+
+<!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->

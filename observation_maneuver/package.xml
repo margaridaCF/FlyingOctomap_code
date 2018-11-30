@@ -17,6 +17,7 @@
   <depend>roscpp</depend>
   <depend>visualization_msgs</depend>
   <depend>rviz_interface</depend>
+  <depend>observation_maneuver_msgs</depend>
   <build_depend>catkin_simple</build_depend> 
   <test_depend>gtest</test_depend>
   <build_depend>eigen_catkin</build_depend>

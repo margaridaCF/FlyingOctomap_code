@@ -1,7 +1,7 @@
 #include <observation_maneuver.h>
 
 
-namespace ObservationManeuver
+namespace observation_lib
 {
 
 	void generateCirclePoints(int point_number, Eigen::MatrixXd & point_matrix)

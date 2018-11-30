@@ -3,7 +3,7 @@
 #include <ros/ros.h>
 #include <Eigen/Dense>
 
-namespace ObservationManeuver
+namespace observation_lib
 {
 	typedef Eigen::Vector3d (*translationCalculation)(Eigen::Vector3d const& trig_point_test, Eigen::Vector3d const& directionTest, double distance) ;
 	const double pi = std::acos(-1);

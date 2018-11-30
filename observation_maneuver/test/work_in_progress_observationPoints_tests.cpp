@@ -24,10 +24,10 @@ namespace ObservationManeuver
 		Eigen::Vector3d frontier(0, 12, 0);
 		Eigen::Vector3d uav_pos(0, 0, 0);
 		double distance = 1;
-		Eigen::Vector3d observationStart = calculatePointTranslation(trig_circle_point, frontier, uav_pos, distance, calculateTrigEnd);
-		ASSERT_NEAR(1, observationStart(0), tolerance);
-		ASSERT_NEAR(13, observationStart(1), tolerance);
-		ASSERT_NEAR(0, observationStart(2), tolerance);
+		Eigen::Vector3d observationEnd = calculatePointTranslation(trig_circle_point, frontier, uav_pos, distance, calculateTrigEnd);
+		ASSERT_NEAR(1, observationEnd(0), tolerance);
+		ASSERT_NEAR(13, observationEnd(1), tolerance);
+		ASSERT_NEAR(0, observationEnd(2), tolerance);
 	}
 }
 
