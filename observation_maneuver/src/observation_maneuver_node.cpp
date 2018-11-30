@@ -25,6 +25,11 @@ namespace observation_node
 		marker = visualization_msgs::Marker();
 		rviz_interface::build_sphere(uav_position_octoVec, size, green_base, 0, marker, red_base, "uav_position");
 		waypoint_array.markers.push_back( marker );
+		// Frontier
+		octomath::Vector3 frontier_octoVec (opp_request->frontier.x,  opp_request->frontier.y,  opp_request->frontier.z);
+		marker = visualization_msgs::Marker();
+		rviz_interface::build_sphere(frontier_octoVec, size, green_base, 0, marker, red_base, "frontier");
+		waypoint_array.markers.push_back( marker );
 		
 		Eigen::Vector3d uav_position( opp_request->uav_position.x,  opp_request->uav_position.y,  opp_request->uav_position.z);
 		Eigen::Vector3d frontier    ( opp_request->frontier.x, opp_request->frontier.y, opp_request->frontier.z);
@@ -34,12 +39,11 @@ namespace observation_node
 
 		Eigen::MatrixXd circle_pointCloud (3, circle_divisions);
 		observation_lib::generateCirclePoints(circle_divisions, circle_pointCloud);
-		// for (int i = 0; i < circle_divisions; ++i)
-		int i = 1;
+		for (int i = 0; i < circle_divisions; ++i)
+		// int i = 1;
 		{
 			Eigen::Vector3d observationStart = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_behind, observation_lib::calculateTrigStart);
 			Eigen::Vector3d observationEnd   = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_inFront, observation_lib::calculateTrigEnd);
-			ROS_ERROR_STREAM("End " << observationEnd);
 			// Circle point
 			int marker_id = i;
 			octomath::Vector3 trig_circle_point_octoVec(circle_pointCloud.col(i)(0), circle_pointCloud.col(i)(1), circle_pointCloud.col(i)(2));

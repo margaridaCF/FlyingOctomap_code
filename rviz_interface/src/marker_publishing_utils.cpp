@@ -441,8 +441,8 @@ namespace rviz_interface
         goal_point.z = goal.z();
         marker.points.push_back(goal_point);
         marker.pose.orientation.w = 1.0;
-        marker.scale.x = 0.1;
-        marker.scale.y = 0.3;
+        marker.scale.x = 0.01;
+        marker.scale.y = 0.03;
         marker.scale.z = 0;
         marker.color.r = series * 0.1;
         marker.color.g = 1;
