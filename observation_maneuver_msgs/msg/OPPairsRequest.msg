@@ -1,0 +1,6 @@
+std_msgs/Header header
+geometry_msgs/Point uav_position
+geometry_msgs/Point frontier
+float64 distance_behind
+float64 distance_inFront
+int16 circle_divisions
