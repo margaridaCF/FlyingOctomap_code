@@ -27,16 +27,41 @@
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/ual.h>
 #include <Eigen/Eigen>
+#include <Eigen/Geometry> 
 
 nav_msgs::Path uav_current_path, uav_target_path;
-Eigen::Vector3f target_point;
-geometry_msgs::PoseStamped target_pose;
+Eigen::Vector3f target_point, current_point, fix_orientation_point;
+geometry_msgs::PoseStamped target_pose, current_pose, fix_orientation_pose;
+Eigen::Quaterniond q_current, q_target_fix;
 uav_abstraction_layer::State uav_state;
 bool new_target = false;
 int cont_init_d_to_target = 0;
 float init_d_to_target = 0;
 int cont_smooth_vel = 1;
 int max_velocity_portions = 50;
+enum movement_state_t {hover, velocity, fix_orientation};
+movement_state_t movement_state;
+
+void update_current_variables(geometry_msgs::PoseStamped ual_pose){
+    current_pose = ual_pose;
+    current_point = Eigen::Vector3f(current_pose.pose.position.x, current_pose.pose.position.y, current_pose.pose.position.z);
+    q_current.x() = current_pose.pose.orientation.x;
+    q_current.y() = current_pose.pose.orientation.y;
+    q_current.z() = current_pose.pose.orientation.z;
+    q_current.w() = current_pose.pose.orientation.w;
+    return;
+}
+
+void update_target_fix_variables(geometry_msgs::Pose fix_orientation){
+    fix_orientation_pose.pose.orientation = fix_orientation.orientation;
+    fix_orientation_pose.pose.position = uav_target_path.poses.at(uav_target_path.poses.size()-2).pose.position; // Take previous target_pose.position to fix orientation before next target
+    fix_orientation_point = Eigen::Vector3f(fix_orientation_pose.pose.position.x, fix_orientation_pose.pose.position.y, fix_orientation_pose.pose.position.z);
+    q_target_fix.x() = fix_orientation_pose.pose.orientation.x;
+    q_target_fix.y() = fix_orientation_pose.pose.orientation.y;
+    q_target_fix.z() = fix_orientation_pose.pose.orientation.z;
+    q_target_fix.w() = fix_orientation_pose.pose.orientation.w;
+    return;
+}
 
 bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
                         architecture_msgs::PositionRequest::Response &res) {
@@ -45,6 +70,15 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
         uav_target_path.poses.push_back(target_pose);
         target_point = Eigen::Vector3f(target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
     }
+    Eigen::Quaterniond q_target(target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w); 
+    update_current_variables(current_pose);
+    if (q_current.angularDistance(q_target) > 0){
+        update_target_fix_variables(req.pose);
+        movement_state = fix_orientation;
+    }else{
+        movement_state = velocity;
+    }
+    std::cout << target_pose << std::endl << fix_orientation_pose << std::endl;
     new_target = true;
     return true;
 }
@@ -53,6 +87,7 @@ void state_cb(const uav_abstraction_layer::State msg) {
     uav_state = msg;
     return;
 }
+
 
 geometry_msgs::TwistStamped calculateSmoothVelocity(Eigen::Vector3f x0, Eigen::Vector3f x2, double d) {
     double cruising_speed = 1.0;
@@ -125,11 +160,10 @@ int main(int _argc, char **_argv) {
     double flight_level = 5.0;
     ual.takeOff(flight_level);
 
-    geometry_msgs::TwistStamped velocity;
-    velocity.header.frame_id = "uav_1_home";
+    geometry_msgs::TwistStamped velocity_to_pub;
+    velocity_to_pub.header.frame_id = "uav_1_home";
     uav_current_path.header.frame_id = "uav_1_home";
     uav_target_path.header.frame_id = "uav_1_home";
-    geometry_msgs::PoseStamped current_pose;
     current_pose.pose.position.x = 0;
     current_pose.pose.position.y = 0;
     current_pose.pose.position.z = flight_level;
@@ -139,27 +173,44 @@ int main(int _argc, char **_argv) {
     current_pose.pose.orientation.w = 1;
     uav_target_path.poses.push_back(current_pose);
 
-    current_pose = ual.pose();
-    Eigen::Vector3f current_point = Eigen::Vector3f(current_pose.pose.position.x, current_pose.pose.position.y, current_pose.pose.position.z);
+    update_current_variables(ual.pose());
 
     while (ros::ok()) {
         current_pose = ual.pose();
         double d_to_target = (target_point - current_point).norm();
-        while (d_to_target > 0.8 && new_target) {
-            velocity = calculateVelocity(current_point, target_point, d_to_target);
-            ual.setVelocity(velocity);
-            uav_current_path.poses.push_back(ual.pose());
-            pub_current_path.publish(uav_current_path);
-            current_pose = ual.pose();
-            current_point = Eigen::Vector3f(current_pose.pose.position.x, current_pose.pose.position.y, current_pose.pose.position.z);
-            d_to_target = (target_point - current_point).norm();
-            pub_target_path.publish(uav_target_path);
-            sleep(0.1);
+        std::cout << "Movement state: [" << movement_state << "]" << std::endl;
+        switch(movement_state) {
+            case hover:
+                if (new_target) {
+                    ual.goToWaypoint(target_pose, false);
+                }
+                new_target = false;
+                break;
+            case velocity:
+                while (d_to_target > 0.8 && new_target) {
+                    velocity_to_pub = calculateVelocity(current_point, target_point, d_to_target);
+                    ual.setVelocity(velocity_to_pub);
+                    uav_current_path.poses.push_back(ual.pose());
+                    pub_current_path.publish(uav_current_path);
+                    update_current_variables(ual.pose());
+                    d_to_target = (target_point - current_point).norm();
+                    pub_target_path.publish(uav_target_path);
+                    sleep(0.1);
+                }
+                movement_state = hover;
+                break;
+            case fix_orientation:
+                update_current_variables(ual.pose());
+                update_target_fix_variables(fix_orientation_pose.pose);
+                while (q_current.angularDistance(q_target_fix) > 0.1 || (fix_orientation_point - current_point).norm() > 0.2){
+                    ual.goToWaypoint(fix_orientation_pose, false);
+                    update_current_variables(ual.pose());
+                    update_target_fix_variables(fix_orientation_pose.pose);
+                    sleep(0.1);
+                }
+                movement_state = velocity;
+                break;
         }
-        if (new_target) {
-            ual.goToWaypoint(target_pose, false);
-        }
-        new_target = false;
         uav_current_path.poses.push_back(ual.pose());
         pub_current_path.publish(uav_current_path);
         sleep(1);
