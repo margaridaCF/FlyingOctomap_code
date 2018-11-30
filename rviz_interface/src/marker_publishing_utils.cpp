@@ -430,17 +430,16 @@ namespace rviz_interface
         marker.ns = ns;
         marker.id = request_id;
         marker.type = shape;
-        geometry_msgs::Point goal_point;
-        goal_point.x = goal.x();
-        goal_point.y = goal.y();
-        goal_point.z = goal.z();
-        marker.points.push_back(goal_point);
-        marker.action = visualization_msgs::Marker::ADD;
         geometry_msgs::Point start_point;
         start_point.x = start.x();
         start_point.y = start.y();
         start_point.z = start.z();
         marker.points.push_back(start_point);
+        geometry_msgs::Point goal_point;
+        goal_point.x = goal.x();
+        goal_point.y = goal.y();
+        goal_point.z = goal.z();
+        marker.points.push_back(goal_point);
         marker.pose.orientation.w = 1.0;
         marker.scale.x = 0.1;
         marker.scale.y = 0.3;
@@ -449,6 +448,7 @@ namespace rviz_interface
         marker.color.g = 1;
         marker.color.b = 0;
         marker.color.a = 1;
+        marker.action = visualization_msgs::Marker::ADD;
         
         marker.lifetime = ros::Duration();
     }
