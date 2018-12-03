@@ -52,33 +52,24 @@ void update_current_variables(geometry_msgs::PoseStamped ual_pose){
     return;
 }
 
-void update_target_fix_variables(geometry_msgs::Pose fix_orientation){
-    fix_orientation_pose.pose.orientation = fix_orientation.orientation;
-    fix_orientation_pose.pose.position = uav_target_path.poses.at(uav_target_path.poses.size()-2).pose.position; // Take previous target_pose.position to fix orientation before next target
-    fix_orientation_point = Eigen::Vector3f(fix_orientation_pose.pose.position.x, fix_orientation_pose.pose.position.y, fix_orientation_pose.pose.position.z);
-    q_target_fix.x() = fix_orientation_pose.pose.orientation.x;
-    q_target_fix.y() = fix_orientation_pose.pose.orientation.y;
-    q_target_fix.z() = fix_orientation_pose.pose.orientation.z;
-    q_target_fix.w() = fix_orientation_pose.pose.orientation.w;
-    return;
-}
-
 bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
                         architecture_msgs::PositionRequest::Response &res) {
     if (!new_target) {
+        if (target_pose.pose.orientation.x != req.pose.orientation.x ||
+            target_pose.pose.orientation.y != req.pose.orientation.y ||
+            target_pose.pose.orientation.z != req.pose.orientation.z ||
+            target_pose.pose.orientation.w != req.pose.orientation.w){
+                fix_orientation_pose.pose.orientation = req.pose.orientation;
+                fix_orientation_pose.pose.position = target_pose.pose.position;
+                movement_state = fix_orientation;
+        }else{
+                movement_state = velocity;
+        }
         target_pose.pose = req.pose;
         uav_target_path.poses.push_back(target_pose);
         target_point = Eigen::Vector3f(target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
+        fix_orientation_point = Eigen::Vector3f(fix_orientation_pose.pose.position.x, fix_orientation_pose.pose.position.y, fix_orientation_pose.pose.position.z);
     }
-    Eigen::Quaterniond q_target(target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w); 
-    update_current_variables(current_pose);
-    if (q_current.angularDistance(q_target) > 0){
-        update_target_fix_variables(req.pose);
-        movement_state = fix_orientation;
-    }else{
-        movement_state = velocity;
-    }
-    std::cout << target_pose << std::endl << fix_orientation_pose << std::endl;
     new_target = true;
     return true;
 }
@@ -170,7 +161,7 @@ int main(int _argc, char **_argv) {
     current_pose.pose.orientation.x = 0;
     current_pose.pose.orientation.y = 0;
     current_pose.pose.orientation.z = 0;
-    current_pose.pose.orientation.w = 1;
+    current_pose.pose.orientation.w = 0;
     uav_target_path.poses.push_back(current_pose);
 
     update_current_variables(ual.pose());
@@ -201,11 +192,11 @@ int main(int _argc, char **_argv) {
                 break;
             case fix_orientation:
                 update_current_variables(ual.pose());
-                update_target_fix_variables(fix_orientation_pose.pose);
-                while (q_current.angularDistance(q_target_fix) > 0.1 || (fix_orientation_point - current_point).norm() > 0.2){
+                ual.goToWaypoint(fix_orientation_pose, false);
+                sleep(5);
+                while ((fix_orientation_point - current_point).norm() > 0.2){
                     ual.goToWaypoint(fix_orientation_pose, false);
                     update_current_variables(ual.pose());
-                    update_target_fix_variables(fix_orientation_pose.pose);
                     sleep(0.1);
                 }
                 movement_state = velocity;
