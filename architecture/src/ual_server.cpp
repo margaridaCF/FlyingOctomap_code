@@ -27,7 +27,7 @@
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/ual.h>
 #include <Eigen/Eigen>
-#include <Eigen/Geometry> 
+#include <Eigen/Geometry>
 
 nav_msgs::Path uav_current_path, uav_target_path;
 Eigen::Vector3f target_point, current_point, fix_orientation_point;
@@ -39,10 +39,12 @@ int cont_init_d_to_target = 0;
 float init_d_to_target = 0;
 int cont_smooth_vel = 1;
 int max_velocity_portions = 50;
-enum movement_state_t {hover, velocity, fix_orientation};
+enum movement_state_t { hover,
+                        velocity,
+                        fix_orientation };
 movement_state_t movement_state;
 
-void update_current_variables(geometry_msgs::PoseStamped ual_pose){
+void update_current_variables(geometry_msgs::PoseStamped ual_pose) {
     current_pose = ual_pose;
     current_point = Eigen::Vector3f(current_pose.pose.position.x, current_pose.pose.position.y, current_pose.pose.position.z);
     q_current.x() = current_pose.pose.orientation.x;
@@ -58,12 +60,12 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
         if (target_pose.pose.orientation.x != req.pose.orientation.x ||
             target_pose.pose.orientation.y != req.pose.orientation.y ||
             target_pose.pose.orientation.z != req.pose.orientation.z ||
-            target_pose.pose.orientation.w != req.pose.orientation.w){
-                fix_orientation_pose.pose.orientation = req.pose.orientation;
-                fix_orientation_pose.pose.position = target_pose.pose.position;
-                movement_state = fix_orientation;
-        }else{
-                movement_state = velocity;
+            target_pose.pose.orientation.w != req.pose.orientation.w) {
+            fix_orientation_pose.pose.orientation = req.pose.orientation;
+            fix_orientation_pose.pose.position = target_pose.pose.position;
+            movement_state = fix_orientation;
+        } else {
+            movement_state = velocity;
         }
         target_pose.pose = req.pose;
         uav_target_path.poses.push_back(target_pose);
@@ -78,7 +80,6 @@ void state_cb(const uav_abstraction_layer::State msg) {
     uav_state = msg;
     return;
 }
-
 
 geometry_msgs::TwistStamped calculateSmoothVelocity(Eigen::Vector3f x0, Eigen::Vector3f x2, double d) {
     double cruising_speed = 1.0;
@@ -118,7 +119,7 @@ geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f x0, Eigen::Vector3
 
     Eigen::Vector3f unit_vec = (x2 - x0) / d;
 
-    if (d >= 1.0) {
+    if (d >= 0.55) {
         output_vel.twist.linear.x = unit_vec(0) * cruising_speed;
         output_vel.twist.linear.y = unit_vec(1) * cruising_speed;
         output_vel.twist.linear.z = unit_vec(2) * cruising_speed;
@@ -170,7 +171,7 @@ int main(int _argc, char **_argv) {
         current_pose = ual.pose();
         double d_to_target = (target_point - current_point).norm();
         std::cout << "Movement state: [" << movement_state << "]" << std::endl;
-        switch(movement_state) {
+        switch (movement_state) {
             case hover:
                 if (new_target) {
                     ual.goToWaypoint(target_pose, false);
@@ -178,7 +179,7 @@ int main(int _argc, char **_argv) {
                 new_target = false;
                 break;
             case velocity:
-                while (d_to_target > 0.8 && new_target) {
+                while (d_to_target > 0.5 && new_target) {
                     velocity_to_pub = calculateVelocity(current_point, target_point, d_to_target);
                     ual.setVelocity(velocity_to_pub);
                     uav_current_path.poses.push_back(ual.pose());
@@ -194,7 +195,7 @@ int main(int _argc, char **_argv) {
                 update_current_variables(ual.pose());
                 ual.goToWaypoint(fix_orientation_pose, false);
                 sleep(5);
-                while ((fix_orientation_point - current_point).norm() > 0.2){
+                while ((fix_orientation_point - current_point).norm() > 0.2) {
                     ual.goToWaypoint(fix_orientation_pose, false);
                     update_current_variables(ual.pose());
                     sleep(0.1);
