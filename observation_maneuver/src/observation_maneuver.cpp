@@ -46,4 +46,27 @@ namespace observation_lib
 		Eigen::Vector3d directionFlyBy = calculateDirectionTest(trig_circle_point, frontier, uav_pos);
 		return translationOp(frontier_circle_point, directionFlyBy, distance);
 	}
+
+	void precalculation (double radius, int point_number, double distance_inFront, double distance_behind, Eigen::MatrixXd & starts_zero, Eigen::MatrixXd & ends_zero, Eigen::MatrixXd & directions_zero)
+	{
+		Eigen::MatrixXd circle_unitary (3, point_number);
+		generateCirclePoints(point_number, circle_unitary);
+
+		ROS_INFO_STREAM(circle_unitary);
+
+		Eigen::MatrixXd circle_radius(3, point_number);
+		circle_radius = radius * circle_unitary;
+
+		Eigen::Vector3d k(0, 0, 1);
+		for (int i = 0; i < point_number; ++i)
+		{
+			Eigen::Vector3d point = circle_unitary.col(i);
+			directions_zero.col(i) = k.cross(point);
+		}
+
+		starts_zero = circle_radius - distance_behind *directions_zero;
+		ends_zero   = circle_radius + distance_inFront*directions_zero;
+
+
+	}
 }

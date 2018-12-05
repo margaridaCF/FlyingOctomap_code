@@ -4,3 +4,4 @@ geometry_msgs/Point frontier
 float64 distance_behind
 float64 distance_inFront
 int16 circle_divisions
+float64 distance_toTarget
