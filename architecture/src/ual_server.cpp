@@ -24,7 +24,6 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
-#include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/ual.h>
 #include <Eigen/Eigen>
 #include <Eigen/Geometry>
@@ -32,13 +31,13 @@
 nav_msgs::Path uav_current_path, uav_target_path;
 Eigen::Vector3f target_point, current_point, fix_orientation_point;
 geometry_msgs::PoseStamped target_pose, current_pose, fix_orientation_pose;
-Eigen::Quaterniond q_current, q_target_fix;
-uav_abstraction_layer::State uav_state;
+Eigen::Quaterniond q_current, q_target, q_target_fix;
 bool new_target = false;
 int cont_init_d_to_target = 0;
-float init_d_to_target = 0;
+double init_d_to_target = 0;
 int cont_smooth_vel = 1;
 int max_velocity_portions = 50;
+double reached_target = 0.50;
 enum movement_state_t { hover,
                         velocity,
                         fix_orientation };
@@ -51,6 +50,17 @@ void update_current_variables(geometry_msgs::PoseStamped ual_pose) {
     q_current.y() = current_pose.pose.orientation.y;
     q_current.z() = current_pose.pose.orientation.z;
     q_current.w() = current_pose.pose.orientation.w;
+    return;
+}
+
+void update_target_fix_variables(geometry_msgs::Pose fix_orientation) {
+    fix_orientation_pose.pose.orientation = fix_orientation.orientation;
+    fix_orientation_pose.pose.position = uav_target_path.poses.at(uav_target_path.poses.size() - 2).pose.position;  // Take previous target_pose.position to fix orientation before next target
+    fix_orientation_point = Eigen::Vector3f(fix_orientation_pose.pose.position.x, fix_orientation_pose.pose.position.y, fix_orientation_pose.pose.position.z);
+    q_target_fix.x() = fix_orientation_pose.pose.orientation.x;
+    q_target_fix.y() = fix_orientation_pose.pose.orientation.y;
+    q_target_fix.z() = fix_orientation_pose.pose.orientation.z;
+    q_target_fix.w() = fix_orientation_pose.pose.orientation.w;
     return;
 }
 
@@ -70,15 +80,23 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
         target_pose.pose = req.pose;
         uav_target_path.poses.push_back(target_pose);
         target_point = Eigen::Vector3f(target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
-        fix_orientation_point = Eigen::Vector3f(fix_orientation_pose.pose.position.x, fix_orientation_pose.pose.position.y, fix_orientation_pose.pose.position.z);
+        q_target.x() = target_pose.pose.orientation.x;
+        q_target.y() = target_pose.pose.orientation.y;
+        q_target.z() = target_pose.pose.orientation.z;
+        q_target.w() = target_pose.pose.orientation.w;
+        update_current_variables(current_pose);
+        std::cout << "[New WP] Pose:        " << target_pose.pose.position.x << ", " << target_pose.pose.position.y << ", " << target_pose.pose.position.z << std::endl;
+        std::cout << "[New WP] Orientation: " << target_pose.pose.orientation.x << ", " << target_pose.pose.orientation.y << ", " << target_pose.pose.orientation.z << ", " << target_pose.pose.orientation.w << std::endl;
+        std::cout << "[New WP] Angular Distance: " << q_current.angularDistance(q_target) << std::endl;
+        if (3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) {
+            update_target_fix_variables(target_pose.pose);
+            movement_state = fix_orientation;
+        } else {
+            movement_state = velocity;
+        }
     }
     new_target = true;
     return true;
-}
-
-void state_cb(const uav_abstraction_layer::State msg) {
-    uav_state = msg;
-    return;
 }
 
 geometry_msgs::TwistStamped calculateSmoothVelocity(Eigen::Vector3f x0, Eigen::Vector3f x2, double d) {
@@ -97,7 +115,7 @@ geometry_msgs::TwistStamped calculateSmoothVelocity(Eigen::Vector3f x0, Eigen::V
     output_vel.twist.linear.y = unit_vec(1) * velocity_portion * cont_smooth_vel;
     output_vel.twist.linear.z = unit_vec(2) * velocity_portion * cont_smooth_vel;
 
-    if (d >= 3) {
+    if (d >= (reached_target + 0.01)) {
         if (cont_smooth_vel < max_velocity_portions) cont_smooth_vel++;
     } else {
         if (cont_smooth_vel > 0) cont_smooth_vel--;
@@ -119,7 +137,7 @@ geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f x0, Eigen::Vector3
 
     Eigen::Vector3f unit_vec = (x2 - x0) / d;
 
-    if (d >= 0.55) {
+    if (d >= (reached_target + 0.01)) {
         output_vel.twist.linear.x = unit_vec(0) * cruising_speed;
         output_vel.twist.linear.y = unit_vec(1) * cruising_speed;
         output_vel.twist.linear.z = unit_vec(2) * cruising_speed;
@@ -136,7 +154,6 @@ int main(int _argc, char **_argv) {
     grvc::ual::UAL ual(_argc, _argv);
 
     ros::NodeHandle nh;
-    ros::Subscriber sub_state = nh.subscribe<uav_abstraction_layer::State>("/uav_1/ual/State", 10, state_cb);
     ros::Publisher pub_current_path = nh.advertise<nav_msgs::Path>("/ual/current_path", 10);
     ros::Publisher pub_target_path = nh.advertise<nav_msgs::Path>("/ual/target_path", 10);
     ros::ServiceServer target_position_service = nh.advertiseService("/uav_1/ual/target_position", target_position_cb);
@@ -168,17 +185,19 @@ int main(int _argc, char **_argv) {
     update_current_variables(ual.pose());
 
     while (ros::ok()) {
-        current_pose = ual.pose();
+        update_current_variables(ual.pose());
         double d_to_target = (target_point - current_point).norm();
-        std::cout << "Movement state: [" << movement_state << "]" << std::endl;
+        std::cout << "[";
         switch (movement_state) {
             case hover:
+                std::cout << "Hover]" << std::endl;
                 if (new_target) {
                     ual.goToWaypoint(target_pose, false);
                 }
                 new_target = false;
                 break;
             case velocity:
+                std::cout << "Velocity]" << std::endl;
                 while (d_to_target > 0.5 && new_target) {
                     velocity_to_pub = calculateVelocity(current_point, target_point, d_to_target);
                     ual.setVelocity(velocity_to_pub);
@@ -192,13 +211,15 @@ int main(int _argc, char **_argv) {
                 movement_state = hover;
                 break;
             case fix_orientation:
+                std::cout << "Fix orientation]" << std::endl;
                 update_current_variables(ual.pose());
-                ual.goToWaypoint(fix_orientation_pose, false);
-                sleep(5);
-                while ((fix_orientation_point - current_point).norm() > 0.2) {
+                update_target_fix_variables(fix_orientation_pose.pose);
+                while ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_orientation_point - current_point).norm() > 0.05) {
                     ual.goToWaypoint(fix_orientation_pose, false);
                     update_current_variables(ual.pose());
-                    sleep(0.1);
+                    update_target_fix_variables(fix_orientation_pose.pose);
+                    std::cout << "[Fixing]   Angular: " << q_current.angularDistance(q_target_fix) << " Distance: " << (fix_orientation_point - current_point).norm() << std::endl;
+                    sleep(1);
                 }
                 movement_state = velocity;
                 break;
