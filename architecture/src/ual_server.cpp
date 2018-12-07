@@ -80,8 +80,9 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
         q_target.z() = target_pose.pose.orientation.z;
         q_target.w() = target_pose.pose.orientation.w;
         update_current_variables(current_pose);
-        std::cout << "[  New WP] Pose:        " << target_pose.pose.position.x << ", " << target_pose.pose.position.y << ", " << target_pose.pose.position.z << std::endl;
-        std::cout << "[  New WP] Orientation: " << target_pose.pose.orientation.x << ", " << target_pose.pose.orientation.y << ", " << target_pose.pose.orientation.z << ", " << target_pose.pose.orientation.w << std::endl;
+        std::cout << "[ NewT] Pose:        " << target_pose.pose.position.x << ", " << target_pose.pose.position.y << ", " << target_pose.pose.position.z << std::endl;
+        std::cout << "[ NewT] Orientation: " << target_pose.pose.orientation.x << ", " << target_pose.pose.orientation.y << ", " << target_pose.pose.orientation.z << ", " << target_pose.pose.orientation.w << std::endl;
+        std::cout << "[ FixP]" << std::endl;
         update_target_fix_variables(target_pose.pose);
     }
     new_target = true;
@@ -123,18 +124,10 @@ geometry_msgs::TwistStamped calculateSmoothVelocity(Eigen::Vector3f x0, Eigen::V
 geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f x0, Eigen::Vector3f x2, double d) {
     double cruising_speed = 1.0;
     geometry_msgs::TwistStamped output_vel;
-
     Eigen::Vector3f unit_vec = (x2 - x0) / d;
-
-    if (d >= (reached_target + 0.01)) {
-        output_vel.twist.linear.x = unit_vec(0) * cruising_speed;
-        output_vel.twist.linear.y = unit_vec(1) * cruising_speed;
-        output_vel.twist.linear.z = unit_vec(2) * cruising_speed;
-    } else {
-        output_vel.twist.linear.x = 0;
-        output_vel.twist.linear.y = 0;
-        output_vel.twist.linear.z = 0;
-    }
+    output_vel.twist.linear.x = unit_vec(0) * cruising_speed;
+    output_vel.twist.linear.y = unit_vec(1) * cruising_speed;
+    output_vel.twist.linear.z = unit_vec(2) * cruising_speed;
     output_vel.header.frame_id = "uav_1_home";
     return output_vel;
 }
@@ -176,46 +169,37 @@ int main(int _argc, char **_argv) {
     while (ros::ok()) {
         update_current_variables(ual.pose());
         double d_to_target = (target_point - current_point).norm();
-        std::cout << "[";
         switch (movement_state) {
             case hover:
-                std::cout << "   Hover]" << std::endl;
                 if (new_target) {
                     ual.goToWaypoint(target_pose, false);
                 }
                 new_target = false;
                 break;
             case velocity:
-                std::cout << "Velocity]" << std::endl;
-                while (d_to_target > 0.5 && new_target) {
+                d_to_target = (target_point - current_point).norm();
+                if (d_to_target > 0.5 && new_target) {
                     velocity_to_pub = calculateVelocity(current_point, target_point, d_to_target);
                     ual.setVelocity(velocity_to_pub);
-                    uav_current_path.poses.push_back(ual.pose());
-                    pub_current_path.publish(uav_current_path);
-                    update_current_variables(ual.pose());
-                    d_to_target = (target_point - current_point).norm();
-                    pub_target_path.publish(uav_target_path);
-                    sleep(0.1);
+                } else {
+                    std::cout << "[ HOVR]" << std::endl;
+                    movement_state = hover;
                 }
-                movement_state = hover;
                 break;
             case fix_pose:
-                std::cout << "Fix pose]" << std::endl;
-                update_current_variables(ual.pose());
                 update_target_fix_variables(fix_pose_pose.pose);
-                while ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
-                    // std::cout << "[  Fixing] Distance: " << (fix_pose_point - current_point).norm() << "(m) Angle: " << q_current.angularDistance(q_target_fix) << "(rad)" << std::endl;
-                    sleep(0.5);
+                if ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
                     ual.goToWaypoint(fix_pose_pose, false);
-                    update_current_variables(ual.pose());
-                    update_target_fix_variables(fix_pose_pose.pose);
+                }else{
+                    std::cout << "[ VELO]" << std::endl;
+                    movement_state = velocity;
                 }
-                movement_state = velocity;
                 break;
         }
         uav_current_path.poses.push_back(ual.pose());
         pub_current_path.publish(uav_current_path);
-        sleep(1);
+        pub_target_path.publish(uav_target_path);
+        sleep(0.1);
     }
 
     return 0;
