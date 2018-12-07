@@ -46,9 +46,15 @@ namespace observation_node
 		Eigen::MatrixXd directions_zero (3, circle_divisions);
 		observation_lib::precalculation (opp_request->distance_toTarget, circle_divisions, distance_inFront, distance_behind, starts_zero, ends_zero, directions_zero);
 
+		Eigen::Vector3d start(0, 0, 1);
+		Eigen::Vector3d end(0, 0, 1);
 
 		for (int i = 0; i < circle_divisions; ++i)
 		{
+			// When frontier ir known
+			start = frontier + starts_zero.col(i);
+			end   = frontier + ends_zero.col(i);
+
 			// Eigen::Vector3d observationStart = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_behind, observation_lib::calculateTrigStart);
 			// Eigen::Vector3d observationEnd   = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_inFront, observation_lib::calculateTrigEnd);
 			// Circle point
@@ -57,8 +63,8 @@ namespace observation_node
    //  		rviz_interface::build_sphere(trig_circle_point_octoVec, size, green_base, marker_id, marker, red_base, "trig_circle_point");
 			// waypoint_array.markers.push_back( marker );
 			// Testing direction (arrow)
-			octomath::Vector3 observationStart_octoVec (starts_zero(0, i),  starts_zero(1, i),  starts_zero(2, i));
-			octomath::Vector3 observationEnd_octoVec   (ends_zero(0, i),    ends_zero(1, i),    ends_zero(2, i));
+			octomath::Vector3 observationStart_octoVec (start(0),  start(1),  start(2));
+			octomath::Vector3 observationEnd_octoVec   (end(0),    end(1),    end(2));
 
 
 			marker = visualization_msgs::Marker();

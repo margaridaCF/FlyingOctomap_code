@@ -66,7 +66,7 @@ namespace observation_lib
 
 		starts_zero = circle_radius - distance_behind *directions_zero;
 		ends_zero   = circle_radius + distance_inFront*directions_zero;
-
-
 	}
+
+	
 }
