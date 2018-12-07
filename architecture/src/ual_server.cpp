@@ -33,6 +33,8 @@ Eigen::Vector3f target_point, current_point, fix_pose_point;
 geometry_msgs::PoseStamped target_pose, current_pose, fix_pose_pose;
 Eigen::Quaterniond q_current, q_target, q_target_fix;
 bool new_target = false;
+bool flag_velocity = false;
+bool flag_fix_pose = false;
 int cont_init_d_to_target = 0;
 double init_d_to_target = 0;
 int cont_smooth_vel = 1;
@@ -143,7 +145,7 @@ int main(int _argc, char **_argv) {
     ros::NodeHandle nh;
     ros::Publisher pub_current_path = nh.advertise<nav_msgs::Path>("/ual/current_path", 10);
     ros::Publisher pub_target_path = nh.advertise<nav_msgs::Path>("/ual/target_path", 10);
-    ros::ServiceServer target_position_service = nh.advertiseService("/uav_1/ual/target_position", target_position_cb);
+    ros::ServiceServer target_position_service = nh.advertiseService("/target_position", target_position_cb);
 
     int uav_id;
     ros::param::param<int>("~uav_id", uav_id, 1);
@@ -202,7 +204,7 @@ int main(int _argc, char **_argv) {
                 update_current_variables(ual.pose());
                 update_target_fix_variables(fix_pose_pose.pose);
                 while ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
-                    std::cout << "[  Fixing] Distance: " << (fix_pose_point - current_point).norm() << "(m) Angle: " << q_current.angularDistance(q_target_fix) << "(rad)" << std::endl;
+                    // std::cout << "[  Fixing] Distance: " << (fix_pose_point - current_point).norm() << "(m) Angle: " << q_current.angularDistance(q_target_fix) << "(rad)" << std::endl;
                     sleep(0.5);
                     ual.goToWaypoint(fix_pose_pose, false);
                     update_current_variables(ual.pose());
