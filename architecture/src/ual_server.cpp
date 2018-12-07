@@ -33,6 +33,7 @@ Eigen::Vector3f target_point, current_point, fix_pose_point;
 geometry_msgs::PoseStamped target_pose, current_pose, fix_pose_pose;
 Eigen::Quaterniond q_current, q_target, q_target_fix;
 bool new_target = false;
+bool offboard_enabled;
 enum movement_state_t { hover,
                         velocity,
                         fix_pose };
@@ -101,6 +102,10 @@ int main(int _argc, char **_argv) {
     ros::Publisher pub_target_path = nh.advertise<nav_msgs::Path>("/ual/target_path", 10);
     ros::ServiceServer target_position_service = nh.advertiseService("/target_position", target_position_cb);
 
+    offboard_enabled = true;
+    nh.getParam("offboard_enabled", offboard_enabled);
+    ROS_WARN_STREAM("[mav_comms] offboard_enabled: " << offboard_enabled);
+    
     int uav_id;
     ros::param::param<int>("~uav_id", uav_id, 1);
 
@@ -109,6 +114,7 @@ int main(int _argc, char **_argv) {
         sleep(1);
     }
     ROS_INFO("UAL %d ready!", uav_id);
+
     double flight_level = 5.0;
     ual.takeOff(flight_level);
 
@@ -130,36 +136,38 @@ int main(int _argc, char **_argv) {
     while (ros::ok()) {
         update_current_variables(ual.pose());
         double d_to_target = (target_point - current_point).norm();
-        switch (movement_state) {
-            case hover:
-                if (new_target) {
-                    ual.goToWaypoint(target_pose, false);
-                }
-                new_target = false;
-                break;
-            case velocity:
-                d_to_target = (target_point - current_point).norm();
-                if (d_to_target > 0.5 && new_target) {
-                    velocity_to_pub = calculateVelocity(current_point, target_point, d_to_target);
-                    ual.setVelocity(velocity_to_pub);
-                } else {
-                    std::cout << "[ HOVR]" << std::endl;
-                    movement_state = hover;
-                }
-                break;
-            case fix_pose:
-                update_target_fix_variables(fix_pose_pose.pose);
-                if ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
-                    ual.goToWaypoint(fix_pose_pose, false);
-                }else{
-                    std::cout << "[ VELO]" << std::endl;
-                    movement_state = velocity;
-                }
-                break;
+        if (offboard_enabled){
+            switch (movement_state) {
+                case hover:
+                    if (new_target) {
+                        ual.goToWaypoint(target_pose, false);
+                    }
+                    new_target = false;
+                    break;
+                case velocity:
+                    d_to_target = (target_point - current_point).norm();
+                    if (d_to_target > 0.5 && new_target) {
+                        velocity_to_pub = calculateVelocity(current_point, target_point, d_to_target);
+                        ual.setVelocity(velocity_to_pub);
+                    } else {
+                        std::cout << "[ HOVR]" << std::endl;
+                        movement_state = hover;
+                    }
+                    break;
+                case fix_pose:
+                    update_target_fix_variables(fix_pose_pose.pose);
+                    if ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
+                        ual.goToWaypoint(fix_pose_pose, false);
+                    }else{
+                        std::cout << "[ VELO]" << std::endl;
+                        movement_state = velocity;
+                    }
+                    break;
+            }
+            uav_current_path.poses.push_back(ual.pose());
+            pub_current_path.publish(uav_current_path);
+            pub_target_path.publish(uav_target_path);
         }
-        uav_current_path.poses.push_back(ual.pose());
-        pub_current_path.publish(uav_current_path);
-        pub_target_path.publish(uav_target_path);
         sleep(0.1);
     }
 
