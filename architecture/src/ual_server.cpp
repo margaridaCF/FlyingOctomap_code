@@ -33,13 +33,6 @@ Eigen::Vector3f target_point, current_point, fix_pose_point;
 geometry_msgs::PoseStamped target_pose, current_pose, fix_pose_pose;
 Eigen::Quaterniond q_current, q_target, q_target_fix;
 bool new_target = false;
-bool flag_velocity = false;
-bool flag_fix_pose = false;
-int cont_init_d_to_target = 0;
-double init_d_to_target = 0;
-int cont_smooth_vel = 1;
-int max_velocity_portions = 50;
-double reached_target = 1.0;
 enum movement_state_t { hover,
                         velocity,
                         fix_pose };
@@ -87,38 +80,6 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
     }
     new_target = true;
     return true;
-}
-
-geometry_msgs::TwistStamped calculateSmoothVelocity(Eigen::Vector3f x0, Eigen::Vector3f x2, double d) {
-    double cruising_speed = 1.0;
-    geometry_msgs::TwistStamped output_vel;
-
-    Eigen::Vector3f unit_vec = (x2 - x0) / d;
-    double velocity_portion = cruising_speed / max_velocity_portions;
-
-    if (cont_init_d_to_target == 0) {
-        init_d_to_target = d;
-        cont_init_d_to_target++;
-    }
-
-    output_vel.twist.linear.x = unit_vec(0) * velocity_portion * cont_smooth_vel;
-    output_vel.twist.linear.y = unit_vec(1) * velocity_portion * cont_smooth_vel;
-    output_vel.twist.linear.z = unit_vec(2) * velocity_portion * cont_smooth_vel;
-
-    if (d >= (reached_target + 0.01)) {
-        if (cont_smooth_vel < max_velocity_portions) cont_smooth_vel++;
-    } else {
-        if (cont_smooth_vel > 0) cont_smooth_vel--;
-    }
-
-    if (d < 1) {
-        cont_smooth_vel = 0;
-        init_d_to_target = 0;
-        cont_init_d_to_target = 0;
-    }
-
-    output_vel.header.frame_id = "uav_1_home";
-    return output_vel;
 }
 
 geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f x0, Eigen::Vector3f x2, double d) {
