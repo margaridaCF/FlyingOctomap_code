@@ -52,10 +52,13 @@ namespace observation_lib
 		Eigen::MatrixXd circle_unitary (3, point_number);
 		generateCirclePoints(point_number, circle_unitary);
 
-		ROS_INFO_STREAM(circle_unitary);
+		ROS_ERROR_STREAM(circle_unitary);
 
 		Eigen::MatrixXd circle_radius(3, point_number);
-		circle_radius = radius * circle_unitary;
+		circle_radius = circle_unitary * radius;
+
+		ROS_ERROR_STREAM(circle_radius);
+
 
 		Eigen::Vector3d k(0, 0, 1);
 		for (int i = 0; i < point_number; ++i)
@@ -66,6 +69,21 @@ namespace observation_lib
 
 		starts_zero = circle_radius - distance_behind *directions_zero;
 		ends_zero   = circle_radius + distance_inFront*directions_zero;
+	}
+
+	void translate( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end)
+	{
+		double check = direction_zero.dot(motion_direction);
+		if(check >= 0)
+		{
+			start = frontier + start_zero;
+			end   = frontier + end_zero;
+		}
+		else
+		{
+			end   = frontier + start_zero;
+			start = frontier + end_zero;
+		}
 	}
 
 	
