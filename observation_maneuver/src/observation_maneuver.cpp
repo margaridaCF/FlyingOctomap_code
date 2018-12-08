@@ -30,7 +30,7 @@ namespace observation_lib
 		if (index < circle_divisions )
 		{
 			observation_lib::translate(motion_direction, starts_zero.col(index), ends_zero.col(index), directions_zero.col(index), frontier, nextOPPair.start, nextOPPair.end);
-			ROS_ERROR_STREAM("[" << index << "] From (" << nextOPPair.start(0)<<", "<<nextOPPair.start(1)<<", "<<nextOPPair.start(2) << ") to (" << nextOPPair.end(0)<<", "<<nextOPPair.end(1)<<", "<<nextOPPair.end(2) << ")" );
+			// ROS_ERROR_STREAM("[" << index << "] From (" << nextOPPair.start(0)<<", "<<nextOPPair.start(1)<<", "<<nextOPPair.start(2) << ") to (" << nextOPPair.end(0)<<", "<<nextOPPair.end(1)<<", "<<nextOPPair.end(2) << ")" );
 			index++;
 			if(pi.publish)
 			{
@@ -64,37 +64,7 @@ namespace observation_lib
 			point_matrix(2, index) = 0;
 		}
 	}
-
-	Eigen::Vector3d calculateDirectionTest(Eigen::Vector3d const& point_circle, Eigen::Vector3d const& frontier, Eigen::Vector3d const& uav_pos)
-	{
-		Eigen::Vector3d frontierToUav = frontier - uav_pos;
-		Eigen::Vector3d k (0, 0, 1);
-		Eigen::Vector3d directionTest = k.cross(point_circle);
-		double check = directionTest.dot(frontierToUav);
-		if(check < 0)
-		{
-			directionTest = -directionTest;
-		}
-		return directionTest;
-	}
-
-	Eigen::Vector3d calculateTrigStart(Eigen::Vector3d const& trig_point_test, Eigen::Vector3d const& directionTest, double distance)
-	{
-		return trig_point_test - distance * directionTest;
-	}
-
-	Eigen::Vector3d calculateTrigEnd(Eigen::Vector3d const& trig_point_test, Eigen::Vector3d const& directionTest, double distance)
-	{
-		return trig_point_test + distance * directionTest;
-	}
-
-	Eigen::Vector3d calculatePointTranslation(Eigen::Vector3d const& trig_circle_point, Eigen::Vector3d const& frontier, Eigen::Vector3d const& uav_pos, double distance, translationCalculation translationOp)
-	{
-		Eigen::Vector3d frontier_circle_point = frontier + trig_circle_point;
-		Eigen::Vector3d directionFlyBy = calculateDirectionTest(trig_circle_point, frontier, uav_pos);
-		return translationOp(frontier_circle_point, directionFlyBy, distance);
-	}
-
+	
 	void precalculation (double radius, int point_number, double distance_inFront, double distance_behind, Eigen::MatrixXd & starts_zero, Eigen::MatrixXd & ends_zero, Eigen::MatrixXd & directions_zero)
 	{
 		Eigen::MatrixXd circle_unitary (3, point_number);
