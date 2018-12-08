@@ -9,8 +9,23 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <unordered_set>
 
+
+
 namespace rviz_interface
 {
+
+	class PublishingInput
+	{
+	public:
+		visualization_msgs::MarkerArray waypoint_array;
+		ros::Publisher const& marker_pub;
+		const bool publish;
+		const std::string dataset_name;
+		PublishingInput(ros::Publisher const& marker_pub, bool publish = false, std::string dataset_name = "unamed", visualization_msgs::MarkerArray waypoint_array = visualization_msgs::MarkerArray())
+			: marker_pub(marker_pub), dataset_name(dataset_name), publish(publish), waypoint_array(waypoint_array)
+		{}
+	};
+
 	// GEOFENCES
 	void publish_geofence 			(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, visualization_msgs::MarkerArray & marker_array);
 	void publish_safety_margin 		(geometry_msgs::Point const& frontier, double safety_margin, visualization_msgs::MarkerArray marker_array, int id);

@@ -36,54 +36,12 @@ namespace observation_node
 		double distance_behind = opp_request->distance_behind;
 		double distance_inFront = opp_request->distance_inFront;
 		int circle_divisions = opp_request->circle_divisions;
+		observation_lib::OPPairs oppairs (circle_divisions, opp_request->distance_toTarget, distance_inFront, distance_behind);
 
-		// Eigen::MatrixXd circle_pointCloud (3, circle_divisions);
-		// observation_lib::generateCirclePoints(circle_divisions, circle_pointCloud);
-
-
-		Eigen::MatrixXd starts_zero (3, circle_divisions);
-		Eigen::MatrixXd ends_zero (3, circle_divisions);
-		Eigen::MatrixXd directions_zero (3, circle_divisions);
-		observation_lib::precalculation (opp_request->distance_toTarget, circle_divisions, distance_inFront, distance_behind, starts_zero, ends_zero, directions_zero);
-
-		Eigen::Vector3d start(0, 0, 1);
-		Eigen::Vector3d end(0, 0, 1);
-		Eigen::Vector3d motion_direction = frontier - uav_position;
-
-		for (int i = 0; i < circle_divisions; ++i)
-		{
-			// When frontier ir known
-			start = starts_zero.col(i);
-			end   = ends_zero.col(i);
-
-			Eigen::Vector3d observationStart(start);
-			Eigen::Vector3d observationEnd(end);
-
-			observation_lib::translate(motion_direction, start, end, directions_zero.col(i), frontier, observationStart, observationEnd);
-
-			// Eigen::Vector3d observationStart = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_behind, observation_lib::calculateTrigStart);
-			// Eigen::Vector3d observationEnd   = observation_lib::calculatePointTranslation(circle_pointCloud.col(i), frontier, uav_position, distance_inFront, observation_lib::calculateTrigEnd);
-			// Circle point
-			int marker_id = i;
-			// octomath::Vector3 trig_circle_point_octoVec(circle_pointCloud.col(i)(0), circle_pointCloud.col(i)(1), circle_pointCloud.col(i)(2));
-   //  		rviz_interface::build_sphere(trig_circle_point_octoVec, size, green_base, marker_id, marker, red_base, "trig_circle_point");
-			// waypoint_array.markers.push_back( marker );
-			// Testing direction (arrow)
-			octomath::Vector3 observationStart_octoVec (start(0),  start(1),  start(2));
-			octomath::Vector3 observationEnd_octoVec   (end(0),    end(1),    end(2));
-			marker = visualization_msgs::Marker();
-			marker_id = i;
-    		rviz_interface::build_arrow_path(observationStart_octoVec, observationEnd_octoVec, 100+marker_id, marker, red_base, "testing_direction");
-			waypoint_array.markers.push_back( marker );
-
-
-			observationStart_octoVec = octomath::Vector3 (observationStart(0),  observationStart(1),  observationStart(2));
-			observationEnd_octoVec   = octomath::Vector3 (observationEnd(0),    observationEnd(1),    observationEnd(2));
-			marker = visualization_msgs::Marker();
-			marker_id = i;
-    		rviz_interface::build_arrow_path(observationStart_octoVec, observationEnd_octoVec, 100+marker_id, marker, red_base+0.5, "oppair_direction");
-			waypoint_array.markers.push_back( marker );
-		}
+		rviz_interface::PublishingInput pi (marker_pub, true, "test_node", waypoint_array);
+		oppairs.NewFrontier(frontier, uav_position, pi);
+		observation_lib::OPPair nextOPPair;
+		while(oppairs.NextOPPair(nextOPPair, pi)){}
 		marker_pub.publish(waypoint_array);
 	}
 
