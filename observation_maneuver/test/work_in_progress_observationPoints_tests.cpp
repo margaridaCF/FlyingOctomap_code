@@ -2,32 +2,40 @@
 #include <observation_maneuver.h>
 
 
-namespace ObservationManeuver
+namespace observation_lib
 {
 	double tolerance = 0.0000000001;
 
-	TEST(ObservationManeuverTest, observationStart_auto)
+	TEST(ObservationManeuverTest, directions)
 	{
-		Eigen::Vector3d trig_circle_point (1, 0, 0);
+		double radius = 1;
+		int point_number = 4;
+		double distance_inFront = 1;
+		double distance_behind = 1;
+		Eigen::MatrixXd starts_zero (3, point_number);
+		Eigen::MatrixXd ends_zero(3, point_number);
+		Eigen::MatrixXd directions_zero(3, point_number);
+		// Eigen::Vector3d point_circle (0.5, 0.87, 0);
 		Eigen::Vector3d frontier(0, 12, 0);
 		Eigen::Vector3d uav_pos(0, 0, 0);
-		double distance = 1;
-		Eigen::Vector3d observationStart = calculatePointTranslation(trig_circle_point, frontier, uav_pos, distance, calculateTrigStart);
-		ASSERT_NEAR(1, observationStart(0), tolerance);
-		ASSERT_NEAR(11, observationStart(1), tolerance);
-		ASSERT_NEAR(0, observationStart(2), tolerance);
-	}
+		// Eigen::Vector3d directionTest = calculateDirectionTest(point_circle, frontier, uav_pos);
+		precalculation (radius, point_number, distance_inFront, distance_behind, starts_zero, ends_zero, directions_zero);
+		EXPECT_NEAR(directions_zero(0, 0), 0, tolerance);
+		EXPECT_NEAR(directions_zero(1, 0), 1, tolerance);
+		EXPECT_NEAR(directions_zero(2, 0), 0, tolerance);
 
-	TEST(ObservationManeuverTest, observationEnd_auto)
-	{
-		Eigen::Vector3d trig_circle_point (1, 0, 0);
-		Eigen::Vector3d frontier(0, 12, 0);
-		Eigen::Vector3d uav_pos(0, 0, 0);
-		double distance = 1;
-		Eigen::Vector3d observationEnd = calculatePointTranslation(trig_circle_point, frontier, uav_pos, distance, calculateTrigEnd);
-		ASSERT_NEAR(1, observationEnd(0), tolerance);
-		ASSERT_NEAR(13, observationEnd(1), tolerance);
-		ASSERT_NEAR(0, observationEnd(2), tolerance);
+		EXPECT_NEAR(directions_zero(0, 1), -1, tolerance);
+		EXPECT_NEAR(directions_zero(1, 1), 0, tolerance);
+		EXPECT_NEAR(directions_zero(2, 1), 0, tolerance);
+
+
+		EXPECT_NEAR(directions_zero(0, 2), 0, tolerance);
+		EXPECT_NEAR(directions_zero(1, 2), -1, tolerance);
+		EXPECT_NEAR(directions_zero(2, 2), 0, tolerance);
+
+		EXPECT_NEAR(directions_zero(0, 3), 1, tolerance);
+		EXPECT_NEAR(directions_zero(1, 3), 0, tolerance);
+		EXPECT_NEAR(directions_zero(2, 3), 0, tolerance);
 	}
 }
 
