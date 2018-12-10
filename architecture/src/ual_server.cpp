@@ -76,6 +76,7 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             fix_pose_pose.pose.position = target_pose.pose.position;
             movement_state = fix_pose;
             target_pose.pose = req.pose;
+            target_pose.header.frame_id = "uav_1_home";
             uav_target_path.poses.push_back(target_pose);
             target_point = Eigen::Vector3f(target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
             q_target.x() = target_pose.pose.orientation.x;
@@ -87,8 +88,13 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             ROS_INFO("                    O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
             ROS_INFO("[UAL] Fixing Pose");
             update_target_fix_variables(target_pose.pose);
+            res.is_going_to_position = true;
+        }else{
+            res.is_going_to_position = false;
         }
         new_target = true;
+    }else{
+        res.is_going_to_position = false;
     }
     return true;
 }
