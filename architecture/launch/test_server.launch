@@ -49,6 +49,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <!-- Launch UAL server for uav id=1 -->
     <node pkg="architecture" type="ual_server" name="ual" ns="$(arg ns_prefix)1" output="screen">
         <param name="uav_id" value="1"/>
+        <param name="offboard_enabled" value="true"/>
         <param name="pose_frame_id" value="$(arg pose_frame_id)"/>
         <param name="ual_server" value="$(arg ual_server)"/>
         <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>

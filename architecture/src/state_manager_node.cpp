@@ -565,7 +565,7 @@ namespace state_manager_node
 
                 if (state_data.follow_path_state == finished_sequence)
                 {
-                    state_data.exploration_state = gather_data_maneuver;
+                    state_data.exploration_state = exploration_start;
 #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] gather_data_maneuver" << std::endl;
 #endif

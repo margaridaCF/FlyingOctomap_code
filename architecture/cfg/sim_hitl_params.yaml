@@ -3,13 +3,13 @@ exploration_maneuver_phases_duration_secs: 5
 px4_loiter_radius: 1
 px4/flight_speed: 3
 px4/yaw_rate: 100
-offboard_enabled: true
+# offboard_enabled: true
 laser_range: 9.5
 laser_angle: 0.872665
 
 odometry_error: 0.1
 
-offboard_enabled: true
+# offboard_enabled: true
 frontier/safety_margin: 3
 
 geofence_min/x: -30

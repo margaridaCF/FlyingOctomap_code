@@ -36,7 +36,6 @@ Eigen::Quaterniond q_current, q_target, q_target_fix;
 uav_abstraction_layer::State uav_state;
 bool new_target = false;
 bool taking_off = false;
-bool offboard_enabled;
 enum movement_state_t { hover,
                         velocity,
                         fix_pose,
@@ -84,9 +83,9 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             q_target.z() = target_pose.pose.orientation.z;
             q_target.w() = target_pose.pose.orientation.w;
             update_current_variables(current_pose);
-            ROS_INFO("[  UAL] New target -> P: %f, %f, %f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
-            ROS_INFO("                      O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
-            ROS_INFO("[  UAL] Fixing Pose");
+            ROS_INFO("[UAL] New target -> P: %f, %f, %f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
+            ROS_INFO("                    O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
+            ROS_INFO("[UAL] Fixing Pose");
             update_target_fix_variables(target_pose.pose);
         }
         new_target = true;
@@ -114,12 +113,11 @@ int main(int _argc, char **_argv) {
     ros::Publisher pub_target_path = nh.advertise<nav_msgs::Path>("/ual/target_path", 10);
     ros::ServiceServer target_position_service = nh.advertiseService("/target_position", target_position_cb);
 
-    offboard_enabled = true;
-    nh.getParam("offboard_enabled", offboard_enabled);
-    ROS_WARN_STREAM("[mav_comms] offboard_enabled: " << offboard_enabled);
-
     int uav_id;
+    bool offboard_enabled;
     ros::param::param<int>("~uav_id", uav_id, 1);
+    ros::param::param<bool>("~offboard_enabled", offboard_enabled, false);
+    ROS_WARN_STREAM("[UAL] offboard_enabled: " << offboard_enabled);
 
     while (!ual.isReady() && ros::ok()) {
         ROS_WARN("UAL %d not ready!", uav_id);
@@ -129,6 +127,7 @@ int main(int _argc, char **_argv) {
 
     double flight_level = 5.0;
     if (offboard_enabled) {
+        ROS_INFO("[UAL] Take off height: %f", flight_level);
         movement_state = take_off;
     }
 
@@ -145,7 +144,6 @@ int main(int _argc, char **_argv) {
     current_pose.pose.orientation.w = 1;
     uav_target_path.poses.push_back(current_pose);
 
-    ROS_INFO("[  UAL] Take off height: %f", flight_level);
     while (ros::ok()) {
         update_current_variables(ual.pose());
         switch (movement_state) {
@@ -153,7 +151,7 @@ int main(int _argc, char **_argv) {
                 switch (uav_state.state) {
                     case 2:  // Landed armed
                         if (!taking_off) {
-                            ROS_INFO("[  UAL] Taking off ");
+                            ROS_INFO("[UAL] Taking off ");
                             ual.takeOff(flight_level, false);
                             taking_off = true;
                         }
@@ -174,7 +172,7 @@ int main(int _argc, char **_argv) {
                     velocity_to_pub = calculateVelocity(current_point, target_point, (target_point - current_point).norm());
                     ual.setVelocity(velocity_to_pub);
                 } else {
-                    ROS_INFO("[  UAL] Hovering");
+                    ROS_INFO("[UAL] Hovering");
                     movement_state = hover;
                 }
                 break;
@@ -183,7 +181,7 @@ int main(int _argc, char **_argv) {
                 if ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
                     ual.goToWaypoint(fix_pose_pose, false);
                 } else {
-                    ROS_INFO("[  UAL] Going to target");
+                    ROS_INFO("[UAL] Going to target");
                     movement_state = velocity;
                 }
                 break;
