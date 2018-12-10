@@ -39,7 +39,7 @@ bool taking_off = false;
 bool offboard_enabled;
 enum movement_state_t { hover,
                         velocity,
-                        fix_pose, 
+                        fix_pose,
                         take_off };
 movement_state_t movement_state;
 
@@ -71,7 +71,7 @@ void update_target_fix_variables(geometry_msgs::Pose fix_pose) {
 
 bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
                         architecture_msgs::PositionRequest::Response &res) {
-    if (uav_state.state == 4){
+    if (uav_state.state == 4) {
         if (!new_target) {
             fix_pose_pose.pose.orientation = req.pose.orientation;
             fix_pose_pose.pose.position = target_pose.pose.position;
@@ -84,9 +84,9 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             q_target.z() = target_pose.pose.orientation.z;
             q_target.w() = target_pose.pose.orientation.w;
             update_current_variables(current_pose);
-            std::cout << "[ NewT] Pose:        " << target_pose.pose.position.x << ", " << target_pose.pose.position.y << ", " << target_pose.pose.position.z << std::endl;
-            std::cout << "[ NewT] Orientation: " << target_pose.pose.orientation.x << ", " << target_pose.pose.orientation.y << ", " << target_pose.pose.orientation.z << ", " << target_pose.pose.orientation.w << std::endl;
-            std::cout << "[ FixP]" << std::endl;
+            std::cout << "[  UAL] New target -> Pose: " << target_pose.pose.position.x << ", " << target_pose.pose.position.y << ", " << target_pose.pose.position.z << std::endl;
+            std::cout << "               Orientation: " << target_pose.pose.orientation.x << ", " << target_pose.pose.orientation.y << ", " << target_pose.pose.orientation.z << ", " << target_pose.pose.orientation.w << std::endl;
+            std::cout << "[  UAL] Fixing Pose" << std::endl;
             update_target_fix_variables(target_pose.pose);
         }
         new_target = true;
@@ -117,7 +117,7 @@ int main(int _argc, char **_argv) {
     offboard_enabled = true;
     nh.getParam("offboard_enabled", offboard_enabled);
     ROS_WARN_STREAM("[mav_comms] offboard_enabled: " << offboard_enabled);
-    
+
     int uav_id;
     ros::param::param<int>("~uav_id", uav_id, 1);
 
@@ -128,7 +128,9 @@ int main(int _argc, char **_argv) {
     ROS_INFO("UAL %d ready!", uav_id);
 
     double flight_level = 5.0;
-    movement_state = take_off;
+    if (offboard_enabled) {
+        movement_state = take_off;
+    }
 
     geometry_msgs::TwistStamped velocity_to_pub;
     velocity_to_pub.header.frame_id = "uav_1_home";
@@ -142,56 +144,54 @@ int main(int _argc, char **_argv) {
     current_pose.pose.orientation.z = 0;
     current_pose.pose.orientation.w = 1;
     uav_target_path.poses.push_back(current_pose);
-    
-    std::cout << "[ UAL ] Take off height: " << flight_level << std::endl;
+
+    std::cout << "[  UAL] Take off height: " << flight_level << std::endl;
     while (ros::ok()) {
-        ros::spinOnce();
         update_current_variables(ual.pose());
-        if (offboard_enabled){
-            switch (movement_state) {
-                case take_off:
-                    switch(uav_state.state){
-                        case 2: // Landed armed
-                            if (!taking_off){
-                                std::cout << "[ UAL ] Taking off " << std::endl;
-                                ual.takeOff(flight_level, false);
-                                taking_off = true;
-                            }
-                            break;  
-                        case 4: // Flying auto
-                            ual.goToWaypoint(uav_target_path.poses.at(0), false);
-                            break;
-                    }
-                    break;
-                case hover:
-                    if(new_target){
-                        ual.goToWaypoint(target_pose, false);
-                        new_target = false;
-                    }
-                    break;
-                case velocity:
-                    if ((target_point - current_point).norm() > 0.5 && new_target) {
-                        velocity_to_pub = calculateVelocity(current_point, target_point, (target_point - current_point).norm());
-                        ual.setVelocity(velocity_to_pub);
-                    } else {
-                        std::cout << "[ HOVR]" << std::endl;
-                        movement_state = hover;
-                    }
-                    break;
-                case fix_pose:
-                    update_target_fix_variables(fix_pose_pose.pose);
-                    if ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
-                        ual.goToWaypoint(fix_pose_pose, false);
-                    }else{
-                        std::cout << "[ VELO]" << std::endl;
-                        movement_state = velocity;
-                    }
-                    break;
-            }
-            uav_current_path.poses.push_back(ual.pose());
-            pub_current_path.publish(uav_current_path);
-            pub_target_path.publish(uav_target_path);
+        switch (movement_state) {
+            case take_off:
+                switch (uav_state.state) {
+                    case 2:  // Landed armed
+                        if (!taking_off) {
+                            std::cout << "[  UAL] Taking off " << std::endl;
+                            ual.takeOff(flight_level, false);
+                            taking_off = true;
+                        }
+                        break;
+                    case 4:  // Flying auto
+                        ual.goToWaypoint(uav_target_path.poses.at(0), false);
+                        break;
+                }
+                break;
+            case hover:
+                if (new_target) {
+                    ual.goToWaypoint(target_pose, false);
+                    new_target = false;
+                }
+                break;
+            case velocity:
+                if ((target_point - current_point).norm() > 0.5 && new_target) {
+                    velocity_to_pub = calculateVelocity(current_point, target_point, (target_point - current_point).norm());
+                    ual.setVelocity(velocity_to_pub);
+                } else {
+                    std::cout << "[  UAL] Hovering" << std::endl;
+                    movement_state = hover;
+                }
+                break;
+            case fix_pose:
+                update_target_fix_variables(fix_pose_pose.pose);
+                if ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
+                    ual.goToWaypoint(fix_pose_pose, false);
+                } else {
+                    std::cout << "[  UAL] Going to target" << std::endl;
+                    movement_state = velocity;
+                }
+                break;
         }
+        uav_current_path.poses.push_back(ual.pose());
+        pub_current_path.publish(uav_current_path);
+        pub_target_path.publish(uav_target_path);
+        ros::spinOnce();
         sleep(0.1);
     }
 
