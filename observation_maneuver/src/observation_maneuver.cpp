@@ -12,6 +12,7 @@ namespace observation_lib
 	OPPairs::OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind)
 		: circle_divisions(circle_divisions)
 	{
+		current = OPPair();
 		starts_zero     = Eigen::MatrixXd (3, circle_divisions);
 		ends_zero       = Eigen::MatrixXd (3, circle_divisions);
 		directions_zero = Eigen::MatrixXd (3, circle_divisions);
@@ -25,31 +26,28 @@ namespace observation_lib
 		motion_direction = frontier - uav_position;
 	}
 
-	bool OPPairs::NextOPPair(OPPair & nextOPPair, rviz_interface::PublishingInput pi)
+	bool OPPairs::Next()
 	{	
 		if (index < circle_divisions )
 		{
-			observation_lib::translate(motion_direction, starts_zero.col(index), ends_zero.col(index), directions_zero.col(index), frontier, nextOPPair.start, nextOPPair.end);
-			// ROS_ERROR_STREAM("[" << index << "] From (" << nextOPPair.start(0)<<", "<<nextOPPair.start(1)<<", "<<nextOPPair.start(2) << ") to (" << nextOPPair.end(0)<<", "<<nextOPPair.end(1)<<", "<<nextOPPair.end(2) << ")" );
+			observation_lib::translate(motion_direction, starts_zero.col(index), ends_zero.col(index), directions_zero.col(index), frontier, current.start, current.end);
 			index++;
-			if(pi.publish)
-			{
-				octomath::Vector3 start_octoVec (nextOPPair.start(0),  nextOPPair.start(1),  nextOPPair.start(2));
-				octomath::Vector3 end_octoVec   (nextOPPair.end(0),    nextOPPair.end(1),    nextOPPair.end(2));
-				visualization_msgs::Marker  marker;
-				marker = visualization_msgs::Marker();
-				int marker_id = index;
-				int red_base = 1;
-	    		rviz_interface::build_arrow_path(start_octoVec, end_octoVec, 100+marker_id, marker, 1+0.5, "oppair_direction");
-				pi.waypoint_array.markers.push_back( marker );
-				pi.marker_pub.publish(pi.waypoint_array);
-			}
 			return true;
 		}
 		else
 		{
 			return false;
 		}
+	}
+
+	Eigen::Vector3d OPPairs::get_current_start()
+	{
+		return current.start;
+	}
+
+	Eigen::Vector3d OPPairs::get_current_end()
+	{
+		return current.end;
 	}
 
 	void generateCirclePoints(int point_number, Eigen::MatrixXd & point_matrix)
@@ -64,7 +62,7 @@ namespace observation_lib
 			point_matrix(2, index) = 0;
 		}
 	}
-	
+
 	void precalculation (double radius, int point_number, double distance_inFront, double distance_behind, Eigen::MatrixXd & starts_zero, Eigen::MatrixXd & ends_zero, Eigen::MatrixXd & directions_zero)
 	{
 		Eigen::MatrixXd circle_unitary (3, point_number);

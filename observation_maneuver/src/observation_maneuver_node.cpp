@@ -38,10 +38,24 @@ namespace observation_node
 		int circle_divisions = opp_request->circle_divisions;
 		observation_lib::OPPairs oppairs (circle_divisions, opp_request->distance_toTarget, distance_inFront, distance_behind);
 
+		int index = 0;
 		rviz_interface::PublishingInput pi (marker_pub, true, "test_node", waypoint_array);
 		oppairs.NewFrontier(frontier, uav_position, pi);
-		observation_lib::OPPair nextOPPair;
-		while(oppairs.NextOPPair(nextOPPair, pi)){}
+		while(oppairs.Next())
+		{
+			Eigen::Vector3d temp =  oppairs.get_current_start();
+			octomath::Vector3 start_octoVec (temp(0),  temp(1),  temp(2));
+			temp =  oppairs.get_current_end();
+			octomath::Vector3 end_octoVec   (temp(0),  temp(1),  temp(2));
+			visualization_msgs::Marker  marker;
+			marker = visualization_msgs::Marker();
+			int marker_id = index;
+			int red_base = 1;
+    		rviz_interface::build_arrow_path(start_octoVec, end_octoVec, 100+marker_id, marker, 1+0.5, "oppair_direction");
+			pi.waypoint_array.markers.push_back( marker );
+			pi.marker_pub.publish(pi.waypoint_array);
+			index++;
+		}
 		marker_pub.publish(waypoint_array);
 	}
 
