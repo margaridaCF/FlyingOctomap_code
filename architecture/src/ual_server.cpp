@@ -84,9 +84,9 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             q_target.z() = target_pose.pose.orientation.z;
             q_target.w() = target_pose.pose.orientation.w;
             update_current_variables(current_pose);
-            std::cout << "[  UAL] New target -> Pose: " << target_pose.pose.position.x << ", " << target_pose.pose.position.y << ", " << target_pose.pose.position.z << std::endl;
-            std::cout << "               Orientation: " << target_pose.pose.orientation.x << ", " << target_pose.pose.orientation.y << ", " << target_pose.pose.orientation.z << ", " << target_pose.pose.orientation.w << std::endl;
-            std::cout << "[  UAL] Fixing Pose" << std::endl;
+            ROS_INFO("[  UAL] New target -> P: %f, %f, %f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
+            ROS_INFO("                      O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
+            ROS_INFO("[  UAL] Fixing Pose");
             update_target_fix_variables(target_pose.pose);
         }
         new_target = true;
@@ -145,7 +145,7 @@ int main(int _argc, char **_argv) {
     current_pose.pose.orientation.w = 1;
     uav_target_path.poses.push_back(current_pose);
 
-    std::cout << "[  UAL] Take off height: " << flight_level << std::endl;
+    ROS_INFO("[  UAL] Take off height: %f", flight_level);
     while (ros::ok()) {
         update_current_variables(ual.pose());
         switch (movement_state) {
@@ -153,7 +153,7 @@ int main(int _argc, char **_argv) {
                 switch (uav_state.state) {
                     case 2:  // Landed armed
                         if (!taking_off) {
-                            std::cout << "[  UAL] Taking off " << std::endl;
+                            ROS_INFO("[  UAL] Taking off ");
                             ual.takeOff(flight_level, false);
                             taking_off = true;
                         }
@@ -174,7 +174,7 @@ int main(int _argc, char **_argv) {
                     velocity_to_pub = calculateVelocity(current_point, target_point, (target_point - current_point).norm());
                     ual.setVelocity(velocity_to_pub);
                 } else {
-                    std::cout << "[  UAL] Hovering" << std::endl;
+                    ROS_INFO("[  UAL] Hovering");
                     movement_state = hover;
                 }
                 break;
@@ -183,7 +183,7 @@ int main(int _argc, char **_argv) {
                 if ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
                     ual.goToWaypoint(fix_pose_pose, false);
                 } else {
-                    std::cout << "[  UAL] Going to target" << std::endl;
+                    ROS_INFO("[  UAL] Going to target");
                     movement_state = velocity;
                 }
                 break;
