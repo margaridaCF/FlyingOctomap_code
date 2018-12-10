@@ -30,6 +30,7 @@ namespace LazyThetaStarOctree{
 	std::ofstream log_file;
 	int id_unreachable;
 
+
 	void generateOffsets(double resolution, double safety_margin, double (*startDepthGenerator)(double, double, double), double (*goalDepthGenerator)(double, double, double) )
 	{
 		startOffsets = generateOffsetMatrix(safety_margin/2.0, resolution, startDepthGenerator);
@@ -203,7 +204,6 @@ namespace LazyThetaStarOctree{
 		CoordinateFrame coordinate_frame = generateCoordinateFrame(input.start, input.goal);
 		Eigen::MatrixXd transformation_matrix_start = generateRotationTranslationMatrix(coordinate_frame, input.start);
 
-		// octomath::Vector3 goalWithMargin = calculateGoalWithMargin(input.start, input.goal, input.margin);
 		Eigen::MatrixXd transformation_matrix_goal = generateRotationTranslationMatrix(coordinate_frame, input.goal);
 
 		Eigen::MatrixXd points_around_start = transformation_matrix_start * startOffsets;
@@ -245,7 +245,6 @@ namespace LazyThetaStarOctree{
 	// the order to evaluate line of sight is parent -> s -> neighbor
 	// ortherwise path 2 will not fallback on path 1 when needed 
 	// (the line of sight from start to end is not the same as from end to start)
-
 	bool is_flight_corridor_free(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown)
 	{
 		// auto start_count = std::chrono::high_resolution_clock::now();
