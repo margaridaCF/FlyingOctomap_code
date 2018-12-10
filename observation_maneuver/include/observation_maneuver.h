@@ -23,6 +23,7 @@ namespace observation_lib
 		OPPair current;
 	public:
 		OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind);
+		OPPairs(){}
 		void NewFrontier(Eigen::Vector3d new_frontier, Eigen::Vector3d uav_position, rviz_interface::PublishingInput pi);
 		bool Next();
 		Eigen::Vector3d get_current_start();
