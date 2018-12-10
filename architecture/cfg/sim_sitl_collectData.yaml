@@ -38,3 +38,8 @@ geofence_max/z: 20
 path/max_time_secs: 30
 path/safety_margin: 3
 
+# == Observation Point Pairs ==
+oppairs/distance_inFront: 1
+oppairs/distance_behind: 1
+oppairs/circle_divisions: 12
+

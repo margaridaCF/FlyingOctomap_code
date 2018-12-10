@@ -253,6 +253,7 @@ namespace state_manager_node
         Eigen::Vector3d uav_position (pose.position.x, pose.position.y, pose.position.z);
         rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
         state_data.oppairs.NewFrontier(new_frontier, uav_position, pi);
+        log_file << "[State Manager] [oppairs] 1. New frontier. Reset all." << std::endl;
     }
 
 
@@ -294,9 +295,11 @@ namespace state_manager_node
     {
         while(state_data.oppairs.Next())
         {
+            log_file << "[State Manager] [oppairs] 2. Next oppair" << std::endl;
             bool free = check_flightCorridor();
             if(free) return true;
         }
+        log_file << "[State Manager] [oppairs] 3. Analyzed all appairs, none suitable." << std::endl;
         return false;
     }
 
@@ -321,6 +324,7 @@ namespace state_manager_node
             else
             {
                 initializeOPPairsNewFrontier();
+                log_file << "[State Manager] [oppairs] 1. New frontier from cache. Reset all." << std::endl;
                 state_data.frontier_index = state_data.frontier_index +1;
                 state_data.exploration_state = generating_path; 
                 state_data.waypoint_index = -1;
@@ -384,6 +388,7 @@ namespace state_manager_node
             // state_data.frontier_index = 0;
             state_data.frontiers_msg = *msg;
             initializeOPPairsNewFrontier();
+            log_file << "[State Manager] [oppairs] 1. New frontier arrived from node. Reset all." << std::endl;
 #ifdef SAVE_LOG
             log_file << "[State manager]Frontier reply " << *msg << std::endl;
 #endif
@@ -522,11 +527,13 @@ namespace state_manager_node
     void init_oppairs (ros::NodeHandle& nh)
     {
         double distance_inFront, distance_behind;
-        int circle_divisions;
+        int circle_divisions = 12;
         nh.getParam("oppairs/distance_inFront", distance_inFront);
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
         state_data.oppairs = observation_lib::OPPairs(circle_divisions, safety_margin, distance_inFront, distance_behind);
+        log_file << "[State Manager] [oppairs] 0. Precalculation." << std::endl;
+
     }
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
@@ -551,7 +558,7 @@ namespace state_manager_node
                     geometry_msgs::Pose waypoint;
                     waypoint.position.x = current_position.x;
                     waypoint.position.y = current_position.y;
-                    waypoint.position.z = std::min(geofence_max.z(), 30.f);
+                    waypoint.position.z = std::min(geofence_max.z(), 10.f);
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.position.x = current_position.x;
@@ -727,7 +734,6 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "state_manager");
     ros::NodeHandle nh;
     state_manager_node::init_param_variables(nh);
-    state_manager_node::init_oppairs(nh);
     // Service client
     state_manager_node::check_flightCorridor_client = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
     state_manager_node::ltstar_status_cliente = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>("ltstar_status");
@@ -747,6 +753,7 @@ int main(int argc, char **argv)
 #ifdef SAVE_LOG
     state_manager_node::log_file.open (state_manager_node::folder_name+"/current/state_manager.log", std::ofstream::app);
 #endif
+    state_manager_node::init_oppairs(nh);
     state_manager_node::init_state_variables(state_manager_node::state_data);
 #ifdef SAVE_CSV
     std::ofstream csv_file;
