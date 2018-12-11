@@ -1,7 +1,7 @@
 <launch>
 
     <!-- Posix SITL environment launch script -->
-    <arg name="x" default="0"/>
+    <!-- <arg name="x" default="0"/>
     <arg name="y" default="0"/>
     <arg name="z" default="0"/>
     <arg name="R" default="0"/>
@@ -11,17 +11,17 @@
     <arg name="vehicle" default="iris"/>
     <arg name="world" default="$(find architecture)/worlds/3D_puzzle_model.world"/>
     <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
-    <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
+    <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/> -->
 
-    <arg name="headless" default="false"/>
+    <!-- <arg name="headless" default="false"/>
     <arg name="gui" default="true"/>
     <arg name="ns" default="/"/>
 
     <arg name="debug" default="false"/>
     <arg name="verbose" default="false"/>
-    <arg name="paused" default="false"/>
+    <arg name="paused" default="false"/> -->
 
-    <param name="/use_sim_time" value="true" />
+    <!-- <param name="/use_sim_time" value="true" /> -->
 
     <rosparam file="$(find architecture)/cfg/sim_hitl_params.yaml" command="load" />
     <!-- #########################  Rviz ######################################### -->
@@ -51,8 +51,9 @@
         <param name="resolution" value="0.5" />
     </node>
     <!-- #######################  Architecture nodes  ############################# -->
+    <node name="command_ltStar"     type="ltStar_command_path_node"   pkg="lazy_theta_star"  output="screen" />
     <node name="lazy_theta_star" type="ltStar_async_node" pkg="lazy_theta_star" output="screen" />
-    <node name="state_manager" type="state_manager_node" pkg="architecture" output="screen" />
-    <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers" output="screen" />
+    <!-- <node name="state_manager" type="state_manager_node" pkg="architecture" output="screen" />
+    <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers" output="screen" /> -->
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture" output="screen" />
 </launch>
