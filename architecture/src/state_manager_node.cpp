@@ -138,27 +138,15 @@ namespace state_manager_node
         }
     }
 
-    bool askYawSpinServiceCall()
-    {
-        architecture_msgs::YawSpin yaw_spin_srv;
-        yaw_spin_srv.request.position = get_current_waypoint().position;
-        if(yaw_spin_client.call(yaw_spin_srv))
-        {
-            state_data.request_exploration_maneuver = ros::Time::now();
-            return true;
-        }
-        else
-        {
-            ROS_WARN("[State manager] YawSpin node not accepting requests.");
-            return false;
-        }
-    }
-
     bool askPositionServiceCall(geometry_msgs::Pose& pose)
     {
         architecture_msgs::PositionRequest position_request_srv;
         position_request_srv.request.waypoint_sequence_id = state_data.ltstar_request_id;
         position_request_srv.request.pose = pose;
+
+
+
+
         if(target_position_client.call(position_request_srv))
         {
 
