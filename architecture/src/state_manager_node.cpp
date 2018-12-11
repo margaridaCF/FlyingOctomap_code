@@ -382,6 +382,13 @@ namespace state_manager_node
         }
     }
 
+    double calculateOrientation(Eigen::Vector3d start, Eigen::Vector3d end)
+    {
+        Eigen::Vector3d d = end - start;
+        d.normalize();
+        return std::acos (1/d.norm());
+    }
+
     bool is_in_target_position(geometry_msgs::Point const& target_waypoint, 
         geometry_msgs::Point & current_position, double error_margin )
     {
@@ -415,14 +422,26 @@ namespace state_manager_node
         return false;
     }
 
+    void buildTargetPose(geometry_msgs::Pose & target)
+    {
+        geometry_msgs::Point current_position;
+        getUavPositionServiceCall(current_position);
+        target = get_current_waypoint();
+        Eigen::Vector3d current_e (current_position.x, current_position.y, current_position.z);
+        Eigen::Vector3d next_e (target.position.x, target.position.y, target.position.z);
+        target.orientation = tf::createQuaternionMsgFromYaw(calculateOrientation(current_e, next_e));
+    }
+
     bool updateWaypointSequenceStateMachine()
     {
         switch(state_data.follow_path_state)
         {
             case init:
             {
+                geometry_msgs::Pose next_waypoint;
+                buildTargetPose(next_waypoint);
                 // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at init");
-                if(askPositionServiceCall(get_current_waypoint()))
+                if(askPositionServiceCall(next_waypoint))
                 {
                     state_data.follow_path_state = on_route;
 #ifdef SAVE_LOG
@@ -519,13 +538,6 @@ namespace state_manager_node
         state_data.oppairs = observation_lib::OPPairs(circle_divisions, safety_margin, distance_inFront, distance_behind);
         log_file << "[State Manager] [oppairs] 0. Precalculation." << std::endl;
 
-    }
-
-    double calculateOrientation(Eigen::Vector3d start, Eigen::Vector3d end)
-    {
-        Eigen::Vector3d d = end - start;
-        d.normalize();
-        return std::acos (1/d.norm());
     }
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
