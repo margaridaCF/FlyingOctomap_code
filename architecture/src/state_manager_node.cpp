@@ -342,7 +342,7 @@ namespace state_manager_node
                 state_data.ltstar_reply = *msg;
                 state_data.follow_path_state = init;
                 state_data.exploration_state = visit_waypoints;
-                state_data.waypoint_index = 1;
+                state_data.waypoint_index = 0;
 #ifdef SAVE_LOG
                 log_file << "[State manager] Path reply " << *msg << std::endl;
                 log_file << "[State manager][Exploration] visit_waypoints 3" << std::endl;
@@ -411,6 +411,22 @@ namespace state_manager_node
             && std::abs(target_waypoint.z - current_position.z) <= error_margin;
     }
 
+    bool hasArrived(geometry_msgs::Point target)
+    {
+        geometry_msgs::Point current_position;
+        if(getUavPositionServiceCall(current_position))
+        {
+            // compare target with postition allowing for error margin 
+            // ROS_INFO_STREAM("[State manager] 2 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
+            geometry_msgs::Point target_waypoint;
+            if( is_in_target_position(target, current_position, error_margin) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     bool updateWaypointSequenceStateMachine()
     {
         switch(state_data.follow_path_state)
@@ -435,18 +451,10 @@ namespace state_manager_node
             }
             case on_route:
             {
-                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at on_route");
-                geometry_msgs::Point current_position;
-                if(getUavPositionServiceCall(current_position))
+                geometry_msgs::Point target_waypoint = get_current_waypoint().position;
+                if(hasArrived(target_waypoint))
                 {
-                    // compare target with postition allowing for error margin 
-                    // ROS_INFO_STREAM("[State manager] 2 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
-                    geometry_msgs::Point target_waypoint;
-                    target_waypoint = get_current_waypoint().position;
-                    if( is_in_target_position(target_waypoint, current_position, error_margin) )
-                    {
-                        state_data.follow_path_state = arrived_at_waypoint;
-                    }
+                    state_data.follow_path_state = arrived_at_waypoint;
                 }
                 break;
             }
@@ -525,6 +533,13 @@ namespace state_manager_node
 
     }
 
+    double calculateOrientation(Eigen::Vector3d start, Eigen::Vector3d end)
+    {
+        Eigen::Vector3d d = end - start;
+        d.normalize();
+        return std::acos (1/d.norm());
+    }
+
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
     {
         switch(state_data.exploration_state)
@@ -549,14 +564,20 @@ namespace state_manager_node
                     waypoint.position.y = current_position.y;
                     waypoint.position.z = std::min(geofence_max.z(), 10.f);
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
+                    Eigen::Vector3d fake_uav_position (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.position.x = current_position.x;
                     waypoint.position.y = current_position.y;
                     waypoint.position.z = geofence_min.z();
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(180  * 0.0174532925);
+                    Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     state_data.frontiers_msg.frontiers_found = 1;
                     state_data.ltstar_reply.waypoint_amount = 2;
+
+                    rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
+                    state_data.oppairs.NewFrontier(fake_frontier_e, fake_uav_position, pi);
+
 #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] visit_waypoints 2" << std::endl;
                     log_file << "[State manager]            [Follow path] init" << std::endl;
@@ -651,14 +672,18 @@ namespace state_manager_node
             }
             case gather_data_maneuver:
             {
+                geometry_msgs::Pose flyby_end;
+                flyby_end.position.x = state_data.oppairs.get_current_end()(0);
+                flyby_end.position.y = state_data.oppairs.get_current_end()(1);
+                flyby_end.position.z = state_data.oppairs.get_current_end()(2);
                 if (!state_data.exploration_maneuver_started)
                 {
-                    state_data.exploration_maneuver_started = askYawSpinServiceCall();
+                    flyby_end.orientation = tf::createQuaternionMsgFromYaw(calculateOrientation(state_data.oppairs.get_current_start(), state_data.oppairs.get_current_end()));
+                    state_data.exploration_maneuver_started = askPositionServiceCall(flyby_end);
                 }
                 else
                 {
-                    ros::Duration time_lapse = ros::Time::now() - state_data.request_exploration_maneuver;
-                    if(time_lapse > exploration_maneuver_duration_secs)
+                    if(hasArrived(flyby_end.position))
                     {
                         state_data.exploration_state = exploration_start;
                         state_data.frontier_index = 0;
