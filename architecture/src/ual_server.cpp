@@ -119,6 +119,10 @@ int main(int _argc, char **_argv) {
     ros::Publisher pub_target_path = nh.advertise<nav_msgs::Path>("/ual/target_path", 10);
     ros::ServiceServer target_position_service = nh.advertiseService("/target_position", target_position_cb);
 
+    double position_tolerance = 0.2;
+    double distance_switch_wp_control = 0.5;
+    double max_acceptance_orientation = 3.0;
+    double min_acceptance_orientation = 0.14;
     int uav_id;
     bool offboard_enabled;
     ros::param::param<int>("~uav_id", uav_id, 1);
@@ -174,7 +178,7 @@ int main(int _argc, char **_argv) {
                 }
                 break;
             case velocity:
-                if ((target_point - current_point).norm() > 0.5 && new_target) {
+                if ((target_point - current_point).norm() > distance_switch_wp_control && new_target) {
                     velocity_to_pub = calculateVelocity(current_point, target_point, (target_point - current_point).norm());
                     ual.setVelocity(velocity_to_pub);
                 } else {
@@ -184,7 +188,7 @@ int main(int _argc, char **_argv) {
                 break;
             case fix_pose:
                 update_target_fix_variables(fix_pose_pose.pose);
-                if ((3.0 > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > 0.14) || (fix_pose_point - current_point).norm() > 0.05) {
+                if ((max_acceptance_orientation > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > min_acceptance_orientation) || (fix_pose_point - current_point).norm() > position_tolerance) {
                     ual.goToWaypoint(fix_pose_pose, false);
                 } else {
                     ROS_INFO("[UAL] Going to target");
