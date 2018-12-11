@@ -194,8 +194,6 @@ namespace state_manager_node
         ROS_INFO_STREAM ("[State manager] Requesting path from " << request.start << " to " << request.goal);
         ltstar_request_pub.publish(request);
         state_data.ltstar_request = request;
-        rviz_interface::publish_start(request.start, marker_pub);
-        rviz_interface::publish_goal(request.goal, marker_pub);
     }
 
     void askForFrontiers(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)
@@ -257,7 +255,7 @@ namespace state_manager_node
     }
 
 
-    bool check_flightCorridor()
+    bool is_flightCorridor_free()
     {
         lazy_theta_star_msgs::CheckFlightCorridor srv;
         Eigen::Vector3d start_eigen = state_data.oppairs.get_current_start();
@@ -280,15 +278,7 @@ namespace state_manager_node
                 ROS_ERROR("[State Manager] Cannot place request to check flight corridor for flyby.");
             }
         }
-
-        if(srv.response.free)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return srv.response.free;
     }
 
     bool find_next_safe_oppair()
@@ -296,10 +286,9 @@ namespace state_manager_node
         while(state_data.oppairs.Next())
         {
             log_file << "[State Manager] [oppairs] 2. Next oppair" << std::endl;
-            bool free = check_flightCorridor();
-            if(free) return true;
+            if(is_flightCorridor_free()) return true;
         }
-        log_file << "[State Manager] [oppairs] 3. Analyzed all appairs, none suitable." << std::endl;
+        log_file << "[State Manager] [oppairs] 3. Analyzed all oppairs, none suitable." << std::endl;
         return false;
     }
 
@@ -610,9 +599,7 @@ namespace state_manager_node
                         if(getUavPositionServiceCall(current_position))
                         {
                             visualization_msgs::MarkerArray marker_array;
-                            rviz_interface::publish_safety_margin(get_current_frontier(), state_data.frontiers_request.safety_margin, marker_array, 102);
                             octomath::Vector3 current_position_v (current_position.x, current_position.y, current_position.z);
-                            rviz_interface::publish_current_position(current_position_v, marker_array);
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             Eigen::Vector3d oppair_start = state_data.oppairs.get_current_start();
                             octomath::Vector3 goal (oppair_start(0), oppair_start(1), oppair_start(2));
@@ -620,6 +607,20 @@ namespace state_manager_node
                             state_data.exploration_state = waiting_path_response;
                             state_data.cycles_waited_for_path = 0;
 
+                            geometry_msgs::Point frontier_geom = get_current_frontier();
+                            geometry_msgs::Point start_geom;
+                            start_geom.x = current_position.x;
+                            start_geom.y = current_position.y;
+                            start_geom.z = current_position.z;
+                            geometry_msgs::Point oppair_start_geom;
+                            oppair_start_geom.x = oppair_start(0); 
+                            oppair_start_geom.y = oppair_start(1);
+                            oppair_start_geom.z = oppair_start(2);
+                            geometry_msgs::Point oppair_end_geom;
+                            oppair_end_geom.x = state_data.oppairs.get_current_end()(0); 
+                            oppair_end_geom.y = state_data.oppairs.get_current_end()(1);
+                            oppair_end_geom.z = state_data.oppairs.get_current_end()(2);
+                            rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, state_data.frontiers_request.safety_margin, marker_array);
                             marker_pub.publish(marker_array);
                         }
                     }
