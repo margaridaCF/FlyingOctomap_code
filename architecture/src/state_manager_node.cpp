@@ -231,12 +231,12 @@ namespace state_manager_node
     {
         geometry_msgs::Point curr_frontier_geom = get_current_frontier();
         Eigen::Vector3d new_frontier(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
-        geometry_msgs::Pose pose;
-        while(!askPositionServiceCall(pose))
+        geometry_msgs::Point point;
+        while(!getUavPositionServiceCall(point))
         {
             ROS_ERROR_STREAM("[State Manager] Cannot get uav position to initialize observations point pairs for new frontier.");
         }
-        Eigen::Vector3d uav_position (pose.position.x, pose.position.y, pose.position.z);
+        Eigen::Vector3d uav_position (point.x, point.y, point.z);
         rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
         state_data.oppairs.NewFrontier(new_frontier, uav_position, pi);
         log_file << "[State Manager] [oppairs] 1. New frontier. Reset all." << std::endl;
