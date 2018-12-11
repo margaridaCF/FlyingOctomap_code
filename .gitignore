@@ -26,7 +26,7 @@ qtcreator-*
 /planning/cfg
 /planning/docs
 /planning/src
-/path_planning/html
+/lazy_theta_star/html
 /_generate_plots/*.html
 
 *~
@@ -44,3 +44,5 @@ generate_plots/temp-plot\.html
 
 
 points\.txt
+
+laser_to_free_points_cloud

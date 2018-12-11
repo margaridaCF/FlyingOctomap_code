@@ -19,7 +19,7 @@ geofence_max/y: 20
 geofence_min/z: 1
 geofence_max/z: 14
 
-path/max_search_iterations: 5000
+path/max_time_secs: 5000
 path/max_cycles_waited_for_path: 50
 path/safety_margin: 1
 

@@ -35,7 +35,7 @@ namespace current_position_provider_node
 		}
 		else
 		{
-			// ROS_ERROR_STREAM("[Position Middle Man] No position received, please try later.");
+			ROS_ERROR_STREAM("[Position Middle Man] No position received, please try later.");
 			return false;
 		}
 	}
