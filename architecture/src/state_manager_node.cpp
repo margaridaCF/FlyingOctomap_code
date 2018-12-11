@@ -42,7 +42,7 @@
 namespace state_manager_node
 {
     // std::string folder_name = "/ros_ws/src/data";
-    std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
+    std::string folder_name = "/home/hector/Flying_Octomap_code/src/data";
 
     struct Vector3Hash
     {
@@ -169,7 +169,7 @@ namespace state_manager_node
         }
         else
         {
-            ROS_WARN("[State manager] In YawSpin, node not accepting position requests.");
+            // ROS_WARN("[State manager] In YawSpin, node not accepting position requests.");
             return false;
         }
     }
@@ -663,7 +663,7 @@ namespace state_manager_node
 
                 if (state_data.follow_path_state == finished_sequence)
                 {
-                    state_data.exploration_state = gather_data_maneuver;
+                    state_data.exploration_state = exploration_start;
 #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] gather_data_maneuver" << std::endl;
 #endif

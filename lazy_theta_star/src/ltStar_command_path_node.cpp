@@ -227,22 +227,22 @@ namespace ltStar_command_path_node
                     geometry_msgs::Pose waypoint;
                     waypoint.position.x = 0;
                     waypoint.position.y = 0;
-                    waypoint.position.z = 20;
+                    waypoint.position.z = 10;
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = 8;
-                    waypoint.position.y = 8;
+                    waypoint.position.x = -5;
+                    waypoint.position.y = 5;
                     waypoint.position.z = 20;
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(180  * 0.0174532925);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = -8;
-                    waypoint.position.y = 0;
+                    waypoint.position.x = 10;
+                    waypoint.position.y = 5;
                     waypoint.position.z = 20;
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = 0;
-                    waypoint.position.y = -8;
-                    waypoint.position.z = 20;
+                    waypoint.position.x = 10;
+                    waypoint.position.y = 5;
+                    waypoint.position.z = 2;
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(180  * 0.0174532925);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.position.x = 0;
@@ -251,7 +251,7 @@ namespace ltStar_command_path_node
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(180  * 0.0174532925);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     // state_data.frontiers_msg.frontiers_found = 1;
-                    state_data.ltstar_reply.waypoint_amount = 2;
+                    state_data.ltstar_reply.waypoint_amount = 5;
 #ifdef SAVE_LOG
                     log_file << "[Command path][Exploration] visit_waypoints 2" << std::endl;
                     log_file << "[Command path]            [Follow path] init" << std::endl;
@@ -288,8 +288,9 @@ int main(int argc, char **argv)
     auto timestamp_chrono = std::chrono::high_resolution_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     std::stringstream folder_name_stream;
-    folder_name_stream << "/ros_ws/src/data/" << (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::string sym_link_name = "/ros_ws/src/data/current";
+    std::string folder_name = "/home/hector/Flying_Octomap_code/src/data/";
+    folder_name_stream << folder_name << (std::put_time(std::localtime(&now_c), "%F %T") );
+    std::string sym_link_name = folder_name+"/current";
 
     boost::filesystem::create_directories(folder_name_stream.str());
     boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
@@ -307,7 +308,7 @@ int main(int argc, char **argv)
     ltStar_command_path_node::marker_pub = nh.advertise<visualization_msgs::Marker>("ltStar_command_path_node_viz", 1);
 
 #ifdef SAVE_LOG
-    ltStar_command_path_node::log_file.open ("/ros_ws/src/data/current/ltStar_command_path_node.log", std::ofstream::app);
+    ltStar_command_path_node::log_file.open (folder_name+"/current/ltStar_command_path_node.log", std::ofstream::app);
 #endif
     ltStar_command_path_node::init_state_variables(ltStar_command_path_node::state_data);
     ltStar_command_path_node::timer = nh.createTimer(ros::Duration(1), ltStar_command_path_node::update_state);
