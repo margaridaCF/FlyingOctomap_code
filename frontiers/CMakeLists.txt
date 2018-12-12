@@ -52,11 +52,11 @@ cs_export()
 if(CATKIN_ENABLE_TESTING)
   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
-  # Frontiers @ work in progress ##
-  catkin_add_gtest(workInProgress_frontiers 
-    test/work_in_progress_frontiers_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress_frontiers ${catkin_LIBRARIES} frontiers_lib neighbors )
+  # # Frontiers @ work in progress ##
+  # catkin_add_gtest(workInProgress_frontiers 
+  #   test/work_in_progress_frontiers_tests.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(workInProgress_frontiers ${catkin_LIBRARIES} frontiers_lib neighbors )
 
   # # WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # # Octree @ neighbors ##
