@@ -10,8 +10,6 @@
     <arg name="est" default="lpe"/>
     <arg name="vehicle" default="iris"/>
     <arg name="world" default="$(find architecture)/worlds/3D_puzzle_model.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
-    <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
 
     <arg name="headless" default="false"/>
     <arg name="gui" default="true"/>
