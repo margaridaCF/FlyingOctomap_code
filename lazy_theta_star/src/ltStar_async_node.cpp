@@ -5,6 +5,7 @@
 #include <visualization_msgs/Marker.h>
 #include <marker_publishing_utils.h>
 #include <std_srvs/Empty.h>
+#include <lazy_theta_star_msgs/CheckFlightCorridor.h>
 
 
 #include <sstream>
@@ -33,6 +34,16 @@ namespace LazyThetaStarOctree
 	{
 		res.is_accepting_requests = octomap_init;
 	  	return true;
+	}
+
+	bool checkFligthCorridor(lazy_theta_star_msgs::CheckFlightCorridor::Request &request,
+		lazy_theta_star_msgs::CheckFlightCorridor::Response &response)
+	{
+		octomath::Vector3 start(request.start.x, request.start.y, request.start.z);
+		octomath::Vector3 end  (request.end.x, request.end.y, request.end.z);
+		InputData input (*octree, start, end, request.flight_corridor_width);
+		response.free = is_flight_corridor_free(input, PublishingInput( marker_pub, false));
+		return true;
 	}
 	
 	void publishResultingPath(lazy_theta_star_msgs::LTStarReply reply, int series )

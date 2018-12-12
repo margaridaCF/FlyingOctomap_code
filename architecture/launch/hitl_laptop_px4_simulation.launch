@@ -21,7 +21,7 @@
     <arg name="verbose" default="false"/>
     <arg name="paused" default="false"/>
 
-    <rosparam file="$(find architecture)/cfg/realUav_hitl_params.yaml" command="load" />
+    <rosparam file="$(find architecture)/cfg/sim_sitl_collectData.yaml" command="load" />
     <!-- #######################  PX4  ############################################ -->
     <node name="sitl" pkg="px4" type="px4" output="screen"
         args="$(find px4) $(arg rcS)">
@@ -51,26 +51,37 @@
         <param name="child_frame_id" type="string" value="base_link"/>
     </node>
 
+    <!-- #######################  Hokuyo  ############################# -->
+    <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
+        <rosparam command="load" file="$(find architecture)/cfg/sim_sitl_collectData.yaml" />
+        <param name="target_frame"   value="base_link" />
+        <remap from="cloud_filtered" to="free_cloud" />
+        <remap from="scan" to="hokuyo_laser_scan" />
+    </node>
+
     <!-- #######################  Octomap  ######################################## -->
-    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
         <param name="frame_id" type="string" value="map" />   
-        <remap from="cloud_in" to="/free_cloud" />
-        <param name="latch" value="false" />
-        <param name="resolution" value="0.5" />
-        <param name="pointcloud_min" value="0"/>
-        <param name="pointcloud_max" value="2"/>
-        <param name="occupancy_min" value="1"/>
-        <param name="publish_free_space" value="true"/>
-        <param name="sensor_model/max_range" value="10"/>
-        <param name="sensor_model/hit" value="0.7"/>
-        <param name="sensor_model/miss" value="0.3"/>
-    </node> -->
+        <remap from="cloud_in"               to="/free_cloud" />
+        <param name="latch"                  value="false" />
+        <param name="resolution"             value="0.5" />
+        <param name="pointcloud_min"         value="0"/>
+        <param name="pointcloud_max"         value="2"/>
+        <param name="occupancy_min"          value="1"/>
+        <param name="publish_free_space"     value="true"/>
+        <param name="sensor_model/max_range" value="15"/>
+        <param name="sensor_model/hit"       value="0.74"/>
+        <param name="sensor_model/miss"      value="0.48464"/>
+    </node>
     <!-- #######################  Architecture nodes  ############################# -->
     <!-- <node name="free_cloud"         type="free_cloud_node"      pkg="laser_free_to_cloud"/> -->
     <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
-    <!-- <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
+    <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
     <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
     <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="lazy_theta_star" output="screen" />
-    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" /> -->
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" /> 
+
+    <!-- #######################        Rviz          ############################# -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
 
 </launch>
