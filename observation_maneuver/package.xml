@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>observation_maneuver</name>
+  <version>0.0.0</version>
+  <description>A package to generate the trajectory to observe a point.</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <maintainer email="MargaridaCostaFaria@gmail.com">Margarida Faria</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <license>MIT</license>
+
+
+  <!-- The *depend tags are used to specify dependencies -->
+  <!-- Dependencies can be catkin packages or system dependencies -->
+  <depend>roscpp</depend>
+  <depend>visualization_msgs</depend>
+  <depend>rviz_interface</depend>
+  <depend>observation_maneuver_msgs</depend>
+  <build_depend>catkin_simple</build_depend> 
+  <test_depend>gtest</test_depend>
+  <build_depend>eigen_catkin</build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+  </export>
+</package>

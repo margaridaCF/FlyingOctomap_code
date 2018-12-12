@@ -2,10 +2,11 @@
 
 
     <!-- <node pkg="rosbag" type="play" name="rosbag_playback" output="screen" 
-       args="--clock /media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180705_karting_experiments/experimental_data/20180821_1110_manyRuns_karting_filterTfScanPose.bag "/> -->
+       args="-clock /media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180705_karting_experiments/experimental_data/20180821_1110_manyRuns_karting_filterTfScanPose.bag "/> -->
    
-    <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" />
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/bag_filterPointCloud.rviz" />
+    <rosparam file="$(find architecture)/cfg/sim_sitl_collectData.yaml" command="load" />
+    <!-- <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" /> -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
     <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
@@ -37,8 +38,10 @@
         <param name="ip_address" value="192.168.0.10"/>
     </node> -->
     <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
-        <rosparam command="load" file="$(find architecture)/cfg/bag_hitl_params.yaml" />
+        <rosparam command="load" file="$(find architecture)/cfg/sim_sitl_collectData.yaml" />
         <param name="target_frame"   value="base_link" />
+        <param name="scan_topic"     value="hokuyo_laser_scan" />
         <remap from="cloud_filtered" to="free_cloud" />
     </node>
 </launch>
+
