@@ -1,28 +1,5 @@
 <launch>
 
-    <!-- Posix SITL environment launch script -->
-    <arg name="x" default="0"/>
-    <arg name="y" default="0"/>
-    <arg name="z" default="0"/>
-    <arg name="R" default="0"/>
-    <arg name="P" default="0"/>
-    <arg name="Y" default="0"/>
-    <arg name="est" default="lpe"/>
-    <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find architecture)/worlds/3D_puzzle_model.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
-    <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
-
-    <arg name="headless" default="false"/>
-    <arg name="gui" default="true"/>
-    <arg name="ns" default="/"/>
-
-    <arg name="debug" default="false"/>
-    <arg name="verbose" default="false"/>
-    <arg name="paused" default="false"/>
-
-    <param name="/use_sim_time" value="true" />
-
     <rosparam file="$(find architecture)/cfg/sim_hitl_params.yaml" command="load" />
     <!-- #########################  Rviz ######################################### -->
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
