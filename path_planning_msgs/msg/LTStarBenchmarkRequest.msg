@@ -1,0 +1,7 @@
+std_msgs/Header header
+int16 request_id
+geometry_msgs/Point start
+geometry_msgs/Point goal
+int32 max_search_iterations
+float32 safety_margin
+float64 check_only_x_fraction

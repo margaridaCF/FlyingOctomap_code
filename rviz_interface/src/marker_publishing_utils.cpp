@@ -181,20 +181,58 @@ namespace rviz_interface
 
     void publish_start(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
     {
-        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
-        float red = 1.0f;
-        float green = 1.0f;
-        float blue = 0.0f;
-        publish_small_marker(candidate_vec3, marker_pub,red,  green,  blue, "start", 22);
+        visualization_msgs::Marker marker;
+        marker.color.r = 1.0f;
+        marker.color.g = 1.0f;
+        marker.color.b = 0.0f;
+        marker.ns = "start";
+        marker.id = 22;
+        marker.type = visualization_msgs::Marker::SPHERE;
+        // Basic
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position = candidate;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = 0.2f;
+        marker.scale.y = 0.2f;
+        marker.scale.z = 0.2f;
+        marker.color.a = 1.0f;
+        marker.lifetime = ros::Duration();
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);
     }
 
     void publish_goal(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
     {
-        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
-        float red = 1.0f;
-        float green = 0.5f;
-        float blue = 0.0f;
-        publish_small_marker(candidate_vec3, marker_pub,red,  green,  blue, "goal", 23);
+        visualization_msgs::Marker marker;
+        marker.color.r = 1.0f;
+        marker.color.g = 0.5f;
+        marker.color.b = 0.0f;
+        marker.ns = "goal";
+        marker.id = 23;
+        marker.type = visualization_msgs::Marker::SPHERE;
+        // Basic
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position = candidate;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = 0.2f;
+        marker.scale.y = 0.2f;
+        marker.scale.z = 0.2f;
+        marker.color.a = 1.0f;
+        marker.lifetime = ros::Duration();
+        visualization_msgs::MarkerArray marker_array;
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);
     }
 
 
@@ -381,7 +419,7 @@ namespace rviz_interface
         marker_pub.publish(marker);
     }
 
-    void build_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker)
+    void build_arrow_path(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker, int series )
     {
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -405,8 +443,8 @@ namespace rviz_interface
         marker.scale.x = 0.1;
         marker.scale.y = 0.3;
         marker.scale.z = 0;
-        marker.color.r = 200;
-        marker.color.g = 100;
+        marker.color.r = series * 0.1;
+        marker.color.g = 1;
         marker.color.b = 0;
         marker.color.a = 1;
         
@@ -645,14 +683,16 @@ namespace rviz_interface
         marker_pub.publish(marker_array);
     }
 
-    void build_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker)
+    // for purple is 9
+    // Series can be 2, 3, 7, 8, 9
+    void build_waypoint(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker, int series)
     {   
         uint32_t shape = visualization_msgs::Marker::CUBE;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
         marker.ns = "lazy_theta_star_waypoint";
-        marker.id = waypoint_id;
+        marker.id = waypoint_id + (series * 1000);
         marker.type = shape;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position.x = candidate.x();
@@ -662,7 +702,7 @@ namespace rviz_interface
         marker.scale.x = size;
         marker.scale.y = size;
         marker.scale.z = size;
-        marker.color.r = 0.9f;
+        marker.color.r = series * 0.1;//0.9f;
         marker.color.g = color+0.4;
         marker.color.b = 1.0f;
         // ROS_WARN_STREAM("[RVIZ PUB] color " << marker.color.r << ", " << marker.color.g << ", " << marker.color.b << " i: " << waypoint_id);
