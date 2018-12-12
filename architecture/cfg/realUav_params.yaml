@@ -1,5 +1,5 @@
 # == Laser ==
-current_position_topic: "/mavros/local_position/pose"
+current_position_topic: "/uav_1/mavros/local_position/pose"
 uav/laser_topic: "scan_filtered"
 scan_filter_chain:
 - name: intensity
@@ -14,7 +14,6 @@ scan_filter_chain:
 # == Px4 ==
 px4_loiter_radius: 0.5
 px4/flight_speed: 1
-offboard_enabled: false
 
 # == State Manager ==
 frontier/safety_margin: 3
