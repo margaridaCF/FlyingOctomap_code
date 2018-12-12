@@ -13,6 +13,11 @@
     <arg name="ual_pub_rate" default="30.0"/>
     <arg name="mavros_offboard_rate" default="30.0"/>
 
+    <!-- #########################  Robot  ######################################### -->
+    <param name="robot_description" command="$(eval 'xacro --inorder ' + find('robots_description') + '/models/iris_hokuyo/model.xacro')"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+
+
     <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
         <arg name="id" value="1"/>
         <arg name="material" value="Blue"/>
