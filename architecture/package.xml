@@ -8,7 +8,7 @@
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>catkin_simple</build_depend> 
+  <build_depend>catkin_simple</build_depend>
   <test_depend>gtest</test_depend>
   <depend>roscpp</depend>
   <depend>mavros_msgs</depend>
@@ -17,12 +17,13 @@
   <depend>octomap_msgs</depend>
   <!-- <run_depend>boost</run_depend> -->
   <depend>architecture_msgs</depend>
-  <depend>path_planning</depend>
-  <depend>path_planning_msgs</depend>
+  <depend>lazy_theta_star</depend>
+  <depend>lazy_theta_star_msgs</depend>
   <depend>frontiers</depend>
   <depend>frontiers_msgs</depend>
-  <depend>laser_free_to_cloud</depend>
   <depend>rviz_interface</depend>
   <depend>tf</depend>
+  <depend>laser_filters</depend>
+  <depend>uav_abstraction_layer</depend>
 
 </package>

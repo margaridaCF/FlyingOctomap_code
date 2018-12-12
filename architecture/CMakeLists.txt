@@ -34,6 +34,9 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_executable(mav_comms_node src/mav_comms_node.cpp)
 target_link_libraries(mav_comms_node)
 
+cs_add_executable(ual_server src/ual_server.cpp)
+target_link_libraries(ual_server)
+
 cs_add_executable(state_manager_node src/state_manager_node.cpp)
 target_link_libraries(state_manager_node )
 

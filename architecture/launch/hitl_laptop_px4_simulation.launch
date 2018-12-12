@@ -1,76 +1,41 @@
 <launch>
 
-    <!-- Posix SITL environment launch script -->
-    <arg name="x" default="0"/>
-    <arg name="y" default="0"/>
-    <arg name="z" default="0"/>
-    <arg name="R" default="0"/>
-    <arg name="P" default="0"/>
-    <arg name="Y" default="0"/>
-    <arg name="est" default="lpe"/>
-    <arg name="vehicle" default="iris"/>
-    <arg name="world" default="$(find architecture)/worlds/force_waypoint_sequence.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
-    <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
+    
+    <arg name="multi" default="false"/>
+    <arg name="ns_prefix" default="uav_"/>
+    <arg name="mode" default="sitl"/>
+    <arg name="pose_frame_id" default=""/>
+    <!-- To publish ual/pose in other frame than local, e.g. map -->
+    <arg name="ual_server" default="on"/>
+    <arg name="ual_pub_rate" default="30.0"/>
+    <arg name="mavros_offboard_rate" default="30.0"/>
 
-    <arg name="headless" default="true"/>
-    <arg name="gui" default="false"/>
-    <arg name="ns" default="/"/>
 
-    <arg name="debug" default="false"/>
-    <arg name="verbose" default="false"/>
-    <arg name="paused" default="false"/>
+    <rosparam file="$(find architecture)/cfg/sim_hitl_params.yaml" command="load" />
+    <!-- #########################  Rviz ######################################### -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
+    <!-- #########################  Robot  ######################################### -->
+    <param name="robot_description" command="$(eval 'xacro --inorder ' + find('robots_description') + '/models/iris_hokuyo/model.xacro')"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="tf_uav1_baselink" args="0 0 0 0 0 0 1 uav_1 base_link" />
 
-    <rosparam file="$(find architecture)/cfg/realUav_hitl_params.yaml" command="load" />
-    <!-- #######################  PX4  ############################################ -->
-    <node name="sitl" pkg="px4" type="px4" output="screen"
-        args="$(find px4) $(arg rcS)">
-    </node>
-    <!-- #######################  Gazebo  ######################################### -->
-    <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="headless" value="$(arg headless)"/>
-        <arg name="gui" value="$(arg gui)"/>
-        <arg name="world_name" value="$(arg world)" />
-        <arg name="debug" value="$(arg debug)" />
-        <arg name="verbose" value="$(arg verbose)" />
-        <arg name="paused" value="$(arg paused)" />
+    <group if="$(eval mode=='sitl')">
+        <!-- Launch Gazebo simulation -->
+        <rosparam param="/use_sim_time">true</rosparam>
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find architecture)/worlds/3D_puzzle_model.world">
+            <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam>            <!-- [lat,lon,alt] -->
+        </node>
+    </group>
+    
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
+        <arg name="id" value="1"/>
+        <arg name="material" value="Blue"/>
+        <arg name="mode" value="$(arg mode)"/>
+        <arg name="x" value="0"/>
+        <arg name="y" value="0"/>
+        <arg name="z" value="0"/>
+        <arg name="yaw" value="0"/>
+        <arg name="robot_model" value="iris_hokuyo"/>
     </include>
-    <param name="robot_description" textfile="/home/mfaria/src/Firmware/Tools/sitl_gazebo/models/rotors_description/urdf/iris_base.urdf" />
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
-        <param name="publish_frequency" type="double" value="50.0" />
-        <param name="tf_prefix" type="string" value=""/>
-    </node>
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-        <param name="use_gui" value="true"/>
-    </node>
-    <node name="$(anon vehicle_spawn)" output="screen" pkg="gazebo_ros" type="spawn_model"
-        args="-urdf -param /robot_description -model iris -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>s
-    <node name="ground_truth_to_tf" pkg="message_to_tf" type="message_to_tf" output="screen">
-        <param name="odometry_topic" value="ground_truth_pose"/>
-        <param name="frame_id" value="map"/>
-        <param name="child_frame_id" type="string" value="base_link"/>
-    </node>
-
-    <!-- #######################  Octomap  ######################################## -->
-    <!-- <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
-        <param name="frame_id" type="string" value="map" />   
-        <remap from="cloud_in" to="/free_cloud" />
-        <param name="latch" value="false" />
-        <param name="resolution" value="0.5" />
-        <param name="pointcloud_min" value="0"/>
-        <param name="pointcloud_max" value="2"/>
-        <param name="occupancy_min" value="1"/>
-        <param name="publish_free_space" value="true"/>
-        <param name="sensor_model/max_range" value="10"/>
-        <param name="sensor_model/hit" value="0.7"/>
-        <param name="sensor_model/miss" value="0.3"/>
-    </node> -->
-    <!-- #######################  Architecture nodes  ############################# -->
-    <!-- <node name="free_cloud"         type="free_cloud_node"      pkg="laser_free_to_cloud"/> -->
-    <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" />
-    <!-- <node name="state_manager"      type="state_manager_node"   pkg="architecture"  output="screen" />
-    <node name="frontier_cells"     type="frontiers_async_node" pkg="frontiers"     output="screen" />
-    <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="path_planning" output="screen" />
-    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" /> -->
 
 </launch>

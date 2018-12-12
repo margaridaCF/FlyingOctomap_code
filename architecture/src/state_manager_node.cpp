@@ -27,9 +27,10 @@
 #include <frontiers_msgs/FrontierNodeStatus.h>
 #include <frontiers_msgs/VoxelMsg.h>
 
-#include <path_planning_msgs/LTStarReply.h>
-#include <path_planning_msgs/LTStarRequest.h>
-#include <path_planning_msgs/LTStarNodeStatus.h>
+#include <lazy_theta_star_msgs/LTStarReply.h>
+#include <lazy_theta_star_msgs/LTStarRequest.h>
+#include <lazy_theta_star_msgs/LTStarNodeStatus.h>
+
 
 #define SAVE_CSV 1
 #define SAVE_LOG 1
@@ -37,6 +38,9 @@
 
 namespace state_manager_node
 {
+    // std::string folder_name = "/ros_ws/src/data";
+    std::stringstream aux_envvar_home (std::getenv("HOME"));
+    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 
     struct Vector3Hash
     {
@@ -75,7 +79,7 @@ namespace state_manager_node
     double safety_margin = 3;
     double error_margin;
     ros::Duration exploration_maneuver_duration_secs;
-    int max_search_iterations =5000;
+    int max_time_secs =5000;
     int max_cycles_waited_for_path = 3;
     double ltstar_safety_margin;
     octomath::Vector3 geofence_min (-5, -5, 1);
@@ -96,8 +100,8 @@ namespace state_manager_node
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierRequest frontiers_request;
         frontiers_msgs::FrontierReply frontiers_msg;
-        path_planning_msgs::LTStarRequest ltstar_request;
-        path_planning_msgs::LTStarReply ltstar_reply;
+        lazy_theta_star_msgs::LTStarRequest ltstar_request;
+        lazy_theta_star_msgs::LTStarReply ltstar_reply;
         std::unordered_set<octomath::Vector3, Vector3Hash> unobservable_set; 
     };  
     state_manager_node::StateData state_data;
@@ -161,14 +165,14 @@ namespace state_manager_node
         }
         else
         {
-            ROS_WARN("[State manager] In YawSpin, node not accepting position requests.");
+            // ROS_WARN("[State manager] In YawSpin, node not accepting position requests.");
             return false;
         }
     }
 
     void askForObstacleAvoidingPath(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& ltstar_request_pub)
     {
-        path_planning_msgs::LTStarRequest request;
+        lazy_theta_star_msgs::LTStarRequest request;
         state_data.ltstar_request_id++;
         request.request_id = state_data.ltstar_request_id;
         request.header.frame_id = "world";
@@ -178,7 +182,7 @@ namespace state_manager_node
         request.goal.x = goal.x();
         request.goal.y = goal.y();
         request.goal.z = goal.z();
-        request.max_search_iterations = max_search_iterations;
+        request.max_time_secs = max_time_secs;
         request.safety_margin = ltstar_safety_margin;
 #ifdef SAVE_LOG
         log_file << "[State manager] Requesting path " << request << std::endl;
@@ -260,7 +264,7 @@ namespace state_manager_node
         }
     }
 
-    void ltstar_cb(const path_planning_msgs::LTStarReply::ConstPtr& msg)
+    void ltstar_cb(const lazy_theta_star_msgs::LTStarReply::ConstPtr& msg)
     {
         if(state_data.exploration_state != waiting_path_response)
         {
@@ -434,7 +438,7 @@ namespace state_manager_node
         nh.getParam("odometry_error", odometry_error);
         nh.getParam("frontier/safety_margin", safety_margin);
         error_margin = std::max(px4_loiter_radius, odometry_error);
-        nh.getParam("path/max_search_iterations", max_search_iterations);
+        nh.getParam("path/max_time_secs", max_time_secs);
         nh.getParam("path/max_cycles_waited_for_path", max_cycles_waited_for_path);
         nh.getParam("path/safety_margin", ltstar_safety_margin);
 
@@ -472,7 +476,7 @@ namespace state_manager_node
                     geometry_msgs::Pose waypoint;
                     waypoint.position.x = current_position.x;
                     waypoint.position.y = current_position.y;
-                    waypoint.position.z = geofence_max.z();
+                    waypoint.position.z = std::min(geofence_max.z(), 30.f);
                     waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.position.x = current_position.x;
@@ -515,7 +519,7 @@ namespace state_manager_node
             }
             case generating_path:
             {
-                path_planning_msgs::LTStarNodeStatus srv;
+                lazy_theta_star_msgs::LTStarNodeStatus srv;
                 if(ltstar_status_cliente.call(srv))
                 {
                     if((bool)srv.response.is_accepting_requests)
@@ -523,15 +527,17 @@ namespace state_manager_node
                         geometry_msgs::Point current_position;
                         if(getUavPositionServiceCall(current_position))
                         {
-                            rviz_interface::publish_safety_margin(get_current_frontier(), state_data.frontiers_request.safety_margin, marker_pub, 102);
-                
+                            visualization_msgs::MarkerArray marker_array;
+                            rviz_interface::publish_safety_margin(get_current_frontier(), state_data.frontiers_request.safety_margin, marker_array, 102);
                             octomath::Vector3 current_position_v (current_position.x, current_position.y, current_position.z);
-                            rviz_interface::publish_current_position(current_position_v, marker_pub);
+                            rviz_interface::publish_current_position(current_position_v, marker_array);
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 goal (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
                             askForObstacleAvoidingPath(start, goal, ltstar_request_pub);
                             state_data.exploration_state = waiting_path_response;
                             state_data.cycles_waited_for_path = 0;
+
+                            marker_pub.publish(marker_array);
                         }
                     }
                 }
@@ -560,7 +566,7 @@ namespace state_manager_node
 
                 if (state_data.follow_path_state == finished_sequence)
                 {
-                    state_data.exploration_state = gather_data_maneuver;
+                    state_data.exploration_state = exploration_start;
 #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] gather_data_maneuver" << std::endl;
 #endif
@@ -571,7 +577,7 @@ namespace state_manager_node
             {
                 if (!state_data.exploration_maneuver_started)
                 {
-                    state_data.exploration_maneuver_started = askYawSpinServiceCall();
+                    // state_data.exploration_maneuver_started = askYawSpinServiceCall();
                 }
                 else
                 {
@@ -605,7 +611,9 @@ namespace state_manager_node
     {
         if( state_data.exploration_state != finished_exploring) 
         {
-            rviz_interface::publish_geofence(geofence_min, geofence_max, marker_pub);
+            visualization_msgs::MarkerArray marker_array;
+            rviz_interface::publish_geofence(geofence_min, geofence_max, marker_array);
+            marker_pub.publish(marker_array);
             update_state(geofence_min, geofence_max);
         }
         else
@@ -623,7 +631,7 @@ namespace state_manager_node
             double volume_meters = x * y * z;
             // WRITE
             std::ofstream csv_file;
-            csv_file.open ("/ros_ws/src/data/exploration_time.csv", std::ofstream::app);
+            csv_file.open (folder_name+"/exploration_time.csv", std::ofstream::app);
             csv_file << millis.count() << "," << volume_meters << "," << is_successfull_exploration << std::endl; 
             csv_file.close();
 #endif
@@ -641,9 +649,8 @@ int main(int argc, char **argv)
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     // std::string timestamp (std::put_time(std::localtime(&now_c), "%F %T") );
     std::stringstream folder_name_stream;
-    folder_name_stream << "/ros_ws/src/data/" << (std::put_time(std::localtime(&now_c), "%F %T") );
-    // std::string folder_name = "/ros_ws/src/data/" + (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::string sym_link_name = "/ros_ws/src/data/current";
+    folder_name_stream << state_manager_node::folder_name+"/" << (std::put_time(std::localtime(&now_c), "%F %T") );
+    std::string sym_link_name = state_manager_node::folder_name+"/current";
 
     boost::filesystem::create_directories(folder_name_stream.str());
     boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
@@ -653,7 +660,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     state_manager_node::init_param_variables(nh);
     // Service client
-    state_manager_node::ltstar_status_cliente = nh.serviceClient<path_planning_msgs::LTStarNodeStatus>("ltstar_status");
+    state_manager_node::ltstar_status_cliente = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>("ltstar_status");
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
     state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
@@ -661,24 +668,24 @@ int main(int argc, char **argv)
     state_manager_node::target_position_client = nh.serviceClient<architecture_msgs::PositionRequest>("target_position");
     // Topic subscribers 
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
-    ros::Subscriber ltstar_reply_sub = nh.subscribe<path_planning_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
+    ros::Subscriber ltstar_reply_sub = nh.subscribe<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
     // Topic publishers
-    state_manager_node::ltstar_request_pub = nh.advertise<path_planning_msgs::LTStarRequest>("ltstar_request", 10);
+    state_manager_node::ltstar_request_pub = nh.advertise<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10);
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
-    state_manager_node::marker_pub = nh.advertise<visualization_msgs::Marker>("state_manager_viz", 1);
+    state_manager_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("state_manager_viz", 1);
 
 #ifdef SAVE_LOG
-    state_manager_node::log_file.open ("/ros_ws/src/data/current/state_manager.log", std::ofstream::app);
+    state_manager_node::log_file.open (state_manager_node::folder_name+"/current/state_manager.log", std::ofstream::app);
 #endif
     state_manager_node::init_state_variables(state_manager_node::state_data);
 
 #ifdef SAVE_CSV
     std::ofstream csv_file;
-    csv_file.open ("/ros_ws/src/data/exploration_time.csv", std::ofstream::app);
+    csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
     // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
     csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
     csv_file.close();
-    state_manager_node::start = std::chrono::high_resolution_clock::now();
+    // state_manager_node::start = std::chrono::high_resolution_clock::now();
 #endif
     state_manager_node::timer = nh.createTimer(ros::Duration(1), state_manager_node::main_loop);
     ros::spin();
