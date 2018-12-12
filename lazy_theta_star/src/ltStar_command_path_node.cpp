@@ -90,7 +90,7 @@ namespace ltStar_command_path_node
         }
         else
         {
-            ROS_WARN("[Command path] In YawSpin, node not accepting position requests.");
+            ROS_WARN("[Command path] target_position_client, node not accepting position requests.");
             return false;
         }
     }
