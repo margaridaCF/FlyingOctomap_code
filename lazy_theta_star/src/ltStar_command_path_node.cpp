@@ -288,7 +288,9 @@ int main(int argc, char **argv)
     auto timestamp_chrono = std::chrono::high_resolution_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     std::stringstream folder_name_stream;
-    std::string folder_name = "/home/hector/Flying_Octomap_code/src/data/";
+
+    std::stringstream aux_envvar_home (std::getenv("HOME"));
+    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data/";
     folder_name_stream << folder_name << (std::put_time(std::localtime(&now_c), "%F %T") );
     std::string sym_link_name = folder_name+"/current";
 

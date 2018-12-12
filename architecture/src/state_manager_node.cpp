@@ -39,7 +39,8 @@
 namespace state_manager_node
 {
     // std::string folder_name = "/ros_ws/src/data";
-    std::string folder_name = "/home/hector/Flying_Octomap_code/src/data";
+    std::stringstream aux_envvar_home (std::getenv("HOME"));
+    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 
     struct Vector3Hash
     {
