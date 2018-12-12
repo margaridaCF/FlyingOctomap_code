@@ -23,6 +23,10 @@ px4_loiter_radius: 0.5
 odometry_error: 0
 laser_angle: 0.872665
 laser_range: 9.5
+
+# == Command Path ==
+do_initial_maneuver: false
+
 # Geofence
 geofence_min/x: -5
 geofence_max/x: 15
