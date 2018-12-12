@@ -10,7 +10,7 @@
     <arg name="pose_frame_id" default=""/>
     <!-- To publish ual/pose in other frame than local, e.g. map -->
     <arg name="ual_server" default="on"/>
-    <arg name="ual_pub_rate" default="30.0"/>
+    <arg name="ual_pub_rate" default="100.0"/>
     <arg name="mavros_offboard_rate" default="30.0"/>
 
     <!-- #########################  Robot  ######################################### -->
