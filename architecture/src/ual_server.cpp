@@ -103,6 +103,7 @@ geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f x0, Eigen::Vector3
     double cruising_speed = 1.0;
     geometry_msgs::TwistStamped output_vel;
     Eigen::Vector3f unit_vec = (x2 - x0) / d;
+    unit_vec = unit_vec / unit_vec.norm();
     output_vel.twist.linear.x = unit_vec(0) * cruising_speed;
     output_vel.twist.linear.y = unit_vec(1) * cruising_speed;
     output_vel.twist.linear.z = unit_vec(2) * cruising_speed;
