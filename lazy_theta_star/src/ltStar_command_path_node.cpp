@@ -90,7 +90,7 @@ namespace ltStar_command_path_node
         }
         else
         {
-            ROS_WARN("[Command path] In YawSpin, node not accepting position requests.");
+            ROS_WARN("[Command path] target_position_client, node not accepting position requests.");
             return false;
         }
     }
@@ -195,7 +195,7 @@ namespace ltStar_command_path_node
     void init_state_variables(ltStar_command_path_node::StateData& state_data)
     {
         state_data.ltstar_request_id = 0;
-        state_data.exploration_state = clear_from_ground;
+        state_data.exploration_state = waiting_path_response;
 #ifdef SAVE_LOG
         log_file << "[Command path][Exploration] clear_from_ground" << std::endl;
 #endif

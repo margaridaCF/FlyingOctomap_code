@@ -1,5 +1,5 @@
 # == Laser ==
-current_position_topic: "/mavros/local_position/pose"
+current_position_topic: "/uav_1/mavros/local_position/pose"
 uav/laser_topic: "scan_filtered"
 scan_filter_chain:
 - name: intensity
@@ -14,7 +14,6 @@ scan_filter_chain:
 # == Px4 ==
 px4_loiter_radius: 0.5
 px4/flight_speed: 1
-offboard_enabled: false
 
 # == State Manager ==
 frontier/safety_margin: 3
@@ -24,6 +23,10 @@ px4_loiter_radius: 0.5
 odometry_error: 0
 laser_angle: 0.872665
 laser_range: 9.5
+
+# == Command Path ==
+do_initial_maneuver: false
+
 # Geofence
 geofence_min/x: -5
 geofence_max/x: 15
