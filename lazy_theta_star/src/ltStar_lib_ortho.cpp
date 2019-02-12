@@ -776,16 +776,12 @@ namespace LazyThetaStarOctree{
 				path.push_front( input.goal );
 			}
 			extractPath(path, *disc_initial_cell_center, *solution_end_node, print_resulting_path);
-			bool initial_pos_far_from_initial_voxel_center = equal(input.start, cell_center_coordinates_start, resolution/2) == false;
 			std::list<octomath::Vector3>::iterator it= path.begin();
 			it++;
 			bool free_path_from_current_to_second_waypoint = is_flight_corridor_free( InputData(input.octree, input.start, cell_center_coordinates_start, input.margin), publish_input, false);
-			// if(!free_path_from_current_to_second_waypoint)
-			// {
-			// 	ROS_ERROR_STREAM("[ltstar] end There are obstacles between initial point " << input.start << " and its center " << cell_center_coordinates_start);
-			// 	log_file << "[ltstar] end There are obstacles between initial point " << input.start << " and its center " << cell_center_coordinates_start << std::endl;
-			// }
-			if(initial_pos_far_from_initial_voxel_center && !free_path_from_current_to_second_waypoint)
+			// bool initial_pos_far_from_initial_voxel_center = equal(input.start, cell_center_coordinates_start, resolution/2) == false;
+			// if(initial_pos_far_from_initial_voxel_center && !free_path_from_current_to_second_waypoint)
+			if(free_path_from_current_to_second_waypoint)
 			{
 				path.push_front( input.start );
 			}

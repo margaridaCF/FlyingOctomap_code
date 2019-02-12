@@ -82,6 +82,7 @@ namespace state_manager_node
     double odometry_error;
     double safety_margin = 3;
     double error_margin;
+    bool do_initial_maneuver;
     ros::Duration exploration_maneuver_duration_secs;
     int max_time_secs =5000;
     int max_cycles_waited_for_path = 3;
@@ -492,7 +493,14 @@ namespace state_manager_node
         state_data.handbrake_enabled = false;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
-        state_data.exploration_state = clear_from_ground;
+        if(do_initial_maneuver)
+        {
+            state_data.exploration_state = clear_from_ground;
+        }
+        else
+        {
+            state_data.exploration_state = waiting_path_response;
+        }
 #ifdef SAVE_LOG
         log_file << "[State manager][Exploration] clear_from_ground" << std::endl;
 #endif
@@ -506,6 +514,8 @@ namespace state_manager_node
         nh.getParam("px4_loiter_radius", px4_loiter_radius);
         double laser_range;
         nh.getParam("laser_range", laser_range);
+        do_initial_maneuver = false;
+        nh.getParam("do_initial_maneuver", do_initial_maneuver);
         double laser_angle;
         nh.getParam("laser_angle", laser_angle);
         laser_range_xy = std::cos(laser_angle)*laser_range;
