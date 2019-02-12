@@ -146,14 +146,21 @@ int main(int _argc, char **_argv) {
     velocity_to_pub.header.frame_id = "uav_1_home";
     uav_current_path.header.frame_id = "uav_1_home";
     uav_target_path.header.frame_id = "uav_1_home";
-    current_pose.pose.position.x = 0;
-    current_pose.pose.position.y = 0;
-    current_pose.pose.position.z = flight_level;
+    current_pose.pose.position.x = 19.2;
+    current_pose.pose.position.y = 5.2;
+    current_pose.pose.position.z = 11.3;
     current_pose.pose.orientation.x = 0;
     current_pose.pose.orientation.y = 0;
     current_pose.pose.orientation.z = 0;
     current_pose.pose.orientation.w = 1;
     uav_target_path.poses.push_back(current_pose);
+    target_pose.pose.position.x = 19.2;
+    target_pose.pose.position.y = 5.2;
+    target_pose.pose.position.z = 11.3;
+    target_pose.pose.orientation.x = 0;
+    target_pose.pose.orientation.y = 0;
+    target_pose.pose.orientation.z = 0;
+    target_pose.pose.orientation.w = 1;
 
     while (ros::ok()) {
         update_current_variables(ual.pose());
@@ -189,6 +196,7 @@ int main(int _argc, char **_argv) {
                 break;
             case fix_pose:
                 update_target_fix_variables(fix_pose_pose.pose);
+                ROS_WARN("[UAL] Fixing pose -> P: %f, %f, %f", fix_pose_pose.pose.position.x, fix_pose_pose.pose.position.y, fix_pose_pose.pose.position.z);
                 if ((max_acceptance_orientation > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > min_acceptance_orientation) || (fix_pose_point - current_point).norm() > position_tolerance) {
                     ual.goToWaypoint(fix_pose_pose, false);
                 } else {
