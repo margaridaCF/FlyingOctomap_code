@@ -56,16 +56,16 @@ cs_export()
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_frontiers_msgs.cpp)
-# if(CATKIN_ENABLE_TESTING)
+if(CATKIN_ENABLE_TESTING)
 #   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
 
-#   catkin_add_gtest(frontiers_tests 
-#     test/frontier_lib_tests.cpp
-#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-#   target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib)
+  catkin_add_gtest(work_in_progress_architecture_tests 
+    test/work_in_progress_architecture_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} )
 
-# endif()
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

@@ -15,6 +15,8 @@
 #include <chrono>
 #include <boost/filesystem.hpp>
 
+#include <architecture_math.h>
+
 #include <observation_maneuver.h>
 
 #include <marker_publishing_utils.h>
