@@ -386,13 +386,6 @@ namespace state_manager_node
         }
     }
 
-    double calculateOrientation(Eigen::Vector3d start, Eigen::Vector3d end)
-    {
-        Eigen::Vector3d d = end - start;
-        d.normalize();
-        return std::acos (1/d.norm());
-    }
-
     bool is_in_target_position(geometry_msgs::Point const& target_waypoint, 
         geometry_msgs::Point & current_position, double error_margin )
     {
@@ -691,7 +684,7 @@ namespace state_manager_node
                 flyby_end.position.z = state_data.oppairs.get_current_end()(2);
                 if (!state_data.exploration_maneuver_started)
                 {
-                    flyby_end.orientation = tf::createQuaternionMsgFromYaw(calculateOrientation(state_data.oppairs.get_current_start(), state_data.oppairs.get_current_end()));
+                    flyby_end.orientation = tf::createQuaternionMsgFromYaw(architecture_math::calculateOrientation(state_data.oppairs.get_current_start(), state_data.oppairs.get_current_end()));
                     state_data.exploration_maneuver_started = askPositionServiceCall(flyby_end);
                 }
                 else
