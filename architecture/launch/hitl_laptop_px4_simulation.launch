@@ -38,4 +38,8 @@
         <arg name="robot_model" value="iris_hokuyo"/>
     </include>
 
+    <!-- #########################  UAL  ######################################### -->
+    <include file="$(find architecture)/launch/test_server.launch"/>
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture" output="screen" />
+    
 </launch>

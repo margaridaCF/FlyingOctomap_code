@@ -3,6 +3,7 @@
 #include <Eigen/Dense>
 #include <ros/ros.h>
 
+# define M_PI       3.14159265358979323846  /* pi */
 
 namespace architecture_math
 {
@@ -26,8 +27,10 @@ namespace architecture_math
 			if(d.y() < 0)
 			{
 				result = -result; 
+				result += M_PI;
 			}
-		} 				
+		} 
+		ROS_INFO_STREAM("calculateOrientation( (" << start.x() << ", " << start.y() << "), (" << end.x() << ", " << end.y() << ") = " << result << " = " << result*180/M_PI);				
 		return result;
 	}
 

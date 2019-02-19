@@ -4,13 +4,15 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Frontiers1
         - /Frontiers1/Namespaces1
         - /Frontiers2/Namespaces1
+        - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
         - /MarkerArray1
         - /MarkerArray1/Namespaces1
       Splitter Ratio: 0.652941167
-    Tree Height: 365
+    Tree Height: 853
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -28,7 +30,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Hokuyo
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -118,21 +120,21 @@ Visualization Manager:
           Value: true
         base_link_inertia:
           Value: true
-        base_stabilized:
-          Value: true
         fcu:
           Value: true
         fcu_frd:
           Value: true
         hokuyo:
           Value: true
-        imu_link:
-          Value: true
         local_origin:
           Value: true
         local_origin_ned:
           Value: false
+        map:
+          Value: true
         uav_1:
+          Value: true
+        uav_1_home:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -140,17 +142,24 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        map:
+          uav_1_home:
+            uav_1:
+              base_link:
+                base_link_inertia:
+                  {}
+                hokuyo:
+                  {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: /is_frontier_markers
       Name: Frontiers
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /free_cells_vis_array
@@ -220,13 +229,13 @@ Visualization Manager:
       Use rainbow: true
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        {}
+        map: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /frontiers/known_space
@@ -236,13 +245,21 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        {}
+        closed: false
+        goal: true
+        goal_voxel: true
+        lazy_theta_star_path: true
+        lazy_theta_star_waypoint: true
+        s: false
+        start: true
+        start_voxel: true
+        straight_line: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/Marker
       Enabled: false
       Marker Topic: /position_log
@@ -279,7 +296,11 @@ Visualization Manager:
       Marker Topic: /state_manager_viz
       Name: MarkerArray
       Namespaces:
+        frontier: true
         geofence: true
+        oppairStart: true
+        oppair_end: true
+        start: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -302,33 +323,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 60.2870369
+      Distance: 63.7154465
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -21.3621292
-        Y: 14.9885273
-        Z: 4.79085064
+        X: -21.3820057
+        Y: 14.814558
+        Z: 4.67986202
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.26479876
+      Pitch: 0.094798781
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.9966836
+      Yaw: 4.82168388
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: true
+    collapsed: false
   Height: 1056
-  Hide Left Dock: true
+  Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000300000000000001cd0000037afc0200000009fb0000001200530065006c0065006300740069006f006e0000000028000000960000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000040000000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007300000000c4000002de000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a005600690065007700730000000308000000b6000000ad00ffffff000000010000010f0000036cfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a0000036c000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000030000075f0000003efc0100000002fb0000000800540069006d006501000000000000075f0000030000fffffffb0000000800540069006d006501000000000000045000000000000000000000075f0000039600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000300000000000001cd00000396fc0200000009fb0000001200530065006c0065006300740069006f006e0000000028000000960000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000002800000396000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a005600690065007700730000000308000000b6000000ad00ffffff000000010000010f0000036cfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a0000036c000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000030000075f0000003efc0100000002fb0000000800540069006d006501000000000000075f0000030000fffffffb0000000800540069006d006501000000000000045000000000000000000000058c0000039600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -339,4 +360,4 @@ Window Geometry:
     collapsed: false
   Width: 1887
   X: 33
-  Y: 1048
+  Y: 24

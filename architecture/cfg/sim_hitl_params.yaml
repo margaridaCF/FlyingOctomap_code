@@ -7,6 +7,8 @@ px4/yaw_rate: 100
 laser_range: 9.5
 laser_angle: 0.872665
 
+do_initial_maneuver: true
+
 odometry_error: 0.1
 
 # offboard_enabled: true
