@@ -426,7 +426,11 @@ namespace state_manager_node
         target = get_current_waypoint();
         Eigen::Vector3d current_e (current_position.x, current_position.y, current_position.z);
         Eigen::Vector3d next_e (target.position.x, target.position.y, target.position.z);
-        target.orientation = tf::createQuaternionMsgFromYaw(calculateOrientation(current_e, next_e));
+        // log_file << "[State manager] buildTargetPose current_e to next_e" << std::endl;
+        double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y()));
+        // log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
+
+        target.orientation = tf::createQuaternionMsgFromYaw(yaw);
     }
 
     bool updateWaypointSequenceStateMachine()
@@ -684,7 +688,10 @@ namespace state_manager_node
                 flyby_end.position.z = state_data.oppairs.get_current_end()(2);
                 if (!state_data.exploration_maneuver_started)
                 {
-                    flyby_end.orientation = tf::createQuaternionMsgFromYaw(architecture_math::calculateOrientation(state_data.oppairs.get_current_start(), state_data.oppairs.get_current_end()));
+                    flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(
+                        Eigen::Vector2d(state_data.oppairs.get_current_start().x(), state_data.oppairs.get_current_start().y()), 
+                        Eigen::Vector2d(state_data.oppairs.get_current_end().x(),   state_data.oppairs.get_current_end().y()) 
+                        ) );
                     state_data.exploration_maneuver_started = askPositionServiceCall(flyby_end);
                 }
                 else
