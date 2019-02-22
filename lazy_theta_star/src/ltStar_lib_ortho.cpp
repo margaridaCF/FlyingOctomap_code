@@ -636,6 +636,9 @@ namespace LazyThetaStarOctree{
 		// ROS_WARN_STREAM("Goal's voxel center " << *disc_final_cell_center);
 		// ln 6 while open != empty do
 		id_unreachable = 0;	
+        visualization_msgs::MarkerArray marker_array_closed, marker_array_s;
+        int closed_id = 0;
+        int s_id = 0;
 		while(!open.empty() && !solution_found)
 		{
  			// open.printNodes("========= Starting state of open ");
@@ -659,7 +662,7 @@ namespace LazyThetaStarOctree{
 				s_point.x = s->coordinates->x();
 				s_point.y = s->coordinates->y();
 				s_point.z = s->coordinates->z();
-				rviz_interface::publish_s(s_point, publish_input.marker_pub);
+				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_s, s_id, s->cell_size);
 			}
 #endif
 			resultSet.addOcurrance(s->cell_size);
@@ -699,12 +702,6 @@ namespace LazyThetaStarOctree{
 			// ln 11 closed := closed U {s}
 			// log_file << "@"<< used_search_iterations << "  inserting s into closed " << s << " <--> " << *s << std::endl;
 			closed.insert( std::pair<octomath::Vector3, std::shared_ptr<ThetaStarNode>>( *(s->coordinates), s));
-#ifdef RUNNING_ROS
-			// if(publish_input.publish)
-			// {
-				rviz_interface::publish_closed(*(s->coordinates), publish_input.marker_pub);
-			// }
-#endif
 
 			// TODO check code repetition to go over the neighbors of s
 			double cell_size = 0;

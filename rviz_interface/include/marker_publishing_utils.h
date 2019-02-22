@@ -50,9 +50,11 @@ namespace rviz_interface
 	void publish_start 				(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
 	void publish_goal 				(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
 	void publish_random_important_cube(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
-	void publish_s 					(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
+	void publish_s 					(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub,
+        visualization_msgs::MarkerArray & marker_array, int id, int size);
 	void publish_visible_neighbor	(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
-	void publish_closed				(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
+	void publish_closed(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub,
+        visualization_msgs::MarkerArray & marker_array, int id);
 	void publish_sensing_position 	(octomath::Vector3 const& position, ros::Publisher const& marker_pub);
 	void publish_start_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
 	void publish_goal_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
