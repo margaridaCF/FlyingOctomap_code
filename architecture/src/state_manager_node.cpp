@@ -277,8 +277,6 @@ namespace state_manager_node
 
     void dealUnreachableGoal(std::string log_id)
     {
-        octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-        state_data.unobservable_set.insert(unreachable);
         // If there are more ways to observe the frontier search for it
         if(find_next_safe_oppair())
         {
@@ -287,6 +285,8 @@ namespace state_manager_node
         }
         else 
         {
+            octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
+            state_data.unobservable_set.insert(unreachable);
             // Need new frontier.
             // Now figure out if it will be from the batch of frontiers I got from frontier node or if I need to ask for new frontier batch
             if (state_data.frontier_index >= state_data.frontiers_msg.frontiers_found-1)
@@ -726,7 +726,7 @@ namespace state_manager_node
         else
         {
             timer.stop();
-#ifdef SAVE_CSV
+            #ifdef SAVE_CSV
             // TIME
             std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
@@ -741,11 +741,11 @@ namespace state_manager_node
             csv_file.open (folder_name+"/exploration_time.csv", std::ofstream::app);
             csv_file << millis.count() << "," << volume_meters << "," << is_successfull_exploration << std::endl; 
             csv_file.close();
-#endif
+            #endif
 
-#ifdef SAVE_LOG
+            #ifdef SAVE_LOG
             state_manager_node::log_file.close();
-#endif
+            #endif
         }
     }
 }
@@ -782,19 +782,19 @@ int main(int argc, char **argv)
     state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
     state_manager_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("state_manager_viz", 1);
 
-#ifdef SAVE_LOG
+    #ifdef SAVE_LOG
     state_manager_node::log_file.open (state_manager_node::folder_name+"/current/state_manager.log", std::ofstream::app);
-#endif
+    #endif
     state_manager_node::init_oppairs(nh);
     state_manager_node::init_state_variables(state_manager_node::state_data);
-#ifdef SAVE_CSV
+    #ifdef SAVE_CSV
     std::ofstream csv_file;
     csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
     // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
     csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
     csv_file.close();
     // state_manager_node::start = std::chrono::high_resolution_clock::now();
-#endif
+    #endif
     state_manager_node::timer = nh.createTimer(ros::Duration(1), state_manager_node::main_loop);
     ros::spin();
     return 0;
