@@ -16,9 +16,8 @@
 #include <boost/filesystem.hpp>
 
 #include <architecture_math.h>
-
+#include <goal_state_machine.h>
 #include <observation_maneuver.h>
-
 #include <marker_publishing_utils.h>
 
 #include <architecture_msgs/PositionRequest.h>
@@ -47,20 +46,6 @@ namespace state_manager_node
     std::stringstream aux_envvar_home (std::getenv("HOME"));
     std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 
-    struct Vector3Hash
-    {
-        std::size_t operator()(const octomath::Vector3 & v) const 
-        {
-            int scale = 0.00001;
-            std::size_t hx = std::hash<float>{}( (int)(v.x() / scale) * scale );
-            std::size_t hy = std::hash<float>{}( (int)(v.y() / scale) * scale );
-            std::size_t hz = std::hash<float>{}( (int)(v.z() / scale) * scale );
-            std::size_t return_value = ((hx 
-               ^ (hy << 1)) >> 1)
-               ^ (hz << 1);
-            return return_value;
-        }
-    };
 
     ros::Publisher frontier_request_pub;
     ros::Publisher ltstar_request_pub;
@@ -71,7 +56,6 @@ namespace state_manager_node
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
     ros::ServiceClient yaw_spin_client;
-    ros::ServiceClient check_flightCorridor_client;
 
     ros::Timer timer;
     std::chrono::high_resolution_clock::time_point start;
@@ -85,6 +69,8 @@ namespace state_manager_node
     double safety_margin = 3;
     double error_margin;
     bool do_initial_maneuver;
+    double distance_inFront, distance_behind;
+    int circle_divisions = 12;
     ros::Duration exploration_maneuver_duration_secs;
     int max_time_secs =5000;
     double ltstar_safety_margin;
@@ -105,8 +91,7 @@ namespace state_manager_node
         frontiers_msgs::FrontierReply frontiers_msg;
         lazy_theta_star_msgs::LTStarRequest ltstar_request;
         lazy_theta_star_msgs::LTStarReply ltstar_reply;
-        std::unordered_set<octomath::Vector3, Vector3Hash> unobservable_set; 
-        observation_lib::OPPairs oppairs;
+        std::shared_ptr<goal_state_machine::GoalStateMachine> goal_state_machine;
     };  
     state_manager_node::StateData state_data;
 
@@ -191,7 +176,7 @@ namespace state_manager_node
         request.max.y = geofence_max.y();
         request.max.z = geofence_max.z();
         request.safety_margin = safety_margin;
-        request.frontier_amount = state_data.unobservable_set.size()+10;
+        request.frontier_amount = state_data.goal_state_machine->getUnobservableSetSize()+10;
         request.min_distance = px4_loiter_radius;
         request.sensing_distance = laser_range_xy;
         while(!getUavPositionServiceCall(request.current_position));
@@ -221,88 +206,6 @@ namespace state_manager_node
             return false; 
         } 
     } 
-
-    void initializeOPPairsNewFrontier()
-    {
-        geometry_msgs::Point curr_frontier_geom = get_current_frontier();
-        Eigen::Vector3d new_frontier(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
-        geometry_msgs::Point point;
-        while(!getUavPositionServiceCall(point))
-        {
-            ROS_ERROR_STREAM("[State Manager] Cannot get uav position to initialize observations point pairs for new frontier.");
-        }
-        Eigen::Vector3d uav_position (point.x, point.y, point.z);
-        rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
-        state_data.oppairs.NewFrontier(new_frontier, uav_position, pi);
-        log_file << "[State Manager] [oppairs] 1. New frontier. Reset all." << std::endl;
-    }
-
-
-    bool is_flightCorridor_free()
-    {
-        lazy_theta_star_msgs::CheckFlightCorridor srv;
-        Eigen::Vector3d start_eigen = state_data.oppairs.get_current_start();
-        Eigen::Vector3d end_eigen = state_data.oppairs.get_current_end();
-        
-        srv.request.start.x = start_eigen(0);
-        srv.request.start.y = start_eigen(1);
-        srv.request.start.z = start_eigen(2);
-        srv.request.end.x   = end_eigen(0);
-        srv.request.end.y   = end_eigen(1);
-        srv.request.end.z   = end_eigen(2);
-        srv.request.flight_corridor_width = ltstar_safety_margin;
-
-        bool check = true;
-        while(check)
-        {
-            check = check_flightCorridor_client.call(srv);
-            if(!check)
-            {
-                ROS_ERROR("[State Manager] Cannot place request to check flight corridor for flyby.");
-            }
-        }
-        return srv.response.free;
-    }
-
-    bool find_next_safe_oppair()
-    {
-        while(state_data.oppairs.Next())
-        {
-            log_file << "[State Manager] [oppairs] 2. Next oppair" << std::endl;
-            if(is_flightCorridor_free()) return true;
-        }
-        log_file << "[State Manager] [oppairs] 3. Analyzed all oppairs, none suitable." << std::endl;
-        return false;
-    }
-
-    void dealUnreachableGoal(std::string log_id)
-    {
-        // If there are more ways to observe the frontier search for it
-        if(find_next_safe_oppair())
-        {
-            state_data.exploration_state = generating_path; 
-            state_data.waypoint_index = -1;
-        }
-        else 
-        {
-            octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-            state_data.unobservable_set.insert(unreachable);
-            // Need new frontier.
-            // Now figure out if it will be from the batch of frontiers I got from frontier node or if I need to ask for new frontier batch
-            if (state_data.frontier_index >= state_data.frontiers_msg.frontiers_found-1)
-            {
-                state_data.exploration_state = exploration_start;
-            }
-            else
-            {
-                initializeOPPairsNewFrontier();
-                log_file << "[State Manager] [oppairs] 1. New frontier from cache. Reset all." << std::endl;
-                state_data.frontier_index = state_data.frontier_index +1;
-                state_data.exploration_state = generating_path; 
-                state_data.waypoint_index = -1;
-            }
-        }
-    }
 
     void ltstar_cb(const lazy_theta_star_msgs::LTStarReply::ConstPtr& msg)
     {
@@ -335,7 +238,6 @@ namespace state_manager_node
             else
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
-                dealUnreachableGoal("ltstar_cb");
             }
             
         }
@@ -361,19 +263,8 @@ namespace state_manager_node
             #endif
             state_data.frontier_request_id = msg->request_id;
             state_data.exploration_state = generating_path;
-            // state_data.frontier_index = 0;
             state_data.frontiers_msg = *msg;
-            initializeOPPairsNewFrontier();
-            ROS_INFO_STREAM (     "[State manager] found " << msg->frontiers_found << " frontiers." );
-            if(get_current_frontier().x < geofence_min.x() 
-                || get_current_frontier().y < geofence_min.y() 
-                || get_current_frontier().x < geofence_min.y() 
-                || get_current_frontier().x > geofence_max.x() 
-                || get_current_frontier().y > geofence_max.y()  
-                || get_current_frontier().z > geofence_max.z())
-            {
-                ROS_ERROR_STREAM("[State manager] Breaching geofence " <<  *msg);
-            }
+            state_data.goal_state_machine->NewFrontiers(state_data.frontiers_msg);
         }
     }
 
@@ -479,7 +370,7 @@ namespace state_manager_node
         }
     }
 
-    void init_state_variables(state_manager_node::StateData& state_data)
+    void init_state_variables(state_manager_node::StateData& state_data, ros::NodeHandle& nh)
     {
         state_data.exploration_maneuver_started = false;
         state_data.ltstar_request_id = 0;
@@ -495,6 +386,8 @@ namespace state_manager_node
         #ifdef SAVE_LOG
         log_file << "[State manager][Exploration] Switch to clear_from_ground" << std::endl;
         #endif
+
+
     }
 
     void init_param_variables(ros::NodeHandle& nh)
@@ -527,18 +420,27 @@ namespace state_manager_node
         nh.getParam("geofence_max/y", y);
         nh.getParam("geofence_max/z", z);
         geofence_max = octomath::Vector3  (x, y, z);
-    }
 
-    void init_oppairs (ros::NodeHandle& nh)
-    {
-        double distance_inFront, distance_behind;
-        int circle_divisions = 12;
+        // Goal state machine
         nh.getParam("oppairs/distance_inFront", distance_inFront);
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
-        state_data.oppairs = observation_lib::OPPairs(circle_divisions, safety_margin, distance_inFront, distance_behind);
-        log_file << "[State Manager] [oppairs] 0. Precalculation." << std::endl;
+    }
 
+    void publishGoalToRviz(geometry_msgs::Point current_position)
+    {
+        geometry_msgs::Point frontier_geom = get_current_frontier();
+        geometry_msgs::Point start_geom;
+        start_geom.x = current_position.x;
+        start_geom.y = current_position.y;
+        start_geom.z = current_position.z;
+        geometry_msgs::Point oppair_start_geom;
+        state_data.goal_state_machine->getFlybyStart(oppair_start_geom);
+        geometry_msgs::Point oppair_end_geom;
+        state_data.goal_state_machine->getFlybyEnd(oppair_end_geom);
+        visualization_msgs::MarkerArray marker_array;
+        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, state_data.frontiers_request.safety_margin, marker_array);
+        marker_pub.publish(marker_array);
     }
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
@@ -576,18 +478,16 @@ namespace state_manager_node
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     state_data.frontiers_msg.frontiers_found = 1;
                     state_data.ltstar_reply.waypoint_amount = 2;
-
-                    rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
-                    state_data.oppairs.NewFrontier(fake_frontier_e, fake_uav_position, pi);
+                    frontiers_msgs::VoxelMsg fake_frontier;
+                    fake_frontier.xyz_m = current_position;
+                    state_data.frontiers_msg.frontiers.push_back(fake_frontier);
+                    state_data.frontier_index = 0;
+                    state_data.goal_state_machine->NewFrontiers(state_data.frontiers_msg);
 
                     #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] visit_waypoints 2" << std::endl;
                     log_file << "[State manager]            [Follow path] init" << std::endl;
                     #endif
-                    frontiers_msgs::VoxelMsg fake_frontier;
-                    fake_frontier.xyz_m = current_position;
-                    state_data.frontiers_msg.frontiers.push_back(fake_frontier);
-                    state_data.frontier_index = 0;
                 }
 
                 break;
@@ -623,29 +523,22 @@ namespace state_manager_node
                         geometry_msgs::Point current_position;
                         if(getUavPositionServiceCall(current_position))
                         {
-                            visualization_msgs::MarkerArray marker_array;
-                            octomath::Vector3 current_position_v (current_position.x, current_position.y, current_position.z);
+                            Eigen::Vector3d current_position_e (current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
-                            Eigen::Vector3d oppair_start = state_data.oppairs.get_current_start();
-                            octomath::Vector3 goal (oppair_start(0), oppair_start(1), oppair_start(2));
-                            askForObstacleAvoidingPath(start, goal, ltstar_request_pub);
-                            state_data.exploration_state = waiting_path_response;
-
-                            geometry_msgs::Point frontier_geom = get_current_frontier();
-                            geometry_msgs::Point start_geom;
-                            start_geom.x = current_position.x;
-                            start_geom.y = current_position.y;
-                            start_geom.z = current_position.z;
-                            geometry_msgs::Point oppair_start_geom;
-                            oppair_start_geom.x = oppair_start(0); 
-                            oppair_start_geom.y = oppair_start(1);
-                            oppair_start_geom.z = oppair_start(2);
-                            geometry_msgs::Point oppair_end_geom;
-                            oppair_end_geom.x = state_data.oppairs.get_current_end()(0); 
-                            oppair_end_geom.y = state_data.oppairs.get_current_end()(1);
-                            oppair_end_geom.z = state_data.oppairs.get_current_end()(2);
-                            rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, state_data.frontiers_request.safety_margin, marker_array);
-                            marker_pub.publish(marker_array);
+                            bool existsNext = state_data.goal_state_machine->NextGoal(current_position_e);
+                            if(!existsNext)
+                            {
+                                state_data.exploration_state = exploration_start;
+                            }
+                            else
+                            {
+                                Eigen::Vector3d oppair_start;
+                                state_data.goal_state_machine->getFlybyStart(oppair_start);
+                                octomath::Vector3 goal (oppair_start(0), oppair_start(1), oppair_start(2));
+                                askForObstacleAvoidingPath(start, goal, ltstar_request_pub);
+                                state_data.exploration_state = waiting_path_response;
+                                publishGoalToRviz(current_position);
+                            }
                         }
                     }
                 }
@@ -676,15 +569,13 @@ namespace state_manager_node
             case gather_data_maneuver:
             {
                 geometry_msgs::Pose flyby_end;
-                flyby_end.position.x = state_data.oppairs.get_current_end()(0);
-                flyby_end.position.y = state_data.oppairs.get_current_end()(1);
-                flyby_end.position.z = state_data.oppairs.get_current_end()(2);
+                state_data.goal_state_machine->getFlybyEnd(flyby_end.position);
                 if (!state_data.exploration_maneuver_started)
                 {
-                    flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(
-                        Eigen::Vector2d(state_data.oppairs.get_current_start().x(), state_data.oppairs.get_current_start().y()), 
-                        Eigen::Vector2d(state_data.oppairs.get_current_end().x(),   state_data.oppairs.get_current_end().y()) 
-                        ) );
+                    Eigen::Vector2d flyby_2d_start, flyby_2d_end;
+                    state_data.goal_state_machine->get2DFlybyStart(flyby_2d_start);
+                    state_data.goal_state_machine->get2DFlybyEnd  (flyby_2d_end);
+                    flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
                     state_data.exploration_maneuver_started = askPositionServiceCall(flyby_end);
                 }
                 else
@@ -712,7 +603,6 @@ namespace state_manager_node
             }
         }
     }
-
 
     void main_loop(const ros::TimerEvent&)
     {
@@ -767,7 +657,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     state_manager_node::init_param_variables(nh);
     // Service client
-    state_manager_node::check_flightCorridor_client = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
+    ros::ServiceClient check_flightCorridor_client = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
     state_manager_node::ltstar_status_cliente = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>("ltstar_status");
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
@@ -785,8 +675,20 @@ int main(int argc, char **argv)
     #ifdef SAVE_LOG
     state_manager_node::log_file.open (state_manager_node::folder_name+"/current/state_manager.log", std::ofstream::app);
     #endif
-    state_manager_node::init_oppairs(nh);
-    state_manager_node::init_state_variables(state_manager_node::state_data);
+    state_manager_node::init_state_variables(state_manager_node::state_data, nh);
+
+    rviz_interface::PublishingInput pi(state_manager_node::marker_pub, true, "oppairs" );
+
+    geometry_msgs::Point geofence_min_point, geofence_max_point;
+    geofence_min_point.x = state_manager_node::geofence_min.x();
+    geofence_min_point.y = state_manager_node::geofence_min.y();
+    geofence_min_point.z = state_manager_node::geofence_min.z();
+    geofence_max_point.x = state_manager_node::geofence_max.x();
+    geofence_max_point.y = state_manager_node::geofence_max.y();
+    geofence_max_point.z = state_manager_node::geofence_max.z();
+    goal_state_machine::GoalStateMachine goal_state_machine (state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::safety_margin);
+    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(goal_state_machine);
+
     #ifdef SAVE_CSV
     std::ofstream csv_file;
     csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
