@@ -27,6 +27,11 @@ path/max_time_secs: 30
 path/max_cycles_waited_for_path: 50
 path/safety_margin: 3
 
+# == Observation Point Pairs ==
+oppairs/distance_inFront: 1
+oppairs/distance_behind: 1
+oppairs/circle_divisions: 12
+
 current_position_topic: "/uav_1/mavros/local_position/pose"
 
 uav/laser_topic: "hokuyo_laser_scan"
