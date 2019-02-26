@@ -49,13 +49,28 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				flyby_end.x = oppairs.get_current_start().x();
-				flyby_end.y = oppairs.get_current_start().y();
-				flyby_end.z = oppairs.get_current_start().z();
+				flyby_end.x = oppairs.get_current_end().x();
+				flyby_end.y = oppairs.get_current_end().y();
+				flyby_end.z = oppairs.get_current_end().z();
 			}
 			else
 			{
 				ROS_ERROR("[goal_state_machine] Asked for 3d flyby end but no goal is available.");
+			}
+			return has_more_goals;
+		}
+
+		bool getFlybyStart(geometry_msgs::Point & start)
+		{
+			if (has_more_goals)
+			{
+				start.x = oppairs.get_current_start().x();
+				start.y = oppairs.get_current_start().y();
+				start.z = oppairs.get_current_start().z();
+			}
+			else
+			{
+				ROS_ERROR("[goal_state_machine] Asked for 3d flyby start but no goal is available.");
 			}
 			return has_more_goals;
 		}
@@ -99,21 +114,6 @@ namespace goal_state_machine
 			else
 			{
 				ROS_ERROR("[goal_state_machine] Asked for 2d flyby end but no goal is available.");
-			}
-			return has_more_goals;
-		}
-
-		bool getFlybyStart(geometry_msgs::Point & start)
-		{
-			if (has_more_goals)
-			{
-				start.x = oppairs.get_current_start().x();
-				start.y = oppairs.get_current_start().y();
-				start.z = oppairs.get_current_start().z();
-			}
-			else
-			{
-				ROS_ERROR("[goal_state_machine] Asked for 3d flyby start but no goal is available.");
 			}
 			return has_more_goals;
 		}
