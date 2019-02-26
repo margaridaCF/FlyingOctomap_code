@@ -198,7 +198,7 @@ namespace LazyThetaStarOctree{
 	CellStatus getCorridorOccupancy_byPlanes(
 		InputData const& input,
 		PublishingInput const& publish_input,
-		bool ignoreUnknown = false) 
+		bool ignoreUnknown = true) // Beware those who came here! :) The name of the variable is wrong, it should be rejectUnknown. Didn't have the time to refactor so I just went the spaghetti way and changed the value accordingly. You can fix it if you want O:D
 	{
 		visualization_msgs::MarkerArray marker_array;
 		CoordinateFrame coordinate_frame = generateCoordinateFrame(input.start, input.goal);
@@ -249,7 +249,9 @@ namespace LazyThetaStarOctree{
 	{
 		// auto start_count = std::chrono::high_resolution_clock::now();
 		// bool free = getLineStatusBoundingBox(octree_, start, end, bounding_box_size) == CellStatus::kFree;
-		bool free = getCorridorOccupancy_byPlanes(input, publish_input) == CellStatus::kFree;
+
+		// Dear future programer, there is a hack here. I stopped using the option of ignoring unknown space as this is not safe in any way. It would have been ideal to change the code accordingly but there is no time. I hope my future self (or you can fix it sometime).
+		bool free = getCorridorOccupancy_byPlanes(input, publish_input) == CellStatus::kFree; 
 		// auto finish_count = std::chrono::high_resolution_clock::now();
 		// auto time_span = finish_count - start_count;
 		// obstacle_avoidance_time += std::chrono::duration_cast<std::chrono::microseconds>(time_span).count();
