@@ -237,6 +237,7 @@ namespace state_manager_node
             else
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
+                state_data.exploration_state = generating_path;
             }
             
         }
