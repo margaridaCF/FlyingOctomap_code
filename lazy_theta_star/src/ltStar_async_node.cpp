@@ -72,7 +72,7 @@ namespace LazyThetaStarOctree
 
 				visualization_msgs::Marker marker_temp;
 				octomath::Vector3 prev_candidate (reply.waypoints[i-1].position.x, reply.waypoints[i-1].position.y, reply.waypoints[i-1].position.z);
-				rviz_interface::build_arrow_path(candidate, prev_candidate, i, marker_temp, series);
+				rviz_interface::build_arrow_path(prev_candidate, candidate, i, marker_temp, series);
 				arrow_array.markers.push_back( marker_temp );
 	        }
 		}

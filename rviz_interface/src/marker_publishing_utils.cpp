@@ -199,6 +199,12 @@ namespace rviz_interface
         blue  = 0.38;
         build_sphere_basic(oppairStart, marker_array, ns, red, green, blue);
 
+        visualization_msgs::Marker marker;
+        octomath::Vector3 start_v(oppairStart.x, oppairStart.y, oppairStart.z);
+        octomath::Vector3 goal_v(oppairEnd.x, oppairEnd.y, oppairEnd.z);
+        build_arrow_path(start_v, goal_v, 100, marker, 9, "oppair_path" );
+        marker_array.markers.push_back(marker);
+
         ns = "start";
         red   = 1;
         green = 1;
