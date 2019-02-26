@@ -561,6 +561,7 @@ namespace state_manager_node
                     else
                     {
                         state_data.exploration_state = gather_data_maneuver;
+                        state_data.exploration_maneuver_started = false;
                     }
                     #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] gather_data_maneuver" << std::endl;
@@ -572,7 +573,8 @@ namespace state_manager_node
             {
                 geometry_msgs::Pose flyby_end;
                 state_data.goal_state_machine->getFlybyEnd(flyby_end.position);
-                if (!state_data.exploration_maneuver_started)
+                ROS_ERROR_STREAM("[State manager] gather_data_maneuver." << !state_data.exploration_maneuver_started << " && " << !state_data.initial_maneuver);
+                if (!state_data.exploration_maneuver_started && !state_data.initial_maneuver)
                 {
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
                     state_data.goal_state_machine->get2DFlybyStart(flyby_2d_start);
