@@ -84,7 +84,7 @@ namespace state_manager_node
         int waypoint_index;         // id of the waypoint that is currently the waypoint
         int ltstar_request_id;
         int frontier_index;         // id of the frontier in use
-        bool exploration_maneuver_started;
+        bool exploration_maneuver_started, initial_maneuver;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierRequest frontiers_request;
@@ -231,7 +231,6 @@ namespace state_manager_node
                 state_data.waypoint_index = 0;
                 #ifdef SAVE_LOG
                 log_file << "[State manager] Path reply " << *msg << std::endl;
-                log_file << "[State manager][Exploration] visit_waypoints 3" << std::endl;
                 log_file << "[State manager]            [Follow path] init" << std::endl;
                 #endif
             }
@@ -373,6 +372,7 @@ namespace state_manager_node
     void init_state_variables(state_manager_node::StateData& state_data, ros::NodeHandle& nh)
     {
         state_data.exploration_maneuver_started = false;
+        state_data.initial_maneuver = true;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
         if(do_initial_maneuver)
@@ -386,8 +386,6 @@ namespace state_manager_node
         #ifdef SAVE_LOG
         log_file << "[State manager][Exploration] Switch to clear_from_ground" << std::endl;
         #endif
-
-
     }
 
     void init_param_variables(ros::NodeHandle& nh)
@@ -548,18 +546,22 @@ namespace state_manager_node
                 }
                 break;
             }
-            case waiting_path_response:
-            {
-
-                break;
-            }
+            case waiting_path_response:{break;}
             case visit_waypoints:
             {
                 updateWaypointSequenceStateMachine();
 
                 if (state_data.follow_path_state == finished_sequence)
                 {
-                    state_data.exploration_state = exploration_start;
+                    if(state_data.initial_maneuver)
+                    {
+                        state_data.exploration_state = exploration_start;
+                        state_data.initial_maneuver = false;
+                    }
+                    else
+                    {
+                        state_data.exploration_state = gather_data_maneuver;
+                    }
                     #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] gather_data_maneuver" << std::endl;
                     #endif
