@@ -7,7 +7,6 @@ namespace goal_state_machine
     GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double frontier_safety_margin)
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client)
 	{
-		ROS_INFO_STREAM("[Goal SM] frontier_safety_margin " << frontier_safety_margin);
 		oppairs = observation_lib::OPPairs(circle_divisions, frontier_safety_margin, distance_inFront, distance_behind);
 	}
 
@@ -34,19 +33,19 @@ namespace goal_state_machine
                 ROS_ERROR("[Goal SM] Cannot place request to check flight corridor for flyby.");
             }
         }
-		#ifdef SAVE_LOG
-		std::ofstream log_file;
-		log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-        if(!srv.response.free)
-		{
-			log_file << "[Goal SM] Path occupied between oppairs " << start_eigen << " and " << end_eigen << std::endl;
-		}
-		else
-		{
-			log_file << "[Goal SM] Path free between oppairs " << start_eigen << " and " << end_eigen << std::endl;
-		}
-		log_file.close();	
-		#endif
+		// #ifdef SAVE_LOG
+		// std::ofstream log_file;
+		// log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
+  //       if(!srv.response.free)
+		// {
+		// 	log_file << "[Goal SM] Path occupied between oppairs " << start_eigen << " and " << end_eigen << std::endl;
+		// }
+		// else
+		// {
+		// 	log_file << "[Goal SM] Path free between oppairs " << start_eigen << " and " << end_eigen << std::endl;
+		// }
+		// log_file.close();	
+		// #endif
         return srv.response.free;
     }
 
@@ -88,7 +87,7 @@ namespace goal_state_machine
 			#ifdef SAVE_LOG
 			std::ofstream log_file;
 			log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-			log_file << "[Goal SM] geofence ok." << std::endl;
+			// log_file << "[Goal SM] geofence ok." << std::endl;
 			log_file.close();	
 			#endif
         	return true;
@@ -116,12 +115,12 @@ namespace goal_state_machine
 		bool search = true;
 		while(search)
 		{
-			log_file << "[Goal SM] pointToNextGoal loop." << std::endl;
+			// log_file << "[Goal SM] pointToNextGoal loop." << std::endl;
 			for(bool existsNextOPPair = oppairs.Next();
 				existsNextOPPair;
 				existsNextOPPair = oppairs.Next())
 			{
-				log_file << "[Goal SM] oppair loop." << std::endl;
+				// log_file << "[Goal SM] oppair loop." << std::endl;
 
 				if(IsOPPairValid())
 				{

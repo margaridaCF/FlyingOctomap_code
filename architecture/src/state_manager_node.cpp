@@ -573,7 +573,6 @@ namespace state_manager_node
             {
                 geometry_msgs::Pose flyby_end;
                 state_data.goal_state_machine->getFlybyEnd(flyby_end.position);
-                ROS_ERROR_STREAM("[State manager] gather_data_maneuver." << !state_data.exploration_maneuver_started << " && " << !state_data.initial_maneuver);
                 if (!state_data.exploration_maneuver_started && !state_data.initial_maneuver)
                 {
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
