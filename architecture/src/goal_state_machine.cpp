@@ -7,6 +7,7 @@ namespace goal_state_machine
     GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double frontier_safety_margin)
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client)
 	{
+		ROS_INFO_STREAM("[Goal SM] frontier_safety_margin " << frontier_safety_margin);
 		oppairs = observation_lib::OPPairs(circle_divisions, frontier_safety_margin, distance_inFront, distance_behind);
 	}
 
@@ -42,7 +43,7 @@ namespace goal_state_machine
 		}
 		else
 		{
-			log_file << "[Goal SM] Path free." << std::endl;
+			log_file << "[Goal SM] Path free between oppairs " << start_eigen << " and " << end_eigen << std::endl;
 		}
 		log_file.close();	
 		#endif

@@ -47,7 +47,7 @@ namespace architecture_math
 				result += M_PI;
 			}
 		} 
-		ROS_INFO_STREAM("calculateOrientation( (" << start.x() << ", " << start.y() << "), (" << end.x() << ", " << end.y() << ") = " << result << " = " << result*180/M_PI);				
+		// ROS_INFO_STREAM("calculateOrientation( (" << start.x() << ", " << start.y() << "), (" << end.x() << ", " << end.y() << ") = " << result << " = " << result*180/M_PI);				
 		return result;
 	}
 

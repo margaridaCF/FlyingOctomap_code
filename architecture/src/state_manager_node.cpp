@@ -322,13 +322,13 @@ namespace state_manager_node
             {
                 geometry_msgs::Pose next_waypoint;
                 buildTargetPose(next_waypoint);
-                ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at init");
+                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at init");
                 if(askPositionServiceCall(next_waypoint))
                 {
                     state_data.follow_path_state = on_route;
-                    #ifdef SAVE_LOG
-                    log_file << "[State manager]            [Path follow] on_route to " << get_current_waypoint() << std::endl;
-                    #endif
+                    // #ifdef SAVE_LOG
+                    // log_file << "[State manager]            [Path follow] on_route to " << get_current_waypoint() << std::endl;
+                    // #endif
                 }
                 else
                 {
@@ -340,7 +340,7 @@ namespace state_manager_node
             }
             case on_route:
             {
-                ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at on_route");
+                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at on_route");
                 geometry_msgs::Point target_waypoint = get_current_waypoint().position;
                 if(hasArrived(target_waypoint))
                 {
@@ -580,6 +580,9 @@ namespace state_manager_node
                     state_data.goal_state_machine->get2DFlybyStart(flyby_2d_start);
                     state_data.goal_state_machine->get2DFlybyEnd  (flyby_2d_end);
                     flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
+                    #ifdef SAVE_LOG
+                    log_file <<"[State manager] Flyby from " << flyby_2d_start << " to " << flyby_2d_end << std::endl;
+                    #endif
                     state_data.exploration_maneuver_started = askPositionServiceCall(flyby_end);
                 }
                 else

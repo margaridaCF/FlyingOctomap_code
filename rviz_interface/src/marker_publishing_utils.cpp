@@ -193,7 +193,7 @@ namespace rviz_interface
         double blue  = 0.0;
         build_sphere_basic(oppairEnd, marker_array, ns, red, green, blue);
 
-        ns = "oppairStart";
+        ns = "oppair_start";
         red   = 1;
         green = 0.68;
         blue  = 0.38;
