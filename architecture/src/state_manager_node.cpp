@@ -312,7 +312,7 @@ namespace state_manager_node
         double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y()));
         // log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
 
-        target.orientation = tf::createQuaternionMsgFromYaw(yaw);
+        target.orientation = tf::createQuaternionMsgFromYaw(yaw + M_PI);
     }
 
     bool updateWaypointSequenceStateMachine()
@@ -463,20 +463,70 @@ namespace state_manager_node
                     state_data.follow_path_state = init;
 
                     geometry_msgs::Pose waypoint;
-                    waypoint.position.x = current_position.x;
-                    waypoint.position.y = current_position.y;
-                    waypoint.position.z = std::min(geofence_max.z(), 10.f);
-                    waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
                     Eigen::Vector3d fake_uav_position (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = current_position.x;
-                    waypoint.position.y = current_position.y;
-                    waypoint.position.z = geofence_min.z();
-                    waypoint.orientation = tf::createQuaternionMsgFromYaw(180  * 0.0174532925);
-                    Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
+                    waypoint.position.x = 5;
+                    waypoint.position.y = -5;
+                    waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = 5;
+                    waypoint.position.y = 5;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = -5;
+                    waypoint.position.y = 5;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = -5;
+                    waypoint.position.y = -5;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = 5;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = -5;
+                    waypoint.position.y = 1;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 5;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.frontiers_msg.frontiers_found = 1;
-                    state_data.ltstar_reply.waypoint_amount = 2;
+                    state_data.ltstar_reply.waypoint_amount = 14;
                     frontiers_msgs::VoxelMsg fake_frontier;
                     fake_frontier.xyz_m = current_position;
                     state_data.frontiers_msg.frontiers.push_back(fake_frontier);
@@ -579,7 +629,7 @@ namespace state_manager_node
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
                     state_data.goal_state_machine->get2DFlybyStart(flyby_2d_start);
                     state_data.goal_state_machine->get2DFlybyEnd  (flyby_2d_end);
-                    flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
+                    flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end)+ M_PI);
                     #ifdef SAVE_LOG
                     log_file <<"[State manager] Flyby from " << flyby_2d_start << " to " << flyby_2d_end << std::endl;
                     #endif
@@ -704,7 +754,7 @@ int main(int argc, char **argv)
     csv_file.close();
     // state_manager_node::start = std::chrono::high_resolution_clock::now();
     #endif
-    state_manager_node::timer = nh.createTimer(ros::Duration(1), state_manager_node::main_loop);
+    state_manager_node::timer = nh.createTimer(ros::Duration(0.5), state_manager_node::main_loop);
     ros::spin();
     return 0;
 }

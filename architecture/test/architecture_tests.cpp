@@ -113,6 +113,45 @@ namespace architecture_math
 
         ASSERT_NEAR(yaw, -1.06, 0.01);
 	}
+    TEST(LazyThetaStarMeasurements, CalculateOrientation_q1_diag)
+    {
+        Eigen::Vector2d start (0, 0);
+        Eigen::Vector2d end   (0.5, 0.5);
+
+        double yaw = calculateOrientation(start, end);
+
+        ASSERT_NEAR(yaw, M_PI/4, 0.01);
+    }
+
+    TEST(LazyThetaStarMeasurements, CalculateOrientation_q2_diag)
+    {
+        Eigen::Vector2d start (0, 0);
+        Eigen::Vector2d end   (-0.5, 0.5);
+
+        double yaw = calculateOrientation(start, end);
+
+        ASSERT_NEAR(yaw, (3*M_PI/4) , 0.01);
+    }
+
+    TEST(LazyThetaStarMeasurements, CalculateOrientation_q3_diag)
+    {
+        Eigen::Vector2d start (0, 0);
+        Eigen::Vector2d end   (-0.5, -0.5);
+
+        double yaw = calculateOrientation(start, end);
+
+        ASSERT_NEAR(yaw, (5*M_PI/4), 0.01);
+    }
+
+    TEST(LazyThetaStarMeasurements, CalculateOrientation_q4_diag)
+    {
+        Eigen::Vector2d start (0, 0);
+        Eigen::Vector2d end   (0.5, -0.5);
+
+        double yaw = calculateOrientation(start, end);
+
+        ASSERT_NEAR(yaw, -(M_PI/4), 0.01);
+    }
 }
 
 int main(int argc, char **argv){
