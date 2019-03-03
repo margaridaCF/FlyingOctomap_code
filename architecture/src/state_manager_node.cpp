@@ -312,7 +312,7 @@ namespace state_manager_node
         double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y()));
         // log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
 
-        target.orientation = tf::createQuaternionMsgFromYaw(yaw + M_PI);
+        target.orientation = tf::createQuaternionMsgFromYaw(yaw);
     }
 
     bool updateWaypointSequenceStateMachine()
@@ -629,7 +629,7 @@ namespace state_manager_node
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
                     state_data.goal_state_machine->get2DFlybyStart(flyby_2d_start);
                     state_data.goal_state_machine->get2DFlybyEnd  (flyby_2d_end);
-                    flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end)+ M_PI);
+                    flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
                     #ifdef SAVE_LOG
                     log_file <<"[State manager] Flyby from " << flyby_2d_start << " to " << flyby_2d_end << std::endl;
                     #endif
