@@ -309,10 +309,14 @@ namespace state_manager_node
         Eigen::Vector3d current_e (current_position.x, current_position.y, current_position.z);
         Eigen::Vector3d next_e (target.position.x, target.position.y, target.position.z);
         // log_file << "[State manager] buildTargetPose current_e to next_e" << std::endl;
-        double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y()));
-        // log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
+        double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y())) ;
+        // ROS_INFO_STREAM( "[State manager] buildTargetPose yaw = " << yaw );
+        // if (yaw > 2*M_PI) yaw = 2*M_PI - yaw;
+        // ROS_INFO_STREAM( "[State manager] buildTargetPose yaw = " << yaw );
+        log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
 
         target.orientation = tf::createQuaternionMsgFromYaw(yaw);
+        ROS_INFO_STREAM("[State manager] buildTargetPose quaternion " << target.orientation);
     }
 
     bool updateWaypointSequenceStateMachine()
@@ -468,28 +472,39 @@ namespace state_manager_node
                     waypoint.position.z = 2;
                     Eigen::Vector3d fake_uav_position (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 5;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
                     waypoint.position.x = 5;
                     waypoint.position.y = -5;
                     waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+
                     waypoint.position.x = 0;
                     waypoint.position.y = 0;
                     waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-
                     waypoint.position.x = 5;
                     waypoint.position.y = 5;
                     waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+
                     waypoint.position.x = 0;
                     waypoint.position.y = 0;
                     waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-
                     waypoint.position.x = -5;
                     waypoint.position.y = 5;
                     waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+
                     waypoint.position.x = 0;
                     waypoint.position.y = 0;
                     waypoint.position.z = 2;
@@ -512,14 +527,7 @@ namespace state_manager_node
                     waypoint.position.y = 1;
                     waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = 0;
-                    waypoint.position.y = 0;
-                    waypoint.position.z = 2;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = 0;
-                    waypoint.position.y = 5;
-                    waypoint.position.z = 2;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
                     waypoint.position.x = 0;
                     waypoint.position.y = 0;
                     waypoint.position.z = 2;
