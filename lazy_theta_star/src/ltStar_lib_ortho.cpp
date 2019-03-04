@@ -220,21 +220,21 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
-				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
+				// if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
+    			// if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
 				obstacle_hit_count++;
 				return CellStatus::kOccupied; 
 			}   
-			else
-			{
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true);
-				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
-			}
+			// else
+			// {
+   //  			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true);
+			// 	// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
+			// }
 		}
 		return CellStatus::kFree; 
 	}
@@ -579,7 +579,7 @@ namespace LazyThetaStarOctree{
 		{
 			log_file << "[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start << " given start point " << input.start << std::endl;
 			log_file << "[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal << " given goal point " << input.goal << std::endl;
-#ifdef RUNNING_ROS
+			#ifdef RUNNING_ROS
 			geometry_msgs::Point start_point, goal_point;
 			start_point.x = input.start.x();
 			start_point.y = input.start.y();
@@ -598,7 +598,7 @@ namespace LazyThetaStarOctree{
 			goal_point.z = cell_center_coordinates_goal.z();
 			rviz_interface::publish_start_voxel(start_point, publish_input.marker_pub, cell_size_start);
 			rviz_interface::publish_goal_voxel(goal_point, publish_input.marker_pub, cell_size_goal);
-#endif
+			#endif
 		}
 
 		if(equal(cell_center_coordinates_start, cell_center_coordinates_goal, resolution/2))
@@ -657,7 +657,7 @@ namespace LazyThetaStarOctree{
 			// 	}
 			// }
 			s = open.pop();
-#ifdef RUNNING_ROS
+			#ifdef RUNNING_ROS
 			if(publish_input.publish)
 			{
 				geometry_msgs::Point s_point;
@@ -666,7 +666,7 @@ namespace LazyThetaStarOctree{
 				s_point.z = s->coordinates->z();
 				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_s, s_id, s->cell_size);
 			}
-#endif
+			#endif
 			resultSet.addOcurrance(s->cell_size);
 			unordered_set_pointers neighbors;
 
