@@ -18,7 +18,7 @@ namespace LazyThetaStarOctree{
 		ros::Publisher marker_pub;
 		ResultSet statistical_data;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
-		PublishingInput publish_input( marker_pub, true, dataset_name);
+		PublishingInput publish_input( marker_pub, false, dataset_name);
 		InputData input( octree, disc_initial, disc_final, safety_margin);
 	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );

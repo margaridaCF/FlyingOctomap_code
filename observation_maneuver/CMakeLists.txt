@@ -46,11 +46,11 @@ cs_export()
 # if(CATKIN_ENABLE_TESTING)
 #   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
-#   # Work in progress ##
-#   catkin_add_gtest(workInProgress_observation_maneuver
-#     test/work_in_progress_observationPoints_tests.cpp
-#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-#   target_link_libraries(workInProgress_observation_maneuver ${catkin_LIBRARIES} observation_maneuver_lib)
+  # Work in progress ##
+  catkin_add_gtest(workInProgress_observation_maneuver
+    test/work_in_progress_observationPoints_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(workInProgress_observation_maneuver ${catkin_LIBRARIES} observation_maneuver_lib)
 
 #   # WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
 #   # Observation maneuver ##

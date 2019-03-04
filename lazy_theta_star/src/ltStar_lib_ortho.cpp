@@ -3,8 +3,8 @@
 #include <std_srvs/Empty.h>
 #include <orthogonal_planes.h>
 
-#define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
-#define RUNNING_ROS 0 	// enable to publish markers on rViz
+// #define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
+// #define RUNNING_ROS 0 	// enable to publish markers on rViz
 
 
 namespace std
@@ -853,15 +853,15 @@ namespace LazyThetaStarOctree{
 	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input)
 	{
 
+#ifdef SAVE_CSV
 		std::srand(std::time(0));
+		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+#endif
 		ResultSet statistical_data;
 		std::list<octomath::Vector3> resulting_path;
 		octomath::Vector3 disc_initial(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 disc_final(request.goal.x, request.goal.y, request.goal.z);
 		// ROS_INFO_STREAM("[LTStar] Starting to process path from " << disc_initial << " to " << disc_final);
-#ifdef SAVE_CSV
-		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-#endif
 	    std::stringstream octomap_name_stream;
 		// octomap_name_stream << std::setprecision(2) << folder_name << "/current/from_" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << "_to_"<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ".bt";
 		// 	octree.writeBinary(octomap_name_stream.str());
