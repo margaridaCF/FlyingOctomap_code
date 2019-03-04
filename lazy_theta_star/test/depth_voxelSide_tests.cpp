@@ -1,4 +1,4 @@
-#include <ltStar_temp.h>
+#include <ltStar_lib_ortho.h>
 #include <voxel.h>
 #include <octomap/OcTreeNode.h>
 #include <gtest/gtest.h>
