@@ -282,7 +282,7 @@ namespace LazyThetaStarOctree{
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
 		octomath::Vector3 disc_initial(-6.5, -3.0999999046325684, 0.5);
 		octomath::Vector3 disc_final  (-5.5, -3.0999999046325684, 0.5);
-		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final, 100);
+		testSucessfullQuery(octree, disc_initial, disc_final, 100);
 	}
 
 	// commenting out because checking voxel status by key lookup indentifies more unknown cells and this is not a straight path anymore
@@ -292,7 +292,7 @@ namespace LazyThetaStarOctree{
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
 		octomath::Vector3 disc_initial(-6.900000095, -2.5, 0.5);
 		octomath::Vector3 disc_final  (-5.900000095, -2.5, 0.5);
-		testStraightLinesForwardNoObstacles(octree, disc_initial, disc_final);
+		testSucessfullQuery(octree, disc_initial, disc_final);
 	}
 	
 	TEST(LazyThetaStarTests, LazyThetaStar_avoidWall)
