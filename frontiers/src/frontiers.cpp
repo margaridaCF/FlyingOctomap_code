@@ -2,8 +2,9 @@
 #include <neighbors.h>
 #include <ordered_neighbors.h>
 
-#define SAVE_LOG 0
+// #define SAVE_LOG 0
 // #define BASELINE 1
+// #define RUNNING_ROS 1
 
 namespace Frontiers{
 
@@ -91,7 +92,9 @@ namespace Frontiers{
                 {
                     if(!isOccupied(*n_coordinates, octree))
                     {
-                        rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
+                        #ifdef RUNNING_ROS
+                            rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
+                        #endif
                         if(!isExplored(*n_coordinates, octree))
                         {
 // #ifdef SAVE_LOG
@@ -200,10 +203,12 @@ namespace Frontiers{
     bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub, bool publish)
     {
         std::vector<Voxel> explored_space;
+        #ifdef RUNNING_ROS
         if(publish)
         { 
             rviz_interface::publish_deleteAll(marker_pub);
         }
+        #endif
         // ROS_WARN_STREAM("[Frontier] Checking neighboring obstacles for candidate frontier " << frontier);
         octomath::Vector3  min = octomath::Vector3(frontier.x() - safety_margin, frontier.y() - safety_margin, frontier.z() - safety_margin);
         octomath::Vector3  max = octomath::Vector3(frontier.x() + safety_margin, frontier.y() + safety_margin, frontier.z() + safety_margin);
@@ -225,14 +230,18 @@ namespace Frontiers{
             if(isOccupied(coord, octree))
             {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is occupied.");
+                #ifdef RUNNING_ROS
                 if (publish) rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize(), marker);
+                #endif
                 // ROS_WARN_STREAM("[Frontier] Candidate frontier had obstacle as neighbor " << frontier);
                 return true;
             }
             else
             {
                 // ROS_WARN_STREAM("[Frontiers] " << coord << " is free.");
+                #ifdef RUNNING_ROS
                 if (publish) rviz_interface::publish_voxel_free_occupied(coord, false, marker_pub, id, it.getSize(), marker);
+                #endif
             }
             known_space_markers.markers.push_back(marker);
             it++;
