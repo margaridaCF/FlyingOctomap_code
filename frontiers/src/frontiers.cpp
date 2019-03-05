@@ -154,15 +154,6 @@ namespace Frontiers{
         octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
 
-        const std::array<octomath::Vector3, 6> rayDirections ({
-                octomath::Vector3(1, 0, 0), // FRONT
-                octomath::Vector3(0, 1, 0), // LEFT
-                octomath::Vector3(0, -1, 0), // RIGHT
-                octomath::Vector3(-1, 0, 0), // BACKWARDS
-                octomath::Vector3(0, 0, -1), // UP
-                octomath::Vector3(0, 0, 1), // DOWN
-            });
-
         int i;
 
         float z_max = max.z();
