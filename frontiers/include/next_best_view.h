@@ -52,7 +52,7 @@ namespace NextBestView{
 		~NextBestViewSM(){}
 		void ProcessOPPairs(){}
 		void NewRequest(octomap::OcTree* new_octree, int request_number, int amount);
-		bool FindNextOPPairs(int amount, std::vector<observation_lib::OPPair> oppairs, int request_number);
+		bool FindNext(int amount, std::vector<observation_lib::OPPair> oppairs, int request_number);
 	};
 
 

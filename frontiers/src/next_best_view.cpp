@@ -8,10 +8,11 @@ namespace NextBestView
 		oppairs = observation_lib::OPPairs(circle_divisions, frontier_safety_margin, distance_inFront, distance_behind);
 	}
 
-	bool NextBestViewSM::FindNextOPPairs(int amount, std::vector<observation_lib::OPPair> oppairs, int request_number)
+	bool NextBestViewSM::FindNext(int amount, std::vector<observation_lib::OPPair> oppairs, int request_number)
 	{
 		if(request_number != current_request) return false;
 		else return true;
+		
 	}
 	
 	void NextBestViewSM::NewRequest(octomap::OcTree* new_octree, int request_number, int amount)
@@ -19,6 +20,6 @@ namespace NextBestView
 		current_request = request_number;
 		octree = new_octree;
 
-
+		// reset iterator
 	}
 }

@@ -31,7 +31,7 @@ namespace NextBestView{
 
 		// ACT
     	nbv_state_machine.NewRequest(&octree, request_number, amount);
-		bool success = nbv_state_machine.FindNextOPPairs(amount, oppairs, request_number+1);
+		bool success = nbv_state_machine.FindNext(amount, oppairs, request_number+1);
 
     	// ASSERT
 		ASSERT_FALSE(success);
@@ -44,7 +44,7 @@ namespace NextBestView{
 		double distance_behind = 1;
 		int circle_divisions = 1;
 		double frontier_safety_margin = 3;
-    	NextBestViewSM nbv_state_machine( distance_inFront,  distance_behind, circle_divisions,  frontier_safety_margin);		
+    	NextBestViewSM nbv_state_machine( distance_inFront,  distance_behind, circle_divisions,  frontier_safety_margin);	
 		octomap::OcTree octree ("data/circle_1m.bt");
 		int request_number = 0;
 		int amount = 10;
@@ -52,7 +52,7 @@ namespace NextBestView{
 
 		// ACT
     	nbv_state_machine.NewRequest(&octree, request_number, amount);
-		bool success = nbv_state_machine.FindNextOPPairs(amount, oppairs, request_number);
+		bool success = nbv_state_machine.FindNext(amount, oppairs, request_number);
 
     	// ASSERT
 		ASSERT_TRUE(success);

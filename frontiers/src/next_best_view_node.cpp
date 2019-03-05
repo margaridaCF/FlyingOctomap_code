@@ -45,7 +45,7 @@ namespace nbv_node
 		else
 		{
 			std::vector<observation_lib::OPPair> oppairs;
-			nbv_state_machine.FindNextOPPairs(frontier_request.frontier_amount, oppairs, frontier_request.request_number);
+			nbv_state_machine.FindNext(frontier_request.frontier_amount, oppairs, frontier_request.request_number);
 		}
 	}
 
