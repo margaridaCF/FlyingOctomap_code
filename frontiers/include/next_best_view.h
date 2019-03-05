@@ -43,11 +43,12 @@ namespace NextBestView{
 		octomap::OcTree* octree;
 		octomap::OcTree::leaf_bbx_iterator it;
 	public:
-		NextBestViewSM(){}
+		NextBestViewSM()
+		{}
 		~NextBestViewSM(){}
 		void ProcessOPPairs(){}
-		void FindNextOPPairs(int amount, std::vector<observation_lib::OPPair> oppairs){}
-		void NewRequest(octomap::OcTree* octree){}
+		void NewRequest(octomap::OcTree* new_octree, int request_number, int amount);
+		bool FindNextOPPairs(int amount, std::vector<observation_lib::OPPair> oppairs, int request_number);
 	};
 
 

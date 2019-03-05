@@ -29,10 +29,13 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # does some bookkeeping so that your library target can be implicitly used later
 cs_add_library(neighbors src/neighbors.cpp)
 cs_add_library(frontiers_lib src/frontiers.cpp)
+cs_add_library(next_best_view_lib src/next_best_view.cpp)
 # cs_add_targets_to_package(frontiers_msgs)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
 cs_add_executable(next_best_view_node src/next_best_view_node.cpp)
+target_link_libraries(next_best_view_node next_best_view_lib)
+
 cs_add_executable(frontiers_async_node src/frontiers_async_node.cpp)
 target_link_libraries(frontiers_async_node frontiers_lib neighbors)
 
@@ -61,14 +64,18 @@ if(CATKIN_ENABLE_TESTING)
 
   # WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # Octree @ neighbors ##
-  catkin_add_gtest(neighborTests 
-    test/neighbor_tests.cpp
+  # catkin_add_gtest(neighborTests 
+  #   test/neighbor_tests.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(neighborTests ${catkin_LIBRARIES} frontiers_lib neighbors)
+  # catkin_add_gtest(frontiers_tests 
+  #   test/frontier_lib_tests.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
+  catkin_add_gtest(next_best_view_tests 
+    test/next_best_view_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(neighborTests ${catkin_LIBRARIES} frontiers_lib neighbors)
-  catkin_add_gtest(frontiers_tests 
-    test/frontier_lib_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
+  target_link_libraries(next_best_view_tests ${catkin_LIBRARIES} next_best_view_lib)
 
 endif()
 

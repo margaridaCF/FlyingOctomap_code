@@ -13,6 +13,7 @@
 namespace nbv_node
 {
 	octomap::OcTree* octree;
+	octomap::OcTree* octree_inUse;
 	ros::Publisher marker_pub;
 	ros::Publisher local_pos_pub;
 	std::string folder_name;
@@ -35,11 +36,23 @@ namespace nbv_node
 	void frontier_callback(const frontiers_msgs::FrontierRequest::ConstPtr& frontier_request)
 	{
 
+		if (frontier_request.new_request)
+		{
+			delete octree_inUse;
+			octree_inUse = octree;
+			nbv_state_machine.NewRequest(&octree_inUse, frontier_request.request_number);
+		}
+		else
+		{
+			std::vector<observation_lib::OPPair> oppairs;
+			nbv_state_machine.FindNextOPPairs(frontier_request.frontier_amount, oppairs, frontier_request.request_number);
+		}
 	}
 
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
 		delete octree;
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
+		nbv_state_machine = NextBestView::NextBestViewSM();
 		octomap_init = true;
 	}
 }
