@@ -23,10 +23,10 @@ namespace NextBestView{
 		double distance_behind = 1;
 		int circle_divisions = 1;
 		double frontier_safety_margin = 3;
-    	NextBestViewSM nbv_state_machine( distance_inFront,  distance_behind, circle_divisions,  frontier_safety_margin);	
+		ros::Publisher marker_pub;
+		bool publish = false;
+    	NextBestViewSM nbv_state_machine( distance_inFront,  distance_behind, circle_divisions, frontier_safety_margin, marker_pub, publish);	
 		octomap::OcTree octree ("data/circle_1m.bt");
-		int request_number = 0;
-		int amount = 10;
 		std::vector<observation_lib::OPPair> oppairs;
 		geometry_msgs::Point min, max;
 		min.x = 0;
@@ -34,11 +34,15 @@ namespace NextBestView{
 		min.z = 0;
 		max.x = 6;
 		max.y = 2;
-		max.z = 2;
+		max.z = 2;	
+		frontiers_msgs::FrontierRequest request;
+		request.frontier_amount = 10;
+		request.request_number = 0;
 
 		// ACT
-    	nbv_state_machine.NewRequest(&octree, request_number, amount, max, min);
-		bool success = nbv_state_machine.FindNext(amount, oppairs, request_number+1);
+    	nbv_state_machine.NewRequest(&octree, request.request_number, request.amount, max, min);
+		request.request_number++;
+		bool success = nbv_state_machine.FindNext(request, oppairs);
 
     	// ASSERT
 		ASSERT_FALSE(success);
@@ -51,10 +55,12 @@ namespace NextBestView{
 		double distance_behind = 1;
 		int circle_divisions = 1;
 		double frontier_safety_margin = 3;
-    	NextBestViewSM nbv_state_machine( distance_inFront,  distance_behind, circle_divisions,  frontier_safety_margin);	
-		octomap::OcTree octree ("data/circle_1m.bt");
-		int request_number = 0;
-		int amount = 10;
+		bool publish = false;
+    	NextBestViewSM nbv_state_machine( distance_inFront,  distance_behind, circle_divisions, frontier_safety_margin, marker_pub, publish);	
+		octomap::OcTree octree ("data/circle_1m.bt");	
+		frontiers_msgs::FrontierRequest request;
+		request.frontier_amount = 10;
+		request.request_number = 0;
 		std::vector<observation_lib::OPPair> oppairs;
 		geometry_msgs::Point min, max;
 		min.x = 0;
@@ -65,8 +71,8 @@ namespace NextBestView{
 		max.z = 2;
 
 		// ACT
-    	nbv_state_machine.NewRequest(&octree, request_number, amount, max, min);
-		bool success = nbv_state_machine.FindNext(amount, oppairs, request_number);
+    	nbv_state_machine.NewRequest(&octree, request.request_number, request.amount, max, min);
+		bool success = nbv_state_machine.FindNext(request, oppairs);
 
     	// ASSERT
 		ASSERT_TRUE(success);

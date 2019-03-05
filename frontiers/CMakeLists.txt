@@ -29,12 +29,12 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # does some bookkeeping so that your library target can be implicitly used later
 cs_add_library(neighbors src/neighbors.cpp)
 cs_add_library(frontiers_lib src/frontiers.cpp)
-cs_add_library(next_best_view_lib src/next_best_view.cpp)
+cs_add_library(next_best_view_lib src/next_best_view.cpp )
 # cs_add_targets_to_package(frontiers_msgs)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
 cs_add_executable(next_best_view_node src/next_best_view_node.cpp)
-target_link_libraries(next_best_view_node next_best_view_lib)
+target_link_libraries(next_best_view_node next_best_view_lib )
 
 cs_add_executable(frontiers_async_node src/frontiers_async_node.cpp)
 target_link_libraries(frontiers_async_node frontiers_lib neighbors)

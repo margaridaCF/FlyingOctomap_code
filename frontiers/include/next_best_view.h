@@ -38,6 +38,8 @@ namespace NextBestView{
 
 	class NextBestViewSM
 	{
+		ros::Publisher const& marker_pub;
+		bool publish;
 		int current_request;
         std::set<octomath::Vector3, Vector3Hash> empty_space_neighbours; 
 		octomap::OcTree* octree;
@@ -48,11 +50,11 @@ namespace NextBestView{
 	    observation_lib::OPPairs 			oppairs;
 
 	public:
-		NextBestViewSM(double distance_inFront, double distance_behind, int circle_divisions, double frontier_safety_margin);
+		NextBestViewSM(double distance_inFront, double distance_behind, int circle_divisions, double frontier_safety_margin, ros::Publisher const& marker_pub, bool publish);
 		~NextBestViewSM(){}
 		void ProcessOPPairs(){}
-		void NewRequest(octomap::OcTree* new_octree, int request_number, int amount, geometry_msgs::Point max, geometry_msgs::Point min);
-		bool FindNext(int amount, std::vector<observation_lib::OPPair> oppairs, int request_number);
+		void NewRequest(octomap::OcTree* new_octree, frontiers_msgs::FrontierRequest const& request);
+		bool FindNext(frontiers_msgs::FrontierRequest const& request, std::vector<observation_lib::OPPair> oppairs);
 	};
 
 
