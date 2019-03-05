@@ -55,6 +55,17 @@ namespace nbv_node
 		nbv_state_machine = NextBestView::NextBestViewSM();
 		octomap_init = true;
 	}
+
+	void init_variables(ros::NodeHandle nh)
+	{
+		double distance_inFront,  distance_behind, circle_divisions,  frontier_safety_margin;
+        // Goal state machine
+        nh.getParam("oppairs/distance_inFront", distance_inFront);
+        nh.getParam("oppairs/distance_behind",  distance_behind);
+        nh.getParam("oppairs/circle_divisions",  circle_divisions);
+        nh.getParam("frontier/safety_margin", frontier_safety_margin);
+    	nbv_state_machine( distance_inFront,  distance_behind, circle_divisions,  frontier_safety_margin);	
+	}
 }
 
 int main(int argc, char **argv)
@@ -69,7 +80,7 @@ int main(int argc, char **argv)
 
 	ros::init(argc, argv, "next_best_view_node");
 	ros::NodeHandle nh;
-
+	init_variables(nh);
 	ros::ServiceServer frontier_status_service = nh.advertiseService("frontier_status", nbv_node::check_status);
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, nbv_node::octomap_callback);
 	ros::Subscriber frontiers_sub = nh.subscribe<frontiers_msgs::FrontierRequest>("frontiers_request", 10, nbv_node::frontier_callback);

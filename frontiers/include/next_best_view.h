@@ -42,9 +42,13 @@ namespace NextBestView{
         std::set<octomath::Vector3, Vector3Hash> empty_space_neighbours; 
 		octomap::OcTree* octree;
 		octomap::OcTree::leaf_bbx_iterator it;
+
+		geometry_msgs::Point 				geofence_min, geofence_max;
+    	double 								path_safety_margin;
+	    observation_lib::OPPairs 			oppairs;
+
 	public:
-		NextBestViewSM()
-		{}
+		NextBestViewSM(double distance_inFront, double distance_behind, int circle_divisions, double frontier_safety_margin);
 		~NextBestViewSM(){}
 		void ProcessOPPairs(){}
 		void NewRequest(octomap::OcTree* new_octree, int request_number, int amount);

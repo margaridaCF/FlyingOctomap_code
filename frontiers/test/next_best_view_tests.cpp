@@ -19,7 +19,11 @@ namespace NextBestView{
 	TEST(NextBestViewTests, WrongRequestNumber)
 	{
 		// ARRANGE
-    	NextBestViewSM nbv_state_machine;	
+		double distance_inFront = 1;
+		double distance_behind = 1;
+		int circle_divisions = 1;
+		double frontier_safety_margin = 3;
+    	NextBestViewSM nbv_state_machine( distance_inFront,  distance_behind, circle_divisions,  frontier_safety_margin);	
 		octomap::OcTree octree ("data/circle_1m.bt");
 		int request_number = 0;
 		int amount = 10;
@@ -36,7 +40,11 @@ namespace NextBestView{
 	TEST(NextBestViewTests, CorrectRequestNumber)
 	{
 		// ARRANGE
-    	NextBestViewSM nbv_state_machine;	
+		double distance_inFront = 1;
+		double distance_behind = 1;
+		int circle_divisions = 1;
+		double frontier_safety_margin = 3;
+    	NextBestViewSM nbv_state_machine( distance_inFront,  distance_behind, circle_divisions,  frontier_safety_margin);		
 		octomap::OcTree octree ("data/circle_1m.bt");
 		int request_number = 0;
 		int amount = 10;

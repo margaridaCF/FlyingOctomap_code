@@ -2,7 +2,11 @@
 
 namespace NextBestView
 {
-
+	NextBestViewSM::NextBestViewSM(double distance_inFront, double distance_behind, int circle_divisions, double frontier_safety_margin)
+		:geofence_min(geofence_min), geofence_max(geofence_max), path_safety_margin(path_safety_margin)
+	{
+		oppairs = observation_lib::OPPairs(circle_divisions, frontier_safety_margin, distance_inFront, distance_behind);
+	}
 
 	bool NextBestViewSM::FindNextOPPairs(int amount, std::vector<observation_lib::OPPair> oppairs, int request_number)
 	{
@@ -14,5 +18,7 @@ namespace NextBestView
 	{
 		current_request = request_number;
 		octree = new_octree;
+
+
 	}
 }
