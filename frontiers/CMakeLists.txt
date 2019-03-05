@@ -64,14 +64,14 @@ if(CATKIN_ENABLE_TESTING)
 
   # WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # Octree @ neighbors ##
-  # catkin_add_gtest(neighborTests 
-  #   test/neighbor_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(neighborTests ${catkin_LIBRARIES} frontiers_lib neighbors)
-  # catkin_add_gtest(frontiers_tests 
-  #   test/frontier_lib_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
+  catkin_add_gtest(neighborTests 
+    test/neighbor_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(neighborTests ${catkin_LIBRARIES} frontiers_lib neighbors)
+  catkin_add_gtest(frontiers_tests 
+    test/frontier_lib_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
   catkin_add_gtest(next_best_view_tests 
     test/next_best_view_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)

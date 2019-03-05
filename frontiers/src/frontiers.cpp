@@ -23,48 +23,12 @@ namespace Frontiers{
         return voxel_side/2 + octree_resolution/2 < sensing_distance ;
     }
 
-    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
+    void innnerLoop(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish)
     {
-
-#ifdef SAVE_LOG
+        #ifdef SAVE_LOG
         log_file.open ("/ros_ws/src/data/current/frontiers.log", std::ofstream::app);
-#endif
-        // std::ofstream log;
-        // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
-        double resolution = octree.getResolution();
-        double unknown_neighbor_distance = request.safety_margin + (resolution/2);
-        reply.header.seq = request.header.seq + 1;
-        reply.request_id = request.header.seq;
-        reply.header.frame_id = request.header.frame_id;
-        octomath::Vector3  max = octomath::Vector3(request.max.x-resolution, request.max.y-resolution, request.max.z-resolution);
-        octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
-        int frontiers_count = 0;
+        #endif
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
-
-        const std::array<octomath::Vector3, 6> rayDirections ({
-                octomath::Vector3(1, 0, 0), // FRONT
-                octomath::Vector3(0, 1, 0), // LEFT
-                octomath::Vector3(0, -1, 0), // RIGHT
-                octomath::Vector3(-1, 0, 0), // BACKWARDS
-                octomath::Vector3(0, 0, -1), // UP
-                octomath::Vector3(0, 0, 1), // DOWN
-            });
-
-        bool is_frontier;
-        octomath::Vector3 grid_coordinates_curr, grid_coordinates_toTest;
-        int i;
-
-        float z_max = max.z();
-        float z_min = min.z();
-
-        Voxel currentVoxel;
-        octomap::OcTreeKey bbxMinKey, bbxMaxKey;
-        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
-        {
-            ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
-            reply.success = false;
-            return reply.success;
-        }
         #ifdef BASELINE 
         frontiers_msgs::VoxelMsg current_position_voxel_msg;
         current_position_voxel_msg.xyz_m.x = current_position.x();
@@ -72,7 +36,11 @@ namespace Frontiers{
         current_position_voxel_msg.xyz_m.z = current_position.z();
         OrderedNeighbors allNeighbors (current_position_voxel_msg);
         #endif
-        octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
+        octomath::Vector3 grid_coordinates_curr, grid_coordinates_toTest;
+        Voxel currentVoxel;
+        bool is_frontier;
+        double resolution = octree.getResolution();
+        int frontiers_count = 0;
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount)
         {
             bool use_center_as_goal = isCenterGoodGoal(it.getSize(), resolution, request.sensing_distance);
@@ -167,12 +135,51 @@ namespace Frontiers{
         #else
         reply.frontiers_found = frontiers_count;
         #endif
-
-        reply.success = true;
-
         #ifdef SAVE_LOG
         log_file.close();
         #endif
+    }
+
+    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
+    {
+
+        // std::ofstream log;
+        // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
+        double resolution = octree.getResolution();
+        double unknown_neighbor_distance = request.safety_margin + (resolution/2);
+        reply.header.seq = request.header.seq + 1;
+        reply.request_id = request.header.seq;
+        reply.header.frame_id = request.header.frame_id;
+        octomath::Vector3  max = octomath::Vector3(request.max.x-resolution, request.max.y-resolution, request.max.z-resolution);
+        octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
+        octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
+
+        const std::array<octomath::Vector3, 6> rayDirections ({
+                octomath::Vector3(1, 0, 0), // FRONT
+                octomath::Vector3(0, 1, 0), // LEFT
+                octomath::Vector3(0, -1, 0), // RIGHT
+                octomath::Vector3(-1, 0, 0), // BACKWARDS
+                octomath::Vector3(0, 0, -1), // UP
+                octomath::Vector3(0, 0, 1), // DOWN
+            });
+
+        int i;
+
+        float z_max = max.z();
+        float z_min = min.z();
+
+        octomap::OcTreeKey bbxMinKey, bbxMaxKey;
+        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
+        {
+            ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
+            reply.success = false;
+            return reply.success;
+        }
+        octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
+        innnerLoop(octree, it, request, reply, marker_pub, publish);
+
+        reply.success = true;
+
         return reply.success;
     }
 
