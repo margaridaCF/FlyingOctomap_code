@@ -28,9 +28,16 @@ namespace NextBestView{
 		int request_number = 0;
 		int amount = 10;
 		std::vector<observation_lib::OPPair> oppairs;
+		geometry_msgs::Point min, max;
+		min.x = 0;
+		min.y = 0;
+		min.z = 0;
+		max.x = 6;
+		max.y = 2;
+		max.z = 2;
 
 		// ACT
-    	nbv_state_machine.NewRequest(&octree, request_number, amount);
+    	nbv_state_machine.NewRequest(&octree, request_number, amount, max, min);
 		bool success = nbv_state_machine.FindNext(amount, oppairs, request_number+1);
 
     	// ASSERT
@@ -49,9 +56,16 @@ namespace NextBestView{
 		int request_number = 0;
 		int amount = 10;
 		std::vector<observation_lib::OPPair> oppairs;
+		geometry_msgs::Point min, max;
+		min.x = 0;
+		min.y = 0;
+		min.z = 0;
+		max.x = 6;
+		max.y = 2;
+		max.z = 2;
 
 		// ACT
-    	nbv_state_machine.NewRequest(&octree, request_number, amount);
+    	nbv_state_machine.NewRequest(&octree, request_number, amount, max, min);
 		bool success = nbv_state_machine.FindNext(amount, oppairs, request_number);
 
     	// ASSERT

@@ -12,14 +12,24 @@ namespace NextBestView
 	{
 		if(request_number != current_request) return false;
 		else return true;
-		
+
 	}
 	
-	void NextBestViewSM::NewRequest(octomap::OcTree* new_octree, int request_number, int amount)
+	void NextBestViewSM::NewRequest(octomap::OcTree* new_octree, int request_number, int amount, geometry_msgs::Point max, geometry_msgs::Point min)
 	{
 		current_request = request_number;
 		octree = new_octree;
 
 		// reset iterator
+        double resolution = octree->getResolution();
+        octomath::Vector3  max_v = octomath::Vector3(max.x-resolution, max.y-resolution, max.z-resolution);
+        octomath::Vector3  min_v = octomath::Vector3(min.x+resolution, min.y+resolution, min.z+resolution);
+		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
+        if(!octree->coordToKeyChecked(min_v, bbxMinKey) || !octree->coordToKeyChecked(max_v, bbxMaxKey))
+        {
+            ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
+        }
+		it = octree->begin_leafs_bbx(bbxMinKey,bbxMaxKey);
 	}
+
 }

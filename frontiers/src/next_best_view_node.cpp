@@ -40,7 +40,7 @@ namespace nbv_node
 		{
 			delete octree_inUse;
 			octree_inUse = octree;
-			nbv_state_machine.NewRequest(&octree_inUse, frontier_request.request_number);
+			nbv_state_machine.NewRequest(&octree_inUse, frontier_request.request_number, frontier_request.max, frontier_request.min);
 		}
 		else
 		{

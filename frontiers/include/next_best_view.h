@@ -51,7 +51,7 @@ namespace NextBestView{
 		NextBestViewSM(double distance_inFront, double distance_behind, int circle_divisions, double frontier_safety_margin);
 		~NextBestViewSM(){}
 		void ProcessOPPairs(){}
-		void NewRequest(octomap::OcTree* new_octree, int request_number, int amount);
+		void NewRequest(octomap::OcTree* new_octree, int request_number, int amount, geometry_msgs::Point max, geometry_msgs::Point min);
 		bool FindNext(int amount, std::vector<observation_lib::OPPair> oppairs, int request_number);
 	};
 
