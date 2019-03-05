@@ -3,6 +3,7 @@
 #include <octomap_msgs/Octomap.h>
 #include <octomap_msgs/conversions.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <next_best_view.h>
 #include <frontiers.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
 #include <frontiers_msgs/CheckIsFrontier.h>
@@ -18,6 +19,7 @@ namespace nbv_node
 	ros::Publisher marker_pub;
 	ros::Publisher local_pos_pub;
 	std::string folder_name;
+    NextBestView::NextBestViewSM nbv_state_machine;
 
 	#ifdef SAVE_CSV
 	struct sysinfo memInfo;
