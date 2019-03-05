@@ -82,5 +82,7 @@ namespace Frontiers{
     bool isExplored(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree);
     bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate, double sensor_angle); 
     bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub, bool publish = true);
+    void searchFrontier(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish);
+    
 }
 #endif // FRONTIERS_H

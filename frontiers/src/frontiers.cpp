@@ -23,7 +23,7 @@ namespace Frontiers{
         return voxel_side/2 + octree_resolution/2 < sensing_distance ;
     }
 
-    void innnerLoop(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish)
+    void searchFrontier(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish)
     {
         #ifdef SAVE_LOG
         log_file.open ("/ros_ws/src/data/current/frontiers.log", std::ofstream::app);
@@ -167,7 +167,7 @@ namespace Frontiers{
             return reply.success;
         }
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-        innnerLoop(octree, it, request, reply, marker_pub, publish);
+        searchFrontier(octree, it, request, reply, marker_pub, publish);
 
         reply.success = true;
 
