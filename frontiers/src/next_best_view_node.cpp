@@ -7,9 +7,6 @@
 #include <frontiers.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
 #include <frontiers_msgs/CheckIsFrontier.h>
-// RAM
-#include "sys/types.h"
-#include "sys/sysinfo.h"
 
 #define SAVE_CSV 1
 
@@ -22,32 +19,11 @@ namespace nbv_node
     NextBestView::NextBestViewSM nbv_state_machine;
 
 	#ifdef SAVE_CSV
-	struct sysinfo memInfo;
 	std::ofstream log;
-	std::ofstream volume_explored;
 	std::chrono::high_resolution_clock::time_point start_exploration;
 	#endif
 
 	bool octomap_init;
-
-	double calculate_volume_explored(octomath::Vector3 const& min, octomath::Vector3 const& max)
-	{
-        int frontiers_count = 0;
-		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
-        if(!octree->coordToKeyChecked(min, bbxMinKey) || !octree->coordToKeyChecked(max, bbxMaxKey))
-        {
-            ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
-        	return 0;
-        }
-		octomap::OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-		double volume = 0;
-		while( !(it == octree->end_leafs_bbx()) )
-		{
-			volume += pow(it.getSize(), 3);
-            it++;
-		}
-		return volume;
-	}
 
 	bool check_status(frontiers_msgs::FrontierNodeStatus::Request  &req,
         frontiers_msgs::FrontierNodeStatus::Response &res)
@@ -75,9 +51,6 @@ int main(int argc, char **argv)
 	nbv_node::log.open (nbv_node::folder_name + "/nbv_computation_time.csv", std::ofstream::app);
 	nbv_node::log << "computation_time_millis, computation_time_secs \n";
 	nbv_node::log.close();
-	nbv_node::volume_explored.open (nbv_node::folder_name + "/volume_explored.csv", std::ofstream::app);
-	nbv_node::volume_explored << "time ellapsed minutes,volume,RAM\n";
-	nbv_node::volume_explored.close();
 	nbv_node::start_exploration = std::chrono::high_resolution_clock::now();
 	#endif
 
