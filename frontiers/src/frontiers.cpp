@@ -62,11 +62,6 @@ namespace Frontiers{
                 {
                     if(!isOccupied(*n_coordinates, octree))
                     {
-                        #ifdef RUNNING_ROS
-                        ROS_INFO_STREAM("[Frontiers] Adding marker for (" << grid_coordinates_curr.x() << ", " 
-                            << grid_coordinates_curr.y() << ", " << grid_coordinates_curr.z() << ")");
-                        rviz_interface::publish_sensing_position(grid_coordinates_curr, frontiers_count, marker_array);
-                        #endif
                         if(!isExplored(*n_coordinates, octree))
                         {
                             // #ifdef SAVE_LOG
@@ -98,7 +93,11 @@ namespace Frontiers{
                             }
                             if(approved_frontier)
                             {
-
+                                #ifdef RUNNING_ROS
+                                ROS_INFO_STREAM("[Frontiers] Adding marker for (" << grid_coordinates_curr.x() << ", " 
+                                    << grid_coordinates_curr.y() << ", " << grid_coordinates_curr.z() << ")");
+                                rviz_interface::publish_sensing_position(grid_coordinates_curr, frontiers_count, marker_array);
+                                #endif
                                 voxel_msg.xyz_m.x = grid_coordinates_curr.x();
                                 voxel_msg.xyz_m.y = grid_coordinates_curr.y();
                                 voxel_msg.xyz_m.z = grid_coordinates_curr.z();
