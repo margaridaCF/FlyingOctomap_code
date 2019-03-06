@@ -4,7 +4,7 @@
 
 // #define SAVE_LOG 0
 // #define BASELINE 1
-// #define RUNNING_ROS 1
+#define RUNNING_ROS 1
 
 namespace Frontiers{
 
@@ -41,6 +41,7 @@ namespace Frontiers{
         bool is_frontier;
         double resolution = octree.getResolution();
         int frontiers_count = 0;
+        visualization_msgs::MarkerArray marker_array;
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount)
         {
             bool use_center_as_goal = isCenterGoodGoal(it.getSize(), resolution, request.sensing_distance);
@@ -62,7 +63,9 @@ namespace Frontiers{
                     if(!isOccupied(*n_coordinates, octree))
                     {
                         #ifdef RUNNING_ROS
-                            rviz_interface::publish_sensing_position(grid_coordinates_curr, marker_pub);
+                        ROS_INFO_STREAM("[Frontiers] Adding marker for (" << grid_coordinates_curr.x() << ", " 
+                            << grid_coordinates_curr.y() << ", " << grid_coordinates_curr.z() << ")");
+                        rviz_interface::publish_sensing_position(grid_coordinates_curr, frontiers_count, marker_array);
                         #endif
                         if(!isExplored(*n_coordinates, octree))
                         {
@@ -129,6 +132,10 @@ namespace Frontiers{
             }
             it++;
         }
+
+        #ifdef RUNNING_ROS
+        marker_pub.publish(marker_array);
+        #endif
 
         #ifdef BASELINE
         allNeighbors.buildMessageList(request.frontier_amount, reply);

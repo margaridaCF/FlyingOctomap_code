@@ -333,17 +333,15 @@ namespace rviz_interface
     }
 
 
-    void publish_sensing_position(octomath::Vector3 const& position, ros::Publisher const& marker_pub)
+    void publish_sensing_position(octomath::Vector3 const& position, int id, visualization_msgs::MarkerArray & marker_array)
     {
         float red = 0.0f;
         float green = 0.0f;
-        float blue = 0.25f;
+        float blue = 0.4f;
         // publish_small_marker(position, marker_pub,red,  green,  blue, "unknown_neighbor", 24);
         visualization_msgs::Marker marker;
-        build_small_marker(position, marker, red, green, blue, "unknown_neighbor", 24);
-        visualization_msgs::MarkerArray marker_array;
+        build_small_marker(position, marker, red, green, blue, "unknown_target", id, 0.1);
         marker_array.markers.push_back(marker);
-        marker_pub.publish(marker_array);
     }
 
     void publish_start_voxel(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size)
