@@ -17,6 +17,10 @@
 #include <frontiers_msgs/FrontierReply.h>
 #include <frontiers_msgs/FrontierRequest.h>
 
+// #define SAVE_LOG 0
+// #define BASELINE 1
+// #define RUNNING_ROS 1
+
 
 namespace Frontiers{
 
@@ -36,7 +40,18 @@ namespace Frontiers{
         }
     };
 
-    
+    struct VectorComparatorEqual // for unordered_map
+    { 
+        bool operator () (const octomath::Vector3 & lhs, const octomath::Vector3 & rhs) const 
+        { 
+            double scale = 0.0001;
+            // ROS_WARN_STREAM(   std::setprecision(8) << "Distance from " << lhs << " and  " << rhs << " is " << lhs.distance(rhs) << " <= " << scale << " returning " << (lhs.distance(rhs) <= scale)   );
+            return lhs.distance(rhs) <= scale;
+            // returns !0 if the two container object keys passed as arguments are to be considered equal.
+        } 
+    };
+
+
     class Voxel
         {
         public:

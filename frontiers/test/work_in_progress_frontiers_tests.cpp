@@ -1,10 +1,9 @@
 #include <gtest/gtest.h>
+#include <next_best_view.h>
 #include <frontiers.h>
 #include <neighbors.h>
-#include <ordered_neighbors.h>
-#include <chrono>
 
-namespace LazyThetaStarOctree
+namespace Frontiers
 {
 	void printForMatlab(std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors)
 	{
@@ -19,103 +18,55 @@ namespace LazyThetaStarOctree
 		}
 	}
 
-	// TEST(OctreeNeighborTest, NeighborTest_generateFromRealData_Depth13)
-	// {
-	// 	// ARRANGE
-	// 	std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors_us;
-	// 	octomap::OcTree octree ("data/circle_1m.bt");
-	// 	double sidelength_lookup_table  [octree.getTreeDepth()];
-	//    	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-	// 	octomath::Vector3 point_coordinates (10.4f, -0.8f, 0.8f);
-	// 	octomap::OcTreeKey point_key = octree.coordToKey(point_coordinates);
-	// 	int depth = LazyThetaStarOctree::getNodeDepth_Octomap(point_key, octree);
-	// 	EXPECT_EQ(13, depth);
-	// 	double node_size = octree.getNodeSize(depth); // in meters
-	// 	EXPECT_EQ(1.6, node_size);
-	// 	float resolution = octree.getResolution();
-	// 	EXPECT_FLOAT_EQ(0.2, resolution);
-	// 	// ACT
-	// 	octomath::Vector3 cell_center_coordinates = LazyThetaStarOctree::getCellCenter(point_coordinates, octree);
-	// 	// auto start = std::chrono::high_resolution_clock::now();
-	// 	// LazyThetaStarOctree::generateNeighbors_pointers(neighbors_us, cell_center_coordinates, node_size, resolution);
-	// 	// auto finish = std::chrono::high_resolution_clock::now();
-	// 	// auto time_span = finish - start;
-	// 	// ROS_WARN_STREAM("Old took " << std::chrono::duration_cast<std::chrono::nanoseconds>(time_span).count());
 
-	// 	// start = std::chrono::high_resolution_clock::now();
-	// 	// LazyThetaStarOctree::generateNeighbors_pointers_sparse(octree, sidelength_lookup_table, neighbors_us, cell_center_coordinates, node_size, resolution);
-	// 	// finish = std::chrono::high_resolution_clock::now();
-	// 	// time_span = finish - start;
-	// 	// ROS_WARN_STREAM("Sparse took " << std::chrono::duration_cast<std::chrono::nanoseconds>(time_span).count());
-
-	// 	// Calculate fraction
-	// 	double margin = 1;
-	// 	int check_only_x_fraction = 3;
-	// 	double resolution_for_neighbors_m = calculate_fraction(resolution, margin, check_only_x_fraction);
-	// 	auto start = std::chrono::high_resolution_clock::now();
-	// 	LazyThetaStarOctree::generateNeighbors_pointers_margin(neighbors_us, cell_center_coordinates, node_size, resolution, resolution_for_neighbors_m);
-	// 	auto finish = std::chrono::high_resolution_clock::now();
-	// 	auto time_span = finish - start;
-	// 	ROS_WARN_STREAM("Security margin took " << std::chrono::duration_cast<std::chrono::nanoseconds>(time_span).count());
-	// 	printForMatlab(neighbors_us);
-	// 	// printForMatlab(neighbors_us);
-	// }
-
-	TEST(OctreeNeighborTest, NeighborTest_generateMargin_Depth11)
+	TEST(OctreeNeighborTest, NeighborTest_generateFromRealData_MaxRes_2D)
 	{
 		// ARRANGE
-		std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors_us;
-		octomath::Vector3 point_coordinates (10.4f, -0.8f, 0.8f);
-		float resolution = 0.2;
-		float node_size = 3.2;
-		// ACT
-		// Calculate fraction
-		double margin = 1;
-		int check_only_x_fraction = 2;
-		double resolution_for_neighbors_m = calculate_fraction(resolution, margin, check_only_x_fraction);
-		auto start = std::chrono::high_resolution_clock::now();
-		LazyThetaStarOctree::generateNeighbors_pointers_margin(neighbors_us, point_coordinates, node_size, resolution, resolution_for_neighbors_m);
-		auto finish = std::chrono::high_resolution_clock::now();
-		auto time_span = finish - start;
-		ROS_WARN_STREAM("Security margin took " << std::chrono::duration_cast<std::chrono::nanoseconds>(time_span).count());
-		printForMatlab(neighbors_us);
-	}
+		octomap::OcTree octree ("data/circle_1m.bt");
+		double distance_inFront = 1;
+		double distance_behind = 1;
+		double circle_divisions = 12;
+		double frontier_safety_margin = 4;
+		ros::Publisher marker_pub;
+    	Frontiers::NextBestViewSM nbv_state_machine( distance_inFront, distance_behind, circle_divisions, frontier_safety_margin, marker_pub, true);
 
+    	frontiers_msgs::FrontierRequest request;
+		request.header.seq = 1;
+		request.header.frame_id = "request_frame";
+		request.min.x = 0;
+		request.min.y = 0;
+		request.min.z = 2;
+		request.max.x = 10;
+		request.max.y = 10;
+		request.max.z = 10;
+		request.current_position.x = 0;
+		request.current_position.y = 0;
+		request.current_position.z = 2;
+		request.frontier_amount = 10;
+		request.min_distance = 4.0;
+		request.safety_margin = 4.0;
+		request.sensing_distance = 5.0;
+		request.sensor_angle = 0.0;
+		request.new_request = true ;
 
-	// TEST(OctreeNeighborTest, NeighborTest_generateFromRealData_MaxRes_2D)
-	// {
-	// 	// ARRANGE
-	// 	std::list <octomath::Vector3> right_answers (
-	// 		{	octomath::Vector3(0.18f, 0.22f, 0), 
-	// 			octomath::Vector3(0.18f, -0.02f, 0), 
-	// 			octomath::Vector3(-0.22f, 0.18f, 0),
-	// 			octomath::Vector3(0.22f, 0.18f, 0)} );
-	// 	octomap::OcTree octree ("data/circle_1m.bt");
-	// 	double sidelength_lookup_table  [octree.getTreeDepth()];
-	//    	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
-	// 	octomath::Vector3 point_coordinates (0,0,0);
-	// 	octomap::OcTreeKey point_key = octree.coordToKey(point_coordinates);
-	// 	int depth = LazyThetaStarOctree::getNodeDepth_Octomap(point_key, octree);
-	// 	EXPECT_EQ(16, depth);
-	// 	double node_size = octree.getNodeSize(depth); // in meters
-	// 	EXPECT_EQ(0.2, node_size);
-	// 	double resolution = octree.getResolution();
-	// 	EXPECT_EQ(0.2, resolution);
-	// 	// ACT
-	// 	octomath::Vector3 cell_center_coordinates = LazyThetaStarOctree::getCellCenter(point_coordinates, octree);
-	// 	std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors_us;
-	// 	auto start = std::chrono::high_resolution_clock::now();
-	// 	LazyThetaStarOctree::generateNeighbors_pointers(neighbors_us, cell_center_coordinates, node_size, resolution);
-	// 	auto finish = std::chrono::high_resolution_clock::now();
-	// 	auto time_span = finish - start;
-	// 	ROS_WARN_STREAM("Old took " << std::chrono::duration_cast<std::chrono::nanoseconds>(time_span).count());
-	// 	start = std::chrono::high_resolution_clock::now();
-	// 	LazyThetaStarOctree::generateNeighbors_pointers_sparse(octree, sidelength_lookup_table, neighbors_us, cell_center_coordinates, node_size, resolution);
-	// 	finish = std::chrono::high_resolution_clock::now();
-	// 	time_span = finish - start;
-	// 	ROS_WARN_STREAM("Sparse took " << std::chrono::duration_cast<std::chrono::nanoseconds>(time_span).count());
+		frontiers_msgs::FrontierReply reply;
 		
-	// }
+		// ACT
+		nbv_state_machine.NewRequest(&octree, request);
+		std::vector<observation_lib::OPPair> oppairs;
+		nbv_state_machine.FindNext(request, reply, oppairs);
+
+		// ASSERT
+		ASSERT_EQ(reply.frontiers_found, request.frontier_amount);
+		LazyThetaStarOctree::unordered_set_pointers result;
+		for (int i = 0; i < request.frontier_amount; ++i)
+		{
+			ROS_INFO_STREAM("(" << reply.frontiers[i].xyz_m.x << ", " << reply.frontiers[i].xyz_m.y << ", " << reply.frontiers[i].xyz_m.x << ")");
+	        std::shared_ptr<octomath::Vector3> toInsert_ptr = std::make_shared<octomath::Vector3> (reply.frontiers[i].xyz_m.x,  reply.frontiers[i].xyz_m.y, reply.frontiers[i].xyz_m.x);
+			result.insert(toInsert_ptr);
+		}
+		ASSERT_EQ(result.size(), request.frontier_amount);
+	}
 }
 
 int main(int argc, char **argv){

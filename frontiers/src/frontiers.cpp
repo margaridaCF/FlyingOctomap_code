@@ -2,10 +2,6 @@
 #include <neighbors.h>
 #include <ordered_neighbors.h>
 
-// #define SAVE_LOG 0
-// #define BASELINE 1
-#define RUNNING_ROS 1
-
 namespace Frontiers{
 
     std::ofstream log_file;
