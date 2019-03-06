@@ -14,7 +14,7 @@ namespace NextBestView
 		if(request.request_number != current_request) return false;
 		
 		frontiers_msgs::FrontierReply reply;
-    	// Frontiers::searchFrontier(*octree, it, request, reply, marker_pub, publish);
+    	Frontiers::searchFrontier(*octree, it, request, reply, marker_pub, publish);
 
 
 
