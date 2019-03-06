@@ -17,7 +17,7 @@ namespace nbv_node
 	ros::Publisher marker_pub;
 	ros::Publisher local_pos_pub;
 	std::string folder_name;
-    std::shared_ptr<NextBestView::NextBestViewSM> nbv_state_machine;
+    std::shared_ptr<Frontiers::NextBestViewSM> nbv_state_machine;
 
 	#ifdef SAVE_CSV
 	std::ofstream log;
@@ -43,7 +43,9 @@ namespace nbv_node
 			nbv_state_machine->NewRequest(octree_inUse, *frontier_request);
 		}
 		std::vector<observation_lib::OPPair> oppairs;
-		nbv_state_machine->FindNext(*frontier_request, oppairs);
+		frontiers_msgs::FrontierReply reply;
+		nbv_state_machine->FindNext(*frontier_request, reply, oppairs);
+		local_pos_pub.publish(reply);
 	}
 
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
@@ -60,7 +62,7 @@ namespace nbv_node
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
         nh.getParam("frontier/safety_margin", frontier_safety_margin);
-    	nbv_state_machine = std::make_shared<NextBestView::NextBestViewSM>( distance_inFront, distance_behind, circle_divisions, frontier_safety_margin, marker_pub, true);
+    	nbv_state_machine = std::make_shared<Frontiers::NextBestViewSM>( distance_inFront, distance_behind, circle_divisions, frontier_safety_margin, marker_pub, true);
 	}
 }
 

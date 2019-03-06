@@ -1,7 +1,7 @@
 #include <next_best_view.h>
 #include <frontiers.h>
 
-namespace NextBestView
+namespace Frontiers
 {
 	NextBestViewSM::NextBestViewSM(double distance_inFront, double distance_behind, int circle_divisions, double frontier_safety_margin, ros::Publisher const& marker_pub, bool publish)
 		:geofence_min(geofence_min), geofence_max(geofence_max), path_safety_margin(path_safety_margin), marker_pub(marker_pub)
@@ -9,11 +9,10 @@ namespace NextBestView
 		oppairs = observation_lib::OPPairs(circle_divisions, frontier_safety_margin, distance_inFront, distance_behind);
 	}
 
-	bool NextBestViewSM::FindNext(frontiers_msgs::FrontierRequest const& request, std::vector<observation_lib::OPPair> oppairs)
+	bool NextBestViewSM::FindNext(frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply& reply, std::vector<observation_lib::OPPair> oppairs)
 	{
 		if(request.request_number != current_request) return false;
 		
-		frontiers_msgs::FrontierReply reply;
     	Frontiers::searchFrontier(*octree, it, request, reply, marker_pub, publish);
 
 

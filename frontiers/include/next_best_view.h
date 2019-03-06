@@ -1,40 +1,11 @@
 #ifndef NBV_H
 #define NBV_H
 
-#include <vector>
-#include <cmath>
-#include <sstream>
-#include <iostream>
-#include <fstream>
-#include <chrono>
-#include <algorithm>
-
-#include <ros/ros.h>
-#include <geometry_msgs/Point.h>
-#include <marker_publishing_utils.h>
-#include <octomap/OcTree.h>
-#include <octomap/math/Vector3.h>
+#include <frontiers_common.h>
 
 #include <observation_maneuver.h>
-#include <frontiers_msgs/FrontierReply.h>
-#include <frontiers_msgs/FrontierRequest.h>
 
-namespace NextBestView{
-
-    struct Vector3Hash
-    {
-        std::size_t operator()(const octomath::Vector3 & v) const 
-        {
-            int scale = 0.00001;
-            std::size_t hx = std::hash<float>{}( (int)(v.x() / scale) * scale );
-            std::size_t hy = std::hash<float>{}( (int)(v.y() / scale) * scale );
-            std::size_t hz = std::hash<float>{}( (int)(v.z() / scale) * scale );
-            std::size_t return_value = ((hx 
-               ^ (hy << 1)) >> 1)
-               ^ (hz << 1);
-            return return_value;
-        }
-    };
+namespace Frontiers{
 
 	class NextBestViewSM
 	{
@@ -54,7 +25,7 @@ namespace NextBestView{
 		~NextBestViewSM(){}
 		void ProcessOPPairs(){}
 		void NewRequest(octomap::OcTree* new_octree, frontiers_msgs::FrontierRequest const& request);
-		bool FindNext(frontiers_msgs::FrontierRequest const& request, std::vector<observation_lib::OPPair> oppairs);
+		bool FindNext(frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, std::vector<observation_lib::OPPair> oppairs);
 	};
 
 
