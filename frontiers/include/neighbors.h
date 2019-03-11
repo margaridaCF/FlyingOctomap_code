@@ -17,9 +17,9 @@ namespace LazyThetaStarOctree{
         std::size_t operator()(const std::shared_ptr<octomath::Vector3> & v) const 
         {
             double scale = 0.0001;
-            std::size_t hx = std::hash<float>{}( (int)(v->x() / scale) * scale );
-            std::size_t hy = std::hash<float>{}( (int)(v->y() / scale) * scale );
-            std::size_t hz = std::hash<float>{}( (int)(v->z() / scale) * scale );
+            std::size_t hx = std::hash<float>{}( (int)std::round(v->x() / scale) * scale );
+            std::size_t hy = std::hash<float>{}( (int)std::round(v->y() / scale) * scale );
+            std::size_t hz = std::hash<float>{}( (int)std::round(v->z() / scale) * scale );
 
             // ROS_WARN_STREAM(*v << " => " << (int)(v->x() / scale) * scale << "  " << (int)(v->y() / scale) * scale << "  " << (int)(v->z() / scale) * scale);
             // ROS_WARN_STREAM(*v << " => " << hx << "  " << hy << "  " << hz);
@@ -39,7 +39,7 @@ namespace LazyThetaStarOctree{
         bool operator () (const std::shared_ptr<octomath::Vector3> & lhs, const std::shared_ptr<octomath::Vector3> & rhs) const 
         { 
             double scale = 0.0001;
-            // ROS_WARN_STREAM(   std::setprecision(8) << "Distance from " << lhs << " and  " << rhs << " is " << lhs.distance(rhs) << " <= " << scale << " returning " << (lhs.distance(rhs) <= scale)   );
+            // ROS_WARN_STREAM("Distance from " << *lhs << " and  " << *rhs << " is " << lhs->distance(*rhs) << " <= " << scale << " returning " << (lhs->distance(*rhs) <= scale)   );
             return lhs->distance(*rhs) <= scale;
             // returns !0 if the two container object keys passed as arguments are to be considered equal.
         } 
@@ -47,14 +47,14 @@ namespace LazyThetaStarOctree{
 
     typedef std::unordered_set<std::shared_ptr<octomath::Vector3>, Vector3PointerHash, VectorPointerComparatorEqual> unordered_set_pointers;
 
-	bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, float x, float y, float z );
-    bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, octomath::Vector3 & toInsert );
+	bool addIfUnique(unordered_set_pointers & neighbors, float x, float y, float z );
+    bool addIfUnique(unordered_set_pointers & neighbors, octomath::Vector3 & toInsert );
     bool addIfUniqueValue(unordered_set_pointers & neighbors, octomath::Vector3 & toInsert );
 	// TODO reduce neighbor number by finding cell center and removing duplicates
-	void generateNeighbors_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+	void generateNeighbors_pointers(unordered_set_pointers & neighbors, 
 		octomath::Vector3 const& center_coords, 
 		float node_size, float resolution, bool debug_on = false);
-    void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+    void generateNeighbors_frontiers_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, double sensor_angle_rad, bool debug_on = false);
     void generateNeighbors_filter_pointers(unordered_set_pointers & neighbors, 

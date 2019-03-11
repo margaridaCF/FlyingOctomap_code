@@ -58,6 +58,7 @@ namespace rviz_interface
 	void publish_sensing_position 	(octomath::Vector3 const& position, int id, visualization_msgs::MarkerArray & marker_array);
 	void publish_start_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
 	void publish_goal_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
+    void build_small_marker(octomath::Vector3 const& candidate, visualization_msgs::Marker & marker, float red, float green, float blue, std::string ns, int id, double size = 0.2f, double alpha = 1);
 
 	// SPHERES
 	void build_sphere(octomath::Vector3 & candidate, double size, int green_base, int marker_id, visualization_msgs::Marker & marker, int red_base, std::string ns);
@@ -68,7 +69,7 @@ namespace rviz_interface
 
     // OTHER
 	void publish_deleteAll  		(ros::Publisher const& marker_pub);
-	void build_neighbor_array 		(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, visualization_msgs::MarkerArray & marker_array);
+	// void build_neighbor_array 		(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, visualization_msgs::MarkerArray & marker_array);
 	visualization_msgs::Marker createEmptyLineStrip(int id);
 }
 

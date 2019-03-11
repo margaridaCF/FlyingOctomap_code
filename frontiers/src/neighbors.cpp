@@ -1,13 +1,13 @@
 #include <neighbors.h>
 
 namespace LazyThetaStarOctree{
-	bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, float x, float y, float z )
+	bool addIfUnique(unordered_set_pointers & neighbors, float x, float y, float z )
 	{
         octomath::Vector3 toInsert (x, y, z);
         addIfUnique (neighbors, toInsert);
 	}
 
-    bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, octomath::Vector3 & toInsert )
+    bool addIfUnique(unordered_set_pointers & neighbors, octomath::Vector3 & toInsert )
     {
         // This is the creation point for neighbors
         // Raw pointers were chosen because they go out of scope since (for the Lazy Theta Star)
@@ -28,8 +28,7 @@ namespace LazyThetaStarOctree{
         neighbors.insert(toInsert_ptr);
     }
 
-    // TODO reduce neighbor number by finding cell center and removing duplicates
-    void generateNeighbors_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+    void generateNeighbors_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, bool debug_on/* = false*/)
     {
@@ -105,7 +104,7 @@ namespace LazyThetaStarOctree{
         return distance < blind_perimeter;
     }
 
-    void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+    void generateNeighbors_frontiers_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, double sensor_angle_rad, bool debug_on/* = false*/)
     {
@@ -178,6 +177,7 @@ namespace LazyThetaStarOctree{
     }
 
 
+    // The method only generates known neighbours. It was developed for the Lazy Theta Star path finding algorithm that is interested in identifieng new potential waypoints, as it only travels in known space the unknown is discarded. 
     void generateNeighbors_filter_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, octomap::OcTree const& octree, bool debug_on)
@@ -371,7 +371,7 @@ namespace LazyThetaStarOctree{
 
 	void findDifferentSizeCells_ptr_3D(octomap::OcTree const& octree)
 	{
-		std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors_us;
+		unordered_set_pointers neighbors_us;
 		float resolution = octree.getResolution();
 		float node_size; 
     	octomath::Vector3 center_coords;

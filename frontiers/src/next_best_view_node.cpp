@@ -42,6 +42,10 @@ namespace nbv_node
 			octree_inUse = octree;
 			nbv_state_machine->NewRequest(octree_inUse, *frontier_request);
 		}
+        visualization_msgs::MarkerArray marker_array;
+        rviz_interface::publish_geofence(octomath::Vector3(frontier_request->min.x, frontier_request->min.y, frontier_request->min.z), 
+        	octomath::Vector3(frontier_request->max.x, frontier_request->max.y, frontier_request->max.z), marker_array);
+        marker_pub.publish(marker_array);
 		std::vector<observation_lib::OPPair> oppairs;
 		frontiers_msgs::FrontierReply reply;
 		nbv_state_machine->FindNext(*frontier_request, reply, oppairs);
@@ -82,7 +86,7 @@ int main(int argc, char **argv)
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, nbv_node::octomap_callback);
 	ros::Subscriber frontiers_sub = nh.subscribe<frontiers_msgs::FrontierRequest>("frontiers_request", 10, nbv_node::frontier_callback);
 	nbv_node::local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_reply", 10);
-	nbv_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("frontiers/next_best_view", 1);
+	nbv_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("markers/next_best_view", 1);
 	nbv_node::init_variables(nh);
 
 	ros::spin();
