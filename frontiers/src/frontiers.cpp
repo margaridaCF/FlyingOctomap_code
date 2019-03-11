@@ -47,7 +47,7 @@ namespace Frontiers{
         {
             green = 1.0f;
             red = 1.0f;
-            return;
+         
         }
         else if( state == occupied)
         {
@@ -84,7 +84,7 @@ namespace Frontiers{
         visualization_msgs::MarkerArray marker_array;
         LazyThetaStarOctree::unordered_set_pointers analyzed;
         int n_id = 0;
-        while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount)
+        while( !(it == octree.end_leafs_bbx()))
         {
             bool use_center_as_goal = isCenterGoodGoal(it.getSize(), resolution, request.sensing_distance);
             octomath::Vector3 coord = it.getCoordinate();
@@ -159,7 +159,7 @@ namespace Frontiers{
                         frontiers_count++;
                         if( frontiers_count == request.frontier_amount)
                         {
-                            // ROS_INFO_STREAM("[Frontiers] Selecting as frontier " << grid_coordinates_curr << ". Distance to current position " << current_position << " is " << grid_coordinates_curr.distance(current_position));
+                            ROS_INFO_STREAM("[Frontiers] Added last neighbor. ");
                             break;
                         }
                         #endif

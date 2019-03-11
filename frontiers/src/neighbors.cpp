@@ -149,12 +149,12 @@ namespace LazyThetaStarOctree{
                 double n_x = x_start + (i * resolution);
                 double n_y = y_start + (j * resolution);
 
-                if(!isInsideBlindR(n_x, n_y, center_coords.x(), center_coords.y(), blind_perimeter))
-                {
+                // if(!isInsideBlindR(n_x, n_y, center_coords.x(), center_coords.y(), blind_perimeter))
+                // {
                     // Up Down
                     addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
                     addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
-                }
+                // }
             }
         }
     }
