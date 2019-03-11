@@ -19,7 +19,7 @@
 
 // #define SAVE_LOG 0
 // #define BASELINE 1
-// #define RUNNING_ROS 1
+#define RUNNING_ROS 1
 
 
 namespace Frontiers{

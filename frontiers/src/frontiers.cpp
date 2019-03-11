@@ -84,13 +84,12 @@ namespace Frontiers{
         visualization_msgs::MarkerArray marker_array;
         LazyThetaStarOctree::unordered_set_pointers analyzed;
         int n_id = 0;
-        while( !(it == octree.end_leafs_bbx()))
+        while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount )
         {
             bool use_center_as_goal = isCenterGoodGoal(it.getSize(), resolution, request.sensing_distance);
             octomath::Vector3 coord = it.getCoordinate();
             currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
-
 
             State curr_state = getState(grid_coordinates_curr, octree);
             // paintState(curr_state, grid_coordinates_curr, marker_array, n_id);
@@ -101,7 +100,6 @@ namespace Frontiers{
             // visualization_msgs::Marker marker;
             // rviz_interface::build_small_marker(grid_coordinates_curr, marker, red, green, blue, "candidate", 1000, 0.1);
             // marker_array.markers.push_back(marker);
-
 
             if( curr_state == free )
             // if( isExplored(grid_coordinates_curr, octree)
