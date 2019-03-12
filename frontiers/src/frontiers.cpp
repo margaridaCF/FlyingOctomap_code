@@ -2,6 +2,9 @@
 #include <neighbors.h>
 #include <ordered_neighbors.h>
 
+#define SAVE_LOG 1
+
+
 namespace Frontiers{
 
     std::ofstream log_file;
@@ -84,9 +87,6 @@ namespace Frontiers{
 
     void searchFrontier(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish)
     {
-        #ifdef SAVE_LOG
-        log_file.open ("/ros_ws/src/data/current/frontiers.log", std::ofstream::app);
-        #endif
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
         
         #ifdef BASELINE 
@@ -154,7 +154,6 @@ namespace Frontiers{
             }
             it++;
         }
-
         #ifdef RUNNING_ROS
         marker_pub.publish(marker_array);
         #endif
@@ -164,21 +163,14 @@ namespace Frontiers{
         #else
         reply.frontiers_found = frontiers_count;
         #endif
-        #ifdef SAVE_LOG
-        log_file.close();
-        #endif
     }
 
     octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
     {
-
-        // std::ofstream log;
-        // log.open ("/ros_ws/src/frontiers/processFrontiersRequest.log");
-        double resolution = octree.getResolution();
-        double unknown_neighbor_distance = request.safety_margin + (resolution/2);
         reply.header.seq = request.header.seq + 1;
         reply.request_id = request.header.seq;
         reply.header.frame_id = request.header.frame_id;
+        double resolution = octree.getResolution();
         octomath::Vector3  max = octomath::Vector3(request.max.x-resolution, request.max.y-resolution, request.max.z-resolution);
         octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);

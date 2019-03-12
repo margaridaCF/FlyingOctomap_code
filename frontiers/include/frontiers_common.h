@@ -17,7 +17,6 @@
 #include <frontiers_msgs/FrontierReply.h>
 #include <frontiers_msgs/FrontierRequest.h>
 
-// #define SAVE_LOG 0
 // #define BASELINE 1
 #define RUNNING_ROS 1
 

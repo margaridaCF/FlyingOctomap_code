@@ -7,6 +7,8 @@
 #include <frontiers_msgs/CheckIsFrontier.h>
 #include <visualization_msgs/MarkerArray.h>
 
+#include <atomic>
+
 #include <geometry_msgs/Point.h>
 // RAM
 #include "sys/types.h"
@@ -17,13 +19,15 @@
 namespace frontiers_async_node
 {
 	octomap::OcTree* octree;
+	octomap::OcTree* octree_inUse;
+	std::atomic<bool> is_octree_inUse;
+
 	ros::Publisher local_pos_pub;
 	ros::Publisher marker_pub;
 	std::string folder_name;
 	double sensor_angle;
 	int last_request_id;
 	octomap::OcTree::leaf_bbx_iterator iterator;
-	octomap::OcTree* octree_inUse;
 	#ifdef SAVE_CSV
 	struct sysinfo memInfo;
 	std::ofstream log;
@@ -86,9 +90,11 @@ namespace frontiers_async_node
 
 			if (frontier_request->new_request)
 			{
+
 				delete octree_inUse;
+				is_octree_inUse = true;
 				octree_inUse = octree;
-				iterator = Frontiers::processFrontiersRequest(*octree, *frontier_request, reply, marker_pub);
+				iterator = Frontiers::processFrontiersRequest(*octree_inUse, *frontier_request, reply, marker_pub);
 				last_request_id = frontier_request->request_number;
 			}
 			else
@@ -141,7 +147,11 @@ namespace frontiers_async_node
 	}
 
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
-		delete octree;
+		if (!is_octree_inUse)
+		{
+			delete octree;
+		}
+		is_octree_inUse = false;
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
 		octomap_init = true;
 	}
@@ -172,5 +182,8 @@ int main(int argc, char **argv)
 	frontiers_async_node::local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_reply", 10);
 	frontiers_async_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("frontiers/known_space", 1);
 	frontiers_async_node::last_request_id = 0;
+
+	frontiers_async_node:: is_octree_inUse = false;
+
 	ros::spin();
 }
