@@ -766,8 +766,8 @@ namespace LazyThetaStarOctree{
 			ROS_WARN_STREAM("No solution found. Giving empty path.");
 			log_file <<  "[ltStar] All nodes were analyzed but the final node center " << disc_final_cell_center << " was never reached with " << resolution/2 << " tolerance. Start " << input.start << ", end " << input.goal << std::endl;
 			std::stringstream ss;
-			ss << folder_name << "/current/(" << input.start.x() << "; " << input.start.y() << "; " << input.start.z() << ")_(" 
-				<<  input.goal.x() << "; " << input.goal.y() << "; " << input.goal.z() << ")_noPath.bt";
+			ss << folder_name << "/" << input.start.x() << "_" << input.start.y() << "_" << input.start.z() << "_" 
+				<<  input.goal.x() << "_" << input.goal.y() << "_" << input.goal.z() << "__noPath.bt";
 			input.octree.writeBinaryConst(ss.str());
 		}
 		else
