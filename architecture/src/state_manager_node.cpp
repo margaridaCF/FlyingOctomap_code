@@ -183,7 +183,6 @@ namespace state_manager_node
         #ifdef SAVE_LOG
         log_file << "[State manager] Requesting frontier " << request << std::endl;
         #endif
-        ROS_WARN_STREAM (     "[State manager] Requesting frontier " << request.frontier_amount  << " frontiers." );
         state_data.frontiers_request = request;
         frontier_request_pub.publish(request);
         state_data.frontier_request_count++;
@@ -316,7 +315,7 @@ namespace state_manager_node
         log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
 
         target.orientation = tf::createQuaternionMsgFromYaw(yaw);
-        ROS_INFO_STREAM("[State manager] buildTargetPose quaternion " << target.orientation);
+        // ROS_INFO_STREAM("[State manager] buildTargetPose quaternion " << target.orientation);
     }
 
     bool updateWaypointSequenceStateMachine()

@@ -26,7 +26,6 @@ namespace frontiers_async_node
 	std::ofstream log;
 	std::ofstream volume_explored;
 	std::chrono::high_resolution_clock::time_point start_exploration;
-	// std::chrono::hours; 
 #endif
 		
 	bool octomap_init;
