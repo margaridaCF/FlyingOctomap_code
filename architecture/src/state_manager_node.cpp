@@ -486,68 +486,73 @@ namespace state_manager_node
                     Eigen::Vector3d fake_uav_position (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
 
-                    // waypoint.position.x = 0;
-                    // waypoint.position.y = 5;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    // waypoint.position.x = 0;
-                    // waypoint.position.y = 0;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    // waypoint.position.x = 5;
-                    // waypoint.position.y = -5;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    // waypoint.position.x = 0;
-                    // waypoint.position.y = 0;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    // waypoint.position.x = 5;
-                    // waypoint.position.y = 5;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    // waypoint.position.x = 0;
-                    // waypoint.position.y = 0;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    // waypoint.position.x = -5;
-                    // waypoint.position.y = 5;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    // waypoint.position.x = 0;
-                    // waypoint.position.y = 0;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    // waypoint.position.x = -5;
-                    // waypoint.position.y = -5;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    // waypoint.position.x = 0;
-                    // waypoint.position.y = 0;
-                    // waypoint.position.z = 2;
-                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    waypoint.position.x = 5;
-                    waypoint.position.y = 0;
-                    waypoint.position.z = 2;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = -5;
-                    waypoint.position.y = 1;
-                    waypoint.position.z = 2;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-
                     waypoint.position.x = 0;
                     waypoint.position.y = 0;
-                    waypoint.position.z = 2;
+                    waypoint.position.z = 10;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = 5;
+                    // waypoint.position.y = -5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = 5;
+                    // waypoint.position.y = 5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = -5;
+                    // waypoint.position.y = 5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = -5;
+                    // waypoint.position.y = -5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 5;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = -5;
+                    // waypoint.position.y = 1;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
                     Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.frontiers_msg.frontiers_found = 1;
-                    state_data.ltstar_reply.waypoint_amount = 4;
+                    state_data.ltstar_reply.waypoint_amount = 2;
                     frontiers_msgs::VoxelMsg fake_frontier;
                     fake_frontier.xyz_m = current_position;
                     state_data.frontiers_msg.frontiers.push_back(fake_frontier);
