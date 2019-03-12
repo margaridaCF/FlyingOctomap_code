@@ -4,7 +4,7 @@
 #include <orthogonal_planes.h>
 
 // #define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
-// #define RUNNING_ROS 0 	// enable to publish markers on rViz
+#define RUNNING_ROS 0 	// enable to publish markers on rViz
 
 
 namespace std
@@ -220,21 +220,21 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
-				// if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
+				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
-    			// if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
 				obstacle_hit_count++;
 				return CellStatus::kOccupied; 
 			}   
-			// else
-			// {
-   //  			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true);
-			// 	// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
-			// }
+			else
+			{
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true);
+				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
+			}
 		}
 		return CellStatus::kFree; 
 	}
@@ -665,6 +665,7 @@ namespace LazyThetaStarOctree{
 				s_point.y = s->coordinates->y();
 				s_point.z = s->coordinates->z();
 				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_s, s_id, s->cell_size);
+				s_id++;
 			}
 			#endif
 			resultSet.addOcurrance(s->cell_size);
@@ -763,10 +764,11 @@ namespace LazyThetaStarOctree{
 		if(!solution_found)
 		{
 			ROS_WARN_STREAM("No solution found. Giving empty path.");
-			if(publish_input.publish)
-			{
-        	    log_file <<  "[ltStar] All nodes were analyzed but the final node center " << disc_final_cell_center << " was never reached with " << resolution/2 << " tolerance. Start " << input.start << ", end " << input.goal << std::endl;
-			}
+			log_file <<  "[ltStar] All nodes were analyzed but the final node center " << disc_final_cell_center << " was never reached with " << resolution/2 << " tolerance. Start " << input.start << ", end " << input.goal << std::endl;
+			std::stringstream ss;
+			ss << folder_name << "/current/(" << input.start.x() << "; " << input.start.y() << "; " << input.start.z() << ")_(" 
+				<<  input.goal.x() << "; " << input.goal.y() << "; " << input.goal.z() << ")_noPath.bt";
+			input.octree.writeBinaryConst(ss.str());
 		}
 		else
 		{ 

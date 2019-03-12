@@ -11,6 +11,26 @@ namespace Frontiers{
         free = 0, occupied = 1 , unknown = 2
     };
 
+
+    bool isInsideGeofence(octomath::Vector3 const&  candidate, geometry_msgs::Point geofence_min, geometry_msgs::Point geofence_max)
+    {
+        if(candidate.x() < geofence_min.x 
+            || candidate.y() < geofence_min.y 
+            || candidate.x() < geofence_min.y 
+            || candidate.x() > geofence_max.x 
+            || candidate.y() > geofence_max.y  
+            || candidate.z() > geofence_max.z)
+        {
+            
+            #ifdef SAVE_LOG            
+            log_file << "[Frontiers] Rejected " << candidate << " because it is outside geofence " << std::endl;
+            #endif
+            return false;
+        }
+        return true;
+    }
+
+
     void calculate_closer_position(octomath::Vector3 & sensing_position, octomath::Vector3 const& n_coordinates, double const safety_margin)
     {
         sensing_position = sensing_position - n_coordinates;
@@ -78,7 +98,6 @@ namespace Frontiers{
         #endif
         octomath::Vector3 grid_coordinates_curr, grid_coordinates_toTest;
         Voxel currentVoxel;
-        // bool is_frontier;
         double resolution = octree.getResolution();
         int frontiers_count = 0;
         visualization_msgs::MarkerArray marker_array;
@@ -92,61 +111,30 @@ namespace Frontiers{
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
 
             State curr_state = getState(grid_coordinates_curr, octree);
-            // paintState(curr_state, grid_coordinates_curr, marker_array, n_id);
-
-            // float red = 0.0f;
-            // float green = 0.0f;
-            // float blue = 0.0f;
-            // visualization_msgs::Marker marker;
-            // rviz_interface::build_small_marker(grid_coordinates_curr, marker, red, green, blue, "candidate", 1000, 0.1);
-            // marker_array.markers.push_back(marker);
 
             if( curr_state == free )
-            // if( isExplored(grid_coordinates_curr, octree)
-            //     && !isOccupied(grid_coordinates_curr)
-                // && meetsOperationalRequirements(grid_coordinates_curr, request.min_distance, current_position, octree, request.safety_margin, request.min, request.max, marker_pub, publish)
-                // ) 
             {
-                // ROS_WARN_STREAM("[frontiers] Frontier candidate " << coord << " size " << it.getSize() );
-                // is_frontier = false;
-                // Generate neighbors
-                // unordered_set_pointers neighbors;
-                // LazyThetaStarOctree::generateNeighbors_frontiers_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution, request.sensor_angle);
-                
-
                 LazyThetaStarOctree::unordered_set_pointers neighbors;
                 LazyThetaStarOctree::generateNeighbors_frontiers_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution, request.sensor_angle);
-                
-
                 for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
                 {
                     auto out = analyzed.insert(std::make_shared<octomath::Vector3> (n_coordinates->x(), n_coordinates->y(), n_coordinates->z() )   );
                     if(!out.second)
                     {
-                        // ROS_INFO_STREAM("Been there, done that.");
                         continue;
                     }
-                    if(!meetsOperationalRequirements(*n_coordinates, request.min_distance, current_position, octree, request.safety_margin, request.min, request.max, marker_pub, publish))
+                    if(!isInsideGeofence(*n_coordinates, request.min, request.max))
                     {
                         // Octomap's bounding box is not accurate at all. The neighbors are outside the bounding box anyway, we just want to recover data from what is inside the bouding box. This is to enforce the geofence.
                         continue;
                     }   
-                    // ROS_INFO_STREAM("[frontiers] Neighbor " << *n_coordinates);
-
                     State n_state = getState(*n_coordinates, octree);
                     paintState(n_state, *n_coordinates, marker_array, n_id);
                     n_id++;
                     if(n_state == unknown)
                     {
-                        // ROS_INFO_STREAM("Unknown ");
-                        ROS_INFO_STREAM("[Frontiers] Frontier candidate " << coord << " size " << it.getSize() << ". Unknown neighbor is " << *n_coordinates);
                         frontiers_msgs::VoxelMsg voxel_msg;
                         voxel_msg.size = currentVoxel.size;
-                        #ifdef RUNNING_ROS
-                        // ROS_INFO_STREAM("[Frontiers] Adding marker for (" << grid_coordinates_curr.x() << ", " 
-                            // << grid_coordinates_curr.y() << ", " << grid_coordinates_curr.z() << ")");
-                        // rviz_interface::publish_sensing_position(n_coordinates, frontiers_count, marker_array);
-                        #endif
                         voxel_msg.xyz_m.x = n_coordinates->x();
                         voxel_msg.xyz_m.y = n_coordinates->y();
                         voxel_msg.xyz_m.z = n_coordinates->z();
@@ -181,7 +169,7 @@ namespace Frontiers{
         #endif
     }
 
-    bool processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
+    octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
     {
 
         // std::ofstream log;
@@ -205,14 +193,14 @@ namespace Frontiers{
         {
             ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
             reply.success = false;
-            return reply.success;
+            return octomap::OcTree::leaf_bbx_iterator();
         }
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
         searchFrontier(octree, it, request, reply, marker_pub, publish);
 
         reply.success = true;
 
-        return reply.success;
+        return it;
     }
     
 
@@ -292,38 +280,38 @@ namespace Frontiers{
         return false;
     }
 
-    bool meetsOperationalRequirements(octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree, double safety_distance, geometry_msgs::Point geofence_min, geometry_msgs::Point geofence_max, ros::Publisher const& marker_pub, bool publish)
-    {
-        if(candidate.x() < geofence_min.x 
-            || candidate.y() < geofence_min.y 
-            || candidate.x() < geofence_min.y 
-            || candidate.x() > geofence_max.x 
-            || candidate.y() > geofence_max.y  
-            || candidate.z() > geofence_max.z)
-        {
+//     bool meetsOperationalRequirements(octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree, double safety_distance, geometry_msgs::Point geofence_min, geometry_msgs::Point geofence_max, ros::Publisher const& marker_pub, bool publish)
+//     {
+//         if(candidate.x() < geofence_min.x 
+//             || candidate.y() < geofence_min.y 
+//             || candidate.x() < geofence_min.y 
+//             || candidate.x() > geofence_max.x 
+//             || candidate.y() > geofence_max.y  
+//             || candidate.z() > geofence_max.z)
+//         {
             
-#ifdef SAVE_LOG            
-            log_file << "[Frontiers] Rejected " << candidate << " because it is outside geofence " << std::endl;
-#endif
-            return false;
-        }
-//         // Operation restrictions
-//         if(candidate.distance(current_position) <= min_distance)
-//         {
 // #ifdef SAVE_LOG            
-//             log_file << "[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position << std::endl;
-// #endif
-//             return false; // below navigation precision
-//         }
-//         if(isFrontierTooCloseToObstacles(candidate, safety_distance, octree, marker_pub, publish))
-//         {
-// #ifdef SAVE_LOG            
-//             log_file <<"[Frontiers] Rejected " << candidate << " because goal is too close to obstacles" << std::endl;
+//             log_file << "[Frontiers] Rejected " << candidate << " because it is outside geofence " << std::endl;
 // #endif
 //             return false;
 //         }
-        return true;
-    }
+// //         // Operation restrictions
+// //         if(candidate.distance(current_position) <= min_distance)
+// //         {
+// // #ifdef SAVE_LOG            
+// //             log_file << "[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position << std::endl;
+// // #endif
+// //             return false; // below navigation precision
+// //         }
+// //         if(isFrontierTooCloseToObstacles(candidate, safety_distance, octree, marker_pub, publish))
+// //         {
+// // #ifdef SAVE_LOG            
+// //             log_file <<"[Frontiers] Rejected " << candidate << " because goal is too close to obstacles" << std::endl;
+// // #endif
+// //             return false;
+// //         }
+//         return true;
+//     }
 
     bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate, double sensor_angle) 
     {

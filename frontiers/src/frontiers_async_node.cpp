@@ -21,12 +21,15 @@ namespace frontiers_async_node
 	ros::Publisher marker_pub;
 	std::string folder_name;
 	double sensor_angle;
-#ifdef SAVE_CSV
+	int last_request_id;
+	octomap::OcTree::leaf_bbx_iterator iterator;
+	octomap::OcTree* octree_inUse;
+	#ifdef SAVE_CSV
 	struct sysinfo memInfo;
 	std::ofstream log;
 	std::ofstream volume_explored;
 	std::chrono::high_resolution_clock::time_point start_exploration;
-#endif
+	#endif
 		
 	bool octomap_init;
 
@@ -76,12 +79,32 @@ namespace frontiers_async_node
 		frontiers_msgs::FrontierReply reply;
 		if(octomap_init)
 		{
-#ifdef SAVE_CSV
+			#ifdef SAVE_CSV
 			std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-#endif
-			Frontiers::processFrontiersRequest(*octree, *frontier_request, reply, marker_pub);
+			#endif
 
-#ifdef SAVE_CSV
+
+			if (frontier_request->new_request)
+			{
+				delete octree_inUse;
+				octree_inUse = octree;
+				iterator = Frontiers::processFrontiersRequest(*octree, *frontier_request, reply, marker_pub);
+				last_request_id = frontier_request->request_number;
+			}
+			else
+			{
+				if(last_request_id != frontier_request->request_number)
+				{
+					ROS_ERROR_STREAM("[Frontiers] Request number out of sync. Asked to continue search but current request number is " << last_request_id << " while in request message the id is " << frontier_request->request_number);
+					return;
+				}
+				else
+				{
+					Frontiers::searchFrontier(*octree_inUse, iterator, *frontier_request, reply, marker_pub, true);
+				}
+			}
+
+			#ifdef SAVE_CSV
 			// Frontier computation time
 			log.open (folder_name +"/frontiers_computation_time.csv", std::ofstream::app);
 			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
@@ -100,12 +123,12 @@ namespace frontiers_async_node
 			double explored_volume_meters = calculate_volume_explored(min, max);
 			volume_explored << ellapsed_time_millis.count() / 1000 / 60 << ", " << explored_volume_meters << std::endl;
 			volume_explored.close();
-#endif
+			#endif
 
 			if(reply.frontiers_found == 0)
 	        {
 	            ROS_INFO_STREAM("[Frontiers] No frontiers could be found. Writing tree to file. Request was " << *frontier_request);
-	            octree->writeBinary(folder_name + "/octree_noFrontiers.bt"); 
+	            octree->writeBinary(folder_name + "/current/octree_noFrontiers.bt"); 
 	        }
 		}
 		else
@@ -127,7 +150,8 @@ namespace frontiers_async_node
 int main(int argc, char **argv)
 {
 #ifdef SAVE_CSV
-		frontiers_async_node::folder_name = "/ros_ws/src/data/current";
+    	std::stringstream aux_envvar_home (std::getenv("HOME"));
+		frontiers_async_node::folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/frontiers_computation_time.csv", std::ofstream::app);
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
@@ -147,6 +171,6 @@ int main(int argc, char **argv)
 	ros::Subscriber frontiers_sub = nh.subscribe<frontiers_msgs::FrontierRequest>("frontiers_request", 10, frontiers_async_node::frontier_callback);
 	frontiers_async_node::local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_reply", 10);
 	frontiers_async_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("frontiers/known_space", 1);
-
+	frontiers_async_node::last_request_id = 0;
 	ros::spin();
 }

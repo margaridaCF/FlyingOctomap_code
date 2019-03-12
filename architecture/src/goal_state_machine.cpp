@@ -8,6 +8,8 @@ namespace goal_state_machine
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client)
 	{
 		oppairs = observation_lib::OPPairs(circle_divisions, frontier_safety_margin, distance_inFront, distance_behind);
+        unobservable_set = std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash>(); 
+
 	}
 
 	bool GoalStateMachine::is_flightCorridor_free() 
