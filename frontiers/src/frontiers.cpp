@@ -3,6 +3,7 @@
 #include <ordered_neighbors.h>
 
 #define SAVE_LOG 1
+#define RUNNING_ROS 1
 
 
 namespace Frontiers{

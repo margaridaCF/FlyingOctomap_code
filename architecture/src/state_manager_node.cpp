@@ -83,7 +83,6 @@ namespace state_manager_node
         int frontier_request_count; // generate id for new frontier requests
         int waypoint_index;         // id of the waypoint that is currently the waypoint
         int ltstar_request_id;
-        int frontier_index;         // id of the frontier in use
         bool exploration_maneuver_started, initial_maneuver, fresh_map;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
@@ -99,11 +98,6 @@ namespace state_manager_node
     geometry_msgs::Pose& get_current_waypoint()
     {
         return state_data.ltstar_reply.waypoints[state_data.waypoint_index];
-    }
-
-    geometry_msgs::Point get_current_frontier()
-    {
-        return state_data.frontiers_msg.frontiers[state_data.frontier_index].xyz_m;
     }
 
     bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
@@ -445,7 +439,7 @@ namespace state_manager_node
 
     void publishGoalToRviz(geometry_msgs::Point current_position)
     {
-        geometry_msgs::Point frontier_geom = get_current_frontier();
+        geometry_msgs::Point frontier_geom = state_data.goal_state_machine->get_current_frontier();
         geometry_msgs::Point start_geom;
         start_geom.x = current_position.x;
         start_geom.y = current_position.y;
@@ -487,8 +481,13 @@ namespace state_manager_node
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
 
                     waypoint.position.x = 0;
-                    waypoint.position.y = 0;
+                    waypoint.position.y = 1;
                     waypoint.position.z = 10;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = 0.5;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
 
                     // waypoint.position.x = 0;
@@ -556,7 +555,6 @@ namespace state_manager_node
                     frontiers_msgs::VoxelMsg fake_frontier;
                     fake_frontier.xyz_m = current_position;
                     state_data.frontiers_msg.frontiers.push_back(fake_frontier);
-                    state_data.frontier_index = 0;
                     state_data.goal_state_machine->NewFrontiers(state_data.frontiers_msg);
 
                     #ifdef SAVE_LOG
@@ -667,13 +665,12 @@ namespace state_manager_node
                     if(hasArrived(flyby_end.position))
                     {
                         state_data.exploration_state = exploration_start;
-                        state_data.frontier_index = 0;
-                        bool is_frontier = askIsFrontierServiceCall(get_current_frontier());
+                        bool is_frontier = askIsFrontierServiceCall(state_data.goal_state_machine->get_current_frontier());
                         if(is_frontier)
                         {
-                            ROS_ERROR_STREAM("[State manager] " << get_current_frontier() << " is still a frontier.");
+                            ROS_ERROR_STREAM("[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still a frontier.");
                             #ifdef SAVE_LOG
-                            log_file << "[State manager] " << get_current_frontier() << " is still a frontier." << std::endl;
+                            log_file << "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still a frontier." << std::endl;
                             #endif
                         }
                     }

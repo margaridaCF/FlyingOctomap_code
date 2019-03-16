@@ -28,7 +28,6 @@ namespace goal_state_machine
 
 		bool is_flightCorridor_free() ;
 		bool IsOPPairValid() ;
-		geometry_msgs::Point get_current_frontier() const;
 		bool is_inside_geofence(Eigen::Vector3d target) const;
 		bool hasNextFrontier() const;
 		void resetOPPair(Eigen::Vector3d& uav_position);
@@ -36,6 +35,7 @@ namespace goal_state_machine
 	    
 	    
 	public:
+		geometry_msgs::Point get_current_frontier() const;
 		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double frontier_safety_margin);
 		~GoalStateMachine(){}
 		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
