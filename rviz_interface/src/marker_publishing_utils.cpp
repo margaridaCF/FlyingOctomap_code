@@ -281,7 +281,7 @@ namespace rviz_interface
         visualization_msgs::Marker marker;
         marker.color.r = 1.0f;
         marker.color.g = 1.0f;
-        marker.color.b = 0.0f;
+        marker.color.b = 0.38f;
         marker.ns = "start";
         marker.id = 22;
         marker.type = visualization_msgs::Marker::SPHERE;
@@ -308,8 +308,8 @@ namespace rviz_interface
     {
         visualization_msgs::Marker marker;
         marker.color.r = 1.0f;
-        marker.color.g = 0.5f;
-        marker.color.b = 0.0f;
+        marker.color.g = 0.68f;
+        marker.color.b = 0.38f;
         marker.ns = "goal";
         marker.id = 23;
         marker.type = visualization_msgs::Marker::SPHERE;
@@ -382,52 +382,42 @@ namespace rviz_interface
     }
 
     void publish_s(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub,
-        visualization_msgs::MarkerArray & marker_array, int id, int size)
+        visualization_msgs::MarkerArray & marker_array, int id, float size)
     {
         octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
         float red = 0.9f;
         float green = 0.5f;
         float blue = 1.0f;
         visualization_msgs::Marker marker;
-        build_small_marker(candidate_vec3, marker, red,  green,  blue, "s", id);
+        build_small_marker(candidate_vec3, marker, red,  green,  blue, "s", id, size, 0.8f);
         marker_array.markers.push_back(marker);
         marker_pub.publish(marker_array);   
     }
 
-    void publish_visible_neighbor(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub)
+    void publish_rejected_neighbor(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub,
+        visualization_msgs::MarkerArray & marker_array, int id, float size)
     {
+        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
         float red = 1.f;
-        float green = 1.f;
+        float green = 0.f;
         float blue = 0.f;
-        float size = 0.1f;
-        int id = 30000 + ( std::rand() % ( 9999 + 1 ) );
-        uint32_t shape = visualization_msgs::Marker::SPHERE;
         visualization_msgs::Marker marker;
-        marker.header.frame_id = "/map";
-        marker.header.stamp = ros::Time::now();
-        marker.ns = "visible neighbor";
-        marker.id = id;
-        marker.type = shape;
-        marker.action = visualization_msgs::Marker::ADD;
-        marker.pose.position.x = candidate_vec3.x();
-        marker.pose.position.y = candidate_vec3.y();
-        marker.pose.position.z = candidate_vec3.z();
-        marker.pose.orientation.x = 0.0;
-        marker.pose.orientation.y = 0.0;
-        marker.pose.orientation.z = 0.0;
-        marker.pose.orientation.w = 1.0;
-        marker.scale.x = size;
-        marker.scale.y = size;
-        marker.scale.z = size;
-        marker.color.r = red;
-        marker.color.g = green;
-        marker.color.b = blue;
-        marker.color.a = 1;
-        marker.lifetime = ros::Duration();
-
-        visualization_msgs::MarkerArray marker_array;
+        build_small_marker(candidate_vec3, marker, red,  green,  blue, "rejected_neighors", id, size, 0.4f);
         marker_array.markers.push_back(marker);
         marker_pub.publish(marker_array);   
+    }
+
+    void publish_visible_neighbor(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub,
+        visualization_msgs::MarkerArray & marker_array, int id, float size)
+    {
+        octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
+        float red = 0.f;
+        float green = 1.f;
+        float blue = 0.f;
+        visualization_msgs::Marker marker;
+        build_small_marker(candidate_vec3, marker, red,  green,  blue, "usable_neighors", id, size, 0.4f);
+        marker_array.markers.push_back(marker);
+        marker_pub.publish(marker_array);  
     }
 
     void publish_closed(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub,
@@ -543,7 +533,7 @@ namespace rviz_interface
         marker.lifetime = ros::Duration();
     }
 
-    void publish_arrow_path_occupancyState(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free)
+    void publish_arrow_path_occupancyState(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free, int id)
     {
         // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
@@ -551,8 +541,7 @@ namespace rviz_interface
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.ns = "corridor_occupancy";
-        marker.id = 10000 + ( std::rand() % ( 9999 + 1 ) );
+        marker.id = id;
         marker.type = shape;
         geometry_msgs::Point goal_point;
         goal_point.x = goal.x();
@@ -571,11 +560,13 @@ namespace rviz_interface
         marker.scale.z = 0;
         if(free)
         {
+            marker.ns = "corridor_free";
             marker.color.r = 0;
             marker.color.g = 255;   
         }
         else
         {
+            marker.ns = "corridor_occupied";
             marker.color.r = 255;
             marker.color.g = 0;   
         }

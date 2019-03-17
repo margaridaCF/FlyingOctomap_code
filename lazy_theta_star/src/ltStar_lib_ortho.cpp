@@ -220,19 +220,19 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
-				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
+				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false, obstacle_hit_count);
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin), ignoreUnknown) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false);
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false, obstacle_hit_count);
 				obstacle_hit_count++;
 				return CellStatus::kOccupied; 
 			}   
 			else
 			{
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true);
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true, obstacle_avoidance_calls*100+i);
 				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
 			}
 		}
@@ -304,7 +304,6 @@ namespace LazyThetaStarOctree{
 				// ROS_WARN_STREAM("No neighbor was found.");
 				return true;
 			}
-			double cell_size;
 			// each expanded & visible & neighbor of s'
 			for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)																	// NEIGHBOR
 			{
@@ -643,6 +642,7 @@ namespace LazyThetaStarOctree{
         int s_id = 0;
 		while(!open.empty() && !solution_found)
 		{
+			visualization_msgs::MarkerArray marker_array_single_loop;
  			// open.printNodes("========= Starting state of open ");
 			// ln 7 s := open.Pop();	
 			// [Footnote] open.Pop() removes a vertex with the smallest key from open and returns it
@@ -657,6 +657,12 @@ namespace LazyThetaStarOctree{
 			// 	}
 			// }
 			s = open.pop();
+			resultSet.addOcurrance(s->cell_size);
+			unordered_set_pointers neighbors;
+			// auto start_count = std::chrono::high_resolution_clock::now();
+			generateNeighbors_filter_pointers(neighbors, *(s->coordinates), s->cell_size, resolution, input.octree);
+
+
 			#ifdef RUNNING_ROS
 			if(publish_input.publish)
 			{
@@ -665,14 +671,40 @@ namespace LazyThetaStarOctree{
 				s_point.y = s->coordinates->y();
 				s_point.z = s->coordinates->z();
 				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_s, s_id, s->cell_size);
+				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_single_loop, s_id, s->cell_size);
 				s_id++;
+				ROS_INFO_STREAM("[ltstar] Generated " << neighbors.size() << " neighbors.");
+				// if(neighbors.size() > 100)
+				// {
+					int n_id = 0;
+					for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
+					{
+						bool ignoreUnknown = weightedDistance(*n_coordinates, cell_center_coordinates_goal) < input.margin/2;
+						octomap::OcTreeKey key = input.octree.coordToKey(*n_coordinates);
+			            int depth = getNodeDepth_Octomap(key, input.octree);
+			            double cell_size = findSideLenght(input.octree.getTreeDepth(), depth, sidelength_lookup_table);
+
+						geometry_msgs::Point neighbor_v;
+						neighbor_v.x = n_coordinates->x();
+						neighbor_v.y = n_coordinates->y();
+						neighbor_v.z = n_coordinates->z();
+						int id =  s_id*1000 + n_id;
+						ROS_INFO_STREAM("[ltstar] [" << id << "] " << n_coordinates->x() << "; " << n_coordinates->y() << "; "<< n_coordinates->z() << " size " << cell_size);
+						if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input, ignoreUnknown) )
+						{
+		    				rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
+							
+						}
+						else
+						{
+		    				rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
+						}
+						n_id++;
+					}
+				// }
 			}
 			#endif
-			resultSet.addOcurrance(s->cell_size);
-			unordered_set_pointers neighbors;
 
-			// auto start_count = std::chrono::high_resolution_clock::now();
-			generateNeighbors_filter_pointers(neighbors, *(s->coordinates), s->cell_size, resolution, input.octree);
 
 			// auto finish_count = std::chrono::high_resolution_clock::now();
 			// auto time_span = finish_count - start_count;
@@ -713,6 +745,9 @@ namespace LazyThetaStarOctree{
 			{
 				// Find minimum value for those with visibility and that it is in closed
 				bool ignoreUnknown = weightedDistance(*n_coordinates, cell_center_coordinates_goal) < input.margin/2;
+				octomap::OcTreeKey key = input.octree.coordToKey(*n_coordinates);
+	            int depth = getNodeDepth_Octomap(key, input.octree);
+	            cell_size = findSideLenght(input.octree.getTreeDepth(), depth, sidelength_lookup_table);
 
 
 				if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input, ignoreUnknown) )
@@ -727,10 +762,6 @@ namespace LazyThetaStarOctree{
 					// ln 14 if s' !€ open then
 					if( !open.existsInMap(*n_coordinates) )
 					{
-						octomap::OcTreeKey key = input.octree.coordToKey(*n_coordinates);
-			            int depth = getNodeDepth_Octomap(key, input.octree);
-			            cell_size = findSideLenght(input.octree.getTreeDepth(), depth, sidelength_lookup_table);
-
 						// ln 15 g(s') := infinity;
 						double g_distanceFromInitialPoint = std::numeric_limits<double>::max();
 						// ln 16 parent(s') := NULL;
@@ -757,6 +788,7 @@ namespace LazyThetaStarOctree{
 				ROS_ERROR_STREAM("Reached maximum time for A*. Breaking out");
 				break;	
 			}
+			ros::Duration(10).sleep();
 		}
 		resultSet.iterations_used = used_search_iterations;
 		// ROS_WARN_STREAM("Used "<< used_search_iterations << " iterations to find path");

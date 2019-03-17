@@ -101,8 +101,10 @@ namespace LazyThetaStarOctree
 			// {
 			// 	publish_free_corridor_arrows = false;
 			// }
+			rviz_interface::publish_start(path_request->start, marker_pub);
+			rviz_interface::publish_goal(path_request->goal, marker_pub);
 			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, dephtZero, semiSphereOut );
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, PublishingInput( marker_pub, false) );
+			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
