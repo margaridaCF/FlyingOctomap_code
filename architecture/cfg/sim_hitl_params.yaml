@@ -20,7 +20,7 @@ geofence_max/x: 55
 geofence_min/y: -20
 geofence_max/y: 50
 
-geofence_min/z: 2
+geofence_min/z: 3
 geofence_max/z: 70
 
 path/max_time_secs: 15
