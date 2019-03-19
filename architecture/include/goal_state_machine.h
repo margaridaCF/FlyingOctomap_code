@@ -22,7 +22,7 @@ namespace goal_state_machine
 	    bool 								has_more_goals, resetOPPair_flag;
 	    int 								frontier_index;
     	double 								path_safety_margin;
-	    observation_lib::OPPairs 			oppairs;
+	    observation_lib::OPPairs 			oppairs_side;
         std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash> unobservable_set; 
 
 
@@ -49,9 +49,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				flyby_end.x = oppairs.get_current_end().x();
-				flyby_end.y = oppairs.get_current_end().y();
-				flyby_end.z = oppairs.get_current_end().z();
+				flyby_end.x = oppairs_side.get_current_end().x();
+				flyby_end.y = oppairs_side.get_current_end().y();
+				flyby_end.z = oppairs_side.get_current_end().z();
 			}
 			else
 			{
@@ -64,9 +64,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				start.x = oppairs.get_current_start().x();
-				start.y = oppairs.get_current_start().y();
-				start.z = oppairs.get_current_start().z();
+				start.x = oppairs_side.get_current_start().x();
+				start.y = oppairs_side.get_current_start().y();
+				start.z = oppairs_side.get_current_start().z();
 			}
 			else
 			{
@@ -79,9 +79,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				flyby_start.x() = oppairs.get_current_start().x();
-				flyby_start.y() = oppairs.get_current_start().y();
-				flyby_start.z() = oppairs.get_current_start().z();
+				flyby_start.x() = oppairs_side.get_current_start().x();
+				flyby_start.y() = oppairs_side.get_current_start().y();
+				flyby_start.z() = oppairs_side.get_current_start().z();
 			}
 			else
 			{
@@ -94,8 +94,8 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				start.x() = oppairs.get_current_start().x();
-				start.y() = oppairs.get_current_start().y();
+				start.x() = oppairs_side.get_current_start().x();
+				start.y() = oppairs_side.get_current_start().y();
 			}
 			else
 			{
@@ -108,8 +108,8 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				end.x() = oppairs.get_current_end().x();
-				end.y() = oppairs.get_current_end().y();
+				end.x() = oppairs_side.get_current_end().x();
+				end.y() = oppairs_side.get_current_end().y();
 			}
 			else
 			{
