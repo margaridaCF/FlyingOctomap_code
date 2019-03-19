@@ -40,4 +40,4 @@ path/safety_margin: 3
 oppairs/distance_inFront: 1
 oppairs/distance_behind: 1
 oppairs/circle_divisions: 12
-
+oppairs/sensing_distance: 3

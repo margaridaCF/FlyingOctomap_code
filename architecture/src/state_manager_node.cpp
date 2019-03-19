@@ -65,7 +65,7 @@ namespace state_manager_node
     // TODO - transform this into parameters at some point
     double px4_loiter_radius;
     double odometry_error;
-    double safety_margin = 3;
+    double sensing_distance = 3;
     double error_margin;
     bool do_initial_maneuver;
     double distance_inFront, distance_behind;
@@ -405,7 +405,6 @@ namespace state_manager_node
         do_initial_maneuver = false;
         nh.getParam("do_initial_maneuver", do_initial_maneuver);
         nh.getParam("odometry_error", odometry_error);
-        nh.getParam("frontier/safety_margin", safety_margin);
         error_margin = std::max(px4_loiter_radius, odometry_error);
         nh.getParam("path/max_time_secs", max_time_secs);
         nh.getParam("path/safety_margin", ltstar_safety_margin);
@@ -422,6 +421,7 @@ namespace state_manager_node
         geofence_max = octomath::Vector3  (x, y, z);
 
         // Goal state machine
+        nh.getParam("oppairs/sensing_distance", sensing_distance);
         nh.getParam("oppairs/distance_inFront", distance_inFront);
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
@@ -762,7 +762,7 @@ int main(int argc, char **argv)
     geofence_max_point.x = state_manager_node::geofence_max.x();
     geofence_max_point.y = state_manager_node::geofence_max.y();
     geofence_max_point.z = state_manager_node::geofence_max.z();
-    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::safety_margin);
+    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::sensing_distance);
 
     #ifdef SAVE_CSV
     std::ofstream csv_file;
