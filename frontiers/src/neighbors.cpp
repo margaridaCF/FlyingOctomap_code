@@ -97,16 +97,9 @@ namespace LazyThetaStarOctree{
         return dist;
     }
 
-    bool isInsideBlindR(double n_x, double n_y, double c_x, double c_y, double blind_perimeter)
-    {
-        double distance = distanceCalculate(n_x, n_y, c_x, c_y);
-        // ROS_WARN_STREAM("[neighbors] (" << n_x << ", " << n_y << ") - distance " << distance << " < " << blind_perimeter << " (blind_perimeter)");
-        return distance < blind_perimeter;
-    }
-
     void generateNeighbors_frontiers_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
-        float node_size, float resolution, double sensor_angle_rad, bool debug_on/* = false*/)
+        float node_size, float resolution, bool debug_on/* = false*/)
     {
         int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         
@@ -125,9 +118,6 @@ namespace LazyThetaStarOctree{
         // Up down      
         float up_z     = center_coords.z() + frontier_offset + extra; 
         float down_z   = center_coords.z() - frontier_offset - extra;
-
-        
-        double blind_perimeter = (frontier_offset + extra) / std::tan(sensor_angle_rad);
 
         // optimized
         octomath::Vector3* toInsert;
@@ -149,12 +139,8 @@ namespace LazyThetaStarOctree{
                 double n_x = x_start + (i * resolution);
                 double n_y = y_start + (j * resolution);
 
-                // if(!isInsideBlindR(n_x, n_y, center_coords.x(), center_coords.y(), blind_perimeter))
-                // {
-                    // Up Down
-                    addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
-                    addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
-                // }
+                addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
+                addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
             }
         }
     }

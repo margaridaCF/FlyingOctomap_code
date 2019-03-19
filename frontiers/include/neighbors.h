@@ -56,7 +56,7 @@ namespace LazyThetaStarOctree{
 		float node_size, float resolution, bool debug_on = false);
     void generateNeighbors_frontiers_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
-        float node_size, float resolution, double sensor_angle_rad, bool debug_on = false);
+        float node_size, float resolution, bool debug_on = false);
     void generateNeighbors_filter_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
         float node_size, float resolution, octomap::OcTree const& octree, bool debug_on = false);

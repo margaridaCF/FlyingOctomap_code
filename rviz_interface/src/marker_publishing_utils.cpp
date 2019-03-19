@@ -180,7 +180,7 @@ namespace rviz_interface
         marker_array.markers.push_back(marker);
     }
 
-    void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start, double safety_margin,  visualization_msgs::MarkerArray & marker_array)
+    void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start,   visualization_msgs::MarkerArray & marker_array)
     {
         // oppair end    215,25,28     0.84    0.1     0.1
         // oppair start 253,174,97     1       0.68    0.38
@@ -216,12 +216,6 @@ namespace rviz_interface
         green = 0.84;
         blue  = 0.91;
         build_sphere_basic(frontier, marker_array, ns, red, green, blue);
-
-        ns = "margin";
-        // red   = 0.17;
-        // green = 0.48;
-        // blue  = 0.71;
-        publish_safety_margin(frontier, safety_margin, marker_array, 31) ;
     }
     
     void build_sphere(octomath::Vector3 & candidate, double size, int green_base, int marker_id, visualization_msgs::Marker & marker, int red_base, std::string ns)

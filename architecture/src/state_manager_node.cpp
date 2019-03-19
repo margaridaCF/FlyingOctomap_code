@@ -168,9 +168,7 @@ namespace state_manager_node
         request.max.x = geofence_max.x();
         request.max.y = geofence_max.y();
         request.max.z = geofence_max.z();
-        request.safety_margin = safety_margin;
         request.frontier_amount = /*state_data.goal_state_machine->getUnobservableSetSize()+*/20;
-        request.min_distance = px4_loiter_radius;
         if(state_data.fresh_map)
         {
             request.new_request = true;
@@ -441,7 +439,7 @@ namespace state_manager_node
         geometry_msgs::Point oppair_end_geom;
         state_data.goal_state_machine->getFlybyEnd(oppair_end_geom);
         visualization_msgs::MarkerArray marker_array;
-        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, state_data.frontiers_request.safety_margin, marker_array);
+        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array);
         marker_pub.publish(marker_array);
     }
 

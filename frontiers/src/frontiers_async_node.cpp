@@ -25,7 +25,6 @@ namespace frontiers_async_node
 	ros::Publisher local_pos_pub;
 	ros::Publisher marker_pub;
 	std::string folder_name;
-	double sensor_angle;
 	int last_request_id;
 	octomap::OcTree::leaf_bbx_iterator iterator;
 	#ifdef SAVE_CSV
@@ -69,7 +68,7 @@ namespace frontiers_async_node
 		octomath::Vector3 candidate(req.candidate.x, req.candidate.y, req.candidate.z);
 		try
 		{
-			res.is_frontier = Frontiers::isFrontier(*octree, candidate, sensor_angle);
+			res.is_frontier = Frontiers::isFrontier(*octree, candidate);
 			return true;
 		}
 		catch(const std::out_of_range& oor)
@@ -174,7 +173,6 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "frontier_node_async");
 	ros::NodeHandle nh;
 
-    nh.getParam("laser_angle", frontiers_async_node::sensor_angle);
 	ros::ServiceServer frontier_status_service = nh.advertiseService("frontier_status", frontiers_async_node::check_status);
 	ros::ServiceServer is_frontier_service = nh.advertiseService("is_frontier", frontiers_async_node::check_frontier);
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, frontiers_async_node::octomap_callback);
