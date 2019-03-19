@@ -23,12 +23,13 @@ geofence_max/z: 70
 
 path/max_time_secs: 15
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 3
+path/safety_margin: 6
 
 # == Observation Point Pairs ==
-oppairs/distance_inFront: 1
-oppairs/distance_behind: 1
+oppairs/distance_inFront: 2
+oppairs/distance_behind: 2
 oppairs/circle_divisions: 12
+oppairs/sensing_distance: 5
 
 current_position_topic: "/uav_1/mavros/local_position/pose"
 
