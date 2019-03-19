@@ -149,7 +149,7 @@ bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
 void initialization()
 {
 
-    position_tolerance = 0.2;
+    position_tolerance = 0.3;
     distance_switch_wp_control = 0.5;
     max_acceptance_orientation = 3.0;
     min_acceptance_orientation = 0.14;
