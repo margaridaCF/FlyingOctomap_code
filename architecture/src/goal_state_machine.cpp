@@ -35,19 +35,6 @@ namespace goal_state_machine
                 ROS_ERROR("[Goal SM] Cannot place request to check flight corridor for flyby.");
             }
         }
-		// #ifdef SAVE_LOG
-		// std::ofstream log_file;
-		// log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-  //       if(!srv.response.free)
-		// {
-		// 	log_file << "[Goal SM] Path occupied between oppairs " << start_eigen << " and " << end_eigen << std::endl;
-		// }
-		// else
-		// {
-		// 	log_file << "[Goal SM] Path free between oppairs " << start_eigen << " and " << end_eigen << std::endl;
-		// }
-		// log_file.close();	
-		// #endif
         return srv.response.free;
     }
 
