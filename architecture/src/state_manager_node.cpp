@@ -64,7 +64,6 @@ namespace state_manager_node
 
     // TODO - transform this into parameters at some point
     double px4_loiter_radius;
-    double laser_range_xy;
     double odometry_error;
     double safety_margin = 3;
     double error_margin;
@@ -172,7 +171,6 @@ namespace state_manager_node
         request.safety_margin = safety_margin;
         request.frontier_amount = /*state_data.goal_state_machine->getUnobservableSetSize()+*/20;
         request.min_distance = px4_loiter_radius;
-        request.sensing_distance = laser_range_xy;
         if(state_data.fresh_map)
         {
             request.new_request = true;
@@ -406,14 +404,8 @@ namespace state_manager_node
         nh.getParam("exploration_maneuver_duration_secs", temp);
         exploration_maneuver_duration_secs = ros::Duration(temp);
         nh.getParam("px4_loiter_radius", px4_loiter_radius);
-        double laser_range;
-        nh.getParam("laser_range", laser_range);
         do_initial_maneuver = false;
         nh.getParam("do_initial_maneuver", do_initial_maneuver);
-        double laser_angle;
-        nh.getParam("laser_angle", laser_angle);
-        laser_range_xy = std::cos(laser_angle)*laser_range;
-        ROS_INFO_STREAM("[architecture] Laser xy range: " << laser_range_xy);
         nh.getParam("odometry_error", odometry_error);
         nh.getParam("frontier/safety_margin", safety_margin);
         error_margin = std::max(px4_loiter_radius, odometry_error);

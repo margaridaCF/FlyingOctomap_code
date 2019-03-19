@@ -4,8 +4,6 @@ px4_loiter_radius: 1
 px4/flight_speed: 3
 px4/yaw_rate: 100
 # offboard_enabled: true
-laser_range: 8
-laser_angle: 0.872665
 
 do_initial_maneuver: true
 

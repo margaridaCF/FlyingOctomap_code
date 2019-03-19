@@ -21,8 +21,6 @@ frontier/safety_margin: 3
 exploration_maneuver_duration_secs: 18
 exploration_maneuver_phases_duration_secs: 5
 odometry_error: 0
-laser_range: 9.5
-laser_angle: 0.872665
 # Geofence
 geofence_min/x: -10
 geofence_max/x: 20
