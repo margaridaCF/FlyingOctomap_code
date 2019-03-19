@@ -24,7 +24,10 @@ namespace goal_state_machine
         srv.request.end.x   = end_eigen(0);
         srv.request.end.y   = end_eigen(1);
         srv.request.end.z   = end_eigen(2);
-        srv.request.flight_corridor_width = path_safety_margin;
+        // Inflated the space required to be free around the flyby.
+        srv.request.flight_corridor_width = path_safety_margin + 0.05; // This magic number is to inflate the safe space around the flyby
+        // Without it frequently the path planner was asked for impossible goals because the start of the line of sight was just outside a particular voxel
+        // With this we guarentee the flyby to stay away from obstacles and unknown space.
 
         bool check = false;
         while(!check)
