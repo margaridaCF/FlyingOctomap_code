@@ -673,7 +673,6 @@ namespace LazyThetaStarOctree{
 				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_s, s_id, s->cell_size);
 				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_single_loop, s_id, s->cell_size);
 				s_id++;
-				ROS_INFO_STREAM("[ltstar] Generated " << neighbors.size() << " neighbors.");
 				// if(neighbors.size() > 100)
 				// {
 					int n_id = 0;
@@ -689,7 +688,6 @@ namespace LazyThetaStarOctree{
 						neighbor_v.y = n_coordinates->y();
 						neighbor_v.z = n_coordinates->z();
 						int id =  s_id*1000 + n_id;
-						ROS_INFO_STREAM("[ltstar] [" << id << "] " << n_coordinates->x() << "; " << n_coordinates->y() << "; "<< n_coordinates->z() << " size " << cell_size);
 						if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input, ignoreUnknown) )
 						{
 		    				rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
@@ -788,7 +786,7 @@ namespace LazyThetaStarOctree{
 				ROS_ERROR_STREAM("Reached maximum time for A*. Breaking out");
 				break;	
 			}
-			ros::Duration(10).sleep();
+			// ros::Duration(10).sleep();
 		}
 		resultSet.iterations_used = used_search_iterations;
 		// ROS_WARN_STREAM("Used "<< used_search_iterations << " iterations to find path");
