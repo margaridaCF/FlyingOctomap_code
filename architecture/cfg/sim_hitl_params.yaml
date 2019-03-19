@@ -23,7 +23,7 @@ geofence_max/z: 70
 
 path/max_time_secs: 15
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 6
+path/safety_margin: 5
 
 # == Observation Point Pairs ==
 oppairs/distance_inFront: 2
