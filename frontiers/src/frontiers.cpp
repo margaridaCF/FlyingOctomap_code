@@ -34,20 +34,6 @@ namespace Frontiers{
         return true;
     }
 
-
-    void calculate_closer_position(octomath::Vector3 & sensing_position, octomath::Vector3 const& n_coordinates, double const safety_margin)
-    {
-        sensing_position = sensing_position - n_coordinates;
-        sensing_position.normalize();
-        sensing_position = sensing_position * safety_margin;
-        sensing_position = n_coordinates + sensing_position;
-    }
-
-    bool isCenterGoodGoal(double voxel_side, double octree_resolution, double sensing_distance)
-    {
-        return voxel_side/2 + octree_resolution/2 < sensing_distance ;
-    }
-
     State getState(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree)
     {
         octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());
@@ -106,7 +92,6 @@ namespace Frontiers{
         int n_id = 0;
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount )
         {
-            bool use_center_as_goal = isCenterGoodGoal(it.getSize(), resolution, request.sensing_distance);
             octomath::Vector3 coord = it.getCoordinate();
             currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
@@ -220,91 +205,6 @@ namespace Frontiers{
             return true;
         }
     }
-
-    
-    bool isFrontierTooCloseToObstacles(octomath::Vector3 const& frontier, double safety_margin, octomap::OcTree const& octree, ros::Publisher const& marker_pub, bool publish)
-    {
-        std::vector<Voxel> explored_space;
-        #ifdef RUNNING_ROS
-        if(publish)
-        { 
-            rviz_interface::publish_deleteAll(marker_pub);
-        }
-        #endif
-        // ROS_WARN_STREAM("[Frontier] Checking neighboring obstacles for candidate frontier " << frontier);
-        octomath::Vector3  min = octomath::Vector3(frontier.x() - safety_margin, frontier.y() - safety_margin, frontier.z() - safety_margin);
-        octomath::Vector3  max = octomath::Vector3(frontier.x() + safety_margin, frontier.y() + safety_margin, frontier.z() + safety_margin);
-        octomap::OcTreeKey bbxMinKey, bbxMaxKey;
-        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
-        {
-            ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
-            return true;
-        }
-        int id = 102;
-        
-        octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);   
-        visualization_msgs::Marker marker;
-        visualization_msgs::MarkerArray known_space_markers;
-        while( !(it == octree.end_leafs_bbx()) )
-        {
-            octomath::Vector3 coord = it.getCoordinate();
-            explored_space.push_back(   Voxel ( coord.x(), coord.y(), coord.z(), it.getSize() )   );
-            if(isOccupied(coord, octree))
-            {
-                // ROS_WARN_STREAM("[Frontiers] " << coord << " is occupied.");
-                #ifdef RUNNING_ROS
-                if (publish) rviz_interface::publish_voxel_free_occupied(coord, true, marker_pub, id, it.getSize(), marker);
-                #endif
-                // ROS_WARN_STREAM("[Frontier] Candidate frontier had obstacle as neighbor " << frontier);
-                return true;
-            }
-            else
-            {
-                // ROS_WARN_STREAM("[Frontiers] " << coord << " is free.");
-                #ifdef RUNNING_ROS
-                if (publish) rviz_interface::publish_voxel_free_occupied(coord, false, marker_pub, id, it.getSize(), marker);
-                #endif
-            }
-            known_space_markers.markers.push_back(marker);
-            it++;
-            id++;
-        }
-        if (publish) marker_pub.publish(known_space_markers);
-        return false;
-    }
-
-//     bool meetsOperationalRequirements(octomath::Vector3 const&  candidate, double min_distance, octomath::Vector3 const& current_position, octomap::OcTree const& octree, double safety_distance, geometry_msgs::Point geofence_min, geometry_msgs::Point geofence_max, ros::Publisher const& marker_pub, bool publish)
-//     {
-//         if(candidate.x() < geofence_min.x 
-//             || candidate.y() < geofence_min.y 
-//             || candidate.x() < geofence_min.y 
-//             || candidate.x() > geofence_max.x 
-//             || candidate.y() > geofence_max.y  
-//             || candidate.z() > geofence_max.z)
-//         {
-            
-// #ifdef SAVE_LOG            
-//             log_file << "[Frontiers] Rejected " << candidate << " because it is outside geofence " << std::endl;
-// #endif
-//             return false;
-//         }
-// //         // Operation restrictions
-// //         if(candidate.distance(current_position) <= min_distance)
-// //         {
-// // #ifdef SAVE_LOG            
-// //             log_file << "[Frontiers] Rejected " << candidate << " because it's too close (" << candidate.distance(current_position) << "m) to current_position " << current_position << std::endl;
-// // #endif
-// //             return false; // below navigation precision
-// //         }
-// //         if(isFrontierTooCloseToObstacles(candidate, safety_distance, octree, marker_pub, publish))
-// //         {
-// // #ifdef SAVE_LOG            
-// //             log_file <<"[Frontiers] Rejected " << candidate << " because goal is too close to obstacles" << std::endl;
-// // #endif
-// //             return false;
-// //         }
-//         return true;
-//     }
 
     bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate, double sensor_angle) 
     {
