@@ -22,10 +22,13 @@ namespace goal_state_machine
 	    bool 								has_more_goals, resetOPPair_flag;
 	    int 								frontier_index;
     	double 								path_safety_margin;
-	    observation_lib::OPPairs 			oppairs_side;
+    	double 								sensing_distance;
+	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
+	    bool								is_oppairs_side;
         std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash> unobservable_set; 
 
 
+		observation_lib::OPPairs& getCurrentOPPairs();
 		bool is_flightCorridor_free() ;
 		bool IsOPPairValid() ;
 		bool is_inside_geofence(Eigen::Vector3d target) const;
@@ -36,7 +39,7 @@ namespace goal_state_machine
 	    
 	public:
 		geometry_msgs::Point get_current_frontier() const;
-		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double frontier_safety_margin);
+		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance);
 		~GoalStateMachine(){}
 		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
 		bool NextGoal(Eigen::Vector3d& uav_position);

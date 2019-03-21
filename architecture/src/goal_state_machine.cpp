@@ -4,12 +4,19 @@
 
 namespace goal_state_machine
 {
-    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double frontier_safety_margin)
-		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client)
+    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance)
+		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance)
 	{
-		oppairs_side = observation_lib::OPPairs(circle_divisions, frontier_safety_margin, distance_inFront, distance_behind);
+		oppairs_side = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
+		oppairs_under = observation_lib::OPPairs(circle_divisions/2, sensing_distance/2, distance_inFront, distance_behind);
         unobservable_set = std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash>(); 
 
+	}
+
+	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()
+	{
+		if(is_oppairs_side) return oppairs_side;
+		else 				return oppairs_under;	
 	}
 
 	bool GoalStateMachine::is_flightCorridor_free() 
@@ -93,9 +100,15 @@ namespace goal_state_machine
 
 	void GoalStateMachine::resetOPPair(Eigen::Vector3d& uav_position)
 	{
+		is_oppairs_side = true;
 		geometry_msgs::Point curr_frontier_geom = get_current_frontier();
+		
         Eigen::Vector3d new_frontier(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
 		oppairs_side.NewFrontier(new_frontier, uav_position, pi);
+
+		// // To generate the points to pass under, the sensing_distance is used
+        Eigen::Vector3d new_frontier_under(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z-sensing_distance);
+		oppairs_under.NewFrontier(new_frontier_under, uav_position, pi);
 	}
 
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
@@ -118,7 +131,24 @@ namespace goal_state_machine
 				{
 					has_more_goals = true;
 					#ifdef SAVE_LOG	
-					log_file << "[Goal SM] found oppair." << std::endl;
+					log_file << "[Goal SM] found side oppair." << std::endl;
+					log_file.close();	
+					#endif
+					return true;
+				}		
+			}
+			is_oppairs_side = false;
+			for(bool existsNextOPPair = oppairs_under.Next();
+				existsNextOPPair;
+				existsNextOPPair = oppairs_under.Next())
+			{
+				// log_file << "[Goal SM] oppair loop." << std::endl;
+
+				if(IsOPPairValid())
+				{
+					has_more_goals = true;
+					#ifdef SAVE_LOG	
+					log_file << "[Goal SM] found under oppair." << std::endl;
 					log_file.close();	
 					#endif
 					return true;
