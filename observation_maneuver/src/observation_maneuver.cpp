@@ -10,10 +10,6 @@
 namespace observation_lib
 {
 
-	// == Algorithm constantes ==
-	Eigen::MatrixXd starts_zero;
-	Eigen::MatrixXd ends_zero;
-	Eigen::MatrixXd directions_zero;
 
     std::ofstream log_file;
 
