@@ -471,7 +471,7 @@ namespace state_manager_node
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
 
                     waypoint.position.x = 1;
-                    waypoint.position.y = 1;
+                    waypoint.position.y = 2;
                     waypoint.position.z = 10;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
 

@@ -7,10 +7,9 @@ namespace goal_state_machine
     GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance)
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance)
 	{
-		oppairs_side = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
+		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
 		oppairs_under = observation_lib::OPPairs(circle_divisions/2, sensing_distance/2, distance_inFront, distance_behind);
         unobservable_set = std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash>(); 
-
 	}
 
 	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()
@@ -22,8 +21,8 @@ namespace goal_state_machine
 	bool GoalStateMachine::is_flightCorridor_free() 
     {
         lazy_theta_star_msgs::CheckFlightCorridor srv;
-        Eigen::Vector3d start_eigen = oppairs_side.get_current_start();
-        Eigen::Vector3d end_eigen = oppairs_side.get_current_end();
+        Eigen::Vector3d start_eigen = getCurrentOPPairs().get_current_start();
+        Eigen::Vector3d end_eigen = getCurrentOPPairs().get_current_end();
         
         srv.request.start.x = start_eigen(0);
         srv.request.start.y = start_eigen(1);
@@ -50,8 +49,8 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::IsOPPairValid() 
     {
-    	if(is_inside_geofence(oppairs_side.get_current_start()) 
-    		&& is_inside_geofence(oppairs_side.get_current_end()) 
+    	if(is_inside_geofence(getCurrentOPPairs().get_current_start()) 
+    		&& is_inside_geofence(getCurrentOPPairs().get_current_end()) 
     		&& is_flightCorridor_free()) 
 		{
     		return true;
@@ -105,10 +104,15 @@ namespace goal_state_machine
 		
         Eigen::Vector3d new_frontier(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
 		oppairs_side.NewFrontier(new_frontier, uav_position, pi);
+	    visualization_msgs::MarkerArray marker_array;
+	    rviz_interface::build_sphere_basic(curr_frontier_geom, marker_array, "unknown_point", 0, 0, 1);
 
 		// // To generate the points to pass under, the sensing_distance is used
-        Eigen::Vector3d new_frontier_under(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z-sensing_distance);
+		curr_frontier_geom.z = curr_frontier_geom.z-sensing_distance;
+        Eigen::Vector3d new_frontier_under(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
 		oppairs_under.NewFrontier(new_frontier_under, uav_position, pi);
+	    rviz_interface::build_sphere_basic(curr_frontier_geom, marker_array, "under_unknown_point", 0.5, 0.5, 1);
+	    pi.marker_pub.publish(marker_array);
 	}
 
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
