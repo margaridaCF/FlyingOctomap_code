@@ -270,7 +270,7 @@ namespace rviz_interface
         marker_array.markers.push_back(marker);
     }
 
-    void publish_start(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
+    void publish_start(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array)
     {
         visualization_msgs::Marker marker;
         marker.color.r = 1.0f;
@@ -293,12 +293,10 @@ namespace rviz_interface
         marker.scale.z = 0.2f;
         marker.color.a = 1.0f;
         marker.lifetime = ros::Duration();
-        visualization_msgs::MarkerArray marker_array;
         marker_array.markers.push_back(marker);
-        marker_pub.publish(marker_array);
     }
 
-    void publish_goal(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub)
+    void publish_goal(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array)
     {
         visualization_msgs::Marker marker;
         marker.color.r = 1.0f;
@@ -321,9 +319,7 @@ namespace rviz_interface
         marker.scale.z = 0.2f;
         marker.color.a = 1.0f;
         marker.lifetime = ros::Duration();
-        visualization_msgs::MarkerArray marker_array;
         marker_array.markers.push_back(marker);
-        marker_pub.publish(marker_array);
     }
 
     void publish_sensing_position(octomath::Vector3 const& position, int id, visualization_msgs::MarkerArray & marker_array)
@@ -337,7 +333,7 @@ namespace rviz_interface
         marker_array.markers.push_back(marker);
     }
 
-    void publish_start_voxel(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size)
+    void publish_start_voxel(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double size)
     {
         visualization_msgs::Marker marker;
         octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
@@ -345,12 +341,10 @@ namespace rviz_interface
         float green = 1.0f;
         float blue = 0.0f;
         build_small_marker(candidate_vec3, marker, red, green,  blue, "start_voxel", 25, size, 0.3  );
-        visualization_msgs::MarkerArray marker_array;
         marker_array.markers.push_back(marker);
-        marker_pub.publish(marker_array);
     }
 
-    void publish_goal_voxel(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size)
+    void publish_goal_voxel(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double size)
     {
         visualization_msgs::Marker marker;
         octomath::Vector3 candidate_vec3 (candidate.x, candidate.y, candidate.z);
@@ -358,9 +352,7 @@ namespace rviz_interface
         float green = 0.5f;
         float blue = 0.0f;
         build_small_marker(candidate_vec3, marker, red, green,  blue, "goal_voxel", 26, size, 0.3);
-        visualization_msgs::MarkerArray marker_array;
         marker_array.markers.push_back(marker);
-        marker_pub.publish(marker_array);
     }
 
     void publish_random_important_cube(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub)

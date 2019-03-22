@@ -47,16 +47,16 @@ namespace rviz_interface
 	void init_point 				(geometry_msgs::Point & point, float x, float y, float z);
 	void build_waypoint 			(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker, int series = 9);
 	void publish_current_position 	(octomath::Vector3 & candidate, visualization_msgs::MarkerArray marker_array);
-	void publish_start 				(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
-	void publish_goal 				(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
+	void publish_start 				(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array);
+	void publish_goal 				(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array);
 	void publish_random_important_cube(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
 	void publish_s 					(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id, float size);
     void publish_rejected_neighbor  (geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id, float size);
 	void publish_visible_neighbor	(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id, float size);
 	void publish_closed				(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id);
 	void publish_sensing_position 	(octomath::Vector3 const& position, int id, visualization_msgs::MarkerArray & marker_array);
-	void publish_start_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
-	void publish_goal_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
+	void publish_start_voxel 		(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double size);
+	void publish_goal_voxel 		(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double size);
     void build_small_marker			(octomath::Vector3 const& candidate, visualization_msgs::Marker & marker, float red, float green, float blue, std::string ns, int id, double size = 0.2f, double alpha = 1);
 
 	// SPHERES

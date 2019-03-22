@@ -232,7 +232,7 @@ namespace LazyThetaStarOctree{
 			}   
 			else
 			{
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true, obstacle_avoidance_calls*100+i);
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true, obstacle_avoidance_calls*1000+i);
 				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
 			}
 		}
@@ -579,6 +579,7 @@ namespace LazyThetaStarOctree{
 			log_file << "[LTStar] Center of start voxel " << cell_center_coordinates_start << ". Side " << cell_size_start << " given start point " << input.start << std::endl;
 			log_file << "[LTStar] Center of goal voxel " << cell_center_coordinates_goal << ". Side " << cell_size_goal << " given goal point " << input.goal << std::endl;
 			#ifdef RUNNING_ROS
+			visualization_msgs::MarkerArray marker_array;
 			geometry_msgs::Point start_point, goal_point;
 			start_point.x = input.start.x();
 			start_point.y = input.start.y();
@@ -586,8 +587,8 @@ namespace LazyThetaStarOctree{
 			goal_point.x = input.goal.x();
 			goal_point.y = input.goal.y();
 			goal_point.z = input.goal.z();
-			rviz_interface::publish_start(start_point, publish_input.marker_pub);
-			rviz_interface::publish_goal(goal_point, publish_input.marker_pub);
+			rviz_interface::publish_start(start_point, marker_array);
+			rviz_interface::publish_goal(goal_point, marker_array);
 
 			start_point.x = cell_center_coordinates_start.x();
 			start_point.y = cell_center_coordinates_start.y();
@@ -595,8 +596,9 @@ namespace LazyThetaStarOctree{
 			goal_point.x = cell_center_coordinates_goal.x();
 			goal_point.y = cell_center_coordinates_goal.y();
 			goal_point.z = cell_center_coordinates_goal.z();
-			rviz_interface::publish_start_voxel(start_point, publish_input.marker_pub, cell_size_start);
-			rviz_interface::publish_goal_voxel(goal_point, publish_input.marker_pub, cell_size_goal);
+			rviz_interface::publish_start_voxel(start_point, marker_array, cell_size_start);
+			rviz_interface::publish_goal_voxel(goal_point, marker_array, cell_size_goal);
+	        publish_input.marker_pub.publish(marker_array);
 			#endif
 		}
 
