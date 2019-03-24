@@ -52,9 +52,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				flyby_end.x = oppairs_side.get_current_end().x();
-				flyby_end.y = oppairs_side.get_current_end().y();
-				flyby_end.z = oppairs_side.get_current_end().z();
+				flyby_end.x = getCurrentOPPairs().get_current_end().x();
+				flyby_end.y = getCurrentOPPairs().get_current_end().y();
+				flyby_end.z = getCurrentOPPairs().get_current_end().z();
 			}
 			else
 			{
@@ -67,9 +67,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				start.x = oppairs_side.get_current_start().x();
-				start.y = oppairs_side.get_current_start().y();
-				start.z = oppairs_side.get_current_start().z();
+				start.x = getCurrentOPPairs().get_current_start().x();
+				start.y = getCurrentOPPairs().get_current_start().y();
+				start.z = getCurrentOPPairs().get_current_start().z();
 			}
 			else
 			{
@@ -82,9 +82,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				flyby_start.x() = oppairs_side.get_current_start().x();
-				flyby_start.y() = oppairs_side.get_current_start().y();
-				flyby_start.z() = oppairs_side.get_current_start().z();
+				flyby_start.x() = getCurrentOPPairs().get_current_start().x();
+				flyby_start.y() = getCurrentOPPairs().get_current_start().y();
+				flyby_start.z() = getCurrentOPPairs().get_current_start().z();
 			}
 			else
 			{
@@ -97,8 +97,8 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				start.x() = oppairs_side.get_current_start().x();
-				start.y() = oppairs_side.get_current_start().y();
+				start.x() = getCurrentOPPairs().get_current_start().x();
+				start.y() = getCurrentOPPairs().get_current_start().y();
 			}
 			else
 			{
@@ -111,8 +111,8 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				end.x() = oppairs_side.get_current_end().x();
-				end.y() = oppairs_side.get_current_end().y();
+				end.x() = getCurrentOPPairs().get_current_end().x();
+				end.y() = getCurrentOPPairs().get_current_end().y();
 			}
 			else
 			{
