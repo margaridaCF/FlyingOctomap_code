@@ -44,7 +44,7 @@ namespace LazyThetaStarOctree
 		octomath::Vector3 start(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 end  (request.end.x, request.end.y, request.end.z);
 		InputData input (*octree, start, end, request.flight_corridor_width);
-		response.free = is_flight_corridor_free(input, PublishingInput( marker_pub, true), true);
+		response.free = is_flight_corridor_free(input, PublishingInput( marker_pub, false));
 		return true;
 	}
 	

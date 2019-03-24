@@ -45,7 +45,7 @@ namespace LazyThetaStarOctree{
 	double scale_float						(float value);
 	CellStatus 	getLineStatus 				(InputData const& input);
 	CellStatus 	getLineStatusBoundingBox	(InputData const& input);
-	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown = false);
+	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input);
 	float 		weightedDistance			(octomath::Vector3 const& start, octomath::Vector3 const& end);
 	void generateOffsets(double resolution, double safety_margin, double (*startDepthGenerator)(double, double, double), double (*goalDepthGenerator)(double, double, double) );
 	/**
@@ -64,8 +64,7 @@ namespace LazyThetaStarOctree{
 		Open 													& 		open, 
 		unordered_set_pointers									const& 	neighbors,
 		PublishingInput 										const& publish_input, 
-		const double sidelength_lookup_table[],
-		bool ignoreUnknown = false);
+		const double sidelength_lookup_table[]);
 
 	/**
 	 * @brief      Extracts a sequence of coordinates from the links between nodes starting at the goal node and expanding the connections to the prevuous point through parentNode.
