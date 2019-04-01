@@ -1,15 +1,16 @@
-#include <goal_state_machine.h>
+	#include <goal_state_machine.h>
 #include <iostream>
 #include <fstream>
 
 namespace goal_state_machine
 {
-    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance)
-		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance)
+    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin)
+		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(path_safety_margin)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
 		oppairs_under = observation_lib::OPPairs(circle_divisions/2, sensing_distance/2, distance_inFront, distance_behind);
         unobservable_set = std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash>(); 
+		sensing_distance = std::round(    (path_safety_margin/2 + 1) * 10   )  / 10;
 	}
 
 	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()
@@ -31,7 +32,7 @@ namespace goal_state_machine
         srv.request.end.y   = end_eigen(1);
         srv.request.end.z   = end_eigen(2);
         // Inflated the space required to be free around the flyby.
-        srv.request.flight_corridor_width = path_safety_margin + 0.05; // This magic number is to inflate the safe space around the flyby
+        srv.request.flight_corridor_width = path_safety_margin + 1; // This magic number is to inflate the safe space around the flyby
         // Without it frequently the path planner was asked for impossible goals because the start of the line of sight was just outside a particular voxel
         // With this we guarentee the flyby to stay away from obstacles and unknown space.
 

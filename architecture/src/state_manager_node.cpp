@@ -485,15 +485,15 @@ namespace state_manager_node
                     waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
 
-                    waypoint.position.x = 2;
-                    waypoint.position.y = -2;
-                    waypoint.position.z = 8;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = 2;
+                    // waypoint.position.y = -2;
+                    // waypoint.position.z = 8;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
 
-                    waypoint.position.x = -2;
-                    waypoint.position.y = 2;
-                    waypoint.position.z = 8;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = -2;
+                    // waypoint.position.y = 2;
+                    // waypoint.position.z = 8;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
 
                     waypoint.position.x = 0;
                     waypoint.position.y = 0;
@@ -561,7 +561,7 @@ namespace state_manager_node
                     // state_data.ltstar_reply.waypoints.push_back(waypoint);
                     Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.frontiers_msg.frontiers_found = 1;
-                    state_data.ltstar_reply.waypoint_amount = 7;
+                    state_data.ltstar_reply.waypoint_amount = 5;
                     frontiers_msgs::VoxelMsg fake_frontier;
                     fake_frontier.xyz_m = current_position;
                     state_data.frontiers_msg.frontiers.push_back(fake_frontier);
@@ -777,8 +777,7 @@ int main(int argc, char **argv)
     geofence_max_point.x = state_manager_node::geofence_max.x();
     geofence_max_point.y = state_manager_node::geofence_max.y();
     geofence_max_point.z = state_manager_node::geofence_max.z();
-    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::sensing_distance);
-
+    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin);
     #ifdef SAVE_CSV
     std::ofstream csv_file;
     csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
