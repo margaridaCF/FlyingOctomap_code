@@ -8,7 +8,7 @@ namespace goal_state_machine
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(path_safety_margin)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
-		oppairs_under = observation_lib::OPPairs(circle_divisions/2, sensing_distance/2, distance_inFront, distance_behind);
+		oppairs_under = observation_lib::OPPairs(circle_divisions/2, 0.1, distance_inFront, distance_behind);
         unobservable_set = std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash>(); 
 		sensing_distance = std::round(    (path_safety_margin/2 + 1) * 10   )  / 10;
 	}

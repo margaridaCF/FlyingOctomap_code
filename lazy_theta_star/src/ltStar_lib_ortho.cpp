@@ -548,7 +548,7 @@ namespace LazyThetaStarOctree{
 			std::stringstream ss;
 			ss << folder_name << "/" << input.goal.x() << "_" << input.goal.y() << "_" << input.goal.z() << "__goalUnknown.bt";
 			input.octree.writeBinaryConst(ss.str());
-			ros::Duration(20).sleep();
+			// ros::Duration(20).sleep();
 			return path;	
 		} 
 
@@ -778,7 +778,7 @@ namespace LazyThetaStarOctree{
 				ROS_ERROR_STREAM("Reached maximum time for A*. Breaking out");
 				break;	
 			}
-			ros::Duration(0.5).sleep();
+			ros::Duration(1).sleep();
 		}
 		resultSet.iterations_used = used_search_iterations;
 		// ROS_WARN_STREAM("Used "<< used_search_iterations << " iterations to find path");
