@@ -7,10 +7,24 @@ namespace goal_state_machine
     GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin)
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(path_safety_margin)
 	{
-		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
-		oppairs_under = observation_lib::OPPairs(circle_divisions/2, 0.1, distance_inFront, distance_behind);
-        unobservable_set = std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash>(); 
 		sensing_distance = std::round(    (path_safety_margin/2 + 1) * 10   )  / 10;
+		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
+        unobservable_set = std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash>(); 
+
+		double distance_behind_under, distance_inFront_under;
+		double sensor_shape_offset = sensing_distance / std::tan(0.872665);
+		double flyby_distance      = distance_behind + distance_inFront;
+		distance_behind_under      = distance_behind + sensor_shape_offset;
+		double diference           = flyby_distance - distance_behind_under;
+		if(diference < 0)
+		{
+			distance_inFront_under = 0;
+		}
+		else
+		{
+			distance_inFront_under = diference; 	
+		}
+		oppairs_under = observation_lib::OPPairs(circle_divisions/2, 0.1, distance_inFront_under, distance_behind_under);
 	}
 
 	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()
