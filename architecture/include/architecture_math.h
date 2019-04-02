@@ -32,8 +32,8 @@ namespace architecture_math
 		Eigen::Vector2d d = end - start;
 		d.normalize();
 		double adjacent = d.x();
-		double hipotenuse = d.norm();
-		if(hipotenuse == 0)
+		double hipotenuse = d.stableNorm();
+		if(hipotenuse == 0 || std::isnan(hipotenuse))
 		{
 			result = 0;
 		} 	
