@@ -186,7 +186,7 @@ namespace LazyThetaStarOctree{
 
 	CellStatus getCorridorOccupancy_byPlanes(
 		InputData const& input,
-		PublishingInput const& publish_input) 
+		rviz_interface::PublishingInput const& publish_input) 
 	{
 		visualization_msgs::MarkerArray marker_array;
 		CoordinateFrame coordinate_frame = generateCoordinateFrame(input.start, input.goal);
@@ -233,7 +233,7 @@ namespace LazyThetaStarOctree{
 	// the order to evaluate line of sight is parent -> s -> neighbor
 	// ortherwise path 2 will not fallback on path 1 when needed 
 	// (the line of sight from start to end is not the same as from end to start)
-	bool is_flight_corridor_free(InputData const& input, PublishingInput const& publish_input)
+	bool is_flight_corridor_free(InputData const& input, rviz_interface::PublishingInput const& publish_input)
 	{
 		// auto start_count = std::chrono::high_resolution_clock::now();
 		bool free = getCorridorOccupancy_byPlanes(input, publish_input) == CellStatus::kFree; 
@@ -261,7 +261,7 @@ namespace LazyThetaStarOctree{
 		Open 													& 		open, 
 		unordered_set_pointers 									const& 	neighbors,
 		double 															safety_margin,
-		PublishingInput 										const& 	publish_input,
+		rviz_interface::PublishingInput 										const& 	publish_input,
 		const double 													sidelength_lookup_table[])	
 	{
 		auto start_count = std::chrono::high_resolution_clock::now();
@@ -515,7 +515,7 @@ namespace LazyThetaStarOctree{
 		InputData const& input,
 		ResultSet & resultSet,
 		const double sidelength_lookup_table[],
-		PublishingInput const& publish_input,
+		rviz_interface::PublishingInput const& publish_input,
 		int const& max_time_secs,
 		bool print_resulting_path)
 	{
@@ -874,7 +874,7 @@ namespace LazyThetaStarOctree{
 	    log_file.close();
 	}
 
-	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input)
+	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], rviz_interface::PublishingInput const& publish_input)
 	{
 
 #ifdef SAVE_CSV
@@ -916,7 +916,7 @@ namespace LazyThetaStarOctree{
 		generated_path_distance_ss << "             total = " << distance_total << "\n";
 		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
 
-		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), PublishingInput( publish_input.marker_pub, true), false);
+		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), rviz_interface::PublishingInput( publish_input.marker_pub, true), false);
 		// qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
 
 

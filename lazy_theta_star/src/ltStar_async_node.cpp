@@ -44,7 +44,7 @@ namespace LazyThetaStarOctree
 		octomath::Vector3 start(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 end  (request.end.x, request.end.y, request.end.z);
 		InputData input (*octree, start, end, request.flight_corridor_width);
-		response.free = is_flight_corridor_free(input, PublishingInput( marker_pub, false));
+		response.free = is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, false));
 		return true;
 	}
 	
@@ -102,7 +102,7 @@ namespace LazyThetaStarOctree
 			// 	publish_free_corridor_arrows = false;
 			// }
 			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, dephtZero, semiSphereOut );
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
+			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, true) );
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
