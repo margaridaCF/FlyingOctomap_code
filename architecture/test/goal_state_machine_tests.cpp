@@ -4,8 +4,8 @@
 
 namespace goal_state_machine
 {
-	TEST(GoalStateMachine, UnobservableTest)
-	{
+    TEST(GoalStateMachine, UnobservableTest)
+    {
     frontiers_msgs::FrontierReply frontiers_msg;
     double distance_inFront = 2;
     double distance_behind = 2;
@@ -29,8 +29,8 @@ namespace goal_state_machine
 
     goal_state_machine.DeclareUnobservable(unobservable, viewpoint);
     ASSERT_TRUE( goal_state_machine.IsUnobservable(unobservable, viewpoint));
-	 
-	}
+     
+    }
 
   TEST(GoalStateMachine, UnobservableTest_Tolerance)
   {

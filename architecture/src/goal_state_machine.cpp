@@ -9,7 +9,7 @@ namespace goal_state_machine
 	{
 		sensing_distance = std::round(    (path_safety_margin/2 + 1) * 10   )  / 10;
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
-        unobservable_set = std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash>(); 
+        unobservable_set = unobservable_pair_set(); 
 
 		double distance_behind_under, distance_inFront_under;
 		double sensor_shape_offset = sensing_distance / std::tan(0.872665);
@@ -175,9 +175,6 @@ namespace goal_state_machine
 			}
 			log_file << "[Goal SM] frontier " << get_current_frontier() << " is unreachable." << std::endl;
 			// None of the remaining OPPairs were usable to inspect
-			// The frontier is unreachable
-            octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-            unobservable_set.insert(unreachable);
 			if(hasNextFrontier())
 			{
 				frontier_index++;
@@ -196,6 +193,17 @@ namespace goal_state_machine
 		log_file.close();	
 		#endif
 		return false;
+	}
+
+	void GoalStateMachine::DeclareUnobservable(octomath::Vector3 unobservable, octomath::Vector3 viewpoint)
+	{
+		// The frontier is unobservable
+        unobservable_set.insert(std::make_pair(unobservable, viewpoint));
+	}
+
+	bool GoalStateMachine::IsUnobservable(octomath::Vector3 unobservable, octomath::Vector3 viewpoint)
+	{
+		return ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
 	}
 
 	void GoalStateMachine::NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg)

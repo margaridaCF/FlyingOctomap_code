@@ -168,7 +168,7 @@ namespace state_manager_node
         request.max.x = geofence_max.x();
         request.max.y = geofence_max.y();
         request.max.z = geofence_max.z();
-        request.frontier_amount = /*state_data.goal_state_machine->getUnobservableSetSize()+*/20;
+        request.frontier_amount = 20;
         if(state_data.fresh_map)
         {
             request.new_request = true;

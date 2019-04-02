@@ -13,6 +13,46 @@
 namespace goal_state_machine
 {
 
+
+    struct PairHash
+    {
+        std::size_t operator()(const std::pair <octomath::Vector3, octomath::Vector3> & v) const 
+        {
+            int scale = 0.00001;
+            std::size_t hx = std::hash<float>{}( (int)(v.second.x() / scale) * scale );
+            std::size_t hy = std::hash<float>{}( (int)(v.second.y() / scale) * scale );
+            std::size_t hz = std::hash<float>{}( (int)(v.first.z() / scale) * scale );
+            std::size_t return_value = ((hx 
+               ^ (hy << 1)) >> 1)
+               ^ (hz << 1);
+            return return_value;
+        }
+    };
+
+
+    struct PairComparatorEqual // big tolerance
+    { 
+        bool operator () (const std::pair <octomath::Vector3, octomath::Vector3> & lhs, std::pair <octomath::Vector3, octomath::Vector3> & rhs) const 
+        { 
+        	// This large scale allows to skip over calculations for similiar locations
+            double scale = 1;
+            // ROS_WARN_STREAM("Distance from " << *lhs << " and  " << *rhs << " is " << lhs->distance(*rhs) << " <= " << scale << " returning " << (lhs->distance(*rhs) <= scale)   );
+            bool first = lhs.first.distance(rhs.first) <= scale;
+
+            // ROS_INFO_STREAM("First: (" << lhs.first.x() << "," << lhs.first.y() << "," << lhs.first.z() << ")" );
+            // ROS_INFO_STREAM("First: (" << rhs.first.x() << "," << rhs.first.y() << "," << rhs.first.z() << ")" );
+            if (!first)	return first;
+            // returns !0 if the two container object keys passed as arguments are to be considered equal.
+            // ROS_INFO_STREAM("Second: (" << lhs.second.x() << "," << lhs.second.y() << "," << lhs.second.z() << ")" );
+            // ROS_INFO_STREAM("Second: (" << rhs.second.x() << "," << rhs.second.y() << "," << rhs.second.z() << ")" );
+
+            return lhs.second.distance(rhs.second) <= scale;
+
+        } 
+    };
+    typedef std::unordered_set<std::pair <octomath::Vector3, octomath::Vector3>, PairHash, PairComparatorEqual> unobservable_pair_set; 
+
+
 	class GoalStateMachine
 	{
 	    rviz_interface::PublishingInput 	pi;
@@ -25,7 +65,7 @@ namespace goal_state_machine
     	double 								sensing_distance;
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
 	    bool								is_oppairs_side;
-        std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash> unobservable_set; 
+        unobservable_pair_set	 			unobservable_set; 
 
 
 		observation_lib::OPPairs& getCurrentOPPairs();
@@ -35,6 +75,8 @@ namespace goal_state_machine
 		bool hasNextFrontier() const;
 		void resetOPPair(Eigen::Vector3d& uav_position);
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
+
+
 	    
 	    
 	public:
@@ -43,6 +85,8 @@ namespace goal_state_machine
 		~GoalStateMachine(){}
 		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
 		bool NextGoal(Eigen::Vector3d& uav_position);
+		void DeclareUnobservable(octomath::Vector3 unobservable, octomath::Vector3 viewpoint);
+		bool IsUnobservable(octomath::Vector3 unobservable, octomath::Vector3 viewpoint);
 		int getUnobservableSetSize()
 		{
 			return unobservable_set.size();

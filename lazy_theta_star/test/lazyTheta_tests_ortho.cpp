@@ -1,4 +1,5 @@
 #include <ltStar_lib_ortho.h>
+#include <ltStarOctree_common.h>
 #include <gtest/gtest.h>
 #include <queue>
 
@@ -29,7 +30,7 @@ namespace LazyThetaStarOctree{
 		ResultSet statistical_data;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
 		InputData input( octree, disc_initial, disc_final, safety_margin);
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub, true), max_time_secs, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, true), max_time_secs, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -71,7 +72,7 @@ namespace LazyThetaStarOctree{
 		ros::Publisher marker_pub;
 		ResultSet statistical_data;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
-		PublishingInput publish_input( marker_pub, true);
+		rviz_interface::PublishingInput publish_input( marker_pub, true);
 		InputData input( octree, disc_initial, disc_final, safety_margin);
 	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
@@ -176,7 +177,7 @@ namespace LazyThetaStarOctree{
         double safety_margin = 1;
         InputData input( octree, disc_initial, disc_final, safety_margin);
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub));
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub));
         EXPECT_EQ( 0, ThetaStarNode::OustandingObjects()) << "From  " << disc_initial << " to  " << disc_final;
 	}
 	TEST(LazyThetaStarTests, LazyThetaStar_NoSolution_NegativeInstanceCount_Test)
@@ -213,7 +214,7 @@ namespace LazyThetaStarOctree{
         ResultSet statistical_data;
         InputData input( octree, disc_initial, disc_final, safety_margin);
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, PublishingInput( marker_pub), 5);
+        std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub), 5);
 
 
         if(resulting_path.size() == 0)
@@ -353,8 +354,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub) );
-		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub) );
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), rviz_interface::PublishingInput(marker_pub) );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), rviz_interface::PublishingInput(marker_pub) );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -366,8 +367,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub) );
-		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub) );
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), rviz_interface::PublishingInput(marker_pub) );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), rviz_interface::PublishingInput(marker_pub) );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -379,8 +380,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 end(-10.5, -12.5, 3.5);
 		double safety_margin = 0;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub) );
-		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub) );
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), rviz_interface::PublishingInput(marker_pub) );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), rviz_interface::PublishingInput(marker_pub) );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -407,8 +408,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub ));
-		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub ));
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), rviz_interface::PublishingInput(marker_pub ));
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), rviz_interface::PublishingInput(marker_pub ));
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -420,8 +421,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 end(-11.5, -13.5, 3.5);
 		double safety_margin = 0;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub) );
-		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub) );
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), rviz_interface::PublishingInput(marker_pub) );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), rviz_interface::PublishingInput(marker_pub) );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 
@@ -433,8 +434,8 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 end(-10.5, -12.5, 3.5);
 		double safety_margin = 0;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
-		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), PublishingInput(marker_pub) );
-		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), PublishingInput(marker_pub) );
+		bool start_to_end = is_flight_corridor_free( InputData(octree, start, end, safety_margin), rviz_interface::PublishingInput(marker_pub) );
+		bool end_to_start = is_flight_corridor_free( InputData(octree, end, start, safety_margin), rviz_interface::PublishingInput(marker_pub) );
 		ASSERT_EQ(start_to_end, end_to_start);
 	}
 

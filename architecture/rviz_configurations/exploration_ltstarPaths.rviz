@@ -252,9 +252,11 @@ Visualization Manager:
       Namespaces:
         corridor_free: false
         corridor_occupied: false
-        lazy_theta_star_path: true
         lazy_theta_star_waypoint: false
+        rejected_neighors: false
+        s: false
         straight_line: true
+        usable_neighors: false
       Queue Size: 100
       Value: true
     - Class: rviz/Marker

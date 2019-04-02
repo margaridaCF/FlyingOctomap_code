@@ -63,7 +63,14 @@ if(CATKIN_ENABLE_TESTING)
   # catkin_add_gtest(work_in_progress_architecture_tests 
   #   test/work_in_progress_architecture_tests.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} )
+  # target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} goal_state_lib)
+
+  # Goal State Machine
+  catkin_add_gtest(goal_sm_tests 
+    test/goal_state_machine_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(goal_sm_tests ${catkin_LIBRARIES} goal_state_lib)
+
   #MATH
   catkin_add_gtest(architecture_tests 
     test/architecture_tests.cpp
