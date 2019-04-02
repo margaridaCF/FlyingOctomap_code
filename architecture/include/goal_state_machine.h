@@ -16,7 +16,7 @@ namespace goal_state_machine
 
     struct PairHash
     {
-        std::size_t operator()(const std::pair <octomath::Vector3, octomath::Vector3> & v) const 
+        std::size_t operator()(const std::pair <Eigen::Vector3d, Eigen::Vector3d> & v) const 
         {
             int scale = 0.00001;
             std::size_t hx = std::hash<float>{}( (int)(v.second.x() / scale) * scale );
@@ -32,12 +32,27 @@ namespace goal_state_machine
 
     struct PairComparatorEqual // big tolerance
     { 
-        bool operator () (const std::pair <octomath::Vector3, octomath::Vector3> & lhs, std::pair <octomath::Vector3, octomath::Vector3> & rhs) const 
+    	double distance(const Eigen::Vector3d  & lhs, const Eigen::Vector3d  &rhs) const
+    	{
+            double distance = (lhs - rhs).stableNorm();
+            if(std::isnan(distance))
+			{
+				return  0;
+			}
+			else
+			{
+				return distance;
+			}
+    		
+    	}
+
+        bool operator () (const std::pair <Eigen::Vector3d, Eigen::Vector3d> & lhs, std::pair <Eigen::Vector3d, Eigen::Vector3d> & rhs) const 
         { 
         	// This large scale allows to skip over calculations for similiar locations
             double scale = 1;
             // ROS_WARN_STREAM("Distance from " << *lhs << " and  " << *rhs << " is " << lhs->distance(*rhs) << " <= " << scale << " returning " << (lhs->distance(*rhs) <= scale)   );
-            bool first = lhs.first.distance(rhs.first) <= scale;
+
+            bool first = distance(lhs.first, rhs.first) <= scale;
 
             // ROS_INFO_STREAM("First: (" << lhs.first.x() << "," << lhs.first.y() << "," << lhs.first.z() << ")" );
             // ROS_INFO_STREAM("First: (" << rhs.first.x() << "," << rhs.first.y() << "," << rhs.first.z() << ")" );
@@ -46,11 +61,11 @@ namespace goal_state_machine
             // ROS_INFO_STREAM("Second: (" << lhs.second.x() << "," << lhs.second.y() << "," << lhs.second.z() << ")" );
             // ROS_INFO_STREAM("Second: (" << rhs.second.x() << "," << rhs.second.y() << "," << rhs.second.z() << ")" );
 
-            return lhs.second.distance(rhs.second) <= scale;
+            return distance(lhs.second, rhs.second) <= scale;
 
         } 
     };
-    typedef std::unordered_set<std::pair <octomath::Vector3, octomath::Vector3>, PairHash, PairComparatorEqual> unobservable_pair_set; 
+    typedef std::unordered_set<std::pair <Eigen::Vector3d, Eigen::Vector3d>, PairHash, PairComparatorEqual> unobservable_pair_set; 
 
 
 	class GoalStateMachine
@@ -75,6 +90,7 @@ namespace goal_state_machine
 		bool hasNextFrontier() const;
 		void resetOPPair(Eigen::Vector3d& uav_position);
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
+		bool IsUnobservable(Eigen::Vector3d const& viewpoint);
 
 
 	    
@@ -85,8 +101,8 @@ namespace goal_state_machine
 		~GoalStateMachine(){}
 		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
 		bool NextGoal(Eigen::Vector3d& uav_position);
-		void DeclareUnobservable(octomath::Vector3 unobservable, octomath::Vector3 viewpoint);
-		bool IsUnobservable(octomath::Vector3 unobservable, octomath::Vector3 viewpoint);
+		void DeclareUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
+		bool IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
 		int getUnobservableSetSize()
 		{
 			return unobservable_set.size();

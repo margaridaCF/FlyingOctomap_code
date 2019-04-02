@@ -195,13 +195,18 @@ namespace goal_state_machine
 		return false;
 	}
 
-	void GoalStateMachine::DeclareUnobservable(octomath::Vector3 unobservable, octomath::Vector3 viewpoint)
+	void GoalStateMachine::DeclareUnobservable(Eigen::Vector3d const&  unobservable, Eigen::Vector3d const& viewpoint)
 	{
 		// The frontier is unobservable
         unobservable_set.insert(std::make_pair(unobservable, viewpoint));
 	}
 
-	bool GoalStateMachine::IsUnobservable(octomath::Vector3 unobservable, octomath::Vector3 viewpoint)
+	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& viewpoint)
+	{
+		return IsUnobservable(getCurrentOPPairs().get_current_start(), viewpoint);
+	}
+
+	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint)
 	{
 		return ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
 	}
