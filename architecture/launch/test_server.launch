@@ -19,13 +19,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="ual_pub_rate" default="30.0"/>
     <arg name="mavros_offboard_rate" default="30.0"/>
 
-    <group if="$(eval mode=='sitl')">
+    <!-- <group if="$(eval mode=='sitl')"> -->
         <!-- Launch Gazebo simulation -->
-        <rosparam param="/use_sim_time">true</rosparam>
-        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find architecture)/worlds/3D_puzzle_model.world">
-            <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam>            <!-- [lat,lon,alt] -->
-        </node>
-    </group>
+        <!-- <rosparam param="/use_sim_time">true</rosparam> -->
+        <!-- <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find architecture)/worlds/3D_puzzle_model.world"> -->
+            <!-- <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam>            [lat,lon,alt] -->
+        <!-- </node> -->
+    <!-- </group> -->
 
     <!-- Launch robots. Argument mode can be:
         - sitl: for software in the loop simulation
@@ -34,7 +34,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         - custom: to fully customize fcu and gcs urls
     -->
     <!-- Launch robot id=1 -->
-    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
+    <!-- <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
         <arg name="id" value="1"/>
         <arg name="material" value="Blue"/>
         <arg name="mode" value="$(arg mode)"/>
@@ -44,7 +44,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <arg name="yaw" value="0"/>
         <arg name="robot_model" value="iris_hokuyo"/>
 
-    </include>
+    </include> -->
 
     <!-- Launch UAL server for uav id=1 -->
     <node pkg="architecture" type="ual_server" name="ual" ns="$(arg ns_prefix)1" output="screen">

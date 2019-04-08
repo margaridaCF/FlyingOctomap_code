@@ -43,8 +43,8 @@ cs_export()
 
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_frontiers_msgs.cpp)
-if(CATKIN_ENABLE_TESTING)
-  get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
+# if(CATKIN_ENABLE_TESTING)
+#   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
   # Work in progress ##
   catkin_add_gtest(workInProgress_observation_maneuver
@@ -59,7 +59,7 @@ if(CATKIN_ENABLE_TESTING)
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   target_link_libraries(observation_maneuver_test ${catkin_LIBRARIES} observation_maneuver_lib)
 
-endif()
+# endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

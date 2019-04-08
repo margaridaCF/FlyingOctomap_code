@@ -39,10 +39,12 @@ namespace LazyThetaStarOctree
 	bool checkFligthCorridor(lazy_theta_star_msgs::CheckFlightCorridor::Request &request,
 		lazy_theta_star_msgs::CheckFlightCorridor::Response &response)
 	{
+		LazyThetaStarOctree::generateOffsets(octree->getResolution(), request.flight_corridor_width, semiSphereIn, semiSphereOut );
+			
 		octomath::Vector3 start(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 end  (request.end.x, request.end.y, request.end.z);
 		InputData input (*octree, start, end, request.flight_corridor_width);
-		response.free = is_flight_corridor_free(input, PublishingInput( marker_pub, false));
+		response.free = is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, false));
 		return true;
 	}
 	
@@ -70,7 +72,7 @@ namespace LazyThetaStarOctree
 
 				visualization_msgs::Marker marker_temp;
 				octomath::Vector3 prev_candidate (reply.waypoints[i-1].position.x, reply.waypoints[i-1].position.y, reply.waypoints[i-1].position.z);
-				rviz_interface::build_arrow_path(candidate, prev_candidate, i, marker_temp, series);
+				rviz_interface::build_arrow_path(prev_candidate, candidate, i, marker_temp, series);
 				arrow_array.markers.push_back( marker_temp );
 	        }
 		}
@@ -100,7 +102,7 @@ namespace LazyThetaStarOctree
 			// 	publish_free_corridor_arrows = false;
 			// }
 			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, dephtZero, semiSphereOut );
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, PublishingInput( marker_pub, true) );
+			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, true) );
 			if(reply.waypoint_amount == 1)
 			{
 				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
@@ -130,20 +132,6 @@ namespace LazyThetaStarOctree
 		}
 		octomap_init = true;
 	}
-
-	void line_of_sight_callback(const lazy_theta_star_msgs::LTStarRequest::ConstPtr& request)
-	{
-		LazyThetaStarOctree::generateOffsets(octree->getResolution(), request->safety_margin, dephtZero, semiSphereOut );
-			
-		octomath::Vector3 disc_initial(request->start.x, request->start.y, request->start.z);
-		octomath::Vector3 disc_final(request->goal.x, request->goal.y, request->goal.z);
-		InputData input (*octree, disc_initial, disc_final, request->safety_margin);
-		PublishingInput publish_input( marker_pub, true);
-		if( is_flight_corridor_free(input, publish_input))
-		{
-			ROS_INFO_STREAM("Free");
-		}
-	}
 }
 
 int main(int argc, char **argv)
@@ -171,12 +159,12 @@ int main(int argc, char **argv)
 	LazyThetaStarOctree::publish_free_corridor_arrows = true;
 	ros::init(argc, argv, "ltstar_async_node");
 	ros::NodeHandle nh;
-	ros::ServiceServer ltstar_status_service = nh.advertiseService("ltstar_status", LazyThetaStarOctree::check_status);
-	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, LazyThetaStarOctree::octomap_callback);
-	ros::Subscriber ltstar_sub = nh.subscribe<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
-	ros::Subscriber lineOfSight_sub = nh.subscribe<lazy_theta_star_msgs::LTStarRequest>("check_line_of_sight", 10, LazyThetaStarOctree::line_of_sight_callback);
-	LazyThetaStarOctree::ltstar_reply_pub = nh.advertise<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 10);
-	LazyThetaStarOctree::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("ltstar_path", 1);
+	ros::ServiceServer ltstar_status_service= nh.advertiseService("ltstar_status", LazyThetaStarOctree::check_status);
+	ros::ServiceServer lineOfSight_sub 		= nh.advertiseService("is_fligh_corridor_free", LazyThetaStarOctree::checkFligthCorridor);
+	ros::Subscriber octomap_sub 			= nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, LazyThetaStarOctree::octomap_callback);
+	ros::Subscriber ltstar_sub 				= nh.subscribe<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
+	LazyThetaStarOctree::ltstar_reply_pub 	= nh.advertise<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 10);
+	LazyThetaStarOctree::marker_pub 		= nh.advertise<visualization_msgs::MarkerArray>("ltstar_path", 1);
 
 	ros::spin();
 }

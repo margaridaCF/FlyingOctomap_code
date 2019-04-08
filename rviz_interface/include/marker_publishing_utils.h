@@ -32,13 +32,13 @@ namespace rviz_interface
 	void publish_markerArray_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id);
 	// ARROWS
 	void build_arrow_path 			(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker, int series = 9, std::string ns = "lazy_theta_star_path");
-	void publish_arrow_path_occupancyState(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free);
-	void publish_arrow_path_unreachable(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int id);
-	void publish_arrow_path_father	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
-	void publish_arrow_corridor 	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
-	void publish_arrow_corridor_center(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
-	void publish_arrow_straight_line(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative);
-    void build_arrow_type(octomath::Vector3 const& start, octomath::Vector3 const& goal, visualization_msgs::MarkerArray & marker_array, int id, bool occupied);
+	void publish_arrow_path_occupancyState (octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free, int id);
+	void publish_arrow_path_unreachable	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int id);
+	void publish_arrow_path_father		(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
+	void publish_arrow_corridor 		(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
+	void publish_arrow_corridor_center	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
+	void publish_arrow_straight_line	(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative);
+    void build_arrow_type				(octomath::Vector3 const& start, octomath::Vector3 const& goal, visualization_msgs::MarkerArray & marker_array, int id, bool occupied);
 
 	// POINTS
 	void publish_frontier_marker 	(octomath::Vector3 const& candidate, bool is_frontier, ros::Publisher const& marker_pub);
@@ -47,26 +47,28 @@ namespace rviz_interface
 	void init_point 				(geometry_msgs::Point & point, float x, float y, float z);
 	void build_waypoint 			(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker, int series = 9);
 	void publish_current_position 	(octomath::Vector3 & candidate, visualization_msgs::MarkerArray marker_array);
-	void publish_start 				(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
-	void publish_goal 				(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
+	void publish_start 				(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array);
+	void publish_goal 				(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array);
 	void publish_random_important_cube(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
-	void publish_s 					(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub);
-	void publish_visible_neighbor	(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
-	void publish_closed				(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
-	void publish_sensing_position 	(octomath::Vector3 const& position, ros::Publisher const& marker_pub);
-	void publish_start_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
-	void publish_goal_voxel 		(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, double size);
+	void publish_s 					(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id, float size);
+    void publish_rejected_neighbor  (geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id, float size);
+	void publish_visible_neighbor	(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id, float size);
+	void publish_closed				(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id);
+	void publish_sensing_position 	(octomath::Vector3 const& position, int id, visualization_msgs::MarkerArray & marker_array);
+	void publish_start_voxel 		(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double size);
+	void publish_goal_voxel 		(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double size);
+    void build_small_marker			(octomath::Vector3 const& candidate, visualization_msgs::Marker & marker, float red, float green, float blue, std::string ns, int id, double size = 0.2f, double alpha = 1);
 
 	// SPHERES
 	void build_sphere(octomath::Vector3 & candidate, double size, int green_base, int marker_id, visualization_msgs::Marker & marker, int red_base, std::string ns);
-    void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start, double safety_margin,  visualization_msgs::MarkerArray & marker_array);
+    void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start,visualization_msgs::MarkerArray & marker_array);
     void build_sphere_basic(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, std::string ns, double red, double green, double blue);
     
 
 
     // OTHER
 	void publish_deleteAll  		(ros::Publisher const& marker_pub);
-	void build_neighbor_array 		(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, visualization_msgs::MarkerArray & marker_array);
+	// void build_neighbor_array 		(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, visualization_msgs::MarkerArray & marker_array);
 	visualization_msgs::Marker createEmptyLineStrip(int id);
 }
 

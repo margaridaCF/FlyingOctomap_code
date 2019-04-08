@@ -21,6 +21,9 @@
 
 #include <lazy_theta_star_msgs/LTStarReply.h>
 
+#include <ltStarOctree_common.h>
+
+
 #define SAVE_CSV 1
 #define SAVE_LOG 1
 
@@ -87,7 +90,7 @@ namespace ltStar_command_path_node
         }
         else
         {
-            ROS_WARN("[Command path] In YawSpin, node not accepting position requests.");
+            ROS_WARN("[Command path] target_position_client, node not accepting position requests.");
             return false;
         }
     }
@@ -192,7 +195,7 @@ namespace ltStar_command_path_node
     void init_state_variables(ltStar_command_path_node::StateData& state_data)
     {
         state_data.ltstar_request_id = 0;
-        state_data.exploration_state = clear_from_ground;
+        state_data.exploration_state = waiting_path_response;
 #ifdef SAVE_LOG
         log_file << "[Command path][Exploration] clear_from_ground" << std::endl;
 #endif
@@ -288,9 +291,11 @@ int main(int argc, char **argv)
     auto timestamp_chrono = std::chrono::high_resolution_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     std::stringstream folder_name_stream;
-    std::string folder_name = "/home/hector/Flying_Octomap_code/src/data/";
-    folder_name_stream << folder_name << (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::string sym_link_name = folder_name+"/current";
+
+    std::stringstream aux_envvar_home (std::getenv("HOME"));
+    LazyThetaStarOctree::folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data/";
+    folder_name_stream << LazyThetaStarOctree::folder_name << (std::put_time(std::localtime(&now_c), "%F %T") );
+    std::string sym_link_name = LazyThetaStarOctree::folder_name+"/current";
 
     boost::filesystem::create_directories(folder_name_stream.str());
     boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
@@ -308,7 +313,7 @@ int main(int argc, char **argv)
     ltStar_command_path_node::marker_pub = nh.advertise<visualization_msgs::Marker>("ltStar_command_path_node_viz", 1);
 
 #ifdef SAVE_LOG
-    ltStar_command_path_node::log_file.open (folder_name+"/current/ltStar_command_path_node.log", std::ofstream::app);
+    ltStar_command_path_node::log_file.open (LazyThetaStarOctree::folder_name+"/current/ltStar_command_path_node.log", std::ofstream::app);
 #endif
     ltStar_command_path_node::init_state_variables(ltStar_command_path_node::state_data);
     ltStar_command_path_node::timer = nh.createTimer(ros::Duration(1), ltStar_command_path_node::update_state);

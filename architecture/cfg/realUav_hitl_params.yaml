@@ -3,8 +3,6 @@ exploration_maneuver_phases_duration_secs: 5
 px4_loiter_radius: 0.5
 px4/flight_speed: 3
 offboard_enabled: true
-laser_range: 9.5
-laser_angle: 0.872665
 
 odometry_error: 0
 

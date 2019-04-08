@@ -234,43 +234,6 @@ namespace LazyThetaStarOctree{
 		ASSERT_TRUE (allNeighborsAreCorrect(neighbors_us, right_answers));
 	}
 
-	
-	TEST(OctreeNeighborTest, NeighborTest_calculateFraction_third)
-	{
-		double resolution = 0.4;
-		double margin = 5;
-		int check_only_x_fraction = 3;
-		double resolution_for_neighbors_m = calculate_fraction(resolution, margin, check_only_x_fraction);
-		ASSERT_NEAR(resolution_for_neighbors_m, 1.666666667, 0.01);
-	}
-
-	TEST(OctreeNeighborTest, NeighborTest_calculateFraction_half)
-	{
-		double resolution = 0.4;
-		double margin = 5;
-		int check_only_x_fraction = 2;
-		double resolution_for_neighbors_m = calculate_fraction(resolution, margin, check_only_x_fraction);
-		ASSERT_NEAR(resolution_for_neighbors_m, 2.5, 0.01);
-	}
-
-	TEST(OctreeNeighborTest, NeighborTest_calculateFraction_hugeResolution)
-	{
-		double resolution = 6;
-		double margin = 5;
-		int check_only_x_fraction = 3;
-		double resolution_for_neighbors_m = calculate_fraction(resolution, margin, check_only_x_fraction);
-		ASSERT_NEAR(resolution_for_neighbors_m, 6, 0.01);
-	}
-
-	TEST(OctreeNeighborTest, NeighborTest_calculateFraction_marginSmallerThenResolution)
-	{
-		double resolution = 1;
-		double margin = 0.5;
-		int check_only_x_fraction = 3;
-		double resolution_for_neighbors_m = calculate_fraction(resolution, margin, check_only_x_fraction);
-		ASSERT_NEAR(resolution_for_neighbors_m, 1, 0.01);
-	}
-
 	TEST(OctreeNeighborTest, NeighborTest_generateFromRealData_Depth14)
 	{
 		// ARRANGE

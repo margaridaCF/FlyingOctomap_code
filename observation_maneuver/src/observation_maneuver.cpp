@@ -10,10 +10,6 @@
 namespace observation_lib
 {
 
-	// == Algorithm constantes ==
-	Eigen::MatrixXd starts_zero;
-	Eigen::MatrixXd ends_zero;
-	Eigen::MatrixXd directions_zero;
 
     std::ofstream log_file;
 
@@ -32,7 +28,7 @@ namespace observation_lib
 		frontier = new_frontier;
 		index = 0;
 		motion_direction = frontier - uav_position;
-		Next();
+		// Next();
 	}
 
 	bool OPPairs::Next()
