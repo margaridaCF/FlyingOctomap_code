@@ -137,6 +137,7 @@ namespace goal_state_machine
 		log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
 		#endif
 		bool search = true;
+		has_more_goals = false;
 		while(search)
 		{
 			// log_file << "[Goal SM] pointToNextGoal loop." << std::endl;
@@ -146,14 +147,14 @@ namespace goal_state_machine
 			{
 				// log_file << "[Goal SM] oppair loop." << std::endl;
 
-				if(IsOPPairValid())
+				if( !IsUnobservable(uav_position) && IsOPPairValid() )
 				{
 					has_more_goals = true;
 					#ifdef SAVE_LOG	
 					log_file << "[Goal SM] found side oppair." << std::endl;
 					log_file.close();	
 					#endif
-					return true;
+					search = false;
 				}		
 			}
 			is_oppairs_side = false;
@@ -163,14 +164,14 @@ namespace goal_state_machine
 			{
 				// log_file << "[Goal SM] oppair loop." << std::endl;
 
-				if(IsOPPairValid())
+				if( !IsUnobservable(uav_position) && IsOPPairValid() )
 				{
 					has_more_goals = true;
 					#ifdef SAVE_LOG	
 					log_file << "[Goal SM] found under oppair." << std::endl;
 					log_file.close();	
 					#endif
-					return true;
+					search = false;
 				}		
 			}
 			log_file << "[Goal SM] frontier " << get_current_frontier() << " is unreachable." << std::endl;
@@ -187,12 +188,11 @@ namespace goal_state_machine
 				search = false;
 			}
 		}
-		has_more_goals = false;
 
 		#ifdef SAVE_LOG	
 		log_file.close();	
 		#endif
-		return false;
+		return has_more_goals;
 	}
 
 	void GoalStateMachine::DeclareUnobservable(Eigen::Vector3d const&  unobservable, Eigen::Vector3d const& viewpoint)
