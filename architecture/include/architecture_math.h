@@ -30,9 +30,10 @@ namespace architecture_math
 	{
 	   	double result;
 		Eigen::Vector2d d = end - start;
-		double hipotenuse = d.norm();
-		double adjacent = end.x() - start.x();
-		if(d.norm() == 0)
+		d.normalize();
+		double adjacent = d.x();
+		double hipotenuse = d.stableNorm();
+		if(hipotenuse == 0 || std::isnan(hipotenuse))
 		{
 			result = 0;
 		} 	
@@ -40,15 +41,12 @@ namespace architecture_math
 		{
 			result = adjacent/hipotenuse ;
 			result = std::acos (result);
-			d.normalize();
 			if(d.y() < 0)
 			{
-				result = -result; 
-				result += M_PI;
+				result = 2*M_PI-result;	
 			}
 		} 
-		// ROS_INFO_STREAM("calculateOrientation( (" << start.x() << ", " << start.y() << "), (" << end.x() << ", " << end.y() << ") = " << result << " = " << result*180/M_PI);				
-		return result;
+		return result ;
 	}
 
 

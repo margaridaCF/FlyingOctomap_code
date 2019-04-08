@@ -16,6 +16,10 @@ namespace observation_lib
 
 	class OPPairs
 	{
+		// == Algorithm constantes ==
+		Eigen::MatrixXd starts_zero;
+		Eigen::MatrixXd ends_zero;
+		Eigen::MatrixXd directions_zero;
 		Eigen::Vector3d motion_direction;
 		int circle_divisions;
 		int index;

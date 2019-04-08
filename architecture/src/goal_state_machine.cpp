@@ -1,21 +1,43 @@
-#include <goal_state_machine.h>
+	#include <goal_state_machine.h>
 #include <iostream>
 #include <fstream>
 
 namespace goal_state_machine
 {
-    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double frontier_safety_margin)
-		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client)
+    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin)
+		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(path_safety_margin)
 	{
-		ROS_INFO_STREAM("[Goal SM] frontier_safety_margin " << frontier_safety_margin);
-		oppairs = observation_lib::OPPairs(circle_divisions, frontier_safety_margin, distance_inFront, distance_behind);
+		sensing_distance = std::round(    (path_safety_margin/2 + 1) * 10   )  / 10;
+		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
+        unobservable_set = unobservable_pair_set(); 
+
+		double distance_behind_under, distance_inFront_under;
+		double sensor_shape_offset = sensing_distance / std::tan(0.872665);
+		double flyby_distance      = distance_behind + distance_inFront;
+		distance_behind_under      = distance_behind + sensor_shape_offset;
+		double diference           = flyby_distance - distance_behind_under;
+		if(diference < 0)
+		{
+			distance_inFront_under = 0;
+		}
+		else
+		{
+			distance_inFront_under = diference; 	
+		}
+		oppairs_under = observation_lib::OPPairs(circle_divisions/2, 0.1, distance_inFront_under, distance_behind_under);
+	}
+
+	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()
+	{
+		if(is_oppairs_side) return oppairs_side;
+		else 				return oppairs_under;	
 	}
 
 	bool GoalStateMachine::is_flightCorridor_free() 
     {
         lazy_theta_star_msgs::CheckFlightCorridor srv;
-        Eigen::Vector3d start_eigen = oppairs.get_current_start();
-        Eigen::Vector3d end_eigen = oppairs.get_current_end();
+        Eigen::Vector3d start_eigen = getCurrentOPPairs().get_current_start();
+        Eigen::Vector3d end_eigen = getCurrentOPPairs().get_current_end();
         
         srv.request.start.x = start_eigen(0);
         srv.request.start.y = start_eigen(1);
@@ -23,7 +45,10 @@ namespace goal_state_machine
         srv.request.end.x   = end_eigen(0);
         srv.request.end.y   = end_eigen(1);
         srv.request.end.z   = end_eigen(2);
-        srv.request.flight_corridor_width = path_safety_margin;
+        // Inflated the space required to be free around the flyby.
+        srv.request.flight_corridor_width = path_safety_margin + 1; // This magic number is to inflate the safe space around the flyby
+        // Without it frequently the path planner was asked for impossible goals because the start of the line of sight was just outside a particular voxel
+        // With this we guarentee the flyby to stay away from obstacles and unknown space.
 
         bool check = false;
         while(!check)
@@ -34,26 +59,13 @@ namespace goal_state_machine
                 ROS_ERROR("[Goal SM] Cannot place request to check flight corridor for flyby.");
             }
         }
-		#ifdef SAVE_LOG
-		std::ofstream log_file;
-		log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-        if(!srv.response.free)
-		{
-			log_file << "[Goal SM] Path occupied between oppairs " << start_eigen << " and " << end_eigen << std::endl;
-		}
-		else
-		{
-			log_file << "[Goal SM] Path free between oppairs " << start_eigen << " and " << end_eigen << std::endl;
-		}
-		log_file.close();	
-		#endif
         return srv.response.free;
     }
 
 	bool GoalStateMachine::IsOPPairValid() 
     {
-    	if(is_inside_geofence(oppairs.get_current_start()) 
-    		&& is_inside_geofence(oppairs.get_current_end()) 
+    	if(is_inside_geofence(getCurrentOPPairs().get_current_start()) 
+    		&& is_inside_geofence(getCurrentOPPairs().get_current_end()) 
     		&& is_flightCorridor_free()) 
 		{
     		return true;
@@ -88,7 +100,7 @@ namespace goal_state_machine
 			#ifdef SAVE_LOG
 			std::ofstream log_file;
 			log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-			log_file << "[Goal SM] geofence ok." << std::endl;
+			// log_file << "[Goal SM] geofence ok." << std::endl;
 			log_file.close();	
 			#endif
         	return true;
@@ -102,9 +114,20 @@ namespace goal_state_machine
 
 	void GoalStateMachine::resetOPPair(Eigen::Vector3d& uav_position)
 	{
+		is_oppairs_side = true;
 		geometry_msgs::Point curr_frontier_geom = get_current_frontier();
+		
         Eigen::Vector3d new_frontier(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
-		oppairs.NewFrontier(new_frontier, uav_position, pi);
+		oppairs_side.NewFrontier(new_frontier, uav_position, pi);
+	    visualization_msgs::MarkerArray marker_array;
+	    rviz_interface::build_sphere_basic(curr_frontier_geom, marker_array, "unknown_point", 0, 0, 1);
+
+		// // To generate the points to pass under, the sensing_distance is used
+		curr_frontier_geom.z = curr_frontier_geom.z-sensing_distance;
+        Eigen::Vector3d new_frontier_under(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
+		oppairs_under.NewFrontier(new_frontier_under, uav_position, pi);
+	    rviz_interface::build_sphere_basic(curr_frontier_geom, marker_array, "under_unknown_point", 0.5, 0.5, 1);
+	    pi.marker_pub.publish(marker_array);
 	}
 
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
@@ -114,30 +137,45 @@ namespace goal_state_machine
 		log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
 		#endif
 		bool search = true;
+		has_more_goals = false;
 		while(search)
 		{
-			log_file << "[Goal SM] pointToNextGoal loop." << std::endl;
-			for(bool existsNextOPPair = oppairs.Next();
+			// log_file << "[Goal SM] pointToNextGoal loop." << std::endl;
+			for(bool existsNextOPPair = oppairs_side.Next();
 				existsNextOPPair;
-				existsNextOPPair = oppairs.Next())
+				existsNextOPPair = oppairs_side.Next())
 			{
-				log_file << "[Goal SM] oppair loop." << std::endl;
+				// log_file << "[Goal SM] oppair loop." << std::endl;
 
-				if(IsOPPairValid())
+				if( !IsUnobservable(uav_position) && IsOPPairValid() )
 				{
 					has_more_goals = true;
 					#ifdef SAVE_LOG	
-					log_file << "[Goal SM] found oppair." << std::endl;
+					log_file << "[Goal SM] found side oppair." << std::endl;
 					log_file.close();	
 					#endif
-					return true;
+					search = false;
+				}		
+			}
+			is_oppairs_side = false;
+			for(bool existsNextOPPair = oppairs_under.Next();
+				existsNextOPPair;
+				existsNextOPPair = oppairs_under.Next())
+			{
+				// log_file << "[Goal SM] oppair loop." << std::endl;
+
+				if( !IsUnobservable(uav_position) && IsOPPairValid() )
+				{
+					has_more_goals = true;
+					#ifdef SAVE_LOG	
+					log_file << "[Goal SM] found under oppair." << std::endl;
+					log_file.close();	
+					#endif
+					search = false;
 				}		
 			}
 			log_file << "[Goal SM] frontier " << get_current_frontier() << " is unreachable." << std::endl;
 			// None of the remaining OPPairs were usable to inspect
-			// The frontier is unreachable
-            octomath::Vector3 unreachable (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-            unobservable_set.insert(unreachable);
 			if(hasNextFrontier())
 			{
 				frontier_index++;
@@ -150,12 +188,27 @@ namespace goal_state_machine
 				search = false;
 			}
 		}
-		has_more_goals = false;
 
 		#ifdef SAVE_LOG	
 		log_file.close();	
 		#endif
-		return false;
+		return has_more_goals;
+	}
+
+	void GoalStateMachine::DeclareUnobservable(Eigen::Vector3d const&  unobservable, Eigen::Vector3d const& viewpoint)
+	{
+		// The frontier is unobservable
+        unobservable_set.insert(std::make_pair(unobservable, viewpoint));
+	}
+
+	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& viewpoint)
+	{
+		return IsUnobservable(getCurrentOPPairs().get_current_start(), viewpoint);
+	}
+
+	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint)
+	{
+		return ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
 	}
 
 	void GoalStateMachine::NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg)

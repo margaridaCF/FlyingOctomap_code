@@ -13,6 +13,61 @@
 namespace goal_state_machine
 {
 
+
+    struct PairHash
+    {
+        std::size_t operator()(const std::pair <Eigen::Vector3d, Eigen::Vector3d> & v) const 
+        {
+            int scale = 0.00001;
+            std::size_t hx = std::hash<float>{}( (int)(v.second.x() / scale) * scale );
+            std::size_t hy = std::hash<float>{}( (int)(v.second.y() / scale) * scale );
+            std::size_t hz = std::hash<float>{}( (int)(v.first.z() / scale) * scale );
+            std::size_t return_value = ((hx 
+               ^ (hy << 1)) >> 1)
+               ^ (hz << 1);
+            return return_value;
+        }
+    };
+
+
+    struct PairComparatorEqual // big tolerance
+    { 
+    	double distance(const Eigen::Vector3d  & lhs, const Eigen::Vector3d  &rhs) const
+    	{
+            double distance = (lhs - rhs).stableNorm();
+            if(std::isnan(distance))
+			{
+				return  0;
+			}
+			else
+			{
+				return distance;
+			}
+    		
+    	}
+
+        bool operator () (const std::pair <Eigen::Vector3d, Eigen::Vector3d> & lhs, std::pair <Eigen::Vector3d, Eigen::Vector3d> & rhs) const 
+        { 
+        	// This large scale allows to skip over calculations for similiar locations
+            double scale = 1;
+            // ROS_WARN_STREAM("Distance from " << *lhs << " and  " << *rhs << " is " << lhs->distance(*rhs) << " <= " << scale << " returning " << (lhs->distance(*rhs) <= scale)   );
+
+            bool first = distance(lhs.first, rhs.first) <= scale;
+
+            // ROS_INFO_STREAM("First: (" << lhs.first.x() << "," << lhs.first.y() << "," << lhs.first.z() << ")" );
+            // ROS_INFO_STREAM("First: (" << rhs.first.x() << "," << rhs.first.y() << "," << rhs.first.z() << ")" );
+            if (!first)	return first;
+            // returns !0 if the two container object keys passed as arguments are to be considered equal.
+            // ROS_INFO_STREAM("Second: (" << lhs.second.x() << "," << lhs.second.y() << "," << lhs.second.z() << ")" );
+            // ROS_INFO_STREAM("Second: (" << rhs.second.x() << "," << rhs.second.y() << "," << rhs.second.z() << ")" );
+
+            return distance(lhs.second, rhs.second) <= scale;
+
+        } 
+    };
+    typedef std::unordered_set<std::pair <Eigen::Vector3d, Eigen::Vector3d>, PairHash, PairComparatorEqual> unobservable_pair_set; 
+
+
 	class GoalStateMachine
 	{
 	    rviz_interface::PublishingInput 	pi;
@@ -22,24 +77,32 @@ namespace goal_state_machine
 	    bool 								has_more_goals, resetOPPair_flag;
 	    int 								frontier_index;
     	double 								path_safety_margin;
-	    observation_lib::OPPairs 			oppairs;
-        std::unordered_set<octomath::Vector3, architecture_math::Vector3Hash> unobservable_set; 
+    	double 								sensing_distance;
+	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
+	    bool								is_oppairs_side;
+        unobservable_pair_set	 			unobservable_set; 
 
 
+		observation_lib::OPPairs& getCurrentOPPairs();
 		bool is_flightCorridor_free() ;
 		bool IsOPPairValid() ;
-		geometry_msgs::Point get_current_frontier() const;
 		bool is_inside_geofence(Eigen::Vector3d target) const;
 		bool hasNextFrontier() const;
 		void resetOPPair(Eigen::Vector3d& uav_position);
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
+		bool IsUnobservable(Eigen::Vector3d const& viewpoint);
+
+
 	    
 	    
 	public:
-		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double frontier_safety_margin);
+		geometry_msgs::Point get_current_frontier() const;
+		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin);
 		~GoalStateMachine(){}
 		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
 		bool NextGoal(Eigen::Vector3d& uav_position);
+		void DeclareUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
+		bool IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
 		int getUnobservableSetSize()
 		{
 			return unobservable_set.size();
@@ -49,9 +112,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				flyby_end.x = oppairs.get_current_end().x();
-				flyby_end.y = oppairs.get_current_end().y();
-				flyby_end.z = oppairs.get_current_end().z();
+				flyby_end.x = getCurrentOPPairs().get_current_end().x();
+				flyby_end.y = getCurrentOPPairs().get_current_end().y();
+				flyby_end.z = getCurrentOPPairs().get_current_end().z();
 			}
 			else
 			{
@@ -64,9 +127,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				start.x = oppairs.get_current_start().x();
-				start.y = oppairs.get_current_start().y();
-				start.z = oppairs.get_current_start().z();
+				start.x = getCurrentOPPairs().get_current_start().x();
+				start.y = getCurrentOPPairs().get_current_start().y();
+				start.z = getCurrentOPPairs().get_current_start().z();
 			}
 			else
 			{
@@ -79,9 +142,9 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				flyby_start.x() = oppairs.get_current_start().x();
-				flyby_start.y() = oppairs.get_current_start().y();
-				flyby_start.z() = oppairs.get_current_start().z();
+				flyby_start.x() = getCurrentOPPairs().get_current_start().x();
+				flyby_start.y() = getCurrentOPPairs().get_current_start().y();
+				flyby_start.z() = getCurrentOPPairs().get_current_start().z();
 			}
 			else
 			{
@@ -94,8 +157,8 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				start.x() = oppairs.get_current_start().x();
-				start.y() = oppairs.get_current_start().y();
+				start.x() = getCurrentOPPairs().get_current_start().x();
+				start.y() = getCurrentOPPairs().get_current_start().y();
 			}
 			else
 			{
@@ -108,8 +171,8 @@ namespace goal_state_machine
 		{
 			if (has_more_goals)
 			{
-				end.x() = oppairs.get_current_end().x();
-				end.y() = oppairs.get_current_end().y();
+				end.x() = getCurrentOPPairs().get_current_end().x();
+				end.y() = getCurrentOPPairs().get_current_end().y();
 			}
 			else
 			{

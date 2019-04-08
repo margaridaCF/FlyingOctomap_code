@@ -4,8 +4,6 @@ px4_loiter_radius: 1
 px4/flight_speed: 3
 px4/yaw_rate: 100
 # offboard_enabled: true
-laser_range: 8
-laser_angle: 0.872665
 
 do_initial_maneuver: true
 
@@ -20,17 +18,18 @@ geofence_max/x: 55
 geofence_min/y: -20
 geofence_max/y: 50
 
-geofence_min/z: 2
+geofence_min/z: 3
 geofence_max/z: 70
 
-path/max_time_secs: 30
+path/max_time_secs: 15
 path/max_cycles_waited_for_path: 50
-path/safety_margin: 3
+path/safety_margin: 5
 
 # == Observation Point Pairs ==
 oppairs/distance_inFront: 2
 oppairs/distance_behind: 2
 oppairs/circle_divisions: 12
+oppairs/sensing_distance: 5
 
 current_position_topic: "/uav_1/mavros/local_position/pose"
 

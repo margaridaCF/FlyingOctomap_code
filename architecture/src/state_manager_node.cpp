@@ -64,9 +64,8 @@ namespace state_manager_node
 
     // TODO - transform this into parameters at some point
     double px4_loiter_radius;
-    double laser_range_xy;
     double odometry_error;
-    double safety_margin = 3;
+    double sensing_distance = 3;
     double error_margin;
     bool do_initial_maneuver;
     double distance_inFront, distance_behind;
@@ -83,8 +82,7 @@ namespace state_manager_node
         int frontier_request_count; // generate id for new frontier requests
         int waypoint_index;         // id of the waypoint that is currently the waypoint
         int ltstar_request_id;
-        int frontier_index;         // id of the frontier in use
-        bool exploration_maneuver_started, initial_maneuver;
+        bool exploration_maneuver_started, initial_maneuver, fresh_map;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierRequest frontiers_request;
@@ -99,11 +97,6 @@ namespace state_manager_node
     geometry_msgs::Pose& get_current_waypoint()
     {
         return state_data.ltstar_reply.waypoints[state_data.waypoint_index];
-    }
-
-    geometry_msgs::Point get_current_frontier()
-    {
-        return state_data.frontiers_msg.frontiers[state_data.frontier_index].xyz_m;
     }
 
     bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
@@ -175,18 +168,27 @@ namespace state_manager_node
         request.max.x = geofence_max.x();
         request.max.y = geofence_max.y();
         request.max.z = geofence_max.z();
-        request.safety_margin = safety_margin;
-        request.frontier_amount = state_data.goal_state_machine->getUnobservableSetSize()+10;
-        request.min_distance = px4_loiter_radius;
-        request.sensing_distance = laser_range_xy;
+        request.frontier_amount = 20;
+        if(state_data.fresh_map)
+        {
+            request.new_request = true;
+            state_data.frontier_request_count++;
+            log_file <<"[State Manager] Fresh map id will be " << state_data.frontier_request_count << std::endl;
+        }
+        else
+        {
+            log_file << "[State Manager] Iterate over current map. Id is " << state_data.frontier_request_count << std::endl;
+            request.new_request = false;
+        }
+        request.request_number = state_data.frontier_request_count;
+
         while(!getUavPositionServiceCall(request.current_position));
         #ifdef SAVE_LOG
         log_file << "[State manager] Requesting frontier " << request << std::endl;
         #endif
-        ROS_WARN_STREAM (     "[State manager] Requesting frontier " << request.frontier_amount  << " frontiers." );
         state_data.frontiers_request = request;
         frontier_request_pub.publish(request);
-        state_data.frontier_request_count++;
+        state_data.fresh_map = false;
     }
 
     bool askIsFrontierServiceCall(geometry_msgs::Point candidate) 
@@ -237,6 +239,7 @@ namespace state_manager_node
             else
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
+                state_data.exploration_state = generating_path;
             }
             
         }
@@ -308,10 +311,14 @@ namespace state_manager_node
         Eigen::Vector3d current_e (current_position.x, current_position.y, current_position.z);
         Eigen::Vector3d next_e (target.position.x, target.position.y, target.position.z);
         // log_file << "[State manager] buildTargetPose current_e to next_e" << std::endl;
-        double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y()));
-        // log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
+        double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y())) ;
+        // ROS_INFO_STREAM( "[State manager] buildTargetPose yaw = " << yaw );
+        // if (yaw > 2*M_PI) yaw = 2*M_PI - yaw;
+        // ROS_INFO_STREAM( "[State manager] buildTargetPose yaw = " << yaw );
+        log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
 
         target.orientation = tf::createQuaternionMsgFromYaw(yaw);
+        // ROS_INFO_STREAM("[State manager] buildTargetPose quaternion " << target.orientation);
     }
 
     bool updateWaypointSequenceStateMachine()
@@ -372,6 +379,7 @@ namespace state_manager_node
     void init_state_variables(state_manager_node::StateData& state_data, ros::NodeHandle& nh)
     {
         state_data.exploration_maneuver_started = false;
+        state_data.fresh_map = true;
         state_data.initial_maneuver = true;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
@@ -394,16 +402,9 @@ namespace state_manager_node
         nh.getParam("exploration_maneuver_duration_secs", temp);
         exploration_maneuver_duration_secs = ros::Duration(temp);
         nh.getParam("px4_loiter_radius", px4_loiter_radius);
-        double laser_range;
-        nh.getParam("laser_range", laser_range);
         do_initial_maneuver = false;
         nh.getParam("do_initial_maneuver", do_initial_maneuver);
-        double laser_angle;
-        nh.getParam("laser_angle", laser_angle);
-        laser_range_xy = std::cos(laser_angle)*laser_range;
-        ROS_INFO_STREAM("[architecture] Laser xy range: " << laser_range_xy);
         nh.getParam("odometry_error", odometry_error);
-        nh.getParam("frontier/safety_margin", safety_margin);
         error_margin = std::max(px4_loiter_radius, odometry_error);
         nh.getParam("path/max_time_secs", max_time_secs);
         nh.getParam("path/safety_margin", ltstar_safety_margin);
@@ -420,6 +421,7 @@ namespace state_manager_node
         geofence_max = octomath::Vector3  (x, y, z);
 
         // Goal state machine
+        nh.getParam("oppairs/sensing_distance", sensing_distance);
         nh.getParam("oppairs/distance_inFront", distance_inFront);
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
@@ -427,7 +429,7 @@ namespace state_manager_node
 
     void publishGoalToRviz(geometry_msgs::Point current_position)
     {
-        geometry_msgs::Point frontier_geom = get_current_frontier();
+        geometry_msgs::Point frontier_geom = state_data.goal_state_machine->get_current_frontier();
         geometry_msgs::Point start_geom;
         start_geom.x = current_position.x;
         start_geom.y = current_position.y;
@@ -437,7 +439,7 @@ namespace state_manager_node
         geometry_msgs::Point oppair_end_geom;
         state_data.goal_state_machine->getFlybyEnd(oppair_end_geom);
         visualization_msgs::MarkerArray marker_array;
-        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, state_data.frontiers_request.safety_margin, marker_array);
+        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array);
         marker_pub.publish(marker_array);
     }
 
@@ -462,24 +464,107 @@ namespace state_manager_node
                     state_data.follow_path_state = init;
 
                     geometry_msgs::Pose waypoint;
-                    waypoint.position.x = current_position.x;
-                    waypoint.position.y = current_position.y;
-                    waypoint.position.z = std::min(geofence_max.z(), 10.f);
-                    waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
+                    waypoint.position.x = 2;
+                    waypoint.position.y = 2;
+                    waypoint.position.z = 2;
                     Eigen::Vector3d fake_uav_position (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = current_position.x;
-                    waypoint.position.y = current_position.y;
-                    waypoint.position.z = geofence_min.z();
-                    waypoint.orientation = tf::createQuaternionMsgFromYaw(180  * 0.0174532925);
-                    Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
+
+                    waypoint.position.x = -2;
+                    waypoint.position.y = 2;
+                    waypoint.position.z = 2;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = -2;
+                    waypoint.position.y = -2;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = 2;
+                    waypoint.position.y = -2;
+                    waypoint.position.z = 2;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = 2;
+                    waypoint.position.y = -2;
+                    waypoint.position.z = 8;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = -2;
+                    waypoint.position.y = 2;
+                    waypoint.position.z = 8;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 0;
+                    waypoint.position.z = 4;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = 5;
+                    // waypoint.position.y = -5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = 5;
+                    // waypoint.position.y = 5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = -5;
+                    // waypoint.position.y = 5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = -5;
+                    // waypoint.position.y = -5;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 5;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // waypoint.position.x = -5;
+                    // waypoint.position.y = 1;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // waypoint.position.x = 0;
+                    // waypoint.position.y = 0;
+                    // waypoint.position.z = 2;
+                    // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.frontiers_msg.frontiers_found = 1;
-                    state_data.ltstar_reply.waypoint_amount = 2;
+                    state_data.ltstar_reply.waypoint_amount = 7;
                     frontiers_msgs::VoxelMsg fake_frontier;
                     fake_frontier.xyz_m = current_position;
                     state_data.frontiers_msg.frontiers.push_back(fake_frontier);
-                    state_data.frontier_index = 0;
                     state_data.goal_state_machine->NewFrontiers(state_data.frontiers_msg);
 
                     #ifdef SAVE_LOG
@@ -549,6 +634,7 @@ namespace state_manager_node
             case waiting_path_response:{break;}
             case visit_waypoints:
             {
+                state_data.fresh_map = true;
                 updateWaypointSequenceStateMachine();
 
                 if (state_data.follow_path_state == finished_sequence)
@@ -573,7 +659,6 @@ namespace state_manager_node
             {
                 geometry_msgs::Pose flyby_end;
                 state_data.goal_state_machine->getFlybyEnd(flyby_end.position);
-                ROS_ERROR_STREAM("[State manager] gather_data_maneuver." << !state_data.exploration_maneuver_started << " && " << !state_data.initial_maneuver);
                 if (!state_data.exploration_maneuver_started && !state_data.initial_maneuver)
                 {
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
@@ -590,13 +675,12 @@ namespace state_manager_node
                     if(hasArrived(flyby_end.position))
                     {
                         state_data.exploration_state = exploration_start;
-                        state_data.frontier_index = 0;
-                        bool is_frontier = askIsFrontierServiceCall(get_current_frontier());
+                        bool is_frontier = askIsFrontierServiceCall(state_data.goal_state_machine->get_current_frontier());
                         if(is_frontier)
                         {
-                            ROS_ERROR_STREAM("[State manager] " << get_current_frontier() << " is still a frontier.");
+                            ROS_ERROR_STREAM("[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still a frontier.");
                             #ifdef SAVE_LOG
-                            log_file << "[State manager] " << get_current_frontier() << " is still a frontier." << std::endl;
+                            log_file << "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still a frontier." << std::endl;
                             #endif
                         }
                     }
@@ -693,9 +777,7 @@ int main(int argc, char **argv)
     geofence_max_point.x = state_manager_node::geofence_max.x();
     geofence_max_point.y = state_manager_node::geofence_max.y();
     geofence_max_point.z = state_manager_node::geofence_max.z();
-    goal_state_machine::GoalStateMachine goal_state_machine (state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::safety_margin);
-    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(goal_state_machine);
-
+    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin);
     #ifdef SAVE_CSV
     std::ofstream csv_file;
     csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
@@ -704,7 +786,7 @@ int main(int argc, char **argv)
     csv_file.close();
     // state_manager_node::start = std::chrono::high_resolution_clock::now();
     #endif
-    state_manager_node::timer = nh.createTimer(ros::Duration(1), state_manager_node::main_loop);
+    state_manager_node::timer = nh.createTimer(ros::Duration(0.5), state_manager_node::main_loop);
     ros::spin();
     return 0;
 }

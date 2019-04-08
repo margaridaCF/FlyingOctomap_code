@@ -11,7 +11,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, -1.0848, 0.01);
+        ASSERT_NEAR(yaw, 5.198341144833269, 0.01);
 	}
 
 	TEST(LazyThetaStarMeasurements, CalculateOrientation_2)
@@ -24,15 +24,6 @@ namespace architecture_math
         ASSERT_NEAR(yaw, 0, 0.01);
 	}
 
-	TEST(LazyThetaStarMeasurements, CalculateOrientation_down)
-	{
-        Eigen::Vector2d start (0, 0);
-        Eigen::Vector2d end   (0, 0);
-
-        double yaw = calculateOrientation(start, end);
-
-        ASSERT_NEAR(yaw, 0, 0.01);
-	}
 
 	TEST(LazyThetaStarMeasurements, CalculateOrientation_back)
 	{
@@ -41,7 +32,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, -1.57, 0.01);
+        ASSERT_NEAR(yaw, 3*M_PI/2, 0.01);
 	}
 
 	TEST(LazyThetaStarMeasurements, CalculateOrientation_front)
@@ -101,7 +92,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, -2.08, 0.01);
+        ASSERT_NEAR(yaw, 4.205290475992352, 0.01);
 	}
 
 	TEST(LazyThetaStarMeasurements, CalculateOrientation_q4)
@@ -111,8 +102,47 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, -1.06, 0.01);
+        ASSERT_NEAR(yaw, 5.219487484777026, 0.01);
 	}
+    TEST(LazyThetaStarMeasurements, CalculateOrientation_q1_diag)
+    {
+        Eigen::Vector2d start (0, 0);
+        Eigen::Vector2d end   (0.5, 0.5);
+
+        double yaw = calculateOrientation(start, end);
+
+        ASSERT_NEAR(yaw, M_PI/4, 0.01);
+    }
+
+    TEST(LazyThetaStarMeasurements, CalculateOrientation_q2_diag)
+    {
+        Eigen::Vector2d start (0, 0);
+        Eigen::Vector2d end   (-0.5, 0.5);
+
+        double yaw = calculateOrientation(start, end);
+
+        ASSERT_NEAR(yaw, (3*M_PI/4) , 0.01);
+    }
+
+    TEST(LazyThetaStarMeasurements, CalculateOrientation_q3_diag)
+    {
+        Eigen::Vector2d start (0, 0);
+        Eigen::Vector2d end   (-0.5, -0.5);
+
+        double yaw = calculateOrientation(start, end);
+
+        ASSERT_NEAR(yaw, (5*M_PI/4), 0.01);
+    }
+
+    TEST(LazyThetaStarMeasurements, CalculateOrientation_q4_diag)
+    {
+        Eigen::Vector2d start (0, 0);
+        Eigen::Vector2d end   (0.5, -0.5);
+
+        double yaw = calculateOrientation(start, end);
+
+        ASSERT_NEAR(yaw, (7*M_PI/4), 0.01);
+    }
 }
 
 int main(int argc, char **argv){

@@ -23,16 +23,16 @@ namespace LazyThetaStarOctree{
 		{}
 	};
 
-	class PublishingInput
-	{
-	public:
-		ros::Publisher const& marker_pub;
-		const bool publish;
-		const std::string dataset_name;
-		PublishingInput(ros::Publisher const& marker_pub, bool publish = false, std::string dataset_name = "unamed")
-			: marker_pub(marker_pub), dataset_name(dataset_name), publish(publish)
-		{}
-	};
+	// class PublishingInput
+	// {
+	// public:
+	// 	ros::Publisher const& marker_pub;
+	// 	const bool publish;
+	// 	const std::string dataset_name;
+	// 	PublishingInput(ros::Publisher const& marker_pub, bool publish = false, std::string dataset_name = "unamed")
+	// 		: marker_pub(marker_pub), dataset_name(dataset_name), publish(publish)
+	// 	{}
+	// };
 
 	class ObstacleAvoidanceInput
 	{
@@ -45,7 +45,7 @@ namespace LazyThetaStarOctree{
 	double scale_float						(float value);
 	CellStatus 	getLineStatus 				(InputData const& input);
 	CellStatus 	getLineStatusBoundingBox	(InputData const& input);
-	bool 		is_flight_corridor_free		(InputData const& input, PublishingInput const& publish_input, bool ignoreUnknown = false);
+	bool 		is_flight_corridor_free		(InputData const& input, rviz_interface::PublishingInput const& publish_input);
 	float 		weightedDistance			(octomath::Vector3 const& start, octomath::Vector3 const& end);
 	void generateOffsets(double resolution, double safety_margin, double (*startDepthGenerator)(double, double, double), double (*goalDepthGenerator)(double, double, double) );
 	/**
@@ -63,9 +63,8 @@ namespace LazyThetaStarOctree{
 		std::unordered_map<octomath::Vector3, std::shared_ptr<ThetaStarNode>, Vector3Hash, VectorComparatorEqual> &  closed,
 		Open 													& 		open, 
 		unordered_set_pointers									const& 	neighbors,
-		PublishingInput 										const& publish_input, 
-		const double sidelength_lookup_table[],
-		bool ignoreUnknown = false);
+		rviz_interface::PublishingInput							const& publish_input, 
+		const double sidelength_lookup_table[]);
 
 	/**
 	 * @brief      Extracts a sequence of coordinates from the links between nodes starting at the goal node and expanding the connections to the prevuous point through parentNode.
@@ -104,12 +103,12 @@ namespace LazyThetaStarOctree{
 		InputData const& input,
 		ResultSet & resultSet,
 		const double sidelength_lookup_table[],
-		PublishingInput const& publish_input,
+		rviz_interface::PublishingInput const& publish_input,
 		int const& max_time_secs = 55,
 		bool print_resulting_path = false);
 
 
-	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], PublishingInput const& publish_input);
+	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], rviz_interface::PublishingInput const& publish_input);
 
 
 

@@ -4,8 +4,8 @@
 
 namespace goal_state_machine
 {
-	TEST(GoalStateMachine, UnobservableTest)
-	{
+    TEST(GoalStateMachine, UnobservableTest)
+    {
     frontiers_msgs::FrontierReply frontiers_msg;
     double distance_inFront = 2;
     double distance_behind = 2;
@@ -23,14 +23,14 @@ namespace goal_state_machine
     ros::ServiceClient check_flightCorridor_client;
     GoalStateMachine goal_state_machine (frontiers_msg, distance_inFront, distance_behind, circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, ltstar_safety_margin);
 
-    octomath::Vector3 unobservable(1, 2, 3);
-    octomath::Vector3 viewpoint   (0, 0, 0);
+    Eigen::Vector3d unobservable(1, 2, 3);
+    Eigen::Vector3d viewpoint   (0, 0, 0);
 
 
     goal_state_machine.DeclareUnobservable(unobservable, viewpoint);
     ASSERT_TRUE( goal_state_machine.IsUnobservable(unobservable, viewpoint));
-	 
-	}
+     
+    }
 
   TEST(GoalStateMachine, UnobservableTest_Tolerance)
   {
@@ -51,14 +51,14 @@ namespace goal_state_machine
     ros::ServiceClient check_flightCorridor_client;
     GoalStateMachine goal_state_machine (frontiers_msg, distance_inFront, distance_behind, circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, ltstar_safety_margin);
 
-    octomath::Vector3 unobservable(1, 2, 3);
-    octomath::Vector3 viewpoint   (0, 0, 0);
-    octomath::Vector3 viewpoint_similar_x    (0.01, 0, 0);
-    octomath::Vector3 viewpoint_similar_y    (0, -0.01, 0);
-    octomath::Vector3 viewpoint_similar_z    (0, 0, 0.04);
-    octomath::Vector3 unobservable_similar_x (1.05, 2, 3);
-    octomath::Vector3 unobservable_similar_y (1, 1.6, 3);
-    octomath::Vector3 unobservable_similar_z (1, 2, 4);
+    Eigen::Vector3d unobservable(1, 2, 3);
+    Eigen::Vector3d viewpoint   (0, 0, 0);
+    Eigen::Vector3d viewpoint_similar_x    (0.01, 0, 0);
+    Eigen::Vector3d viewpoint_similar_y    (0, -0.01, 0);
+    Eigen::Vector3d viewpoint_similar_z    (0, 0, 0.04);
+    Eigen::Vector3d unobservable_similar_x (1.05, 2, 3);
+    Eigen::Vector3d unobservable_similar_y (1, 1.6, 3);
+    Eigen::Vector3d unobservable_similar_z (1, 2, 4);
 
     goal_state_machine.DeclareUnobservable(unobservable, viewpoint);
     // Too close
@@ -71,7 +71,7 @@ namespace goal_state_machine
     ASSERT_TRUE( goal_state_machine.IsUnobservable(unobservable_similar_z, viewpoint));
    
     // Far enough
-    octomath::Vector3 unobservable_different (1, 2, 4.01);
+    Eigen::Vector3d unobservable_different (1, 2, 4.01);
     ASSERT_FALSE( goal_state_machine.IsUnobservable(unobservable_different, viewpoint));
   }
 
@@ -94,14 +94,14 @@ namespace goal_state_machine
     ros::ServiceClient check_flightCorridor_client;
     GoalStateMachine goal_state_machine (frontiers_msg, distance_inFront, distance_behind, circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, ltstar_safety_margin);
 
-    octomath::Vector3 unobservable(1, 2, 3);
-    octomath::Vector3 unobservable_x(5, 2, 3);
-    octomath::Vector3 unobservable_y(1, 5, 3);
-    octomath::Vector3 unobservable_z(1, 2, 5);
-    octomath::Vector3 viewpoint_x (5, 2, 3);
-    octomath::Vector3 viewpoint_y (1, 5, 3);
-    octomath::Vector3 viewpoint_z (1, 2, 5);
-    octomath::Vector3 viewpoint   (0, 0, 0);
+    Eigen::Vector3d unobservable(1, 2, 3);
+    Eigen::Vector3d unobservable_x(5, 2, 3);
+    Eigen::Vector3d unobservable_y(1, 5, 3);
+    Eigen::Vector3d unobservable_z(1, 2, 5);
+    Eigen::Vector3d viewpoint_x (5, 2, 3);
+    Eigen::Vector3d viewpoint_y (1, 5, 3);
+    Eigen::Vector3d viewpoint_z (1, 2, 5);
+    Eigen::Vector3d viewpoint   (0, 0, 0);
 
     goal_state_machine.DeclareUnobservable(unobservable, viewpoint);
     ASSERT_FALSE( goal_state_machine.IsUnobservable(unobservable, viewpoint_x));

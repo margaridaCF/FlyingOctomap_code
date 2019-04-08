@@ -45,6 +45,7 @@ geometry_msgs::TwistStamped velocity_to_pub;
 Eigen::Quaterniond q_current, q_target, q_target_fix;
 uav_abstraction_layer::State uav_state;
 bool new_target = false;
+bool new_orientation = false;
 bool taking_off = false;
 double position_tolerance;
 double flight_level;
@@ -99,16 +100,17 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             q_target.z() = target_pose.pose.orientation.z;
             q_target.w() = target_pose.pose.orientation.w;
             update_current_variables(current_pose);
-            ROS_INFO_STREAM("[UAL] Incoming " << req.pose.orientation);
-            ROS_INFO("[UAL] New target -> P: %f, %f, %f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
+            ROS_INFO_STREAM("[UAL Node] Incoming " << req.pose.orientation);
+            ROS_INFO("[UAL Node] New target -> P: %f, %f, %f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
             ROS_INFO("                    O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
-            ROS_INFO("[UAL] Fixing Pose");
+            ROS_INFO("[UAL Node] Fixing Pose");
             update_target_fix_variables(target_pose.pose);
             res.is_going_to_position = true;
         }else{
             res.is_going_to_position = false;
         }
         new_target = true;
+        new_orientation = true;
     }else{
         res.is_going_to_position = false;
     }
@@ -147,18 +149,18 @@ bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
 void initialization()
 {
 
-    position_tolerance = 0.2;
+    position_tolerance = 0.3;
     distance_switch_wp_control = 0.5;
     max_acceptance_orientation = 3.0;
     min_acceptance_orientation = 0.14;
     ros::param::param<int>("~uav_id", uav_id, 1);
     ros::param::param<bool>("~offboard_enabled", offboard_enabled, false);
-    ROS_WARN_STREAM("[UAL] offboard_enabled: " << offboard_enabled);
+    ROS_WARN_STREAM("[UAL Node] offboard_enabled: " << offboard_enabled);
 
 
     flight_level = 5.0;
     if (offboard_enabled) {
-        ROS_INFO("[UAL] Take off height: %f", flight_level);
+        ROS_INFO("[UAL Node] Take off height: %f", flight_level);
         movement_state = take_off;
     }
 
@@ -187,7 +189,7 @@ void main_loop(grvc::ual::UAL& ual)
                 switch (uav_state.state) {
                     case 2:  // Landed armed
                         if (!taking_off) {
-                            ROS_INFO("[UAL] Taking off ");
+                            ROS_INFO("[UAL Node] Taking off ");
                             ual.takeOff(flight_level, false);
                             taking_off = true;
                         }
@@ -208,18 +210,33 @@ void main_loop(grvc::ual::UAL& ual)
                     velocity_to_pub = calculateVelocity(current_point, target_point, (target_point - current_point).norm());
                     ual.setVelocity(velocity_to_pub);
                 } else {
-                    ROS_INFO("[UAL] Hovering");
+                    ROS_INFO("[UAL Node] Hovering");
                     movement_state = hover;
                 }
                 break;
             case fix_pose:
                 update_target_fix_variables(fix_pose_pose.pose);
-                ROS_WARN("[UAL] Fixing pose -> P: %f, %f, %f", fix_pose_pose.pose.position.x, fix_pose_pose.pose.position.y, fix_pose_pose.pose.position.z);
-                if ((max_acceptance_orientation > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > min_acceptance_orientation) || (fix_pose_point - current_point).norm() > position_tolerance) {
+                if (new_orientation) {
+                    ROS_INFO("[UAL Node] Requesting -> P: %f, %f, %f", fix_pose_pose.pose.position.x, fix_pose_pose.pose.position.y, fix_pose_pose.pose.position.z);
+                    ROS_INFO("                         O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
                     ual.goToWaypoint(fix_pose_pose, false);
-                } else {
-                    ROS_INFO("[UAL] Going to target");
-                    movement_state = velocity;
+                    new_orientation = false;
+                } 
+                else 
+                {
+                    // ROS_INFO("                     q_current: %f, %f, %f, %f", q_current.x(), q_current.y(), q_current.z(), q_current.w());
+                    // ROS_INFO("                      q_target: %f, %f, %f, %f", q_target.x(), q_target.y(), q_target.z(), q_target.w());
+                    bool command_in_position = (max_acceptance_orientation > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > min_acceptance_orientation) 
+                        || (fix_pose_point - current_point).norm() > position_tolerance;
+                    if (command_in_position)
+                    {
+                        // ROS_INFO("[UAL Node] Waiting until arrival.");
+                    }
+                    else 
+                    {
+                        ROS_INFO("[UAL Node] Arrived, start to command in velocity.");
+                        movement_state = velocity;
+                    }
                 }
                 break;
         }

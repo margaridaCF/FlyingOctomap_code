@@ -4,16 +4,16 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Frontiers1
+        - /Global Options1
+        - /TF1/Frames1
         - /Frontiers1/Namespaces1
-        - /Frontiers2
         - /Frontiers2/Namespaces1
         - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
-        - /MarkerArray1
-        - /MarkerArray1/Namespaces1
-      Splitter Ratio: 0.652941167
-    Tree Height: 825
+        - /State Manager1
+        - /State Manager1/Namespaces1
+      Splitter Ratio: 0.769452453
+    Tree Height: 552
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -31,7 +31,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Hokuyo
+    SyncSource: "Free Cloud "
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -118,17 +118,17 @@ Visualization Manager:
       Frames:
         All Enabled: false
         base_link:
-          Value: true
+          Value: false
         base_link_inertia:
-          Value: true
+          Value: false
         fcu:
-          Value: true
+          Value: false
         fcu_frd:
-          Value: true
+          Value: false
         hokuyo:
-          Value: true
+          Value: false
         local_origin:
-          Value: true
+          Value: false
         local_origin_ned:
           Value: false
         map:
@@ -136,7 +136,7 @@ Visualization Manager:
         uav_1:
           Value: true
         uav_1_home:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -181,7 +181,7 @@ Visualization Manager:
       Color: 155; 255; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: -999999
@@ -198,7 +198,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -211,7 +211,7 @@ Visualization Manager:
       Color: 255; 155; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 0
@@ -228,7 +228,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /occupied_cells_vis_array
@@ -238,19 +238,25 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /frontiers/known_space
       Name: Frontiers
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        {}
+        corridor_free: false
+        corridor_occupied: false
+        lazy_theta_star_waypoint: false
+        rejected_neighors: false
+        s: false
+        straight_line: true
+        usable_neighors: false
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -287,14 +293,21 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /state_manager_viz
-      Name: MarkerArray
+      Name: State Manager
       Namespaces:
+        frontier: false
         geofence: true
+        oppair_end: true
+        oppair_path: true
+        oppair_start: true
+        start: false
+        under_unknown_point: true
+        unknown_point: true
       Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 170; 255; 255
     Default Light: true
     Fixed Frame: uav_1_home
     Frame Rate: 30
@@ -312,33 +325,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 26.5884266
+      Distance: 43.1701355
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 2.88961363
-        Y: -3.45408797
-        Z: 7.49975824
+        X: -14.6107817
+        Y: -1.43057585
+        Z: -0.1061465
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.159799293
+      Pitch: 0.234796599
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.87353516
+      Yaw: 6.23318291
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: true
+    collapsed: false
   Height: 1028
-  Hide Left Dock: true
-  Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000300000000000001cd0000037afc0200000009fb0000001200530065006c0065006300740069006f006e0000000028000000960000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007300000000280000037a000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a005600690065007700730000000308000000b6000000ad00ffffff000000010000010f0000036cfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a0000036c000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000003000003b00000003efc0100000002fb0000000800540069006d00650100000000000003b00000030000fffffffb0000000800540069006d00650100000000000004500000000000000000000003b00000037a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Hide Left Dock: false
+  Hide Right Dock: false
+  QMainWindow State: 000000ff00000000fd00000003000000000000016a0000037afc0200000009fb0000001200530065006c0065006300740069006f006e0000000028000000960000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000002800000269000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0056006900650077007301000002970000010b000000ad00ffffff000000010000010f0000036cfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a0000036c000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000003000005820000003efc0100000002fb0000000800540069006d00650100000000000005820000030000fffffffb0000000800540069006d00650100000000000004500000000000000000000004120000037a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -347,6 +360,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 944
-  X: 976
+  Width: 1410
+  X: 510
   Y: 24
