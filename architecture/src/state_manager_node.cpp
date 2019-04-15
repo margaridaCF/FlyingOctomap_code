@@ -464,6 +464,11 @@ namespace state_manager_node
                     state_data.follow_path_state = init;
 
                     geometry_msgs::Pose waypoint;
+
+
+
+                    // SQUARE
+
                     waypoint.position.x = 2;
                     waypoint.position.y = 2;
                     waypoint.position.z = 2;
@@ -499,6 +504,8 @@ namespace state_manager_node
                     waypoint.position.y = 0;
                     waypoint.position.z = 4;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+
+                    // CALIBRATION
 
                     // waypoint.position.x = 0;
                     // waypoint.position.y = 5;
