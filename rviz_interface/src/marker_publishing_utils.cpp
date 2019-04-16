@@ -740,7 +740,7 @@ namespace rviz_interface
         marker_array.markers.push_back(marker);
     }
 
-    void publish_arrow_straight_line(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative)
+    void publish_arrow_straight_line(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative, int id)
     {
         // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
@@ -748,7 +748,7 @@ namespace rviz_interface
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
-        marker.id = 500 + ( std::rand() % ( 9999 + 1 ) );;
+        marker.id = 500+id;
         marker.ns = "straight_line";
         marker.type = shape;
         marker.points.push_back(start);

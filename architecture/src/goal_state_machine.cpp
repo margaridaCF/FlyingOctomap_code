@@ -1,13 +1,16 @@
-	#include <goal_state_machine.h>
+#include <goal_state_machine.h>
 #include <iostream>
 #include <fstream>
+
+#define RUNNING_ROS 1
 
 namespace goal_state_machine
 {
     GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin)
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(path_safety_margin), oppair_id(0)
 	{
-		sensing_distance = std::round(    (path_safety_margin/2 + 1) * 10   )  / 10;
+		// sensing_distance = std::round(    (path_safety_margin/2 ) * 10   )  / 10;
+		sensing_distance = path_safety_margin/2 + 1;
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
         unobservable_set = unobservable_pair_set(); 
 
@@ -27,7 +30,7 @@ namespace goal_state_machine
 		ROS_INFO_STREAM("[Goal SM] diference = distance_behind + sensor_shape_offset = " << distance_behind << " + " << sensor_shape_offset << " = " << distance_behind_under);
 		ROS_INFO_STREAM("[Goal SM] Under      circle_divisions:" << circle_divisions/2 << ", distance from unknown: " << 0.1 << ", distance_inFront_under: " << distance_inFront_under << ", distance_behind_under: " << distance_behind_under);
 
-		oppairs_under = observation_lib::OPPairs(circle_divisions/2, 0.1, distance_inFront_under, distance_behind_under);
+		oppairs_under = observation_lib::OPPairs(circle_divisions/2, 1, distance_inFront_under, distance_behind_under);
 	}
 
 	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()
@@ -67,6 +70,13 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::IsOPPairValid() 
     {
+		geometry_msgs::Point start, end;
+		start.x = getCurrentOPPairs().get_current_start().x();
+		start.y = getCurrentOPPairs().get_current_start().y();
+		start.z = getCurrentOPPairs().get_current_start().z();
+		end.x = getCurrentOPPairs().get_current_end().x();
+		end.y = getCurrentOPPairs().get_current_end().y();
+		end.z = getCurrentOPPairs().get_current_end().z();
     	// int sleep_seconds = 0;
     	bool start_inside_geofence = is_inside_geofence(getCurrentOPPairs().get_current_start());
     	if(start_inside_geofence)
@@ -79,6 +89,13 @@ namespace goal_state_machine
 				{
     				// ros::Duration(sleep_seconds).sleep();
 					// ROS_INFO_STREAM("[Goal SM] Flight corridor had something.");
+
+					#ifdef RUNNING_ROS
+					if(pi.publish)
+					{
+						rviz_interface::publish_arrow_straight_line(start, end, pi.marker_pub, false, oppair_id);
+					}
+					#endif
 				}
 				return fc_free;
 	    	}
@@ -88,7 +105,13 @@ namespace goal_state_machine
     			outsider.x = getCurrentOPPairs().get_current_end().x();
     			outsider.y = getCurrentOPPairs().get_current_end().y();
     			outsider.z = getCurrentOPPairs().get_current_end().z();
-    			rviz_interface::build_endOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
+				#ifdef RUNNING_ROS
+				if(pi.publish)
+				{
+					rviz_interface::publish_arrow_straight_line(start, end, pi.marker_pub, false, oppair_id);
+				}
+		    	rviz_interface::build_endOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
+				#endif
     			oppair_id++;
     			pi.marker_pub.publish(pi.waypoint_array);
     			// ROS_INFO_STREAM("End outside geofence.");
@@ -102,7 +125,12 @@ namespace goal_state_machine
 			outsider.x = getCurrentOPPairs().get_current_start().x();
 			outsider.y = getCurrentOPPairs().get_current_start().y();
 			outsider.z = getCurrentOPPairs().get_current_start().z();
+			#ifdef RUNNING_ROS
 			rviz_interface::build_startOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
+			if(pi.publish)
+				rviz_interface::publish_arrow_straight_line(start, end, pi.marker_pub, false, oppair_id);
+			}
+			#endif
 			oppair_id++;
 			pi.marker_pub.publish(pi.waypoint_array);
 			// ROS_INFO_STREAM("Start outside geofence.");
@@ -126,22 +154,10 @@ namespace goal_state_machine
                 || target.y() > geofence_max.y  
                 || target.z() > geofence_max.z)
         {
-			#ifdef SAVE_LOG
-			std::ofstream log_file;
-			log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-			log_file << "[Goal SM] " << target << " is outside geofence." << std::endl;
-			log_file.close();	
-			#endif
             return false;
         }
         else
         {
-			#ifdef SAVE_LOG
-			std::ofstream log_file;
-			log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-			// log_file << "[Goal SM] geofence ok." << std::endl;
-			log_file.close();	
-			#endif
         	return true;
         }
 	}
@@ -185,12 +201,12 @@ namespace goal_state_machine
 			{
 				if( !IsUnobservable(uav_position) && IsOPPairValid() )
 				{
-					ROS_INFO_STREAM("[Goal SM] Found goal side by side.");
+					// ROS_INFO_STREAM("[Goal SM] Found goal side by side.");
 					has_more_goals = true;
 					return true;
 				}		
 			}
-			ROS_INFO_STREAM("[Goal SM] Starting underneath search.");
+			// ROS_INFO_STREAM("[Goal SM] Starting underneath search.");
 			is_oppairs_side = false;
 			for(bool existsNextOPPair = oppairs_under.Next();
 				existsNextOPPair;
@@ -203,12 +219,13 @@ namespace goal_state_machine
 					return true;
 				}		
 			}
-			ROS_INFO_STREAM("[Goal SM] frontier " << get_current_frontier() << " is unreachable.");
+			ROS_INFO_STREAM("[Goal SM] frontier (" << get_current_frontier().x << ", " << get_current_frontier().y << ", " << get_current_frontier().z << ") is unreachable.");
+			ros::Duration(5).sleep();
 			// None of the remaining OPPairs were usable to inspect
 			if(hasNextFrontier())
 			{
 				frontier_index++;
-				ROS_INFO_STREAM("[Goal SM] Next frontier " << get_current_frontier());
+				// ROS_INFO_STREAM("[Goal SM] Next frontier " << get_current_frontier());
 				resetOPPair(uav_position);
 			}
 			else
