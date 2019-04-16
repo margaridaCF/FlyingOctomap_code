@@ -471,12 +471,12 @@ namespace state_manager_node
                     waypoint.position.y = 2;
                     waypoint.position.z = 4;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = 10;
+                    waypoint.position.x = 8;
                     waypoint.position.y = 2;
                     waypoint.position.z = 4;
                     Eigen::Vector3d fake_uav_position (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    waypoint.position.x = 10;
+                    waypoint.position.x = 8;
                     waypoint.position.y = -6;
                     waypoint.position.z = 4;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
