@@ -80,11 +80,12 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::is_inside_geofence(Eigen::Vector3d target) const
 	{
-		if(target.x() < geofence_min.x 
+		if(        target.x() < geofence_min.x 
                 || target.y() < geofence_min.y 
-                || target.x() < geofence_min.y 
+                || target.z() < geofence_min.z 
+
                 || target.x() > geofence_max.x 
-                || target.y()> geofence_max.y  
+                || target.y() > geofence_max.y  
                 || target.z() > geofence_max.z)
         {
 			#ifdef SAVE_LOG
