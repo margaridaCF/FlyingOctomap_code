@@ -5,7 +5,7 @@
 namespace goal_state_machine
 {
     GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin)
-		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(path_safety_margin)
+		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(path_safety_margin), oppair_id(0)
 	{
 		sensing_distance = std::round(    (path_safety_margin/2 + 1) * 10   )  / 10;
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
@@ -24,6 +24,9 @@ namespace goal_state_machine
 		{
 			distance_inFront_under = diference; 	
 		}
+		ROS_INFO_STREAM("[Goal SM] diference = distance_behind + sensor_shape_offset = " << distance_behind << " + " << sensor_shape_offset << " = " << distance_behind_under);
+		ROS_INFO_STREAM("[Goal SM] Under      circle_divisions:" << circle_divisions/2 << ", distance from unknown: " << 0.1 << ", distance_inFront_under: " << distance_inFront_under << ", distance_behind_under: " << distance_behind_under);
+
 		oppairs_under = observation_lib::OPPairs(circle_divisions/2, 0.1, distance_inFront_under, distance_behind_under);
 	}
 
@@ -64,13 +67,48 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::IsOPPairValid() 
     {
-    	if(is_inside_geofence(getCurrentOPPairs().get_current_start()) 
-    		&& is_inside_geofence(getCurrentOPPairs().get_current_end()) 
-    		&& is_flightCorridor_free()) 
-		{
-    		return true;
+    	// int sleep_seconds = 0;
+    	bool start_inside_geofence = is_inside_geofence(getCurrentOPPairs().get_current_start());
+    	if(start_inside_geofence)
+    	{
+			bool end_inside_geofence = is_inside_geofence(getCurrentOPPairs().get_current_end());
+    		if(end_inside_geofence)
+	    	{
+	    		bool fc_free = is_flightCorridor_free();
+				if(!fc_free)
+				{
+    				// ros::Duration(sleep_seconds).sleep();
+					// ROS_INFO_STREAM("[Goal SM] Flight corridor had something.");
+				}
+				return fc_free;
+	    	}
+	    	else
+	    	{
+	    		geometry_msgs::Point outsider;
+    			outsider.x = getCurrentOPPairs().get_current_end().x();
+    			outsider.y = getCurrentOPPairs().get_current_end().y();
+    			outsider.z = getCurrentOPPairs().get_current_end().z();
+    			rviz_interface::build_endOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
+    			oppair_id++;
+    			pi.marker_pub.publish(pi.waypoint_array);
+    			// ROS_INFO_STREAM("End outside geofence.");
+    			// ros::Duration(sleep_seconds).sleep();
+    			return false;
+	    	}
     	}
-        return false;
+    	else
+    	{
+    		geometry_msgs::Point outsider;
+			outsider.x = getCurrentOPPairs().get_current_start().x();
+			outsider.y = getCurrentOPPairs().get_current_start().y();
+			outsider.z = getCurrentOPPairs().get_current_start().z();
+			rviz_interface::build_startOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
+			oppair_id++;
+			pi.marker_pub.publish(pi.waypoint_array);
+			// ROS_INFO_STREAM("Start outside geofence.");
+			// ros::Duration(sleep_seconds).sleep();
+			return false;
+    	}
     }
 
 	geometry_msgs::Point GoalStateMachine::get_current_frontier() const
@@ -133,66 +171,56 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
 	{	
-		#ifdef SAVE_LOG	
-		std::ofstream log_file;
-		log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-		#endif
+		// #ifdef SAVE_LOG	
+		// std::ofstream log_file;
+		// log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
+		// #endif
 		bool search = true;
 		has_more_goals = false;
 		while(search)
 		{
-			// log_file << "[Goal SM] pointToNextGoal loop." << std::endl;
 			for(bool existsNextOPPair = oppairs_side.Next();
 				existsNextOPPair;
 				existsNextOPPair = oppairs_side.Next())
 			{
-				// log_file << "[Goal SM] oppair loop." << std::endl;
-
 				if( !IsUnobservable(uav_position) && IsOPPairValid() )
 				{
+					ROS_INFO_STREAM("[Goal SM] Found goal side by side.");
 					has_more_goals = true;
-					#ifdef SAVE_LOG	
-					log_file << "[Goal SM] found side oppair." << std::endl;
-					log_file.close();	
-					#endif
-					search = false;
+					return true;
 				}		
 			}
+			ROS_INFO_STREAM("[Goal SM] Starting underneath search.");
 			is_oppairs_side = false;
 			for(bool existsNextOPPair = oppairs_under.Next();
 				existsNextOPPair;
 				existsNextOPPair = oppairs_under.Next())
 			{
-				// log_file << "[Goal SM] oppair loop." << std::endl;
-
 				if( !IsUnobservable(uav_position) && IsOPPairValid() )
 				{
+					ROS_INFO_STREAM("[Goal SM] Found goal side underneath.");
 					has_more_goals = true;
-					#ifdef SAVE_LOG	
-					log_file << "[Goal SM] found under oppair." << std::endl;
-					log_file.close();	
-					#endif
-					search = false;
+					return true;
 				}		
 			}
-			log_file << "[Goal SM] frontier " << get_current_frontier() << " is unreachable." << std::endl;
+			ROS_INFO_STREAM("[Goal SM] frontier " << get_current_frontier() << " is unreachable.");
 			// None of the remaining OPPairs were usable to inspect
 			if(hasNextFrontier())
 			{
 				frontier_index++;
-				log_file << "[Goal SM] Next frontier " << get_current_frontier() << std::endl;
+				ROS_INFO_STREAM("[Goal SM] Next frontier " << get_current_frontier());
 				resetOPPair(uav_position);
 			}
 			else
 			{
-				log_file << "[Goal SM] No more frontier in cache." << std::endl;
+				ROS_INFO_STREAM("[Goal SM] No more frontier in cache.");
 				search = false;
 			}
 		}
 
-		#ifdef SAVE_LOG	
-		log_file.close();	
-		#endif
+		// #ifdef SAVE_LOG	
+		// log_file.close();	
+		// #endif
 		return has_more_goals;
 	}
 
@@ -209,7 +237,9 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint)
 	{
-		return ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
+		bool is_unobservable = ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
+		if (is_unobservable) ros::Duration(60).sleep();
+		return is_unobservable;
 	}
 
 	void GoalStateMachine::NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg)

@@ -81,6 +81,7 @@ namespace goal_state_machine
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
 	    bool								is_oppairs_side;
         unobservable_pair_set	 			unobservable_set; 
+        int 								oppair_id;
 
 
 		observation_lib::OPPairs& getCurrentOPPairs();

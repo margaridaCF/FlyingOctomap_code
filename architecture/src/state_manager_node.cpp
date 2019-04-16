@@ -466,44 +466,33 @@ namespace state_manager_node
                     geometry_msgs::Pose waypoint;
 
 
-
-                    // SQUARE
-
-                    waypoint.position.x = 2;
-                    waypoint.position.y = 2;
-                    waypoint.position.z = 2;
-                    Eigen::Vector3d fake_uav_position (waypoint.position.x, waypoint.position.y, waypoint.position.z);
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    waypoint.position.x = -2;
-                    waypoint.position.y = 2;
-                    waypoint.position.z = 2;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    waypoint.position.x = -2;
-                    waypoint.position.y = -2;
-                    waypoint.position.z = 2;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    waypoint.position.x = 2;
-                    waypoint.position.y = -2;
-                    waypoint.position.z = 2;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    waypoint.position.x = 2;
-                    waypoint.position.y = -2;
-                    waypoint.position.z = 8;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-
-                    waypoint.position.x = -2;
-                    waypoint.position.y = 2;
-                    waypoint.position.z = 8;
-                    state_data.ltstar_reply.waypoints.push_back(waypoint);
-
+                    // CORRIDOR
                     waypoint.position.x = 0;
-                    waypoint.position.y = 0;
+                    waypoint.position.y = 2;
                     waypoint.position.z = 4;
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 10;
+                    waypoint.position.y = 2;
+                    waypoint.position.z = 4;
+                    Eigen::Vector3d fake_uav_position (waypoint.position.x, waypoint.position.y, waypoint.position.z);
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 10;
+                    waypoint.position.y = -6;
+                    waypoint.position.z = 4;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = -6;
+                    waypoint.position.z = 4;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 0;
+                    waypoint.position.y = 2;
+                    waypoint.position.z = 4;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    waypoint.position.x = 2;
+                    waypoint.position.y = 2;
+                    waypoint.position.z = 4;
+                    state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    state_data.ltstar_reply.waypoint_amount = 6;
 
                     // CALIBRATION
 
@@ -566,9 +555,10 @@ namespace state_manager_node
                     // waypoint.position.y = 0;
                     // waypoint.position.z = 2;
                     // state_data.ltstar_reply.waypoints.push_back(waypoint);
+                    // state_data.ltstar_reply.waypoint_amount = 5;
+
                     Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     state_data.frontiers_msg.frontiers_found = 1;
-                    state_data.ltstar_reply.waypoint_amount = 7;
                     frontiers_msgs::VoxelMsg fake_frontier;
                     fake_frontier.xyz_m = current_position;
                     state_data.frontiers_msg.frontiers.push_back(fake_frontier);

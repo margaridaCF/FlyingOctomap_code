@@ -180,23 +180,43 @@ namespace rviz_interface
         marker_array.markers.push_back(marker);
     }
 
+    void build_startOPP_outsideGeofence(geometry_msgs::Point const& oppairStart, visualization_msgs::MarkerArray & marker_array, int oppair_id)
+    {
+        // 165,0,38
+        std::string ns = "oppair_start_outside";
+        double red   = 0.65;
+        double green = 0;
+        double blue  = 0.15;
+        build_sphere_basic(oppairStart, marker_array, ns, red, green, blue, oppair_id);
+    }
+
+    void build_endOPP_outsideGeofence(geometry_msgs::Point const& oppairEnd, visualization_msgs::MarkerArray & marker_array, int oppair_id)
+    {
+        // 244,109,67
+        std::string ns = "oppair_end_outside";
+        double red   = 0.96;
+        double green = 0.43;
+        double blue  = 0.26;
+        build_sphere_basic(oppairEnd, marker_array, ns, red, green, blue, oppair_id);
+    }
+
     void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start,   visualization_msgs::MarkerArray & marker_array)
     {
-        // oppair end    215,25,28     0.84    0.1     0.1
-        // oppair start 253,174,97     1       0.68    0.38
+        // oppair end   253,174,97     0.99    0.68    0.2
+        // oppair start 255,255,191    1       1       0.75
         // start 255,255,191           1       1       0.75
         // frontier 171,217,233        0.68    0.84    0.91
         // margin 44,123,182           0.17    0.48    0.71
         std::string ns = "oppair_end";
-        double red   = 0.84;
-        double green = 0.1;
-        double blue  = 0.0;
+        double red   = 0.99;
+        double green = 0.68;
+        double blue  = 0.2;
         build_sphere_basic(oppairEnd, marker_array, ns, red, green, blue);
 
         ns = "oppair_start";
         red   = 1;
-        green = 0.68;
-        blue  = 0.38;
+        green = 1;
+        blue  = 0.2;
         build_sphere_basic(oppairStart, marker_array, ns, red, green, blue);
 
         visualization_msgs::Marker marker;
@@ -205,13 +225,13 @@ namespace rviz_interface
         build_arrow_path(start_v, goal_v, 100, marker, 9, "oppair_path" );
         marker_array.markers.push_back(marker);
 
-        ns = "start";
+        ns = "uav_position";
         red   = 1;
         green = 1;
         blue  = 0.75;
         build_sphere_basic(start, marker_array, ns, red, green, blue);
 
-        ns = "frontier";
+        ns = "unknown";
         red   = 0.68;
         green = 0.84;
         blue  = 0.91;
@@ -244,14 +264,14 @@ namespace rviz_interface
         marker.lifetime = ros::Duration();
     }
 
-    void build_sphere_basic(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, std::string ns, double red, double green, double blue)
+    void build_sphere_basic(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, std::string ns, double red, double green, double blue, int id /*= 30*/)
     {
         visualization_msgs::Marker marker;
         marker.color.r = red;
         marker.color.g = green;
         marker.color.b = blue;
         marker.ns = ns;
-        marker.id = 30;
+        marker.id = id;
         marker.type = visualization_msgs::Marker::SPHERE;
         // Basic
         marker.header.frame_id = "/map";
