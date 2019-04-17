@@ -87,15 +87,14 @@ namespace goal_state_machine
 	    		bool fc_free = is_flightCorridor_free();
 				if(!fc_free)
 				{
-    				// ros::Duration(sleep_seconds).sleep();
-					// ROS_INFO_STREAM("[Goal SM] Flight corridor had something.");
-
 					#ifdef RUNNING_ROS
 					if(pi.publish)
 					{
 						rviz_interface::publish_arrow_straight_line(start, end, pi.marker_pub, false, oppair_id);
+    					oppair_id++;
 					}
 					#endif
+    				// ros::Duration(sleep_seconds).sleep();
 				}
 				return fc_free;
 	    	}
@@ -128,13 +127,14 @@ namespace goal_state_machine
 			#ifdef RUNNING_ROS
 			rviz_interface::build_startOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
 			if(pi.publish)
+			{
 				rviz_interface::publish_arrow_straight_line(start, end, pi.marker_pub, false, oppair_id);
 			}
 			#endif
 			oppair_id++;
 			pi.marker_pub.publish(pi.waypoint_array);
 			// ROS_INFO_STREAM("Start outside geofence.");
-			// ros::Duration(sleep_seconds).sleep();
+			// ros::Duration(s).sleep();
 			return false;
     	}
     }
