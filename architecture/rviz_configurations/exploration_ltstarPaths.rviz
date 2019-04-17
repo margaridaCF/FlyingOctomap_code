@@ -252,11 +252,9 @@ Visualization Manager:
       Namespaces:
         corridor_free: false
         corridor_occupied: true
-        lazy_theta_star_path: true
         lazy_theta_star_waypoint: false
         rejected_neighors: false
         s: false
-        straight_line: true
         usable_neighors: false
       Queue Size: 100
       Value: true
@@ -302,6 +300,7 @@ Visualization Manager:
         oppair_path: true
         oppair_start: true
         oppair_start_outside: true
+        straight_line: true
         uav_position: true
         under_unknown_point: true
         unknown: true
@@ -310,7 +309,7 @@ Visualization Manager:
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 175; 250; 234
+    Background Color: 150; 213; 200
     Default Light: true
     Fixed Frame: uav_1_home
     Frame Rate: 30
@@ -328,7 +327,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 54.8749008
+      Distance: 42.4951248
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -343,10 +342,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.13979661
+      Pitch: 0.809796572
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.61184835
+      Yaw: 4.54184866
     Saved: ~
 Window Geometry:
   Displays:
