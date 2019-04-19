@@ -322,7 +322,7 @@ namespace state_manager_node
         // ROS_INFO_STREAM( "[State manager] buildTargetPose yaw = " << yaw );
         // if (yaw > 2*M_PI) yaw = 2*M_PI - yaw;
         // ROS_INFO_STREAM( "[State manager] buildTargetPose yaw = " << yaw );
-        log_file << "[State manager] buildTargetPose yaw = " << yaw << std::endl;
+        log_file << "[State manager] buildTargetPose from (" << current_e.x() << ", " << current_e.y() << ")  to  (" << next_e.x() << ", " << next_e.y() << ")  yaw = " << yaw << std::endl;
 
         target.orientation = tf::createQuaternionMsgFromYaw(yaw);
         // ROS_INFO_STREAM("[State manager] buildTargetPose quaternion " << target.orientation);
@@ -336,25 +336,14 @@ namespace state_manager_node
             {
                 geometry_msgs::Pose next_waypoint;
                 buildTargetPose(next_waypoint);
-                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at init");
                 if(askPositionServiceCall(next_waypoint))
                 {
                     state_data.follow_path_state = on_route;
-                    // #ifdef SAVE_LOG
-                    // log_file << "[State manager]            [Path follow] on_route to " << get_current_waypoint() << std::endl;
-                    // #endif
-                }
-                else
-                {
-                    #ifdef SAVE_LOG
-                    log_file << "[State manager] Failed to set next position. Going to keep trying." << std::endl;
-                    #endif
                 }
                 break;
             }
             case on_route:
             {
-                // ROS_WARN_STREAM("[State manager]            [Path follow] updateWaypointSequenceStateMachine at on_route");
                 geometry_msgs::Point target_waypoint = get_current_waypoint().position;
                 if(hasArrived(target_waypoint))
                 {
@@ -452,7 +441,7 @@ namespace state_manager_node
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
     {
-        log_file << "[State Manager] [update_state] " << state_data.exploration_state << std::endl;
+        // log_file << "[State Manager] [update_state] " << state_data.exploration_state << std::endl;
         switch(state_data.exploration_state)
         {
             case clear_from_ground:
@@ -681,6 +670,7 @@ namespace state_manager_node
                         {
                             state_data.goal_state_machine->DeclareUnobservable();
                             log_file << "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still unknown." << std::endl;
+                            ROS_ERROR_STREAM( "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still unknown." );
                         }
                     }
                 }

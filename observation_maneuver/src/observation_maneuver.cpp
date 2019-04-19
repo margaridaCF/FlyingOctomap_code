@@ -33,25 +33,14 @@ namespace observation_lib
 
 	bool OPPairs::Next()
 	{	
-		#ifdef SAVE_LOG
-		log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-		#endif
-		log_file << "[OPPairs] Next. circle_divisions " << circle_divisions << std::endl;
 		if (index < circle_divisions )
 		{
 			observation_lib::translate(motion_direction, starts_zero.col(index), ends_zero.col(index), directions_zero.col(index), frontier, current.start, current.end);
-			#ifdef SAVE_LOG
-			log_file << "[OPPairs] [" << index << "] (" << current.start(0) << ", " << current.start(1) << ", " << current.start(2) << ") --> (" << current.end(0) << ", " << current.end(1) << ", " << current.end(2) << ")" << std::endl;
-            log_file.close();
-			#endif
 			index++;
 			return true;
 		}
 		else
 		{
-			#ifdef SAVE_LOG
-            log_file.close();
-			#endif
 			return false;
 		}
 	}

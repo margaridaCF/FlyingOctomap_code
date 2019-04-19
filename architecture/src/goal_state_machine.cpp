@@ -7,11 +7,11 @@ namespace goal_state_machine
     GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance)
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0)
 	{
-		// sensing_distance = std::round(    (path_safety_margin/2 ) * 10   )  / 10;
 		sensing_distance = path_safety_margin/2 + 1;
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
         unobservable_set = unobservable_pair_set(); 
 
+		double distance_from_unknown_under = 1;
 		double distance_behind_under, distance_inFront_under;
 		double sensor_shape_offset = sensing_distance / std::tan(0.872665);
 		double flyby_distance      = distance_behind + distance_inFront;
@@ -26,9 +26,9 @@ namespace goal_state_machine
 			distance_inFront_under = diference; 	
 		}
 		ROS_INFO_STREAM("[Goal SM] diference = distance_behind + sensor_shape_offset = " << distance_behind << " + " << sensor_shape_offset << " = " << distance_behind_under);
-		ROS_INFO_STREAM("[Goal SM] Under      circle_divisions:" << circle_divisions/2 << ", distance from unknown: " << 0.1 << ", distance_inFront_under: " << distance_inFront_under << ", distance_behind_under: " << distance_behind_under);
+		ROS_INFO_STREAM("[Goal SM] Under      circle_divisions:" << circle_divisions/2 << ", distance from unknown: " << distance_from_unknown_under << ", distance_inFront_under: " << distance_inFront_under << ", distance_behind_under: " << distance_behind_under);
 
-		oppairs_under = observation_lib::OPPairs(circle_divisions/2, 1, distance_inFront_under, distance_behind_under);
+		oppairs_under = observation_lib::OPPairs(circle_divisions/2, distance_from_unknown_under, distance_inFront_under, distance_behind_under);
 	}
 
 	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()

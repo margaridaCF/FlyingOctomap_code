@@ -8,6 +8,7 @@ Panels:
         - /TF1/Frames1
         - /Frontiers1/Namespaces1
         - /Frontiers2/Namespaces1
+        - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
         - /State Manager1
         - /State Manager1/Namespaces1
@@ -233,7 +234,7 @@ Visualization Manager:
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        map: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -250,8 +251,11 @@ Visualization Manager:
       Name: Lazy Theta Star
       Namespaces:
         corridor_free: false
-        corridor_occupied: true
+        corridor_occupied: false
         lazy_theta_star_path: true
+        rejected_neighors: false
+        s: false
+        usable_neighors: false
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -323,7 +327,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 24.6885071
+      Distance: 68.4631729
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -338,10 +342,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.334797025
+      Pitch: 0.0147970952
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.28185034
+      Yaw: 4.87184715
     Saved: ~
 Window Geometry:
   Displays:
