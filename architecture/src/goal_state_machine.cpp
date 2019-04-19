@@ -6,8 +6,8 @@
 
 namespace goal_state_machine
 {
-    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin)
-		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(path_safety_margin), oppair_id(0)
+    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance)
+		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0)
 	{
 		// sensing_distance = std::round(    (path_safety_margin/2 ) * 10   )  / 10;
 		sensing_distance = path_safety_margin/2 + 1;
@@ -214,13 +214,13 @@ namespace goal_state_machine
 			{
 				if( !IsUnobservable(uav_position) && IsOPPairValid() )
 				{
-					ROS_INFO_STREAM("[Goal SM] Found goal side underneath.");
+					// ROS_INFO_STREAM("[Goal SM] Found goal side underneath.");
 					has_more_goals = true;
 					return true;
 				}		
 			}
-			ROS_INFO_STREAM("[Goal SM] frontier (" << get_current_frontier().x << ", " << get_current_frontier().y << ", " << get_current_frontier().z << ") is unreachable.");
-			ros::Duration(5).sleep();
+			// ROS_INFO_STREAM("[Goal SM] frontier (" << get_current_frontier().x << ", " << get_current_frontier().y << ", " << get_current_frontier().z << ") is unreachable.");
+			// ros::Duration(5).sleep();
 			// None of the remaining OPPairs were usable to inspect
 			if(hasNextFrontier())
 			{
@@ -230,7 +230,7 @@ namespace goal_state_machine
 			}
 			else
 			{
-				ROS_INFO_STREAM("[Goal SM] No more frontier in cache.");
+				// ROS_INFO_STREAM("[Goal SM] No more frontier in cache.");
 				search = false;
 			}
 		}
@@ -241,21 +241,21 @@ namespace goal_state_machine
 		return has_more_goals;
 	}
 
-	void GoalStateMachine::DeclareUnobservable(Eigen::Vector3d const&  unobservable, Eigen::Vector3d const& viewpoint)
+	void GoalStateMachine::DeclareUnobservable(Eigen::Vector3d const&  unknown)
 	{
 		// The frontier is unobservable
-        unobservable_set.insert(std::make_pair(unobservable, viewpoint));
+        unobservable_set.insert(std::make_pair(unknown, getCurrentOPPairs().get_current_start()));
 	}
 
-	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& viewpoint)
+	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unknown)
 	{
-		return IsUnobservable(getCurrentOPPairs().get_current_start(), viewpoint);
+		return IsUnobservable(unknown, getCurrentOPPairs().get_current_start());
 	}
 
 	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint)
 	{
 		bool is_unobservable = ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
-		if (is_unobservable) ros::Duration(60).sleep();
+		// if (is_unobservable) ros::Duration(60).sleep();
 		return is_unobservable;
 	}
 

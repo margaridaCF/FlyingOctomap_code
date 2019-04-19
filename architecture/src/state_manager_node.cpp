@@ -675,6 +675,8 @@ namespace state_manager_node
                         bool is_frontier = askIsFrontierServiceCall(state_data.goal_state_machine->get_current_frontier());
                         if(is_frontier)
                         {
+                            Eigen::Vector3d unknown (state_data.goal_state_machine->get_current_frontier().x, state_data.goal_state_machine->get_current_frontier().y, state_data.goal_state_machine->get_current_frontier().z);
+                            state_data.goal_state_machine->DeclareUnobservable(unknown);
                             ROS_ERROR_STREAM("[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still a frontier.");
                             #ifdef SAVE_LOG
                             log_file << "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still a frontier." << std::endl;
@@ -774,7 +776,7 @@ int main(int argc, char **argv)
     geofence_max_point.x = state_manager_node::geofence_max.x();
     geofence_max_point.y = state_manager_node::geofence_max.y();
     geofence_max_point.z = state_manager_node::geofence_max.z();
-    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin);
+    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::sensing_distance);
     #ifdef SAVE_CSV
     std::ofstream csv_file;
     csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
