@@ -1,0 +1,50 @@
+exploration_maneuver_duration_secs: 18
+exploration_maneuver_phases_duration_secs: 5
+px4_loiter_radius: 1
+px4/flight_speed: 3
+px4/yaw_rate: 100
+# offboard_enabled: true
+
+do_initial_maneuver: true
+
+odometry_error: 0.1
+
+# offboard_enabled: true
+frontier/safety_margin: 3
+
+geofence_min/x: -30
+geofence_max/x: 55
+
+geofence_min/y: -15
+geofence_max/y: 50
+
+geofence_min/z: 4
+geofence_max/z: 30
+
+path/max_time_secs: 30
+path/max_cycles_waited_for_path: 50
+path/safety_margin: 5
+
+# == Command Path ==
+do_initial_maneuver: false
+
+# == Observation Point Pairs ==
+oppairs/distance_inFront: 2
+oppairs/distance_behind: 2
+oppairs/circle_divisions: 12
+oppairs/sensing_distance: 6
+
+current_position_topic: "/uav_1/mavros/local_position/pose"
+
+uav/laser_topic: "hokuyo_laser_scan"
+
+
+scan_filter_chain:
+- name: intensity
+  type: LaserScanIntensityFilter
+  params:
+    lower_threshold: 0
+    upper_threshold: 200000
+    lower_range_threshold: 0.7
+    upper_range_threshold: 15
+    upper_replacement_value: 16

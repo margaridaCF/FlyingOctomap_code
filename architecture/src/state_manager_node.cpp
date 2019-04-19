@@ -389,7 +389,7 @@ namespace state_manager_node
         }
         else
         {
-            state_data.exploration_state = waiting_path_response;
+            state_data.exploration_state = exploration_start;
         }
         #ifdef SAVE_LOG
         log_file << "[State manager][Exploration] Switch to clear_from_ground" << std::endl;
@@ -450,7 +450,7 @@ namespace state_manager_node
         {
             case clear_from_ground:
             {
-                ROS_INFO("[architecture] Clear from ground");
+                log_file << "[architecture] Clear from ground";
                 // Find current position
                 // architecture_msgs::PositionMiddleMan srv;
                 // if(current_position_client.call(srv))

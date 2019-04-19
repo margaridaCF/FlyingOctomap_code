@@ -21,7 +21,7 @@
     <arg name="verbose" default="false"/>
     <arg name="paused" default="false"/>
 
-    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
+    <rosparam file="$(find architecture)/cfg/debug_oppairs.yaml" command="load" />
 
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find lazy_theta_star)/launch/debug_experimental_tests.rviz" />
 
@@ -30,12 +30,15 @@
         <param name="frame_id" type="str" value="/world" />
         <param name="publish_free_space" value="true"/>
     </node>
+    
     <!-- #######################    TF    ############################# -->  
     <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 10" />
-  <!-- Frontiers --> 
-  <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="lazy_theta_star" output="screen" />
-  <!-- ########################################################################## -->
-    <!-- Architecture nodes -->
+
+    <!-- ################### Architecture nodes #######################-->
+    <node name="state_manager" type="state_manager_node" pkg="architecture" output="screen" />
+    <node name="frontier_cells" type="frontiers_async_node" pkg="frontiers" output="screen" />
+    <node name="lazy_theta_star" type="ltStar_async_node" pkg="lazy_theta_star" output="screen" />
+
 
 </launch>
 
