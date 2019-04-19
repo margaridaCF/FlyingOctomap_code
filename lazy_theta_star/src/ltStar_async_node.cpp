@@ -6,6 +6,8 @@
 #include <marker_publishing_utils.h>
 #include <std_srvs/Empty.h>
 #include <lazy_theta_star_msgs/CheckFlightCorridor.h>
+#include <tf/transform_datatypes.h>
+
 
 
 #include <sstream>
@@ -36,15 +38,19 @@ namespace LazyThetaStarOctree
 	  	return true;
 	}
 
+	bool checkFligthCorridor_(double flight_corridor_width, octomath::Vector3 start, octomath::Vector3 end)
+	{
+		LazyThetaStarOctree::generateOffsets(octree->getResolution(), flight_corridor_width, semiSphereIn, semiSphereOut );
+		InputData input (*octree, start, end, flight_corridor_width);
+		return is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, true));
+	}
+
 	bool checkFligthCorridor(lazy_theta_star_msgs::CheckFlightCorridor::Request &request,
 		lazy_theta_star_msgs::CheckFlightCorridor::Response &response)
 	{
-		LazyThetaStarOctree::generateOffsets(octree->getResolution(), request.flight_corridor_width, semiSphereIn, semiSphereOut );
-			
 		octomath::Vector3 start(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 end  (request.end.x, request.end.y, request.end.z);
-		InputData input (*octree, start, end, request.flight_corridor_width);
-		response.free = is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, true));
+		response.free = checkFligthCorridor_(request.flight_corridor_width, start, end);
 		return true;
 	}
 	
@@ -93,23 +99,40 @@ namespace LazyThetaStarOctree
 			// 	<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
 			// octree->writeBinary(ss.str());
 			ROS_INFO_STREAM("[LTStar] Request message " << *path_request);
-			// if(path_request->request_id > 5)
-			// {
-			// 	publish_free_corridor_arrows = true;
-			// }
-			// else
-			// {
-			// 	publish_free_corridor_arrows = false;
-			// }
-			LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, dephtZero, semiSphereOut );
-			LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, true) );
-			if(reply.waypoint_amount == 1)
-			{
-				ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
-			}
-			// ROS_INFO_STREAM("[LTStar] Reply " << reply);
 
-			// octree->writeBinary(folder_name + "/octree_after_processing_request.bt");
+			octomath::Vector3 start(path_request->start.x, path_request->start.y, path_request->start.z);
+			octomath::Vector3 goal  (path_request->goal.x, path_request->goal.y, path_request->goal.z);
+			bool free_straight_line = checkFligthCorridor_(path_request->safety_margin, start, goal);
+			if(free_straight_line)
+			{
+				reply.success = true;
+				reply.request_id = path_request->request_id;
+				reply.waypoint_amount = 2;
+
+				geometry_msgs::Pose waypoint;
+	            waypoint.position.x = path_request->start.x;
+	            waypoint.position.y = path_request->start.y;
+	            waypoint.position.z = path_request->start.z;
+	            waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
+	            reply.waypoints.push_back(waypoint);
+	            waypoint.position.x = path_request->goal.x;
+	            waypoint.position.y = path_request->goal.y;
+	            waypoint.position.z = path_request->goal.z;
+	            waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
+	            reply.waypoints.push_back(waypoint);
+			}
+			else
+			{
+				LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, dephtZero, semiSphereOut );
+				LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, true) );
+				if(reply.waypoint_amount == 1)
+				{
+					ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
+				}
+				// ROS_INFO_STREAM("[LTStar] Reply " << reply);
+
+				// octree->writeBinary(folder_name + "/octree_after_processing_request.bt");
+			}
 		}
 		else
 		{
