@@ -7,6 +7,8 @@
 #include <marker_publishing_utils.h>
 #include <observation_maneuver.h>
 #include <lazy_theta_star_msgs/CheckFlightCorridor.h>
+#include <iostream>
+#include <fstream>
 
 #define SAVE_LOG 1
 
@@ -98,11 +100,12 @@ namespace goal_state_machine
 	    
 	public:
 		geometry_msgs::Point get_current_frontier() const;
+		void get_current_frontier(Eigen::Vector3d& frontier) const;
 		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance);
 		~GoalStateMachine(){}
 		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
 		bool NextGoal(Eigen::Vector3d& uav_position);
-		void DeclareUnobservable(Eigen::Vector3d const& unobservable);
+		void DeclareUnobservable();
 		bool IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
 		int getUnobservableSetSize()
 		{

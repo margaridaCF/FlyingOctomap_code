@@ -1,6 +1,4 @@
 #include <goal_state_machine.h>
-#include <iostream>
-#include <fstream>
 
 #define RUNNING_ROS 1
 
@@ -144,6 +142,11 @@ namespace goal_state_machine
         return frontiers_msg.frontiers[frontier_index].xyz_m;
     }
 
+	void GoalStateMachine::get_current_frontier(Eigen::Vector3d & frontier) const
+    {
+		frontier << frontiers_msg.frontiers[frontier_index].xyz_m.x, frontiers_msg.frontiers[frontier_index].xyz_m.y, frontiers_msg.frontiers[frontier_index].xyz_m.z;
+    }
+
 	bool GoalStateMachine::is_inside_geofence(Eigen::Vector3d target) const
 	{
 		if(        target.x() < geofence_min.x 
@@ -170,16 +173,21 @@ namespace goal_state_machine
 	void GoalStateMachine::resetOPPair(Eigen::Vector3d& uav_position)
 	{
 		is_oppairs_side = true;
-		geometry_msgs::Point curr_frontier_geom = get_current_frontier();
+        Eigen::Vector3d new_frontier;
+        get_current_frontier(new_frontier);
 		
-        Eigen::Vector3d new_frontier(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
 		oppairs_side.NewFrontier(new_frontier, uav_position, pi);
 	    visualization_msgs::MarkerArray marker_array;
+	    geometry_msgs::Point curr_frontier_geom;
+	    curr_frontier_geom.x = new_frontier.x();
+	    curr_frontier_geom.y = new_frontier.y();
+	    curr_frontier_geom.z = new_frontier.z();
+
 	    rviz_interface::build_sphere_basic(curr_frontier_geom, marker_array, "unknown_point", 0, 0, 1);
 
 		// // To generate the points to pass under, the sensing_distance is used
 		curr_frontier_geom.z = curr_frontier_geom.z-sensing_distance;
-        Eigen::Vector3d new_frontier_under(curr_frontier_geom.x, curr_frontier_geom.y, curr_frontier_geom.z);
+        Eigen::Vector3d new_frontier_under(new_frontier.x(), new_frontier.y(), curr_frontier_geom.z);
 		oppairs_under.NewFrontier(new_frontier_under, uav_position, pi);
 	    rviz_interface::build_sphere_basic(curr_frontier_geom, marker_array, "under_unknown_point", 0.5, 0.5, 1);
 	    pi.marker_pub.publish(marker_array);
@@ -187,35 +195,44 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
 	{	
-		// #ifdef SAVE_LOG	
-		// std::ofstream log_file;
-		// log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-		// #endif
+	    std::stringstream aux_envvar_home (std::getenv("HOME"));
+	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+		std::ofstream log_file;
+		log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
+        Eigen::Vector3d unknown;
+        get_current_frontier(unknown);
 		bool search = true;
 		has_more_goals = false;
 		while(search)
 		{
+			Eigen::Vector3d viewpoint;
 			for(bool existsNextOPPair = oppairs_side.Next();
 				existsNextOPPair;
 				existsNextOPPair = oppairs_side.Next())
 			{
-				if( !IsUnobservable(uav_position) && IsOPPairValid() )
+				if( !IsUnobservable(unknown) && IsOPPairValid() )
 				{
-					// ROS_INFO_STREAM("[Goal SM] Found goal side by side.");
 					has_more_goals = true;
+					getFlybyStart(viewpoint);
+					// ROS_INFO_STREAM("[Goal SM] Found goal side by side.");
+					log_file << "[Goal SM] Ok for (" << unknown.x() << ", " << unknown.y() << ", " << unknown.z() << ") from (" << viewpoint.x() << ", " << viewpoint.y() << ", " << viewpoint.z() << ")" << std::endl;
+					log_file.close();
 					return true;
 				}		
 			}
-			// ROS_INFO_STREAM("[Goal SM] Starting underneath search.");
+			// log_file << "[Goal SM] Starting underneath search." << std::endl;
 			is_oppairs_side = false;
 			for(bool existsNextOPPair = oppairs_under.Next();
 				existsNextOPPair;
 				existsNextOPPair = oppairs_under.Next())
 			{
-				if( !IsUnobservable(uav_position) && IsOPPairValid() )
+				if( !IsUnobservable(unknown) && IsOPPairValid() )
 				{
-					// ROS_INFO_STREAM("[Goal SM] Found goal side underneath.");
 					has_more_goals = true;
+					getFlybyStart(viewpoint);
+					// ROS_INFO_STREAM("[Goal SM] Found goal side underneath.");
+					log_file << "[Goal SM] Ok for (" << unknown.x() << ", " << unknown.y() << ", " << unknown.z() << ") from (" << viewpoint.x() << ", " << viewpoint.y() << ", " << viewpoint.z() << ")" << std::endl;
+					log_file.close();
 					return true;
 				}		
 			}
@@ -224,8 +241,9 @@ namespace goal_state_machine
 			// None of the remaining OPPairs were usable to inspect
 			if(hasNextFrontier())
 			{
+				// log_file << "[Goal SM] Increment frontier index " << std::endl;
 				frontier_index++;
-				// ROS_INFO_STREAM("[Goal SM] Next frontier " << get_current_frontier());
+        		get_current_frontier(unknown);
 				resetOPPair(uav_position);
 			}
 			else
@@ -236,15 +254,33 @@ namespace goal_state_machine
 		}
 
 		// #ifdef SAVE_LOG	
-		// log_file.close();	
+		log_file.close();	
 		// #endif
 		return has_more_goals;
 	}
 
-	void GoalStateMachine::DeclareUnobservable(Eigen::Vector3d const&  unknown)
+	void GoalStateMachine::DeclareUnobservable()
 	{
-		// The frontier is unobservable
+		// The frontier is unobser
+        // Eigen::Vector3d unknown (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
+		Eigen::Vector3d unknown;
+		get_current_frontier(unknown);
+
         unobservable_set.insert(std::make_pair(unknown, getCurrentOPPairs().get_current_start()));
+
+		// #ifdef SAVE_LOG	
+	    std::stringstream aux_envvar_home (std::getenv("HOME"));
+	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+		std::ofstream log_file;
+		log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
+		ROS_INFO_STREAM("[Goal SM] (" << unknown.x() << ", " << unknown.y() << ", " << unknown.z() << ") unobservable from (" << getCurrentOPPairs().get_current_start().x() << ", " << getCurrentOPPairs().get_current_start().y() << ", " << getCurrentOPPairs().get_current_start().z() << ")");
+		log_file << "[Goal SM] (" << unknown.x() << ", " << unknown.y() << ", " << unknown.z() << ") unobservable from (" << getCurrentOPPairs().get_current_start().x() << ", " << getCurrentOPPairs().get_current_start().y() << ", " << getCurrentOPPairs().get_current_start().z() << ")" << std::endl;
+		for (auto i = unobservable_set.begin(); i != unobservable_set.end(); ++i)
+		{
+			log_file << "(" << i->first.x() << ", " << i->first.y() << ", " << i->first.z() << ") - (" << i->second.x() << ", " << i->second.y() << ", " << i->second.z() << ")"	<< std::endl;
+		}
+		log_file.close();	
+		// #endif
 	}
 
 	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unknown)
@@ -254,6 +290,9 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint)
 	{
+
+
+
 		bool is_unobservable = ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
 		// if (is_unobservable) ros::Duration(60).sleep();
 		return is_unobservable;
