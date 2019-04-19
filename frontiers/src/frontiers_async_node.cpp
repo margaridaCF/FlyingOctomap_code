@@ -5,6 +5,7 @@
 #include <octomap_msgs/conversions.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
 #include <frontiers_msgs/CheckIsFrontier.h>
+#include <frontiers_msgs/CheckIsExplored.h>
 #include <visualization_msgs/MarkerArray.h>
 
 #include <atomic>
@@ -75,6 +76,22 @@ namespace frontiers_async_node
 		catch(const std::out_of_range& oor)
 		{
 			ROS_ERROR_STREAM("[Frontiers] Candidate " << req.candidate << " is in unknown space.");
+		}
+	}
+
+	bool check_unknown(frontiers_msgs::CheckIsExplored::Request  &req,
+		frontiers_msgs::CheckIsExplored::Response &res)
+	{
+		octomath::Vector3 candidate(req.candidate.x, req.candidate.y, req.candidate.z);
+		try
+		{ 
+			res.is_explored = Frontiers:: isExplored(candidate, *octree); 
+			return true;
+		}
+		catch(const std::out_of_range& oor)
+		{
+			ROS_ERROR_STREAM("[Frontiers] [check_unknown] Candidate " << req.candidate << " std::out_of_range& oor.");
+			return true;
 		}
 	}
 
@@ -177,7 +194,8 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 
 	ros::ServiceServer frontier_status_service = nh.advertiseService("frontier_status", frontiers_async_node::check_status);
-	ros::ServiceServer is_frontier_service = nh.advertiseService("is_frontier", frontiers_async_node::check_frontier);
+	ros::ServiceServer is_frontier_service     = nh.advertiseService("is_frontier", frontiers_async_node::check_frontier);
+	ros::ServiceServer is_explored_service     = nh.advertiseService("is_explored", frontiers_async_node::check_unknown);
 	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, frontiers_async_node::octomap_callback);
 	ros::Subscriber frontiers_sub = nh.subscribe<frontiers_msgs::FrontierRequest>("frontiers_request", 10, frontiers_async_node::frontier_callback);
 	frontiers_async_node::local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_reply", 10);

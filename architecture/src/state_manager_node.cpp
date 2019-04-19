@@ -25,6 +25,7 @@
 #include <architecture_msgs/YawSpin.h>
 
 #include <frontiers_msgs/CheckIsFrontier.h>
+#include <frontiers_msgs/CheckIsExplored.h>
 #include <frontiers_msgs/FrontierReply.h>
 #include <frontiers_msgs/FrontierRequest.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
@@ -52,6 +53,7 @@ namespace state_manager_node
     ros::Publisher marker_pub;
     ros::ServiceClient target_position_client;
     ros::ServiceClient is_frontier_client;
+    ros::ServiceClient is_explored_client;
     ros::ServiceClient frontier_status_client;
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
@@ -123,14 +125,10 @@ namespace state_manager_node
         position_request_srv.request.pose = pose;
         if(target_position_client.call(position_request_srv))
         {
-            #ifdef SAVE_LOG
-            log_file << "[State manager] Requesting position " << state_data.waypoint_index << " = " << position_request_srv.request.pose << std::endl;
-            #endif
             return position_request_srv.response.is_going_to_position;
         }
         else
         {
-            // ROS_WARN("[State manager] In YawSpin, node not accepting position requests.");
             return false;
         }
     }
@@ -173,11 +171,9 @@ namespace state_manager_node
         {
             request.new_request = true;
             state_data.frontier_request_count++;
-            log_file <<"[State Manager] Fresh map id will be " << state_data.frontier_request_count << std::endl;
         }
         else
         {
-            log_file << "[State Manager] Iterate over current map. Id is " << state_data.frontier_request_count << std::endl;
             request.new_request = false;
         }
         request.request_number = state_data.frontier_request_count;
@@ -197,14 +193,26 @@ namespace state_manager_node
         is_frontier_msg.request.candidate = candidate; 
         if(is_frontier_client.call(is_frontier_msg)) 
         { 
-            #ifdef SAVE_LOG
-            log_file << "[State manager] Is frontier " << candidate << std::endl;
-            #endif
             return is_frontier_msg.response.is_frontier; 
         } 
         else 
         { 
             ROS_WARN("[State manager] Frontier node not accepting is frontier requests."); 
+            return false; 
+        } 
+    } 
+
+    bool askIsExploredServiceCall(geometry_msgs::Point candidate) 
+    { 
+        frontiers_msgs::CheckIsExplored is_explored_msg; 
+        is_explored_msg.request.candidate = candidate; 
+        if(is_explored_client.call(is_explored_msg)) 
+        { 
+            return is_explored_msg.response.is_explored; 
+        } 
+        else 
+        { 
+            ROS_WARN("[State manager] Frontier node not accepting is explored requests."); 
             return false; 
         } 
     } 
@@ -259,7 +267,6 @@ namespace state_manager_node
         }
         else if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
         {
-            log_file << "[State Manager] [oppairs] 1. New frontier arrived from node. Reset all." << std::endl;
             #ifdef SAVE_LOG
             log_file << "[State manager]Frontier reply " << *msg << std::endl;
             #endif
@@ -662,9 +669,6 @@ namespace state_manager_node
                     state_data.goal_state_machine->get2DFlybyStart(flyby_2d_start);
                     state_data.goal_state_machine->get2DFlybyEnd  (flyby_2d_end);
                     flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
-                    #ifdef SAVE_LOG
-                    log_file <<"[State manager] Flyby from " << flyby_2d_start << " to " << flyby_2d_end << std::endl;
-                    #endif
                     state_data.exploration_maneuver_started = askPositionServiceCall(flyby_end);
                 }
                 else
@@ -672,15 +676,11 @@ namespace state_manager_node
                     if(hasArrived(flyby_end.position))
                     {
                         state_data.exploration_state = exploration_start;
-                        bool is_frontier = askIsFrontierServiceCall(state_data.goal_state_machine->get_current_frontier());
-                        if(is_frontier)
+                        bool is_explored = askIsExploredServiceCall(state_data.goal_state_machine->get_current_frontier());
+                        if(!is_explored)
                         {
-                            Eigen::Vector3d unknown (state_data.goal_state_machine->get_current_frontier().x, state_data.goal_state_machine->get_current_frontier().y, state_data.goal_state_machine->get_current_frontier().z);
-                            state_data.goal_state_machine->DeclareUnobservable(unknown);
-                            ROS_ERROR_STREAM("[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still a frontier.");
-                            #ifdef SAVE_LOG
-                            log_file << "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still a frontier." << std::endl;
-                            #endif
+                            state_data.goal_state_machine->DeclareUnobservable();
+                            log_file << "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still unknown." << std::endl;
                         }
                     }
                 }
@@ -751,6 +751,7 @@ int main(int argc, char **argv)
     state_manager_node::ltstar_status_cliente = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>("ltstar_status");
     state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
     state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
+    state_manager_node::is_explored_client = nh.serviceClient<frontiers_msgs::CheckIsExplored>("is_explored");
     state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
     state_manager_node::yaw_spin_client = nh.serviceClient<architecture_msgs::YawSpin>("yaw_spin");
     state_manager_node::target_position_client = nh.serviceClient<architecture_msgs::PositionRequest>("target_position");
