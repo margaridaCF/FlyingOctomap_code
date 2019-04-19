@@ -131,7 +131,7 @@ namespace Frontiers{
                         frontiers_count++;
                         if( frontiers_count == request.frontier_amount)
                         {
-                            ROS_INFO_STREAM("[Frontiers] Added last neighbor. ");
+                            // ROS_INFO_STREAM("[Frontiers] Added last neighbor. ");
                             break;
                         }
                         #endif

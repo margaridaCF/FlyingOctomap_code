@@ -15,13 +15,13 @@ frontier/safety_margin: 3
 geofence_min/x: -30
 geofence_max/x: 55
 
-geofence_min/y: -50
+geofence_min/y: -15
 geofence_max/y: 50
 
 geofence_min/z: 4
-geofence_max/z: 70
+geofence_max/z: 30
 
-path/max_time_secs: 15
+path/max_time_secs: 30
 path/max_cycles_waited_for_path: 50
 path/safety_margin: 5
 
