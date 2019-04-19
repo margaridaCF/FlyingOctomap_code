@@ -21,6 +21,7 @@ namespace frontiers_async_node
 	octomap::OcTree* octree;
 	octomap::OcTree* octree_inUse;
 	std::atomic<bool> is_octree_inUse;
+	std::atomic<bool> new_octree;
 
 	ros::Publisher local_pos_pub;
 	ros::Publisher marker_pub;
@@ -85,14 +86,14 @@ namespace frontiers_async_node
 			#ifdef SAVE_CSV
 			std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 			#endif
-
-
 			if (frontier_request->new_request)
 			{
-
-				delete octree_inUse;
-				is_octree_inUse = true;
-				octree_inUse = octree;
+				if (new_octree){
+					delete octree_inUse;
+					is_octree_inUse = true;
+					octree_inUse = octree;
+					new_octree = false;
+				}
 				iterator = Frontiers::processFrontiersRequest(*octree_inUse, *frontier_request, reply, marker_pub);
 				last_request_id = frontier_request->request_number;
 			}
@@ -152,6 +153,7 @@ namespace frontiers_async_node
 			delete octree;
 		}
 		is_octree_inUse = false;
+		new_octree = true;
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
 		octomap_init = true;
 	}
@@ -182,7 +184,8 @@ int main(int argc, char **argv)
 	frontiers_async_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("frontiers/known_space", 1);
 	frontiers_async_node::last_request_id = 0;
 
-	frontiers_async_node:: is_octree_inUse = false;
+	frontiers_async_node::new_octree = false;
+	frontiers_async_node::is_octree_inUse = false;
 
 	ros::spin();
 }
