@@ -8,7 +8,7 @@ namespace goal_state_machine
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0)
 	{
 		sensing_distance = path_safety_margin/2 + 1;
-		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind);
+		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
 
 		double distance_from_unknown_under = 1;
@@ -28,7 +28,7 @@ namespace goal_state_machine
 		ROS_INFO_STREAM("[Goal SM] diference = distance_behind + sensor_shape_offset = " << distance_behind << " + " << sensor_shape_offset << " = " << distance_behind_under);
 		ROS_INFO_STREAM("[Goal SM] Under      circle_divisions:" << circle_divisions/2 << ", distance from unknown: " << distance_from_unknown_under << ", distance_inFront_under: " << distance_inFront_under << ", distance_behind_under: " << distance_behind_under);
 
-		oppairs_under = observation_lib::OPPairs(circle_divisions/2, distance_from_unknown_under, distance_inFront_under, distance_behind_under);
+		oppairs_under = observation_lib::OPPairs(circle_divisions/2, distance_from_unknown_under, distance_inFront_under, distance_behind_under, observation_lib::translate);
 	}
 
 	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()

@@ -13,8 +13,8 @@ namespace observation_lib
 
     std::ofstream log_file;
 
-	OPPairs::OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind)
-		: circle_divisions(circle_divisions)
+	OPPairs::OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind, translate_func_ptr translate_func)
+		: circle_divisions(circle_divisions), translate_func(translate_func)
 	{
 		current = OPPair();
 		starts_zero     = Eigen::MatrixXd (3, circle_divisions);
@@ -35,7 +35,7 @@ namespace observation_lib
 	{	
 		if (index < circle_divisions )
 		{
-			observation_lib::translate(motion_direction, starts_zero.col(index), ends_zero.col(index), directions_zero.col(index), frontier, current.start, current.end);
+			translate_func(motion_direction, starts_zero.col(index), ends_zero.col(index), directions_zero.col(index), frontier, current.start, current.end);
 			index++;
 			return true;
 		}
@@ -85,7 +85,7 @@ namespace observation_lib
 		ends_zero   = circle_radius + distance_inFront*directions_zero;
 	}
 
-	void translate( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end)
+	void translateAdjustDirection( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end)
 	{
 		double check = direction_zero.dot(motion_direction);
 		if(check >= 0)
@@ -98,6 +98,12 @@ namespace observation_lib
 			end   = frontier + start_zero;
 			start = frontier + end_zero;
 		}
+	}
+
+	void translate( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end)
+	{
+		start = frontier + start_zero;
+		end   = frontier + end_zero;
 	}
 
 	
