@@ -87,7 +87,7 @@ namespace goal_state_machine
 
 
 		observation_lib::OPPairs& getCurrentOPPairs();
-		bool is_flightCorridor_free() ;
+		bool is_flightCorridor_free(double flight_corridor_width) ;
 		bool IsOPPairValid() ;
 		bool is_inside_geofence(Eigen::Vector3d target) const;
 		bool hasNextFrontier() const;

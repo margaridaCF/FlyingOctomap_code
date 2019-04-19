@@ -36,7 +36,7 @@ namespace goal_state_machine
 		else 				return oppairs_under;	
 	}
 
-	bool GoalStateMachine::is_flightCorridor_free() 
+	bool GoalStateMachine::is_flightCorridor_free(double flight_corridor_width) 
     {
         lazy_theta_star_msgs::CheckFlightCorridor srv;
         Eigen::Vector3d start_eigen = getCurrentOPPairs().get_current_start();
@@ -49,7 +49,7 @@ namespace goal_state_machine
         srv.request.end.y   = end_eigen(1);
         srv.request.end.z   = end_eigen(2);
         // Inflated the space required to be free around the flyby.
-        srv.request.flight_corridor_width = path_safety_margin + 1; // This magic number is to inflate the safe space around the flyby
+        srv.request.flight_corridor_width = flight_corridor_width; // This magic number is to inflate the safe space around the flyby
         // Without it frequently the path planner was asked for impossible goals because the start of the line of sight was just outside a particular voxel
         // With this we guarentee the flyby to stay away from obstacles and unknown space.
 
@@ -81,7 +81,7 @@ namespace goal_state_machine
 			bool end_inside_geofence = is_inside_geofence(getCurrentOPPairs().get_current_end());
     		if(end_inside_geofence)
 	    	{
-	    		bool fc_free = is_flightCorridor_free();
+	    		bool fc_free = is_flightCorridor_free(path_safety_margin + 1);
 				if(!fc_free)
 				{
 					#ifdef RUNNING_ROS
