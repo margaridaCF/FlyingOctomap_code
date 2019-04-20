@@ -6,7 +6,6 @@
 #include <architecture_math.h>
 #include <marker_publishing_utils.h>
 #include <observation_maneuver.h>
-#include <lazy_theta_star_msgs/CheckFlightCorridor.h>
 #include <iostream>
 #include <fstream>
 
@@ -76,6 +75,7 @@ namespace goal_state_machine
 	    frontiers_msgs::FrontierReply & 	frontiers_msg;
 	    geometry_msgs::Point 				geofence_min, geofence_max;
 	    ros::ServiceClient &				check_flightCorridor_client;
+	    ros::ServiceClient &				check_visibility_client;
 	    bool 								has_more_goals, resetOPPair_flag;
 	    int 								frontier_index;
     	double 								path_safety_margin;
@@ -89,6 +89,7 @@ namespace goal_state_machine
 		observation_lib::OPPairs& getCurrentOPPairs();
 		bool is_flightCorridor_free(double flight_corridor_width) ;
 		bool IsOPPairValid() ;
+    	bool IsVisible();
 		bool is_inside_geofence(Eigen::Vector3d target) const;
 		bool hasNextFrontier() const;
 		void resetOPPair(Eigen::Vector3d& uav_position);
@@ -101,7 +102,7 @@ namespace goal_state_machine
 	public:
 		geometry_msgs::Point get_current_frontier() const;
 		void get_current_frontier(Eigen::Vector3d& frontier) const;
-		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance);
+		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client);
 		~GoalStateMachine(){}
 		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
 		bool NextGoal(Eigen::Vector3d& uav_position);

@@ -35,6 +35,7 @@
 #include <lazy_theta_star_msgs/LTStarRequest.h>
 #include <lazy_theta_star_msgs/LTStarNodeStatus.h>
 #include <lazy_theta_star_msgs/CheckFlightCorridor.h>
+#include <lazy_theta_star_msgs/CheckVisibility.h>
 
 
 #define SAVE_CSV 1
@@ -738,13 +739,14 @@ int main(int argc, char **argv)
     state_manager_node::init_param_variables(nh);
     // Service client
     ros::ServiceClient check_flightCorridor_client = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
-    state_manager_node::ltstar_status_cliente = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>("ltstar_status");
-    state_manager_node::frontier_status_client = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>("frontier_status");
-    state_manager_node::is_frontier_client = nh.serviceClient<frontiers_msgs::CheckIsFrontier>("is_frontier");
-    state_manager_node::is_explored_client = nh.serviceClient<frontiers_msgs::CheckIsExplored>("is_explored");
-    state_manager_node::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("get_current_position");
-    state_manager_node::yaw_spin_client = nh.serviceClient<architecture_msgs::YawSpin>("yaw_spin");
-    state_manager_node::target_position_client = nh.serviceClient<architecture_msgs::PositionRequest>("target_position");
+    ros::ServiceClient check_visibility_client     = nh.serviceClient<lazy_theta_star_msgs::CheckVisibility>    ("has_visibility");
+    state_manager_node::ltstar_status_cliente      = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>   ("ltstar_status");
+    state_manager_node::frontier_status_client     = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>       ("frontier_status");
+    state_manager_node::is_frontier_client         = nh.serviceClient<frontiers_msgs::CheckIsFrontier>          ("is_frontier");
+    state_manager_node::is_explored_client         = nh.serviceClient<frontiers_msgs::CheckIsExplored>          ("is_explored");
+    state_manager_node::current_position_client    = nh.serviceClient<architecture_msgs::PositionMiddleMan>     ("get_current_position");
+    state_manager_node::yaw_spin_client            = nh.serviceClient<architecture_msgs::YawSpin>               ("yaw_spin");
+    state_manager_node::target_position_client     = nh.serviceClient<architecture_msgs::PositionRequest>       ("target_position");
     // Topic subscribers 
     ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
     ros::Subscriber ltstar_reply_sub = nh.subscribe<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
@@ -767,7 +769,7 @@ int main(int argc, char **argv)
     geofence_max_point.x = state_manager_node::geofence_max.x();
     geofence_max_point.y = state_manager_node::geofence_max.y();
     geofence_max_point.z = state_manager_node::geofence_max.z();
-    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::sensing_distance);
+    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::sensing_distance, check_visibility_client);
     #ifdef SAVE_CSV
     std::ofstream csv_file;
     csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);

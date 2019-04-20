@@ -29,6 +29,7 @@ namespace LazyThetaStarOctree{
 	int updateVertex_time;
 	std::ofstream log_file;
 	int id_unreachable;
+	int id_visibility;
 
 
 	void generateOffsets(double resolution, double safety_margin, double (*startDepthGenerator)(double, double, double), double (*goalDepthGenerator)(double, double, double) )
@@ -144,6 +145,24 @@ namespace LazyThetaStarOctree{
 			}
 		}
 		return CellStatus::kFree;
+	}
+
+	bool hasLineOfSight_UnknownAsFree(InputData const& input,
+		rviz_interface::PublishingInput const& publish_input)
+	{
+		// ROS_WARN_STREAM("Start " << input.start << " goal "  << input.goal);
+
+		octomath::Vector3 dummy;
+		octomath::Vector3 direction = input.goal - input.start;
+		bool is_visible = !input.octree.castRay( input.start, direction, dummy, true, direction.norm());
+		
+    	if(publish_input.publish) 
+		{
+			rviz_interface::publish_arrow_path_visibility(input.start, input.goal, publish_input.marker_pub, is_visible, id_visibility);
+			id_visibility++;
+		}
+
+		return is_visible;
 	}
 
 	bool hasLineOfSight(InputData const& input)

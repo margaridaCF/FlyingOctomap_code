@@ -6,6 +6,7 @@
 #include <marker_publishing_utils.h>
 #include <std_srvs/Empty.h>
 #include <lazy_theta_star_msgs/CheckFlightCorridor.h>
+#include <lazy_theta_star_msgs/CheckVisibility.h>
 #include <tf/transform_datatypes.h>
 
 
@@ -36,6 +37,16 @@ namespace LazyThetaStarOctree
 	{
 		res.is_accepting_requests = octomap_init;
 	  	return true;
+	}
+
+	bool checkVisibility(lazy_theta_star_msgs::CheckVisibility::Request &request,
+		lazy_theta_star_msgs::CheckVisibility::Response &response)
+	{
+		octomath::Vector3 start(request.start.x, request.start.y, request.start.z);
+		octomath::Vector3 end  (request.end.x, request.end.y, request.end.z);
+		InputData input (*octree, start, end, 0);
+		response.has_visibility = hasLineOfSight_UnknownAsFree(input, rviz_interface::PublishingInput( marker_pub, true));
+		return true;
 	}
 
 	bool checkFligthCorridor_(double flight_corridor_width, octomath::Vector3 start, octomath::Vector3 end)
@@ -184,6 +195,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	ros::ServiceServer ltstar_status_service= nh.advertiseService("ltstar_status", LazyThetaStarOctree::check_status);
 	ros::ServiceServer lineOfSight_sub 		= nh.advertiseService("is_fligh_corridor_free", LazyThetaStarOctree::checkFligthCorridor);
+	ros::ServiceServer visibility_sub 		= nh.advertiseService("has_visibility", LazyThetaStarOctree::checkVisibility);
 	ros::Subscriber octomap_sub 			= nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, LazyThetaStarOctree::octomap_callback);
 	ros::Subscriber ltstar_sub 				= nh.subscribe<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10, LazyThetaStarOctree::ltstar_callback);
 	LazyThetaStarOctree::ltstar_reply_pub 	= nh.advertise<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 10);

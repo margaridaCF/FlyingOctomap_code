@@ -32,6 +32,7 @@ namespace rviz_interface
 	void publish_markerArray_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, ros::Publisher const& marker_pub, int id);
 	// ARROWS
 	void build_arrow_path 			(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker, int series = 9, std::string ns = "lazy_theta_star_path");
+    void publish_arrow_path_visibility  (octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free, int id);
 	void publish_arrow_path_occupancyState (octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free, int id);
 	void publish_arrow_path_unreachable	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int id);
 	void publish_arrow_path_father		(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);

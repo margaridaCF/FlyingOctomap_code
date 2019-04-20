@@ -1,11 +1,13 @@
 #include <goal_state_machine.h>
+#include <lazy_theta_star_msgs/CheckFlightCorridor.h>
+#include <lazy_theta_star_msgs/CheckVisibility.h>
 
 #define RUNNING_ROS 1
 
 namespace goal_state_machine
 {
-    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance)
-		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0)
+    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client)
+		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0), check_visibility_client(check_visibility_client)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
@@ -136,6 +138,29 @@ namespace goal_state_machine
     	}
     }
 
+    bool GoalStateMachine::IsVisible()
+    {
+    	lazy_theta_star_msgs::CheckVisibility srv;
+
+    	Eigen::Vector3d start = getCurrentOPPairs().get_current_start();
+    	srv.request.start.x = start.x();
+    	srv.request.start.y = start.y();
+    	srv.request.start.z = start.z();
+
+    	srv.request.end = get_current_frontier();
+
+    	bool check = false;
+        while(!check)
+        {
+            check = check_visibility_client.call(srv);
+            if(!check)
+            {
+                ROS_ERROR("[Goal SM] Cannot place request to check visibility.");
+            }
+        }
+        return srv.response.has_visibility;
+    }
+
 	geometry_msgs::Point GoalStateMachine::get_current_frontier() const
     {
         return frontiers_msg.frontiers[frontier_index].xyz_m;
@@ -209,7 +234,7 @@ namespace goal_state_machine
 				existsNextOPPair;
 				existsNextOPPair = oppairs_side.Next())
 			{
-				if( !IsUnobservable(unknown) && IsOPPairValid() )
+				if( !IsUnobservable(unknown) && IsVisible() && IsOPPairValid() )
 				{
 					has_more_goals = true;
 					getFlybyStart(viewpoint);
@@ -225,7 +250,7 @@ namespace goal_state_machine
 				existsNextOPPair;
 				existsNextOPPair = oppairs_under.Next())
 			{
-				if( !IsUnobservable(unknown) && IsOPPairValid() )
+				if( !IsUnobservable(unknown) && IsVisible() && IsOPPairValid() )
 				{
 					has_more_goals = true;
 					getFlybyStart(viewpoint);
