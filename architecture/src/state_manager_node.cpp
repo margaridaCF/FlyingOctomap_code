@@ -63,11 +63,13 @@ namespace state_manager_node
     ros::Timer timer;
     std::chrono::high_resolution_clock::time_point start;
     bool is_successfull_exploration = false;
-    std::ofstream csv_file;
     std::ofstream log_file;
+    #ifdef SAVE_CSV
+    std::ofstream csv_file;
     std::chrono::high_resolution_clock::time_point operation_start, timeline_start;
+    #endif
 
-    // TODO - transform this into parameters at some point
+    
     double px4_loiter_radius;
     double odometry_error;
     double sensing_distance = 3;

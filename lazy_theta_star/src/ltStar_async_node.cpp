@@ -45,7 +45,7 @@ namespace LazyThetaStarOctree
 		octomath::Vector3 start(request.start.x, request.start.y, request.start.z);
 		octomath::Vector3 end  (request.end.x, request.end.y, request.end.z);
 		InputData input (*octree, start, end, 0);
-		response.has_visibility = hasLineOfSight_UnknownAsFree(input, rviz_interface::PublishingInput( marker_pub, true));
+		response.has_visibility = hasLineOfSight_UnknownAsFree(input, rviz_interface::PublishingInput( marker_pub, false));
 		return true;
 	}
 
@@ -53,7 +53,7 @@ namespace LazyThetaStarOctree
 	{
 		LazyThetaStarOctree::generateOffsets(octree->getResolution(), flight_corridor_width, semiSphereIn, semiSphereOut );
 		InputData input (*octree, start, end, flight_corridor_width);
-		return is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, true));
+		return is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, false));
 	}
 
 	bool checkFligthCorridor(lazy_theta_star_msgs::CheckFlightCorridor::Request &request,
