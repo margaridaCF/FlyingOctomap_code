@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <visualization_msgs/Marker.h>
 
+#include <utility>   
 #include <sstream>
 #include <fstream>
 #include <string>
@@ -39,7 +40,6 @@
 
 
 #define SAVE_CSV 1
-#define SAVE_LOG 1
 
 
 namespace state_manager_node
@@ -63,7 +63,9 @@ namespace state_manager_node
     ros::Timer timer;
     std::chrono::high_resolution_clock::time_point start;
     bool is_successfull_exploration = false;
+    std::ofstream csv_file;
     std::ofstream log_file;
+    std::chrono::high_resolution_clock::time_point operation_start, timeline_start;
 
     // TODO - transform this into parameters at some point
     double px4_loiter_radius;
@@ -100,6 +102,19 @@ namespace state_manager_node
     geometry_msgs::Pose& get_current_waypoint()
     {
         return state_data.ltstar_reply.waypoints[state_data.waypoint_index];
+    }
+
+    std::pair<double, double> calculateTime()
+    {
+        auto end_millis         = std::chrono::high_resolution_clock::now();
+        
+        auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - operation_start);
+        double operation_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+
+        time_span               = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - timeline_start);
+        double timeline_millis  = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+        operation_start         = std::chrono::high_resolution_clock::now();
+        return std::make_pair (timeline_millis, operation_millis);
     }
 
     bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
@@ -244,6 +259,12 @@ namespace state_manager_node
                 log_file << "[State manager] Path reply " << *msg << std::endl;
                 log_file << "[State manager]            [Follow path] init" << std::endl;
                 #endif
+                #ifdef SAVE_CSV
+                std::pair <double, double> millis_count = calculateTime(); 
+                csv_file << millis_count.first <<  ",,,,,"<<millis_count.second<<"," << std::endl;
+                ROS_WARN_STREAM("[exec time] [ltstar_millis] " << millis_count.second);
+                operation_start = std::chrono::high_resolution_clock::now();
+                #endif
             }
             else
             {
@@ -271,6 +292,7 @@ namespace state_manager_node
             #ifdef SAVE_LOG
             log_file << "[State manager]Frontier reply " << *msg << std::endl;
             #endif
+
             state_data.frontier_request_id = msg->request_id;
             state_data.exploration_state = generating_path;
             state_data.frontiers_msg = *msg;
@@ -442,7 +464,12 @@ namespace state_manager_node
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
     {
-        // log_file << "[State Manager] [update_state] " << state_data.exploration_state << std::endl;
+        #ifdef SAVE_CSV
+        std::chrono::high_resolution_clock::time_point end_millis;
+        std::chrono::duration<double> time_span;
+        std::chrono::milliseconds millis;
+        double initial_maneuver_millis, frontier_gen_millis, visit_waypoints_millis, goalSM_millis, ltstar_millis, flyby_millis;
+        #endif
         switch(state_data.exploration_state)
         {
             case clear_from_ground:
@@ -571,7 +598,6 @@ namespace state_manager_node
             }
             case exploration_start:
             {
-                log_file << "[State Manager] [exploration_start] " << std::endl;
                 state_data.exploration_maneuver_started = false;
                 state_data.waypoint_index = -1;
                 frontiers_msgs::FrontierNodeStatus srv;
@@ -579,7 +605,6 @@ namespace state_manager_node
                 {
                     if((bool)srv.response.is_accepting_requests)
                     {
-                        ROS_INFO_STREAM("[State manager] Asking for frontiers.");
                         askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
                     }
                 }
@@ -591,7 +616,12 @@ namespace state_manager_node
             }
             case generating_path:
             {
-                log_file << "[State Manager] [generating_path] " << std::endl;
+                #ifdef SAVE_CSV
+                std::pair <double, double> millis_count = calculateTime(); 
+                csv_file << millis_count.first <<  ",,"<<millis_count.second<<",,,," << std::endl;
+                ROS_WARN_STREAM("[exec time] [frontier_gen_millis] " << millis_count.second);
+                operation_start = std::chrono::high_resolution_clock::now();
+                #endif
                 lazy_theta_star_msgs::LTStarNodeStatus srv;
                 if(ltstar_status_cliente.call(srv))
                 {
@@ -603,6 +633,12 @@ namespace state_manager_node
                             Eigen::Vector3d current_position_e (current_position.x, current_position.y, current_position.z);
                             octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
                             bool existsNext = state_data.goal_state_machine->NextGoal(current_position_e);
+                            #ifdef SAVE_CSV
+                            std::pair <double, double> millis_count = calculateTime(); 
+                            csv_file << millis_count.first << ",,,," << millis_count.second << ",," << std::endl;
+                            ROS_WARN_STREAM("[exec time] [goalSM_millis] " << millis_count.second);
+                            operation_start = std::chrono::high_resolution_clock::now();
+                            #endif
                             if(!existsNext)
                             {
                                 state_data.exploration_state = exploration_start;
@@ -637,11 +673,23 @@ namespace state_manager_node
                     {
                         state_data.exploration_state = exploration_start;
                         state_data.initial_maneuver = false;
+                        #ifdef SAVE_CSV
+                        std::pair <double, double> millis_count = calculateTime(); 
+                        csv_file << millis_count.first <<  "," << millis_count.second<<",,,,," << std::endl;
+                        ROS_WARN_STREAM("[exec time] [initial_maneuver_millis] " << millis_count.second);
+                        operation_start = std::chrono::high_resolution_clock::now();
+                        #endif
                     }
                     else
                     {
                         state_data.exploration_state = gather_data_maneuver;
                         state_data.exploration_maneuver_started = false;
+                        #ifdef SAVE_CSV
+                        std::pair <double, double> millis_count = calculateTime(); 
+                        csv_file << millis_count.first <<  ",,,"<< millis_count.second <<",,," << std::endl;
+                        ROS_WARN_STREAM("[exec time] [visit_waypoints_millis] " << visit_waypoints_millis);
+                        operation_start = std::chrono::high_resolution_clock::now();
+                        #endif
                     }
                     #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] gather_data_maneuver" << std::endl;
@@ -670,9 +718,18 @@ namespace state_manager_node
                         if(!is_explored)
                         {
                             state_data.goal_state_machine->DeclareUnobservable();
+                            #ifdef SAVE_LOG
                             log_file << "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still unknown." << std::endl;
-                            ROS_ERROR_STREAM( "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still unknown." );
+                            #endif
+                            // ROS_ERROR_STREAM( "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still unknown." );
                         }
+
+                        #ifdef SAVE_CSV
+                        std::pair <double, double> millis_count = calculateTime(); 
+                        csv_file << millis_count.first << ",,,,,,"<< millis_count.second << std::endl;
+                        ROS_WARN_STREAM("[exec time] [flyby_millis] " << millis_count.second);
+                        operation_start = std::chrono::high_resolution_clock::now();
+                        #endif
                     }
                 }
                 break;
@@ -770,14 +827,21 @@ int main(int argc, char **argv)
     geofence_max_point.y = state_manager_node::geofence_max.y();
     geofence_max_point.z = state_manager_node::geofence_max.z();
     state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::sensing_distance, check_visibility_client);
+
     #ifdef SAVE_CSV
-    std::ofstream csv_file;
-    csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
-    // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
-    csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
-    csv_file.close();
-    // state_manager_node::start = std::chrono::high_resolution_clock::now();
+    state_manager_node::csv_file.open (state_manager_node::folder_name+"/current/execution_time.csv", std::ofstream::app);
+    state_manager_node::csv_file << "timeline,initial_maneuver_millis,frontier_gen_millis,visit_waypoints_millis,goalSM_millis,ltstar_millis,flyby_millis" << std::endl;
+    state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
+    state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
     #endif
+    // #ifdef SAVE_CSV
+    // std::ofstream csv_file;
+    // csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
+    // // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
+    // csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
+    // csv_file.close();
+    // // state_manager_node::start = std::chrono::high_resolution_clock::now();
+    // #endif
     state_manager_node::timer = nh.createTimer(ros::Duration(0.5), state_manager_node::main_loop);
     ros::spin();
     return 0;

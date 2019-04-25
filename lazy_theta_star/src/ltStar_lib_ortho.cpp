@@ -559,15 +559,6 @@ namespace LazyThetaStarOctree{
 		{
 			ROS_ERROR_STREAM("[LTStar] Goal " << input.goal << " is unknown.");
 			log_file << "[ERROR] " << "[LTStar] Goal " << input.goal << " is unknown." << std::endl;
-			visualization_msgs::Marker marker;
-			visualization_msgs::MarkerArray marker_array;
-			rviz_interface::build_small_marker(input.goal, marker, 1, 0, 0, "unknown_goal", 99);
-        	marker_array.markers.push_back(marker);
-	        publish_input.marker_pub.publish(marker_array);
-			std::stringstream ss;
-			ss << folder_name << "/" << input.goal.x() << "_" << input.goal.y() << "_" << input.goal.z() << "__goalUnknown.bt";
-			input.octree.writeBinaryConst(ss.str());
-			// ros::Duration(20).sleep();
 			return path;	
 		} 
 
