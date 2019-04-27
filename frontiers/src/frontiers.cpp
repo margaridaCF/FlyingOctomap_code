@@ -72,7 +72,8 @@ namespace Frontiers{
         marker_array.markers.push_back(marker);
     }
 
-    void searchFrontier(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish)
+    void searchFrontier(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FindFrontiers::Request  &request,
+        frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish)
     {
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
         
@@ -150,11 +151,9 @@ namespace Frontiers{
         #endif
     }
 
-    octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
+    octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FindFrontiers::Request  &request,
+        frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish )
     {
-        reply.header.seq = request.header.seq + 1;
-        reply.request_id = request.header.seq;
-        reply.header.frame_id = request.header.frame_id;
         double resolution = octree.getResolution();
         octomath::Vector3  max = octomath::Vector3(request.max.x-resolution, request.max.y-resolution, request.max.z-resolution);
         octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
