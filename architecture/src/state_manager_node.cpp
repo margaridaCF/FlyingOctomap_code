@@ -23,7 +23,8 @@
 
 #include <architecture_msgs/PositionRequest.h>
 #include <architecture_msgs/PositionMiddleMan.h>
-#include <architecture_msgs/YawSpin.h>
+#include <architecture_msgs/FindNextGoal.h>
+#include <architecture_msgs/DeclareUnobservable.h>
 
 #include <frontiers_msgs/CheckIsFrontier.h>
 #include <frontiers_msgs/CheckIsExplored.h>
@@ -59,6 +60,7 @@ namespace state_manager_node
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
     ros::ServiceClient yaw_spin_client;
+    ros::ServiceClient ask_for_goal_client, declare_unobservable_client;
 
     ros::Timer timer;
     std::chrono::high_resolution_clock::time_point start;
@@ -94,9 +96,9 @@ namespace state_manager_node
         follow_path_state_t follow_path_state;
         frontiers_msgs::FrontierRequest frontiers_request;
         frontiers_msgs::FrontierReply frontiers_msg;
+        architecture_msgs::FindNextGoal::Response next_goal_msg;
         lazy_theta_star_msgs::LTStarRequest ltstar_request;
         lazy_theta_star_msgs::LTStarReply ltstar_reply;
-        std::shared_ptr<goal_state_machine::GoalStateMachine> goal_state_machine;
     };  
     state_manager_node::StateData state_data;
 
@@ -151,18 +153,14 @@ namespace state_manager_node
         }
     }
 
-    void askForObstacleAvoidingPath(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& ltstar_request_pub)
+    void askForObstacleAvoidingPath(geometry_msgs::Point start)
     {
         lazy_theta_star_msgs::LTStarRequest request;
         state_data.ltstar_request_id++;
         request.request_id = state_data.ltstar_request_id;
         request.header.frame_id = "world";
-        request.start.x = start.x();
-        request.start.y = start.y();
-        request.start.z = start.z();
-        request.goal.x = goal.x();
-        request.goal.y = goal.y();
-        request.goal.z = goal.z();
+        request.start = start;
+        request.goal  = state_data.next_goal_msg.start_flyby;
         request.max_time_secs = max_time_secs;
         request.safety_margin = ltstar_safety_margin;
         #ifdef SAVE_LOG
@@ -216,6 +214,35 @@ namespace state_manager_node
         else 
         { 
             ROS_WARN("[State manager] Frontier node not accepting is frontier requests."); 
+            return false; 
+        } 
+    } 
+
+    bool askForGoalServiceCall() 
+    { 
+        architecture_msgs::FindNextGoal find_next_goal;
+        if(ask_for_goal_client.call(find_next_goal)) 
+        { 
+            state_data.next_goal_msg = find_next_goal.response;
+            return true;
+        } 
+        else 
+        { 
+            ROS_WARN("[State manager] Goal node not accepting is find next goal requests."); 
+            return false; 
+        } 
+    } 
+
+    bool askDeclareUnobservableServiceCall() 
+    { 
+        architecture_msgs::DeclareUnobservable declare_unobservable_srv;
+        if(declare_unobservable_client.call(declare_unobservable_srv)) 
+        { 
+            return true;
+        } 
+        else 
+        { 
+            ROS_WARN("[State manager] Goal node not accepting is find next goal requests."); 
             return false; 
         } 
     } 
@@ -274,31 +301,6 @@ namespace state_manager_node
                 state_data.exploration_state = generating_path;
             }
             
-        }
-    }
-
-    void frontier_cb(const frontiers_msgs::FrontierReply::ConstPtr& msg)
-    {
-        if(msg->frontiers_found == 0)
-        {
-            // TODO - go back to base and land
-            #ifdef SAVE_LOG
-            log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
-            #endif
-            ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
-            is_successfull_exploration = true;
-            state_data.exploration_state = finished_exploring;
-        }
-        else if(msg->frontiers_found > 0 && state_data.exploration_state == exploration_start)
-        {
-            #ifdef SAVE_LOG
-            log_file << "[State manager]Frontier reply " << *msg << std::endl;
-            #endif
-
-            state_data.frontier_request_id = msg->request_id;
-            state_data.exploration_state = generating_path;
-            state_data.frontiers_msg = *msg;
-            state_data.goal_state_machine->NewFrontiers(state_data.frontiers_msg);
         }
     }
 
@@ -448,20 +450,11 @@ namespace state_manager_node
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
     }
 
-    void publishGoalToRviz(geometry_msgs::Point current_position)
+
+    void convertPoint_to_eigen2d(Eigen::Vector2d & start, geometry_msgs::Point & point)
     {
-        geometry_msgs::Point frontier_geom = state_data.goal_state_machine->get_current_frontier();
-        geometry_msgs::Point start_geom;
-        start_geom.x = current_position.x;
-        start_geom.y = current_position.y;
-        start_geom.z = current_position.z;
-        geometry_msgs::Point oppair_start_geom;
-        state_data.goal_state_machine->getFlybyStart(oppair_start_geom);
-        geometry_msgs::Point oppair_end_geom;
-        state_data.goal_state_machine->getFlybyEnd(oppair_end_geom);
-        visualization_msgs::MarkerArray marker_array;
-        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array);
-        marker_pub.publish(marker_array);
+        start.x() = point.x;
+        start.y() = point.y;
     }
 
     void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
@@ -588,7 +581,6 @@ namespace state_manager_node
                     frontiers_msgs::VoxelMsg fake_frontier;
                     fake_frontier.xyz_m = current_position;
                     state_data.frontiers_msg.frontiers.push_back(fake_frontier);
-                    state_data.goal_state_machine->NewFrontiers(state_data.frontiers_msg);
 
                     #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] visit_waypoints 2" << std::endl;
@@ -602,17 +594,14 @@ namespace state_manager_node
             {
                 state_data.exploration_maneuver_started = false;
                 state_data.waypoint_index = -1;
-                frontiers_msgs::FrontierNodeStatus srv;
-                if (frontier_status_client.call(srv))
+
+                while(!askForGoalServiceCall())
+
+                if(!state_data.next_goal_msg.success)
                 {
-                    if((bool)srv.response.is_accepting_requests)
-                    {
-                        askForFrontiers(state_data.frontier_request_count, geofence_min, geofence_max, frontier_request_pub);
-                    }
-                }
-                else
-                {
-                    ROS_WARN("[State manager] Frontier node not accepting requests.");
+                    ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
+                    is_successfull_exploration = true;
+                    state_data.exploration_state = finished_exploring;
                 }
                 break;
             }
@@ -632,28 +621,8 @@ namespace state_manager_node
                         geometry_msgs::Point current_position;
                         if(getUavPositionServiceCall(current_position))
                         {
-                            Eigen::Vector3d current_position_e (current_position.x, current_position.y, current_position.z);
-                            octomath::Vector3 start(current_position.x, current_position.y, current_position.z);
-                            bool existsNext = state_data.goal_state_machine->NextGoal(current_position_e);
-                            #ifdef SAVE_CSV
-                            std::pair <double, double> millis_count = calculateTime(); 
-                            csv_file << millis_count.first << ",,,," << millis_count.second << ",," << std::endl;
-                            ROS_WARN_STREAM("[exec time] [goalSM_millis] " << millis_count.second);
-                            operation_start = std::chrono::high_resolution_clock::now();
-                            #endif
-                            if(!existsNext)
-                            {
-                                state_data.exploration_state = exploration_start;
-                            }
-                            else
-                            {
-                                Eigen::Vector3d oppair_start;
-                                state_data.goal_state_machine->getFlybyStart(oppair_start);
-                                octomath::Vector3 goal (oppair_start(0), oppair_start(1), oppair_start(2));
-                                askForObstacleAvoidingPath(start, goal, ltstar_request_pub);
-                                state_data.exploration_state = waiting_path_response;
-                                publishGoalToRviz(current_position);
-                            }
+                            askForObstacleAvoidingPath(current_position);
+                            state_data.exploration_state = waiting_path_response;
                         }
                     }
                 }
@@ -702,12 +671,12 @@ namespace state_manager_node
             case gather_data_maneuver:
             {
                 geometry_msgs::Pose flyby_end;
-                state_data.goal_state_machine->getFlybyEnd(flyby_end.position);
+                flyby_end.position = state_data.next_goal_msg.end_flyby;
                 if (!state_data.exploration_maneuver_started && !state_data.initial_maneuver)
                 {
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
-                    state_data.goal_state_machine->get2DFlybyStart(flyby_2d_start);
-                    state_data.goal_state_machine->get2DFlybyEnd  (flyby_2d_end);
+                    convertPoint_to_eigen2d(flyby_2d_start, state_data.next_goal_msg.start_flyby);
+                    convertPoint_to_eigen2d(flyby_2d_end, state_data.next_goal_msg.end_flyby);
                     flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
                     state_data.exploration_maneuver_started = askPositionServiceCall(flyby_end);
                 }
@@ -716,14 +685,15 @@ namespace state_manager_node
                     if(hasArrived(flyby_end.position))
                     {
                         state_data.exploration_state = exploration_start;
-                        bool is_explored = askIsExploredServiceCall(state_data.goal_state_machine->get_current_frontier());
+                        ;
+                        bool is_explored = askIsExploredServiceCall(state_data.next_goal_msg.unknown);
                         if(!is_explored)
                         {
-                            state_data.goal_state_machine->DeclareUnobservable();
+                            askDeclareUnobservableServiceCall();
                             #ifdef SAVE_LOG
-                            log_file << "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still unknown." << std::endl;
+                            log_file << "[State manager] " << state_data.next_goal_msg.unknown << " is still unknown." << std::endl;
                             #endif
-                            // ROS_ERROR_STREAM( "[State manager] " << state_data.goal_state_machine->get_current_frontier() << " is still unknown." );
+                            // ROS_ERROR_STREAM( "[State manager] " << state_data.next_goal_msg.unknown << " is still unknown." );
                         }
 
                         #ifdef SAVE_CSV
@@ -804,10 +774,10 @@ int main(int argc, char **argv)
     state_manager_node::is_frontier_client         = nh.serviceClient<frontiers_msgs::CheckIsFrontier>          ("is_frontier");
     state_manager_node::is_explored_client         = nh.serviceClient<frontiers_msgs::CheckIsExplored>          ("is_explored");
     state_manager_node::current_position_client    = nh.serviceClient<architecture_msgs::PositionMiddleMan>     ("get_current_position");
-    state_manager_node::yaw_spin_client            = nh.serviceClient<architecture_msgs::YawSpin>               ("yaw_spin");
     state_manager_node::target_position_client     = nh.serviceClient<architecture_msgs::PositionRequest>       ("target_position");
+    state_manager_node::ask_for_goal_client        = nh.serviceClient<architecture_msgs::FindNextGoal>          ("find_next_goal");
+    state_manager_node::declare_unobservable_client= nh.serviceClient<architecture_msgs::DeclareUnobservable>   ("declare_unobservable");
     // Topic subscribers 
-    ros::Subscriber frontiers_reply_sub = nh.subscribe<frontiers_msgs::FrontierReply>("frontiers_reply", 5, state_manager_node::frontier_cb);
     ros::Subscriber ltstar_reply_sub = nh.subscribe<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
     // Topic publishers
     state_manager_node::ltstar_request_pub = nh.advertise<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10);
@@ -828,7 +798,6 @@ int main(int argc, char **argv)
     geofence_max_point.x = state_manager_node::geofence_max.x();
     geofence_max_point.y = state_manager_node::geofence_max.y();
     geofence_max_point.z = state_manager_node::geofence_max.z();
-    state_manager_node::state_data.goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(state_manager_node::state_data.frontiers_msg, state_manager_node::distance_inFront, state_manager_node::distance_behind, state_manager_node::circle_divisions, geofence_min_point, geofence_max_point, pi, check_flightCorridor_client, state_manager_node::ltstar_safety_margin, state_manager_node::sensing_distance, check_visibility_client);
 
     #ifdef SAVE_CSV
     state_manager_node::csv_file.open (state_manager_node::folder_name+"/current/execution_time.csv", std::ofstream::app);
