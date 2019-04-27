@@ -13,6 +13,18 @@ namespace goal_state_machine
     std::chrono::high_resolution_clock::time_point timeline_start;
     #endif
 
+    class InputData
+	{
+	public:
+		octomap::OcTree const& octree;
+		octomath::Vector3 const& start;
+		octomath::Vector3 const& goal; 
+		const double margin; 
+		InputData(octomap::OcTree const& octree, const octomath::Vector3& start, const octomath::Vector3& goal, const double margin)
+			: octree(octree), start(start), goal(goal), margin(margin)
+		{}
+	};
+
     GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client)
 		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0), check_visibility_client(check_visibility_client)
 	{
@@ -45,6 +57,14 @@ namespace goal_state_machine
         std::chrono::high_resolution_clock::time_point timeline_start = std::chrono::high_resolution_clock::now();
 		csv_file << "timeline_millis,total_millis,oppairs_millis,check_observable,check_visible,check_valid,visibility_call" << std::endl;
         #endif
+	}
+
+	bool hasLineOfSight_UnknownAsFree(InputData const& input)
+	{
+		octomath::Vector3 dummy;
+		octomath::Vector3 direction = input.goal - input.start;
+		bool is_visible = !input.octree.castRay( input.start, direction, dummy, true, direction.norm());
+		return is_visible;
 	}
 
 	observation_lib::OPPairs& GoalStateMachine::getCurrentOPPairs()
@@ -155,33 +175,22 @@ namespace goal_state_machine
 
     bool GoalStateMachine::IsVisible()
     {
-    	lazy_theta_star_msgs::CheckVisibility srv;
+    	#ifdef SAVE_CSV
+        std::chrono::high_resolution_clock::time_point call_start = std::chrono::high_resolution_clock::now();
+        #endif
+    	
+        octomath::Vector3 start(start.x(), start.y(), start.z());
+		octomath::Vector3 end  (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
+		InputData input (*octree, start, end, 0);
+		bool has_visibility = hasLineOfSight_UnknownAsFree(input);
 
-    	Eigen::Vector3d start = getCurrentOPPairs().get_current_start();
-    	srv.request.start.x = start.x();
-    	srv.request.start.y = start.y();
-    	srv.request.start.z = start.z();
-
-    	srv.request.end = get_current_frontier();
-    	bool check = false;
-        while(!check)
-        {
-        	#ifdef SAVE_CSV
-            std::chrono::high_resolution_clock::time_point call_start = std::chrono::high_resolution_clock::now();
-            #endif
-            check = check_visibility_client.call(srv);
-            if(!check)
-            {
-                ROS_ERROR("[Goal SM] Cannot place request to check visibility.");
-            }
-            #ifdef SAVE_CSV
-            auto call_end = std::chrono::high_resolution_clock::now();
-            auto time_span  = std::chrono::duration_cast<std::chrono::duration<double>>(call_end - call_start);
-        	double call_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-        	csv_file << ",,,,,," << call_millis << std::endl;
-            #endif
-        }
-        return srv.response.has_visibility;
+        #ifdef SAVE_CSV
+        auto call_end = std::chrono::high_resolution_clock::now();
+        auto time_span  = std::chrono::duration_cast<std::chrono::duration<double>>(call_end - call_start);
+    	double call_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+    	csv_file << ",,,,,," << call_millis << std::endl;
+        #endif
+        return has_visibility;
     }
 
 	geometry_msgs::Point GoalStateMachine::get_current_frontier() const

@@ -8,6 +8,7 @@
 #include <observation_maneuver.h>
 #include <iostream>
 #include <fstream>
+#include <octomap/OcTree.h>
 
 #define SAVE_LOG 1
 
@@ -100,6 +101,7 @@ namespace goal_state_machine
 	    
 	    
 	public:
+    	octomap::OcTree* octree;
 		geometry_msgs::Point get_current_frontier() const;
 		void get_current_frontier(Eigen::Vector3d& frontier) const;
 		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client);
