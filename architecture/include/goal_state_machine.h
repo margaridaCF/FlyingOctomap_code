@@ -162,33 +162,6 @@ namespace goal_state_machine
 			return has_more_goals;
 		}
 
-		bool get2DFlybyStart(Eigen::Vector2d & start)
-		{
-			if (has_more_goals)
-			{
-				start.x() = getCurrentOPPairs().get_current_start().x();
-				start.y() = getCurrentOPPairs().get_current_start().y();
-			}
-			else
-			{
-				ROS_ERROR("[goal_state_machine] Asked for 2d flyby start but no goal is available.");
-			}
-			return has_more_goals;
-		}
-
-		bool get2DFlybyEnd(Eigen::Vector2d & end)
-		{
-			if (has_more_goals)
-			{
-				end.x() = getCurrentOPPairs().get_current_end().x();
-				end.y() = getCurrentOPPairs().get_current_end().y();
-			}
-			else
-			{
-				ROS_ERROR("[goal_state_machine] Asked for 2d flyby end but no goal is available.");
-			}
-			return has_more_goals;
-		}
 
 	};
 

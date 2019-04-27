@@ -272,7 +272,6 @@ namespace goal_state_machine
         double check_valid_millis  = 0;
 		#endif
         Eigen::Vector3d unknown;
-        get_current_frontier(unknown);
 		bool search = true;
 		has_more_goals = false;
 		while(search)
@@ -298,7 +297,7 @@ namespace goal_state_machine
 				frontier_srv.request.request_id = frontier_request_count;
 				frontier_srv.request.new_request = false;
 
-		        search = false;
+
 				if(find_frontiers_client.call(frontier_srv)) 
 		        { 
 	            	has_more_goals = frontier_srv.response.success;
@@ -306,6 +305,7 @@ namespace goal_state_machine
 		            if(frontier_srv.response.success)
 		            {
 		            	NewFrontiers();
+        				get_current_frontier(unknown);
 		            }
 		            else
 		            {
