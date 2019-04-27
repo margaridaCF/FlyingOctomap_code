@@ -28,16 +28,12 @@
 
 #include <frontiers_msgs/CheckIsFrontier.h>
 #include <frontiers_msgs/CheckIsExplored.h>
-#include <frontiers_msgs/FrontierReply.h>
-#include <frontiers_msgs/FrontierRequest.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
 #include <frontiers_msgs/VoxelMsg.h>
 
 #include <lazy_theta_star_msgs/LTStarReply.h>
 #include <lazy_theta_star_msgs/LTStarRequest.h>
 #include <lazy_theta_star_msgs/LTStarNodeStatus.h>
-#include <lazy_theta_star_msgs/CheckFlightCorridor.h>
-#include <lazy_theta_star_msgs/CheckVisibility.h>
 
 
 #define SAVE_CSV 1
@@ -54,12 +50,9 @@ namespace state_manager_node
     ros::Publisher ltstar_request_pub;
     ros::Publisher marker_pub;
     ros::ServiceClient target_position_client;
-    ros::ServiceClient is_frontier_client;
     ros::ServiceClient is_explored_client;
-    ros::ServiceClient frontier_status_client;
     ros::ServiceClient ltstar_status_cliente;
     ros::ServiceClient current_position_client;
-    ros::ServiceClient yaw_spin_client;
     ros::ServiceClient ask_for_goal_client, declare_unobservable_client;
 
     ros::Timer timer;
@@ -94,8 +87,6 @@ namespace state_manager_node
         bool exploration_maneuver_started, initial_maneuver, fresh_map;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
-        frontiers_msgs::FrontierRequest frontiers_request;
-        frontiers_msgs::FrontierReply frontiers_msg;
         architecture_msgs::FindNextGoal::Response next_goal_msg;
         lazy_theta_star_msgs::LTStarRequest ltstar_request;
         lazy_theta_star_msgs::LTStarReply ltstar_reply;
@@ -170,53 +161,6 @@ namespace state_manager_node
         ltstar_request_pub.publish(request);
         state_data.ltstar_request = request;
     }
-
-    void askForFrontiers(int request_count, octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, ros::Publisher const& frontier_request_pub)
-    {
-        frontiers_msgs::FrontierRequest request;
-        request.header.seq = state_data.frontier_request_count;
-        request.header.frame_id = "world";
-        request.min.x = geofence_min.x();
-        request.min.y = geofence_min.y();
-        request.min.z = geofence_min.z();
-        request.max.x = geofence_max.x();
-        request.max.y = geofence_max.y();
-        request.max.z = geofence_max.z();
-        request.frontier_amount = 20;
-        if(state_data.fresh_map)
-        {
-            request.new_request = true;
-            state_data.frontier_request_count++;
-        }
-        else
-        {
-            request.new_request = false;
-        }
-        request.request_number = state_data.frontier_request_count;
-
-        while(!getUavPositionServiceCall(request.current_position));
-        #ifdef SAVE_LOG
-        log_file << "[State manager] Requesting frontier " << request << std::endl;
-        #endif
-        state_data.frontiers_request = request;
-        frontier_request_pub.publish(request);
-        state_data.fresh_map = false;
-    }
-
-    bool askIsFrontierServiceCall(geometry_msgs::Point candidate) 
-    { 
-        frontiers_msgs::CheckIsFrontier is_frontier_msg; 
-        is_frontier_msg.request.candidate = candidate; 
-        if(is_frontier_client.call(is_frontier_msg)) 
-        { 
-            return is_frontier_msg.response.is_frontier; 
-        } 
-        else 
-        { 
-            ROS_WARN("[State manager] Frontier node not accepting is frontier requests."); 
-            return false; 
-        } 
-    } 
 
     bool askForGoalServiceCall() 
     { 
@@ -577,10 +521,8 @@ namespace state_manager_node
                     // state_data.ltstar_reply.waypoint_amount = 5;
 
                     Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
-                    state_data.frontiers_msg.frontiers_found = 1;
                     frontiers_msgs::VoxelMsg fake_frontier;
                     fake_frontier.xyz_m = current_position;
-                    state_data.frontiers_msg.frontiers.push_back(fake_frontier);
 
                     #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] visit_waypoints 2" << std::endl;
@@ -767,11 +709,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     state_manager_node::init_param_variables(nh);
     // Service client
-    ros::ServiceClient check_flightCorridor_client = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
-    ros::ServiceClient check_visibility_client     = nh.serviceClient<lazy_theta_star_msgs::CheckVisibility>    ("has_visibility");
     state_manager_node::ltstar_status_cliente      = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>   ("ltstar_status");
-    state_manager_node::frontier_status_client     = nh.serviceClient<frontiers_msgs::FrontierNodeStatus>       ("frontier_status");
-    state_manager_node::is_frontier_client         = nh.serviceClient<frontiers_msgs::CheckIsFrontier>          ("is_frontier");
     state_manager_node::is_explored_client         = nh.serviceClient<frontiers_msgs::CheckIsExplored>          ("is_explored");
     state_manager_node::current_position_client    = nh.serviceClient<architecture_msgs::PositionMiddleMan>     ("get_current_position");
     state_manager_node::target_position_client     = nh.serviceClient<architecture_msgs::PositionRequest>       ("target_position");
@@ -781,7 +719,6 @@ int main(int argc, char **argv)
     ros::Subscriber ltstar_reply_sub = nh.subscribe<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
     // Topic publishers
     state_manager_node::ltstar_request_pub = nh.advertise<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10);
-    state_manager_node::frontier_request_pub = nh.advertise<frontiers_msgs::FrontierRequest>("frontiers_request", 10);
     state_manager_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("state_manager_viz", 1);
 
     #ifdef SAVE_LOG
