@@ -1,7 +1,7 @@
 #ifndef GOAL_STATE_MACHINE_H
 #define GOAL_STATE_MACHINE_H
 
-#include <frontiers_msgs/FrontierReply.h>
+#include <frontiers_msgs/FindFrontiers.h>
 #include <unordered_set>
 #include <architecture_math.h>
 #include <marker_publishing_utils.h>
@@ -73,10 +73,11 @@ namespace goal_state_machine
 	class GoalStateMachine
 	{
 	    rviz_interface::PublishingInput 	pi;
-	    frontiers_msgs::FrontierReply & 	frontiers_msg;
+		frontiers_msgs::FindFrontiers 		frontier_srv;
 	    geometry_msgs::Point 				geofence_min, geofence_max;
 	    ros::ServiceClient &				check_flightCorridor_client;
 	    ros::ServiceClient &				check_visibility_client;
+	    ros::ServiceClient &				find_frontiers_client;
 	    bool 								has_more_goals, resetOPPair_flag;
 	    int 								frontier_index;
     	double 								path_safety_margin;
@@ -85,6 +86,7 @@ namespace goal_state_machine
 	    bool								is_oppairs_side;
         unobservable_pair_set	 			unobservable_set; 
         int 								oppair_id;
+        int 								frontier_request_count;
 
 
 		observation_lib::OPPairs& getCurrentOPPairs();
@@ -96,6 +98,7 @@ namespace goal_state_machine
 		void resetOPPair(Eigen::Vector3d& uav_position);
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
 		bool IsUnobservable(Eigen::Vector3d const& viewpoint);
+		void NewFrontiers();
 
 
 	    
@@ -104,9 +107,8 @@ namespace goal_state_machine
     	octomap::OcTree* octree;
 		geometry_msgs::Point get_current_frontier() const;
 		void get_current_frontier(Eigen::Vector3d& frontier) const;
-		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client);
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client);
 		~GoalStateMachine(){}
-		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
 		bool NextGoal(Eigen::Vector3d& uav_position);
 		void DeclareUnobservable();
 		bool IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);

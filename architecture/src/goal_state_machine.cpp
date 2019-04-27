@@ -25,11 +25,16 @@ namespace goal_state_machine
 		{}
 	};
 
-    GoalStateMachine::GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client)
-		: frontiers_msg(frontiers_msg), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0), check_visibility_client(check_visibility_client)
+    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0), check_visibility_client(check_visibility_client)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
+
+        frontier_index = -1;
+        frontier_srv.response.frontiers_found = 0;
+        frontier_srv.response.success = false;
+        frontier_request_count = 0;
 
 		double distance_from_unknown_under = 1;
 		double distance_behind_under, distance_inFront_under;
@@ -57,6 +62,12 @@ namespace goal_state_machine
         std::chrono::high_resolution_clock::time_point timeline_start = std::chrono::high_resolution_clock::now();
 		csv_file << "timeline_millis,total_millis,oppairs_millis,check_observable,check_visible,check_valid,visibility_call" << std::endl;
         #endif
+	}
+
+	void GoalStateMachine::NewFrontiers()
+	{
+		frontier_index = 0;
+		resetOPPair_flag = true;
 	}
 
 	bool hasLineOfSight_UnknownAsFree(InputData const& input)
@@ -195,12 +206,12 @@ namespace goal_state_machine
 
 	geometry_msgs::Point GoalStateMachine::get_current_frontier() const
     {
-        return frontiers_msg.frontiers[frontier_index].xyz_m;
+        return frontier_srv.response.frontiers[frontier_index].xyz_m;
     }
 
 	void GoalStateMachine::get_current_frontier(Eigen::Vector3d & frontier) const
     {
-		frontier << frontiers_msg.frontiers[frontier_index].xyz_m.x, frontiers_msg.frontiers[frontier_index].xyz_m.y, frontiers_msg.frontiers[frontier_index].xyz_m.z;
+		frontier << frontier_srv.response.frontiers[frontier_index].xyz_m.x, frontier_srv.response.frontiers[frontier_index].xyz_m.y, frontier_srv.response.frontiers[frontier_index].xyz_m.z;
     }
 
 	bool GoalStateMachine::is_inside_geofence(Eigen::Vector3d target) const
@@ -223,7 +234,7 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::hasNextFrontier() const
 	{
-		return frontier_index < frontiers_msg.frontiers_found-1;
+		return frontier_index < frontier_srv.response.frontiers_found-1;
 	}
 
 	void GoalStateMachine::resetOPPair(Eigen::Vector3d& uav_position)
@@ -267,6 +278,44 @@ namespace goal_state_machine
 		while(search)
 		{
 			Eigen::Vector3d viewpoint;
+
+			if(hasNextFrontier())
+			{
+				// log_file << "[Goal SM] Increment frontier index " << std::endl;
+				frontier_index++;
+        		get_current_frontier(unknown);
+				resetOPPair(uav_position);
+			}
+			else
+			{
+				// ROS_INFO_STREAM("[Goal SM] No more frontier in cache.");
+				frontier_srv.request.min = geofence_min;
+				frontier_srv.request.max = geofence_max;
+				frontier_srv.request.current_position.x = uav_position.x();
+				frontier_srv.request.current_position.y = uav_position.y();
+				frontier_srv.request.current_position.z = uav_position.z();
+				frontier_srv.request.frontier_amount = 20;
+				frontier_srv.request.request_id = frontier_request_count;
+				frontier_srv.request.new_request = false;
+
+		        search = false;
+				if(find_frontiers_client.call(frontier_srv)) 
+		        { 
+	            	has_more_goals = frontier_srv.response.success;
+	            	search = frontier_srv.response.success;
+		            if(frontier_srv.response.success)
+		            {
+		            	NewFrontiers();
+		            }
+		            else
+		            {
+		            	break;
+		            }
+		        } 
+		        else ROS_WARN("[State manager] Frontier node not accepting is frontier requests."); 
+			}
+
+
             #ifdef SAVE_CSV
             std::chrono::high_resolution_clock::time_point oppairNext_start = std::chrono::high_resolution_clock::now();
             #endif
@@ -395,18 +444,7 @@ namespace goal_state_machine
 			// ROS_INFO_STREAM("[Goal SM] frontier (" << get_current_frontier().x << ", " << get_current_frontier().y << ", " << get_current_frontier().z << ") is unreachable.");
 			// ros::Duration(5).sleep();
 			// None of the remaining OPPairs were usable to inspect
-			if(hasNextFrontier())
-			{
-				// log_file << "[Goal SM] Increment frontier index " << std::endl;
-				frontier_index++;
-        		get_current_frontier(unknown);
-				resetOPPair(uav_position);
-			}
-			else
-			{
-				// ROS_INFO_STREAM("[Goal SM] No more frontier in cache.");
-				search = false;
-			}
+			
 		}
 
 		#ifdef SAVE_LOG	
@@ -461,13 +499,6 @@ namespace goal_state_machine
 		bool is_unobservable = ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
 		// if (is_unobservable) ros::Duration(60).sleep();
 		return is_unobservable;
-	}
-
-	void GoalStateMachine::NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg)
-	{
-		frontiers_msg = new_frontiers_msg;
-		frontier_index = 0;
-		resetOPPair_flag = true;
 	}
 
 
