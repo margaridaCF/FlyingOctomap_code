@@ -75,16 +75,15 @@ namespace goal_state_machine
 	    rviz_interface::PublishingInput 	pi;
 		frontiers_msgs::FindFrontiers 		frontier_srv;
 	    geometry_msgs::Point 				geofence_min, geofence_max;
-	    ros::ServiceClient &				check_flightCorridor_client;
-	    ros::ServiceClient &				check_visibility_client;
 	    ros::ServiceClient &				find_frontiers_client;
 	    bool 								has_more_goals, resetOPPair_flag;
-	    int 								frontier_index;
+	    bool								is_oppairs_side;
+	    bool								new_map;
     	double 								path_safety_margin;
     	double 								sensing_distance;
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
-	    bool								is_oppairs_side;
         unobservable_pair_set	 			unobservable_set; 
+	    int 								frontier_index;
         int 								oppair_id;
         int 								frontier_request_count;
 
@@ -99,6 +98,7 @@ namespace goal_state_machine
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
 		bool IsUnobservable(Eigen::Vector3d const& viewpoint);
 		void NewFrontiers();
+		bool checkFligthCorridor_(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
 
 
 	    
@@ -107,8 +107,9 @@ namespace goal_state_machine
     	octomap::OcTree* octree;
 		geometry_msgs::Point get_current_frontier() const;
 		void get_current_frontier(Eigen::Vector3d& frontier) const;
-		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client);
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance);
 		~GoalStateMachine(){}
+		void NewMap();
 		bool NextGoal(Eigen::Vector3d& uav_position);
 		void DeclareUnobservable();
 		bool IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);

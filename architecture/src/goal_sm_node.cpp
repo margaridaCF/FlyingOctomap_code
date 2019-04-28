@@ -21,7 +21,6 @@ namespace goal_sm_node
 	octomap::OcTree* octree;
 	octomap::OcTree* octree_inUse;
 	std::atomic<bool> is_octree_inUse;
-	std::atomic<bool> new_octree;
 	bool octomap_init;
 
 	std::shared_ptr<goal_state_machine::GoalStateMachine> goal_state_machine;
@@ -48,8 +47,6 @@ namespace goal_sm_node
 		{
 			delete octree;
 		}
-		is_octree_inUse = false;
-		new_octree = true;
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
 		octomap_init = true;
 	}
@@ -76,6 +73,13 @@ namespace goal_sm_node
         geometry_msgs::Point current_position;
 		while(!getUavPositionServiceCall(current_position));
 		Eigen::Vector3d current_position_e (current_position.x, current_position.y, current_position.z);
+
+        if(req.new_request)
+        {
+            goal_state_machine->NewMap();
+        }
+        is_octree_inUse = true;
+        goal_state_machine->octree = octree;
         res.success = goal_state_machine->NextGoal(current_position_e);
 
         if(res.success)
@@ -87,7 +91,8 @@ namespace goal_sm_node
         	res.unknown.y=unknown.y();
         	res.unknown.z=unknown.z();
         }
-    	publishGoalToRviz(current_position);
+    	// publishGoalToRviz(current_position);
+        is_octree_inUse = false;
 		return true;
 	}
 
@@ -100,7 +105,6 @@ namespace goal_sm_node
 
     void init_state_variables(ros::NodeHandle& nh)
     {
-		new_octree = false;
 		is_octree_inUse = false;
 
 		// Geofence
@@ -126,7 +130,7 @@ namespace goal_sm_node
         ros::ServiceClient check_visibility_client;
     	ros::ServiceClient check_flightCorridor_client;// = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
         rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
-    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, check_flightCorridor_client, ltstar_safety_margin, sensing_distance, check_visibility_client);
+    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance);
 
     }
 }

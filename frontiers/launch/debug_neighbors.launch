@@ -26,12 +26,12 @@
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/realUAV.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
-    <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find frontiers)/test/data/failed_to_find_depth__getNodeDepth_Octomap__32768_32768_32777.bt">    
+    <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find frontiers)/test/data/circle_1m.bt">    
         <param name="frame_id" type="str" value="/map" />
     </node>
     <!-- ########################################################################## --> 
   <!-- Frontiers --> 
-  <node pkg="frontiers" type="frontiers_debug_node" name="frontiers_debug" output="screen"/>
+  <node pkg="frontiers" type="frontiers_async_node" name="frontiers_debug" output="screen"/>
   <!-- ########################################################################## -->
     <!-- Architecture nodes -->
 

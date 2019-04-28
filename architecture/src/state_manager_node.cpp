@@ -84,7 +84,7 @@ namespace state_manager_node
         int frontier_request_count; // generate id for new frontier requests
         int waypoint_index;         // id of the waypoint that is currently the waypoint
         int ltstar_request_id;
-        bool exploration_maneuver_started, initial_maneuver, fresh_map;
+        bool exploration_maneuver_started, initial_maneuver, executed_flyby_maneuver;
         exploration_state_t exploration_state;
         follow_path_state_t follow_path_state;
         architecture_msgs::FindNextGoal::Response next_goal_msg;
@@ -165,9 +165,11 @@ namespace state_manager_node
     bool askForGoalServiceCall() 
     { 
         architecture_msgs::FindNextGoal find_next_goal;
+        find_next_goal.request.new_request = state_data.executed_flyby_maneuver;
         if(ask_for_goal_client.call(find_next_goal)) 
         { 
             state_data.next_goal_msg = find_next_goal.response;
+            state_data.executed_flyby_maneuver = false;
             return true;
         } 
         else 
@@ -346,7 +348,7 @@ namespace state_manager_node
     void init_state_variables(state_manager_node::StateData& state_data, ros::NodeHandle& nh)
     {
         state_data.exploration_maneuver_started = false;
-        state_data.fresh_map = true;
+        state_data.executed_flyby_maneuver = true;
         state_data.initial_maneuver = true;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
@@ -577,7 +579,7 @@ namespace state_manager_node
             case waiting_path_response:{break;}
             case visit_waypoints:
             {
-                state_data.fresh_map = true;
+                state_data.executed_flyby_maneuver = true;
                 updateWaypointSequenceStateMachine();
 
                 if (state_data.follow_path_state == finished_sequence)

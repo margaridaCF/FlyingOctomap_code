@@ -1,6 +1,5 @@
 #include <goal_state_machine.h>
-#include <lazy_theta_star_msgs/CheckFlightCorridor.h>
-#include <lazy_theta_star_msgs/CheckVisibility.h>
+#include <ltStar_lib_ortho.h>
 #include <chrono>
 
 #define RUNNING_ROS 1
@@ -13,20 +12,8 @@ namespace goal_state_machine
     std::chrono::high_resolution_clock::time_point timeline_start;
     #endif
 
-    class InputData
-	{
-	public:
-		octomap::OcTree const& octree;
-		octomath::Vector3 const& start;
-		octomath::Vector3 const& goal; 
-		const double margin; 
-		InputData(octomap::OcTree const& octree, const octomath::Vector3& start, const octomath::Vector3& goal, const double margin)
-			: octree(octree), start(start), goal(goal), margin(margin)
-		{}
-	};
-
-    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin, double sensing_distance, ros::ServiceClient& check_visibility_client)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), check_flightCorridor_client(check_flightCorridor_client), sensing_distance(sensing_distance), oppair_id(0), check_visibility_client(check_visibility_client)
+    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
@@ -70,7 +57,7 @@ namespace goal_state_machine
 		resetOPPair_flag = true;
 	}
 
-	bool hasLineOfSight_UnknownAsFree(InputData const& input)
+	bool hasLineOfSight_UnknownAsFree(LazyThetaStarOctree::InputData const& input)
 	{
 		octomath::Vector3 dummy;
 		octomath::Vector3 direction = input.goal - input.start;
@@ -84,34 +71,15 @@ namespace goal_state_machine
 		else 				return oppairs_under;	
 	}
 
-	bool GoalStateMachine::is_flightCorridor_free(double flight_corridor_width) 
-    {
-        lazy_theta_star_msgs::CheckFlightCorridor srv;
-        Eigen::Vector3d start_eigen = getCurrentOPPairs().get_current_start();
-        Eigen::Vector3d end_eigen = getCurrentOPPairs().get_current_end();
-        
-        srv.request.start.x = start_eigen(0);
-        srv.request.start.y = start_eigen(1);
-        srv.request.start.z = start_eigen(2);
-        srv.request.end.x   = end_eigen(0);
-        srv.request.end.y   = end_eigen(1);
-        srv.request.end.z   = end_eigen(2);
-        // Inflated the space required to be free around the flyby.
-        srv.request.flight_corridor_width = flight_corridor_width; // This magic number is to inflate the safe space around the flyby
-        // Without it frequently the path planner was asked for impossible goals because the start of the line of sight was just outside a particular voxel
-        // With this we guarentee the flyby to stay away from obstacles and unknown space.
-
-        bool check = false;
-        while(!check)
-        {
-            check = check_flightCorridor_client.call(srv);
-            if(!check)
-            {
-                ROS_ERROR("[Goal SM] Cannot place request to check flight corridor for flyby.");
-            }
-        }
-        return srv.response.free;
-    }
+	bool GoalStateMachine::checkFligthCorridor_(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub)
+	{
+		LazyThetaStarOctree::generateOffsets(octree->getResolution(), flight_corridor_width, LazyThetaStarOctree::semiSphereIn, LazyThetaStarOctree::semiSphereOut );
+		octomath::Vector3 start_o(start.x(), start.y(), start.z());
+		octomath::Vector3 end_o(end.x(), end.y(), end.z());
+		LazyThetaStarOctree::InputData input (*octree, start_o, end_o, flight_corridor_width);
+		
+		return LazyThetaStarOctree::is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, false));
+	}
 
 	bool GoalStateMachine::IsOPPairValid() 
     {
@@ -129,7 +97,10 @@ namespace goal_state_machine
 			bool end_inside_geofence = is_inside_geofence(getCurrentOPPairs().get_current_end());
     		if(end_inside_geofence)
 	    	{
-	    		bool fc_free = is_flightCorridor_free(path_safety_margin + 1);
+	    		// bool fc_free = is_flightCorridor_free(path_safety_margin + 1);
+	    		Eigen::Vector3d start_e = getCurrentOPPairs().get_current_start();
+	    		Eigen::Vector3d end_e = getCurrentOPPairs().get_current_start();
+	    		bool fc_free = checkFligthCorridor_(path_safety_margin + 1, start_e, end_e, pi.marker_pub);
 				if(!fc_free)
 				{
 					#ifdef RUNNING_ROS
@@ -192,7 +163,7 @@ namespace goal_state_machine
     	
         octomath::Vector3 start(start.x(), start.y(), start.z());
 		octomath::Vector3 end  (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-		InputData input (*octree, start, end, 0);
+		LazyThetaStarOctree::InputData input (*octree, start, end, 0);
 		bool has_visibility = hasLineOfSight_UnknownAsFree(input);
 
         #ifdef SAVE_CSV
@@ -260,6 +231,11 @@ namespace goal_state_machine
 	    pi.marker_pub.publish(marker_array);
 	}
 
+	void GoalStateMachine::NewMap()
+	{
+		new_map = true;
+	}
+
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
 	{	
 	    
@@ -295,11 +271,12 @@ namespace goal_state_machine
 				frontier_srv.request.current_position.z = uav_position.z();
 				frontier_srv.request.frontier_amount = 20;
 				frontier_srv.request.request_id = frontier_request_count;
-				frontier_srv.request.new_request = false;
+				frontier_srv.request.new_request = new_map;
 
 
 				if(find_frontiers_client.call(frontier_srv)) 
 		        { 
+		        	new_map = false;
 	            	has_more_goals = frontier_srv.response.success;
 	            	search = frontier_srv.response.success;
 		            if(frontier_srv.response.success)
@@ -312,7 +289,11 @@ namespace goal_state_machine
 		            	break;
 		            }
 		        } 
-		        else ROS_WARN("[State manager] Frontier node not accepting is frontier requests."); 
+		        else
+		        {
+		        	ROS_WARN("[Goal SM] Frontier node not accepting is frontier requests."); 
+		        	break;
+		        } 
 			}
 
 
