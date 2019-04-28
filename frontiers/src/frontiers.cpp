@@ -171,6 +171,13 @@ namespace Frontiers{
             reply.success = false;
             return octomap::OcTree::leaf_bbx_iterator();
         }
+
+        std::stringstream aux_envvar_home (std::getenv("HOME"));
+        std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+        std::ofstream log_file;
+        log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
+        log_file << "[Frontiers] New map" << std::endl;
+        log_file.close();
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
         searchFrontier(octree, it, request, reply, marker_pub, publish);
 

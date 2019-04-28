@@ -16,15 +16,17 @@
 namespace goal_sm_node
 {
     ros::Publisher marker_pub;
+    std::ofstream log_file;
+    int count;
 
+    octomap::OcTree* octree;
+    octomap::OcTree* octree_inUse;
+    std::atomic<bool> delete_octree_in_use;
+    std::atomic<bool> discard_octree;
+    bool octomap_init;
 
-	octomap::OcTree* octree;
-	octomap::OcTree* octree_inUse;
-	std::atomic<bool> is_octree_inUse;
-	bool octomap_init;
-
-	std::shared_ptr<goal_state_machine::GoalStateMachine> goal_state_machine;
-	ros::ServiceClient find_frontiers_client,  current_position_client, declare_unobservable_service;
+    std::shared_ptr<goal_state_machine::GoalStateMachine> goal_state_machine;
+    ros::ServiceClient find_frontiers_client,  current_position_client, declare_unobservable_service;
 
 
     bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
@@ -42,15 +44,6 @@ namespace goal_sm_node
         }
     }
 
-	void octomap_cb(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
-		if (!is_octree_inUse)
-		{
-			delete octree;
-		}
-		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
-		octomap_init = true;
-	}
-
     void publishGoalToRviz(geometry_msgs::Point current_position)
     {
         geometry_msgs::Point frontier_geom = goal_state_machine->get_current_frontier();
@@ -67,19 +60,37 @@ namespace goal_sm_node
         marker_pub.publish(marker_array);
     }
 
-    bool find_next_goal(architecture_msgs::FindNextGoal::Request  &req,
-		architecture_msgs::FindNextGoal::Response &res)
-	{
-        geometry_msgs::Point current_position;
-		while(!getUavPositionServiceCall(current_position));
-		Eigen::Vector3d current_position_e (current_position.x, current_position.y, current_position.z);
+    void updateOctree()
+    {
+        if (delete_octree_in_use){
+            delete octree_inUse;
 
-        if(req.new_request)
-        {
-            goal_state_machine->NewMap();
+            log_file<<"[Goal SM] " << count << " 3 Delete octree_inUse."<<std::endl;
+            count ++;
         }
-        is_octree_inUse = true;
-        goal_state_machine->octree = octree;
+        octree_inUse = octree;
+        delete_octree_in_use = false;
+        log_file<<"[Goal SM] " << count << " 1 Mark octree instance. "<<std::endl;
+        discard_octree = false;
+
+        count ++;
+    }
+
+    bool find_next_goal(architecture_msgs::FindNextGoal::Request  &req,
+        architecture_msgs::FindNextGoal::Response &res)
+    {
+        geometry_msgs::Point current_position;
+        while(!getUavPositionServiceCall(current_position));
+        Eigen::Vector3d current_position_e (current_position.x, current_position.y, current_position.z);
+
+        if(req.new_map)
+        {
+            log_file<<"[Goal SM] New map. "<<std::endl;
+            goal_state_machine->NewMap();
+            updateOctree();
+            goal_state_machine->octree = octree_inUse;
+            goal_state_machine->findFrontiers_CallService(current_position_e);
+        }
         res.success = goal_state_machine->NextGoal(current_position_e);
 
         if(res.success)
@@ -90,11 +101,26 @@ namespace goal_sm_node
         	res.unknown.x=unknown.x();
         	res.unknown.y=unknown.y();
         	res.unknown.z=unknown.z();
+    	    publishGoalToRviz(current_position);
         }
-    	// publishGoalToRviz(current_position);
-        is_octree_inUse = false;
 		return true;
 	}
+
+    void octomap_cb(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
+        if (discard_octree)
+        {
+            delete octree;
+        }
+        else
+        {
+            delete_octree_in_use = true;
+            log_file<<"[Goal SM] " << count << " 2 Spare this octree instance."<<std::endl;
+            count++;
+        }
+        discard_octree = true;
+        octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
+        octomap_init = true;
+    }
 
 	bool declare_unobservable(architecture_msgs::DeclareUnobservable::Request  &req,
 		architecture_msgs::DeclareUnobservable::Response &res)
@@ -105,7 +131,9 @@ namespace goal_sm_node
 
     void init_state_variables(ros::NodeHandle& nh)
     {
-		is_octree_inUse = false;
+        delete_octree_in_use = false;
+        discard_octree = true;
+        count  = 0;
 
 		// Geofence
 	    geometry_msgs::Point geofence_min , geofence_max ;
@@ -131,6 +159,11 @@ namespace goal_sm_node
     	ros::ServiceClient check_flightCorridor_client;// = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
         rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
     	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance);
+
+
+        std::stringstream aux_envvar_home (std::getenv("HOME"));
+        std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+        log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
 
     }
 }

@@ -126,6 +126,7 @@ namespace frontiers_async_node
 				}
 				else
 				{
+					ROS_INFO_STREAM("[Frontiers] Old map");
 					Frontiers::searchFrontier(*octree_inUse, iterator, req, reply, marker_pub, true);
 				}
 			}

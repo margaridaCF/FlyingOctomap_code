@@ -86,6 +86,7 @@ namespace goal_state_machine
 	    int 								frontier_index;
         int 								oppair_id;
         int 								frontier_request_count;
+		std::ofstream log_file;
 
 
 		observation_lib::OPPairs& getCurrentOPPairs();
@@ -97,7 +98,6 @@ namespace goal_state_machine
 		void resetOPPair(Eigen::Vector3d& uav_position);
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
 		bool IsUnobservable(Eigen::Vector3d const& viewpoint);
-		void NewFrontiers();
 		bool checkFligthCorridor_(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
 
 
@@ -105,10 +105,14 @@ namespace goal_state_machine
 	    
 	public:
     	octomap::OcTree* octree;
-		geometry_msgs::Point get_current_frontier() const;
-		void get_current_frontier(Eigen::Vector3d& frontier) const;
+		geometry_msgs::Point get_current_frontier() ;
+		void get_current_frontier(Eigen::Vector3d& frontier) ;
 		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance);
-		~GoalStateMachine(){}
+		~GoalStateMachine()
+		{
+			log_file.close();
+		}
+		bool findFrontiers_CallService(Eigen::Vector3d& uav_position);
 		void NewMap();
 		bool NextGoal(Eigen::Vector3d& uav_position);
 		void DeclareUnobservable();
@@ -129,6 +133,7 @@ namespace goal_state_machine
 			else
 			{
 				ROS_ERROR("[goal_state_machine] Asked for 3d flyby end but no goal is available.");
+				log_file << "[goal_state_machine] Asked for 3d flyby end but no goal is available." << std::endl;
 			}
 			return has_more_goals;
 		}
@@ -144,6 +149,7 @@ namespace goal_state_machine
 			else
 			{
 				ROS_ERROR("[goal_state_machine] Asked for 3d flyby start but no goal is available.");
+				log_file << "[goal_state_machine] Asked for 3d flyby start but no goal is available." << std::endl;
 			}
 			return has_more_goals;
 		}
@@ -159,6 +165,7 @@ namespace goal_state_machine
 			else
 			{
 				ROS_ERROR("[goal_state_machine] Asked for 3d flyby end but no goal is available.");
+				log_file << "[goal_state_machine] Asked for 3d flyby end but no goal is available." << std::endl;
 			}
 			return has_more_goals;
 		}
