@@ -119,8 +119,6 @@ namespace state_manager_node
         if(current_position_client.call(srv))
         {
             current_position = srv.response.current_position;
-
-            // ROS_INFO_STREAM("[State manager] 1 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
             return true;
         }
         else
@@ -172,7 +170,6 @@ namespace state_manager_node
         if(ask_for_goal_client.call(find_next_goal)) 
         { 
             state_data.next_goal_msg = find_next_goal.response;
-            log_file << " [State Maneger] Received " << state_data.next_goal_msg << std::endl;
             state_data.new_map = false;
             return true;
         } 
@@ -257,15 +254,6 @@ namespace state_manager_node
     bool is_in_target_position(geometry_msgs::Point const& target_waypoint, 
         geometry_msgs::Point & current_position, double error_margin )
     {
-        // ROS_INFO_STREAM("[State manager] Target position " << target_waypoint );
-        // ROS_INFO_STREAM("[State manager] Current position " << current_position );
-        // ROS_INFO_STREAM("[State manager] 3 Position offset");
-        // ROS_INFO_STREAM("[State manager] Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
-        // ROS_INFO_STREAM("[State manager]  Target (" << target_waypoint.x << ", " << target_waypoint.y << ", " << target_waypoint.z << ");");
-        // ROS_INFO_STREAM("[State manager] Position offset (" << std::abs(target_waypoint.x - current_position.x) << ", "
-        //     << std::abs(target_waypoint.y - current_position.y) << ", "
-        //     << std::abs(target_waypoint.z - current_position.z) << ") ");
-
         return std::abs(target_waypoint.x - current_position.x) <= error_margin
             && std::abs(target_waypoint.y - current_position.y) <= error_margin
             && std::abs(target_waypoint.z - current_position.z) <= error_margin;
@@ -277,7 +265,6 @@ namespace state_manager_node
         if(getUavPositionServiceCall(current_position))
         {
             // compare target with postition allowing for error margin 
-            // ROS_INFO_STREAM("[State manager] 2 Current (" << current_position.x << ", " << current_position.y << ", " << current_position.z << ");");
             geometry_msgs::Point target_waypoint;
             if( is_in_target_position(target, current_position, error_margin) )
             {
@@ -294,15 +281,10 @@ namespace state_manager_node
         target = get_current_waypoint();
         Eigen::Vector3d current_e (current_position.x, current_position.y, current_position.z);
         Eigen::Vector3d next_e (target.position.x, target.position.y, target.position.z);
-        // log_file << "[State manager] buildTargetPose current_e to next_e" << std::endl;
         double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y())) ;
-        // ROS_INFO_STREAM( "[State manager] buildTargetPose yaw = " << yaw );
-        // if (yaw > 2*M_PI) yaw = 2*M_PI - yaw;
-        // ROS_INFO_STREAM( "[State manager] buildTargetPose yaw = " << yaw );
-        log_file << "[State manager] buildTargetPose from (" << current_e.x() << ", " << current_e.y() << ")  to  (" << next_e.x() << ", " << next_e.y() << ")  yaw = " << yaw << std::endl;
+        // log_file << "[State manager] buildTargetPose from (" << current_e.x() << ", " << current_e.y() << ")  to  (" << next_e.x() << ", " << next_e.y() << ")  yaw = " << yaw << std::endl;
 
         target.orientation = tf::createQuaternionMsgFromYaw(yaw);
-        // ROS_INFO_STREAM("[State manager] buildTargetPose quaternion " << target.orientation);
     }
 
     bool updateWaypointSequenceStateMachine()
@@ -546,7 +528,14 @@ namespace state_manager_node
                 state_data.exploration_maneuver_started = false;
                 state_data.waypoint_index = -1;
 
-                while(!askForGoalServiceCall())
+                while(!askForGoalServiceCall()){}
+                #ifdef SAVE_CSV
+                std::pair <double, double> millis_count = calculateTime(); 
+                csv_file << millis_count.first << ",,,,"<<millis_count.second<<",," << std::endl;
+
+                ROS_WARN_STREAM("[exec time] [find_next_goal] " << millis_count.second);
+                operation_start = std::chrono::high_resolution_clock::now();
+                #endif
                 #ifdef SAVE_LOG
                 log_file << "[State manager][Exploration] asked for next goal " << std::endl;
                 #endif
@@ -566,15 +555,6 @@ namespace state_manager_node
             }
             case generating_path:
             {
-                #ifdef SAVE_LOG
-                log_file << "[State manager][Exploration] generating_path" << std::endl;
-                #endif
-                #ifdef SAVE_CSV
-                std::pair <double, double> millis_count = calculateTime(); 
-                csv_file << millis_count.first <<  ",,"<<millis_count.second<<",,,," << std::endl;
-                ROS_WARN_STREAM("[exec time] [frontier_gen_millis] " << millis_count.second);
-                operation_start = std::chrono::high_resolution_clock::now();
-                #endif
                 lazy_theta_star_msgs::LTStarNodeStatus srv;
                 if(ltstar_status_cliente.call(srv))
                 {
@@ -636,7 +616,6 @@ namespace state_manager_node
                 flyby_end.position = state_data.next_goal_msg.end_flyby;
                 if (!state_data.exploration_maneuver_started && !state_data.initial_maneuver)
                 {
-                    log_file << "[State manager][Exploration] calculateOrientation" << std::endl;
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
                     convertPoint_to_eigen2d(flyby_2d_start, state_data.next_goal_msg.start_flyby);
                     convertPoint_to_eigen2d(flyby_2d_end, state_data.next_goal_msg.end_flyby);

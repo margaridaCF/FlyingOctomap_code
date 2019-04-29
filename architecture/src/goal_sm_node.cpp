@@ -16,7 +16,6 @@
 namespace goal_sm_node
 {
     ros::Publisher marker_pub;
-    std::ofstream log_file;
     int count;
 
     octomap::OcTree* octree;
@@ -64,13 +63,10 @@ namespace goal_sm_node
     {
         if (delete_octree_in_use){
             delete octree_inUse;
-
-            log_file<<"[Goal SM] " << count << " 3 Delete octree_inUse."<<std::endl;
             count ++;
         }
         octree_inUse = octree;
         delete_octree_in_use = false;
-        log_file<<"[Goal SM] " << count << " 1 Mark octree instance. "<<std::endl;
         discard_octree = false;
 
         count ++;
@@ -83,6 +79,10 @@ namespace goal_sm_node
         while(!getUavPositionServiceCall(current_position));
         Eigen::Vector3d current_position_e (current_position.x, current_position.y, current_position.z);
 
+        std::ofstream log_file;
+        std::stringstream aux_envvar_home (std::getenv("HOME"));
+        std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+        log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
         log_file<<std::endl<<" ===== [Goal SM] ===== "<<std::endl;
 
         if(req.new_map)
@@ -93,6 +93,7 @@ namespace goal_sm_node
             goal_state_machine->octree = octree_inUse;
             goal_state_machine->findFrontiers_CallService(current_position_e);
         }
+        log_file.close();
         res.success = goal_state_machine->NextGoal(current_position_e);
 
         if(res.success)
@@ -116,7 +117,6 @@ namespace goal_sm_node
         else
         {
             delete_octree_in_use = true;
-            log_file<<"[Goal SM] " << count << " 2 Spare this octree instance."<<std::endl;
             count++;
         }
         discard_octree = true;
@@ -162,10 +162,6 @@ namespace goal_sm_node
         rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
     	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance);
 
-
-        std::stringstream aux_envvar_home (std::getenv("HOME"));
-        std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-        log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
 
     }
 }

@@ -8,8 +8,6 @@
 
 namespace Frontiers{
 
-    std::ofstream log_file;
-
     enum State
     {
         free = 0, occupied = 1 , unknown = 2
@@ -26,10 +24,6 @@ namespace Frontiers{
             || candidate.y() > geofence_max.y  
             || candidate.z() > geofence_max.z)
         {
-            
-            #ifdef SAVE_LOG            
-            log_file << "[Frontiers] Rejected " << candidate << " because it is outside geofence " << std::endl;
-            #endif
             return false;
         }
         return true;
@@ -102,13 +96,6 @@ namespace Frontiers{
             ROS_ERROR_STREAM("[Frontier] Already found " << frontiers_count << " frontiers out of " << request.frontier_amount);
 
         }
-
-        std::ofstream log_file;
-        std::stringstream aux_envvar_home (std::getenv("HOME"));
-        std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-        log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
-        log_file << "[Frontier] Starting search. " << std::endl;
-        log_file << "[Frontiers] Request with " << request << std::endl;
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount )
         {
             octomath::Vector3 coord = it.getCoordinate();
@@ -116,9 +103,6 @@ namespace Frontiers{
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
 
             State curr_state = getState(grid_coordinates_curr, octree);
-
-            paintState(curr_state, grid_coordinates_curr, marker_array, n_id);
-            n_id++;
 
             if( curr_state == free )
             {
@@ -137,10 +121,10 @@ namespace Frontiers{
                         continue;
                     }   
                     State n_state = getState(*n_coordinates, octree);
-                    // paintState(n_state, *n_coordinates, marker_array, n_id);
-                    // n_id++;
                     if(n_state == unknown)
                     {
+                        paintState(n_state, *n_coordinates, marker_array, n_id);
+                        n_id++;
                         frontiers_msgs::VoxelMsg voxel_msg;
                         voxel_msg.size = currentVoxel.size;
                         voxel_msg.xyz_m.x = n_coordinates->x();
@@ -161,10 +145,6 @@ namespace Frontiers{
             }
             it++;
         }
-
-        log_file << "[Frontiers] frontiers_count < request.frontier_amount ==> " << frontiers_count << " < " << request.frontier_amount << std::endl;
-        log_file << "[Frontiers] Reached end of iterator? " <<  (it == octree.end_leafs_bbx()) << std::endl;
-
         #ifdef RUNNING_ROS
         marker_pub.publish(marker_array);
         #endif
@@ -175,8 +155,6 @@ namespace Frontiers{
         reply.frontiers_found = frontiers_count;
         reply.success = frontiers_count > 0;
         #endif
-        log_file << "[Frontiers] Reply with " << reply << std::endl;
-        log_file.close();
     }
 
     octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FindFrontiers::Request  &request,
@@ -199,13 +177,6 @@ namespace Frontiers{
             reply.success = false;
             return octomap::OcTree::leaf_bbx_iterator();
         }
-
-        std::stringstream aux_envvar_home (std::getenv("HOME"));
-        std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-        std::ofstream log_file;
-        log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
-        log_file << "[Frontiers] Initialize octomap iterator." << std::endl;
-        log_file.close();
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
         n_id = 0;
         searchFrontier(octree, it, request, reply, marker_pub, publish);
@@ -246,12 +217,6 @@ namespace Frontiers{
         octomath::Vector3 cell_center = octree.keyToCoord(key, depth); 
         double voxel_size = ((tree_depth + 1) - depth) * resolution; 
 
-// #ifdef SAVE_LOG
-//         log_file.open ("/ros_ws/src/data/current/frontiers.log", std::ofstream::app);
-//         log_file << " == " << candidate << " == " << std::endl;
-//         log_file << " Voxel center " << cell_center << std::endl;
-// #endif
-
         bool is_frontier = false;
         if( isExplored(cell_center, octree)
             && !isOccupied(cell_center, octree) ) 
@@ -265,31 +230,15 @@ namespace Frontiers{
                 {
                     if(!isExplored(*n_coordinates, octree))
                     {
-// #ifdef SAVE_LOG
-//                         log_file << "[isFrontier] Neighbor " << *n_coordinates << " UNKNOWN! "  << std::endl;
-// #endif
                         ROS_ERROR_STREAM("[isFrontier] Unknown neighbor is " << *n_coordinates);
                         is_frontier = true;
                     }
                     else
                     {
-// #ifdef SAVE_LOG
-//                 log_file << "[isFrontier] Neighbor " << *n_coordinates << " free. " << std::endl;
-// #endif 
                     }
-                }
-                else
-                {
-// #ifdef SAVE_LOG
-//                 log_file << "[isFrontier] Neighbor " << *n_coordinates << " occupied. " << std::endl;
-// #endif
-
                 }
             }
         }
-#ifdef SAVE_LOG
-        log_file.close();
-#endif
         return is_frontier;
     }
 }

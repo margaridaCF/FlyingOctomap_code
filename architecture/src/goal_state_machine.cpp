@@ -36,8 +36,6 @@ namespace goal_state_machine
 		{
 			distance_inFront_under = diference; 	
 		}
-		ROS_INFO_STREAM("[Goal SM] diference = distance_behind + sensor_shape_offset = " << distance_behind << " + " << sensor_shape_offset << " = " << distance_behind_under);
-		ROS_INFO_STREAM("[Goal SM] Under      circle_divisions:" << circle_divisions/2 << ", distance from unknown: " << distance_from_unknown_under << ", distance_inFront_under: " << distance_inFront_under << ", distance_behind_under: " << distance_behind_under);
 
 		oppairs_under = observation_lib::OPPairs(circle_divisions/2, distance_from_unknown_under, distance_inFront_under, distance_behind_under, observation_lib::translate);
 
@@ -47,7 +45,7 @@ namespace goal_state_machine
 		#ifdef SAVE_CSV
 		csv_file.open (folder_name+"/current/goal_state_machine.csv", std::ofstream::app);
         std::chrono::high_resolution_clock::time_point timeline_start = std::chrono::high_resolution_clock::now();
-		csv_file << "timeline_millis,total_millis,oppairs_millis,check_observable,check_visible,check_valid,visibility_call" << std::endl;
+		csv_file << "total_millis" << std::endl;
         #endif
 	}
 
@@ -100,7 +98,6 @@ namespace goal_state_machine
 	    		// bool fc_free = is_flightCorridor_free(path_safety_margin + 1);
 	    		Eigen::Vector3d start_e = getCurrentOPPairs().get_current_start();
 	    		Eigen::Vector3d end_e = getCurrentOPPairs().get_current_end();
-    			log_file << "[Goal SM] IsOPPairValid From (" << start_e.x() << ", " << start_e.y() << ", " << start_e.z() << ") to (" << end_e.x() << ", " << end_e.y() << ", " << end_e.z() << ")" << std::endl;
 
 	    		bool fc_free = checkFligthCorridor_(path_safety_margin + 1, start_e, end_e, pi.marker_pub);
 				if(!fc_free)
@@ -159,29 +156,21 @@ namespace goal_state_machine
 
     bool GoalStateMachine::IsVisible()
     {
-    	#ifdef SAVE_CSV
-        std::chrono::high_resolution_clock::time_point call_start = std::chrono::high_resolution_clock::now();
-        #endif
-    	
     	Eigen::Vector3d start_e = getCurrentOPPairs().get_current_start();
         octomath::Vector3 start(start_e.x(), start_e.y(), start_e.z());
 		octomath::Vector3 end  (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
-    	log_file << "[Goal SM] IsVisible From (" << start_e.x() << ", " << start_e.y() << ", " << start_e.z() << ") to (" << end.x() << ", " << end.y() << ", " << end.z() << ")" << std::endl;
 		LazyThetaStarOctree::InputData input (*octree, start, end, 0);
 		bool has_visibility = hasLineOfSight_UnknownAsFree(input);
-
-        #ifdef SAVE_CSV
-        auto call_end = std::chrono::high_resolution_clock::now();
-        auto time_span  = std::chrono::duration_cast<std::chrono::duration<double>>(call_end - call_start);
-    	double call_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-    	csv_file << ",,,,,," << call_millis << std::endl;
-        #endif
         return has_visibility;
     }
 
 	geometry_msgs::Point GoalStateMachine::get_current_frontier() 
     {
-    	if(!frontier_srv.response.success)log_file << "[Goal SM] A get_current_frontier without frontiers!" << std::endl;
+    	if(!frontier_srv.response.success) 
+    	{
+    		log_file << "[Goal SM] A get_current_frontier without frontiers!" << std::endl;
+    		ROS_ERROR("[Goal SM] A get_current_frontier without frontiers!");
+    	}
         return frontier_srv.response.frontiers[frontier_index].xyz_m;
     }
 
@@ -223,7 +212,6 @@ namespace goal_state_machine
 	{
 		is_oppairs_side = true;
         Eigen::Vector3d new_frontier;
-    	log_file << "[Goal SM] resetOPPair" << std::endl;
         get_current_frontier(new_frontier);
 		
 		oppairs_side.NewFrontier(new_frontier, uav_position, pi);
@@ -254,9 +242,6 @@ namespace goal_state_machine
 		frontier_srv.request.request_id = frontier_request_count;
 		frontier_srv.request.new_request = new_map;
 
-		log_file << "[Goal SM] Asking for frontiers with " << frontier_srv.request;
-
-
 		if(find_frontiers_client.call(frontier_srv)) 
         { 
         	has_more_goals = frontier_srv.response.success;
@@ -264,15 +249,9 @@ namespace goal_state_machine
             {
             	frontier_index = 0;
         		new_map = false;
-				log_file << "[Goal SM] findFrontiers_CallService frontier_srv.response.success true" << std::endl;
         		Eigen::Vector3d unknown;
 				resetOPPair(uav_position);
 				return true;
-            }
-            else
-            {
-
-				log_file << "[Goal SM] findFrontiers_CallService frontier node found no frontiers" << std::endl;
             }
         } 
         else
@@ -286,172 +265,53 @@ namespace goal_state_machine
 	{	
 		#ifdef SAVE_CSV
         std::chrono::high_resolution_clock::time_point pointToNextGoal_start = std::chrono::high_resolution_clock::now();
-        double oppairs_millis = 0;
-        double check_observable_millis  = 0;
-        double check_visible_millis  = 0;
-        double check_valid_millis  = 0;
 		#endif
         Eigen::Vector3d unknown;
 		while(has_more_goals)
 		{
 			Eigen::Vector3d viewpoint;
-			log_file << "[Goal SM] pointToNextGoal loop " << std::endl;
-
 			if(hasNextFrontier())
 			{
-				log_file << "[Goal SM] hasNextFrontier() returned true " << std::endl;
 				get_current_frontier(unknown);
 
-
-	            #ifdef SAVE_CSV
-	            std::chrono::high_resolution_clock::time_point oppairNext_start = std::chrono::high_resolution_clock::now();
-	            #endif
 				bool existsNextOPPair = oppairs_side.Next();
-	            #ifdef SAVE_CSV
-	            auto oppairNext_end = std::chrono::high_resolution_clock::now();
-	            auto time_span  = std::chrono::duration_cast<std::chrono::duration<double>>(oppairNext_end - oppairNext_start);
-	        	oppairs_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-	            #endif
 				while(existsNextOPPair)
 				{
-					log_file << "[Goal SM] Search side by side oppair" << std::endl;
-					#ifdef SAVE_CSV
-		            std::chrono::high_resolution_clock::time_point checks_start = std::chrono::high_resolution_clock::now();
-		            #endif
-		            bool check_observable = !IsUnobservable(unknown);
-		            #ifdef SAVE_CSV
-		            std::chrono::high_resolution_clock::time_point checks_end = std::chrono::high_resolution_clock::now();
-		            time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(checks_end - checks_start);
-		        	check_observable_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		        	checks_start = std::chrono::high_resolution_clock::now();
-		            #endif
-		            bool check_visible = IsVisible();
-		            #ifdef SAVE_CSV
-		            checks_end   = std::chrono::high_resolution_clock::now();
-		            time_span    = std::chrono::duration_cast<std::chrono::duration<double>>(checks_end - checks_start);
-		        	check_visible_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		        	checks_start = std::chrono::high_resolution_clock::now();
-		            #endif
-		            bool check_valid = IsOPPairValid();
-		            #ifdef SAVE_CSV
-		            checks_end   = std::chrono::high_resolution_clock::now();
-		            time_span    = std::chrono::duration_cast<std::chrono::duration<double>>(checks_end - checks_start);
-		        	check_valid_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		            #endif
-					if( check_observable && check_visible && check_valid )
+					if( !IsUnobservable(unknown) && IsVisible() && IsOPPairValid() )
 					{
 						has_more_goals = true;
 						getFlybyStart(viewpoint);
-						#ifdef SAVE_CSV
-						// Timeline
-	        			auto end_millis         = std::chrono::high_resolution_clock::now();
-						time_span               = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - timeline_start);
-	        			double timeline_millis  = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-	        			// Total time
-						time_span               = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - pointToNextGoal_start);
-	        			double total_millis  	= std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-	                	csv_file << timeline_millis <<  "," << total_millis <<  "," << oppairs_millis <<"," << check_observable_millis  <<"," << check_visible_millis  <<"," << check_valid_millis << "," << std::endl;
-						#endif
-						log_file << "[Goal SM] Found goal in side by side oppairs." << std::endl;
 						return true;
 					}		
-					#ifdef SAVE_CSV
-		            oppairNext_start = std::chrono::high_resolution_clock::now();
-		            #endif
 					existsNextOPPair = oppairs_side.Next();
-		            #ifdef SAVE_CSV
-		            oppairNext_end = std::chrono::high_resolution_clock::now();
-		            time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(oppairNext_end - oppairNext_start);
-		        	oppairs_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		            #endif
 				}
-				log_file << "[Goal SM] Starting underneath search." << std::endl;
 				is_oppairs_side = false;
 
-				#ifdef SAVE_CSV
-	            oppairNext_start = std::chrono::high_resolution_clock::now();
-	            #endif
 				existsNextOPPair = oppairs_under.Next(); 
-				#ifdef SAVE_CSV
-	            oppairNext_end = std::chrono::high_resolution_clock::now();
-	            time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(oppairNext_end - oppairNext_start);
-	        	oppairs_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-	            #endif
 				while(existsNextOPPair)
 				{
-					log_file << "[Goal SM] Search underneath oppair" << std::endl;
-					
-					#ifdef SAVE_CSV
-		            std::chrono::high_resolution_clock::time_point checks_start = std::chrono::high_resolution_clock::now();
-		            #endif
-		            bool check_observable = !IsUnobservable(unknown);
-		            #ifdef SAVE_CSV
-		            std::chrono::high_resolution_clock::time_point checks_end = std::chrono::high_resolution_clock::now();
-		            time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(checks_end - checks_start);
-		        	check_observable_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		        	checks_start = std::chrono::high_resolution_clock::now();
-		            #endif
-		            bool check_visible = IsVisible();
-		            #ifdef SAVE_CSV
-		            checks_end   = std::chrono::high_resolution_clock::now();
-		            time_span    = std::chrono::duration_cast<std::chrono::duration<double>>(checks_end - checks_start);
-		        	check_visible_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		        	checks_start = std::chrono::high_resolution_clock::now();
-		            #endif
-		            bool check_valid = IsOPPairValid();
-		            #ifdef SAVE_CSV
-		            checks_end   = std::chrono::high_resolution_clock::now();
-		            time_span    = std::chrono::duration_cast<std::chrono::duration<double>>(checks_end - checks_start);
-		        	check_valid_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		            #endif
-					if( check_observable && check_visible && check_valid )
+					if( !IsUnobservable(unknown) && IsVisible() && IsOPPairValid() )
 					{
 						has_more_goals = true;
 						getFlybyStart(viewpoint);
-						#ifdef SAVE_CSV
-						// Timeline
-	        			auto end_millis         = std::chrono::high_resolution_clock::now();
-						time_span               = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - timeline_start);
-	        			double timeline_millis  = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-	        			// Total time
-						time_span               = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - pointToNextGoal_start);
-	        			double total_millis  	= std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-	                	csv_file << timeline_millis <<  "," << total_millis <<  "," << oppairs_millis <<"," << check_observable_millis  <<"," << check_visible_millis  <<"," << check_valid_millis << ","  << std::endl;
-						#endif
 						return true;
 					}
-					#ifdef SAVE_CSV
-		            oppairNext_start = std::chrono::high_resolution_clock::now();
-		            #endif
 					existsNextOPPair = oppairs_under.Next();	 
-					#ifdef SAVE_CSV
-		            oppairNext_end = std::chrono::high_resolution_clock::now();
-		            time_span = std::chrono::duration_cast<std::chrono::duration<double>>(oppairNext_end - oppairNext_start);
-		        	oppairs_millis += std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		            #endif	
 				}
 			}
-
-			log_file << "[Goal SM] Increment frontier index " << std::endl;
 			frontier_index++;
 			if(!hasNextFrontier())
 			{
 				findFrontiers_CallService(uav_position);
-				log_file << "[Goal SM] has_more_goals is now " << has_more_goals << std::endl;
 			}
-			
 		}
 
 
 		#ifdef SAVE_CSV
-		// Timeline
 		auto end_millis         = std::chrono::high_resolution_clock::now();
-		auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - timeline_start);
-		double timeline_millis  = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-		// Total time
-		time_span               = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - pointToNextGoal_start);
+		auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - pointToNextGoal_start);
 		double total_millis  	= std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-    	csv_file << timeline_millis <<  "," << total_millis <<  "," << oppairs_millis <<"," << check_observable_millis  <<"," << check_visible_millis  <<"," << check_valid_millis << ","  << std::endl;
+    	csv_file << total_millis  << std::endl;
 		csv_file.close();	
 		#endif
 		return has_more_goals;
