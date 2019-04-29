@@ -83,6 +83,8 @@ namespace goal_sm_node
         while(!getUavPositionServiceCall(current_position));
         Eigen::Vector3d current_position_e (current_position.x, current_position.y, current_position.z);
 
+        log_file<<std::endl<<" ===== [Goal SM] ===== "<<std::endl;
+
         if(req.new_map)
         {
             log_file<<"[Goal SM] New map. "<<std::endl;

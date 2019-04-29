@@ -14,7 +14,7 @@ namespace observation_lib
     std::ofstream log_file;
 
 	OPPairs::OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind, translate_func_ptr translate_func)
-		: circle_divisions(circle_divisions), translate_func(translate_func)
+		: circle_divisions(circle_divisions), translate_func(translate_func), index(circle_divisions)
 	{
 		current = OPPair();
 		starts_zero     = Eigen::MatrixXd (3, circle_divisions);

@@ -14,6 +14,7 @@ namespace Frontiers{
     {
         free = 0, occupied = 1 , unknown = 2
     };
+    int n_id;
 
 
     bool isInsideGeofence(octomath::Vector3 const&  candidate, geometry_msgs::Point geofence_min, geometry_msgs::Point geofence_max)
@@ -90,7 +91,24 @@ namespace Frontiers{
         int frontiers_count = 0;
         visualization_msgs::MarkerArray marker_array;
         LazyThetaStarOctree::unordered_set_pointers analyzed;
-        int n_id = 0;
+
+        if(it == octree.end_leafs_bbx())
+        {
+            ROS_ERROR_STREAM("[Frontier] End of iterator");
+        }
+
+        if(!(frontiers_count < request.frontier_amount ))
+        {
+            ROS_ERROR_STREAM("[Frontier] Already found " << frontiers_count << " frontiers out of " << request.frontier_amount);
+
+        }
+
+        std::ofstream log_file;
+        std::stringstream aux_envvar_home (std::getenv("HOME"));
+        std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+        log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
+        log_file << "[Frontier] Starting search. " << std::endl;
+        log_file << "[Frontiers] Request with " << request << std::endl;
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount )
         {
             octomath::Vector3 coord = it.getCoordinate();
@@ -98,6 +116,9 @@ namespace Frontiers{
             grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
 
             State curr_state = getState(grid_coordinates_curr, octree);
+
+            paintState(curr_state, grid_coordinates_curr, marker_array, n_id);
+            n_id++;
 
             if( curr_state == free )
             {
@@ -116,8 +137,8 @@ namespace Frontiers{
                         continue;
                     }   
                     State n_state = getState(*n_coordinates, octree);
-                    paintState(n_state, *n_coordinates, marker_array, n_id);
-                    n_id++;
+                    // paintState(n_state, *n_coordinates, marker_array, n_id);
+                    // n_id++;
                     if(n_state == unknown)
                     {
                         frontiers_msgs::VoxelMsg voxel_msg;
@@ -140,6 +161,10 @@ namespace Frontiers{
             }
             it++;
         }
+
+        log_file << "[Frontiers] frontiers_count < request.frontier_amount ==> " << frontiers_count << " < " << request.frontier_amount << std::endl;
+        log_file << "[Frontiers] Reached end of iterator? " <<  (it == octree.end_leafs_bbx()) << std::endl;
+
         #ifdef RUNNING_ROS
         marker_pub.publish(marker_array);
         #endif
@@ -148,7 +173,10 @@ namespace Frontiers{
         allNeighbors.buildMessageList(request.frontier_amount, reply);
         #else
         reply.frontiers_found = frontiers_count;
+        reply.success = frontiers_count > 0;
         #endif
+        log_file << "[Frontiers] Reply with " << reply << std::endl;
+        log_file.close();
     }
 
     octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FindFrontiers::Request  &request,
@@ -176,13 +204,11 @@ namespace Frontiers{
         std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
         std::ofstream log_file;
         log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
-        log_file << "[Frontiers] New map" << std::endl;
+        log_file << "[Frontiers] Initialize octomap iterator." << std::endl;
         log_file.close();
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
+        n_id = 0;
         searchFrontier(octree, it, request, reply, marker_pub, publish);
-
-        reply.success = true;
-
         return it;
     }
     

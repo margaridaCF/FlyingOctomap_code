@@ -172,6 +172,7 @@ namespace state_manager_node
         if(ask_for_goal_client.call(find_next_goal)) 
         { 
             state_data.next_goal_msg = find_next_goal.response;
+            log_file << " [State Maneger] Received " << state_data.next_goal_msg << std::endl;
             state_data.new_map = false;
             return true;
         } 
@@ -553,6 +554,7 @@ namespace state_manager_node
                 if(!state_data.next_goal_msg.success)
                 {
                     ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
+                    log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
                     is_successfull_exploration = true;
                     state_data.exploration_state = finished_exploring;
                 }
@@ -634,6 +636,7 @@ namespace state_manager_node
                 flyby_end.position = state_data.next_goal_msg.end_flyby;
                 if (!state_data.exploration_maneuver_started && !state_data.initial_maneuver)
                 {
+                    log_file << "[State manager][Exploration] calculateOrientation" << std::endl;
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
                     convertPoint_to_eigen2d(flyby_2d_start, state_data.next_goal_msg.start_flyby);
                     convertPoint_to_eigen2d(flyby_2d_end, state_data.next_goal_msg.end_flyby);
@@ -644,8 +647,8 @@ namespace state_manager_node
                 {
                     if(hasArrived(flyby_end.position))
                     {
+                        log_file << "[State manager][Exploration] hasArrived" << std::endl;
                         state_data.exploration_state = exploration_start;
-                        ;
                         bool is_explored = askIsExploredServiceCall(state_data.next_goal_msg.unknown);
                         if(!is_explored)
                         {
