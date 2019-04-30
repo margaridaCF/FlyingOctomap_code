@@ -282,7 +282,6 @@ namespace state_manager_node
         Eigen::Vector3d current_e (current_position.x, current_position.y, current_position.z);
         Eigen::Vector3d next_e (target.position.x, target.position.y, target.position.z);
         double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y())) ;
-        // log_file << "[State manager] buildTargetPose from (" << current_e.x() << ", " << current_e.y() << ")  to  (" << next_e.x() << ", " << next_e.y() << ")  yaw = " << yaw << std::endl;
 
         target.orientation = tf::createQuaternionMsgFromYaw(yaw);
     }
