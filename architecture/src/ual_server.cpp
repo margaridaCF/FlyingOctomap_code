@@ -149,8 +149,8 @@ bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
 void initialization()
 {
 
-    position_tolerance = 0.3;
-    distance_switch_wp_control = 0.5;
+    position_tolerance = 0.5;
+    distance_switch_wp_control = 1;
     max_acceptance_orientation = 3.0;
     min_acceptance_orientation = 0.14;
     ros::param::param<int>("~uav_id", uav_id, 1);
