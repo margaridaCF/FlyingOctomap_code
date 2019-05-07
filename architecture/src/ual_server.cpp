@@ -82,6 +82,16 @@ void update_target_fix_variables(geometry_msgs::Pose fix_pose) {
     return;
 }
 
+void update_yaw(double yaw)
+{
+    q_target.x() = target_pose.pose.orientation.x;
+    q_target.y() = target_pose.pose.orientation.y;
+    q_target.z() = target_pose.pose.orientation.z;
+    q_target.w() = target_pose.pose.orientation.w;
+    target_pose.pose.orientation   = tf::createQuaternionMsgFromYaw(yaw);
+    fix_pose_pose.pose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+}
+
 double yawDiff(double last_yaw, double requested_yaw)
 {
     double yawDiff = 0;
@@ -113,10 +123,9 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
     if (uav_state.state == 4) {
         if (!new_target) 
         {
-            fix_pose_pose.pose.orientation = req.pose.orientation;
 
             // last_yaw = tf::getYaw(fix_pose_pose.pose.orientation);
-            // requested_yaw = tf::getYaw(req.pose.orientation);
+            requested_yaw = tf::getYaw(req.pose.orientation);
             // double amplitude = yawDiff(last_yaw, requested_yaw);
             // if (amplitude > 70)
             // {
@@ -138,11 +147,8 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             target_pose.pose = req.pose;
             target_pose.header.frame_id = "uav_1_home";
             uav_target_path.poses.push_back(target_pose);
+            update_yaw(requested_yaw);
             target_point = Eigen::Vector3f(target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
-            q_target.x() = target_pose.pose.orientation.x;
-            q_target.y() = target_pose.pose.orientation.y;
-            q_target.z() = target_pose.pose.orientation.z;
-            q_target.w() = target_pose.pose.orientation.w;
             ROS_INFO_STREAM("[UAL Node] Incoming " << req.pose.orientation);
             ROS_INFO("[UAL Node] New target -> P: %f, %f, %f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
             ROS_INFO("                    O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
