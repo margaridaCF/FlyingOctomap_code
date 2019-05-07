@@ -249,7 +249,6 @@ namespace goal_state_machine
             {
             	frontier_index = 0;
         		new_map = false;
-        		Eigen::Vector3d unknown;
 				resetOPPair(uav_position);
 				return true;
             }
@@ -269,7 +268,6 @@ namespace goal_state_machine
         Eigen::Vector3d unknown;
 		while(has_more_goals)
 		{
-			Eigen::Vector3d viewpoint;
 			if(hasNextFrontier())
 			{
 				get_current_frontier(unknown);
@@ -280,7 +278,6 @@ namespace goal_state_machine
 					if( !IsUnobservable(unknown) && IsVisible() && IsOPPairValid() )
 					{
 						has_more_goals = true;
-						getFlybyStart(viewpoint);
 						return true;
 					}		
 					existsNextOPPair = oppairs_side.Next();
@@ -293,7 +290,6 @@ namespace goal_state_machine
 					if( !IsUnobservable(unknown) && IsVisible() && IsOPPairValid() )
 					{
 						has_more_goals = true;
-						getFlybyStart(viewpoint);
 						return true;
 					}
 					existsNextOPPair = oppairs_under.Next();	 

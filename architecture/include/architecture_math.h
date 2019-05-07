@@ -53,7 +53,7 @@ namespace architecture_math
         	result =  -(M_PI*2 - result);
         }
 
-
+        // ROS_INFO_STREAM( "[State manager] buildTargetPose from (" << start.x() << ", " << start.y() << ")  to  (" << end.x() << ", " << end.y() << ")  yaw = " << result );
 		return result ;
 	}
 
