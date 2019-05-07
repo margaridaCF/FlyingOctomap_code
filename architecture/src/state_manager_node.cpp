@@ -35,6 +35,9 @@
 #include <lazy_theta_star_msgs/LTStarRequest.h>
 #include <lazy_theta_star_msgs/LTStarNodeStatus.h>
 
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 
 #define SAVE_CSV 1
 #define SAVE_LOG 1
@@ -61,7 +64,7 @@ namespace state_manager_node
     bool is_successfull_exploration = false;
     std::ofstream log_file;
     #ifdef SAVE_CSV
-    std::ofstream csv_file;
+    std::ofstream csv_file, csv_file_success;
     std::chrono::high_resolution_clock::time_point operation_start, timeline_start;
     #endif
 
@@ -235,19 +238,23 @@ namespace state_manager_node
                 log_file << "[State manager] Path reply " << *msg << std::endl;
                 log_file << "[State manager]            [Follow path] init" << std::endl;
                 #endif
-                #ifdef SAVE_CSV
-                std::pair <double, double> millis_count = calculateTime(); 
-                csv_file << millis_count.first <<  ",,,,,"<<millis_count.second<<"," << std::endl;
-                ROS_WARN_STREAM("[exec time] [ltstar_millis] " << millis_count.second);
-                operation_start = std::chrono::high_resolution_clock::now();
-                #endif
             }
             else
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
                 state_data.exploration_state = generating_path;
             }
-            
+            #ifdef SAVE_CSV
+            std::pair <double, double> millis_count = calculateTime(); 
+            csv_file << millis_count.first <<  ",,,,,"<<millis_count.second<<"," << std::endl;
+            ROS_WARN_STREAM("[exec time] [ltstar_millis] " << millis_count.second);
+            operation_start = std::chrono::high_resolution_clock::now();
+
+            int success = 2;
+            if (msg->success) success = 1;
+            else success = 0;
+            csv_file_success << millis_count.first << "," << success << "," << std::endl;
+            #endif
         }
     }
 
@@ -283,7 +290,15 @@ namespace state_manager_node
         Eigen::Vector3d next_e (target.position.x, target.position.y, target.position.z);
         double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y())) ;
 
-        target.orientation = tf::createQuaternionMsgFromYaw(yaw);
+            // target.orientation = tf::createQuaternionMsgFromYaw(yaw);
+
+
+        tf2::Quaternion q_yaw;
+        q_yaw.setRPY( 0, 0, yaw );
+        q_yaw.normalize();
+        target.orientation = tf2::toMsg(q_yaw);
+
+
     }
 
     bool updateWaypointSequenceStateMachine()
@@ -292,6 +307,7 @@ namespace state_manager_node
         {
             case init:
             {
+                ROS_INFO_STREAM("[State manager] updateWaypointSequenceStateMachine Init");
                 geometry_msgs::Pose next_waypoint;
                 buildTargetPose(next_waypoint);
                 if(askPositionServiceCall(next_waypoint))
@@ -381,7 +397,6 @@ namespace state_manager_node
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
     }
 
-
     void convertPoint_to_eigen2d(Eigen::Vector2d & start, geometry_msgs::Point & point)
     {
         start.x() = point.x;
@@ -444,7 +459,7 @@ namespace state_manager_node
                     state_data.ltstar_reply.waypoints.push_back(waypoint);
                     state_data.ltstar_reply.waypoint_amount = 6;
 
-                    // CALIBRATION
+                    // // CALIBRATION
 
                     // waypoint.position.x = 0;
                     // waypoint.position.y = 5;
@@ -505,7 +520,7 @@ namespace state_manager_node
                     // waypoint.position.y = 0;
                     // waypoint.position.z = 2;
                     // state_data.ltstar_reply.waypoints.push_back(waypoint);
-                    // state_data.ltstar_reply.waypoint_amount = 5;
+                    // state_data.ltstar_reply.waypoint_amount = 13;
 
                     Eigen::Vector3d fake_frontier_e (waypoint.position.x, waypoint.position.y, waypoint.position.z);
                     frontiers_msgs::VoxelMsg fake_frontier;
@@ -615,10 +630,19 @@ namespace state_manager_node
                 flyby_end.position = state_data.next_goal_msg.end_flyby;
                 if (!state_data.exploration_maneuver_started && !state_data.initial_maneuver)
                 {
+                    ROS_INFO_STREAM("[State Manager] gather_data_maneuver");
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
                     convertPoint_to_eigen2d(flyby_2d_start, state_data.next_goal_msg.start_flyby);
                     convertPoint_to_eigen2d(flyby_2d_end, state_data.next_goal_msg.end_flyby);
-                    flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
+                    // flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
+                    double yaw = architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end);
+
+
+                    tf2::Quaternion q_yaw;
+                    q_yaw.setRPY( 0, 0, yaw );
+                    q_yaw.normalize();
+                    flyby_end.orientation = tf2::toMsg(q_yaw);
+
                     state_data.exploration_maneuver_started = askPositionServiceCall(flyby_end);
                 }
                 else
@@ -640,6 +664,7 @@ namespace state_manager_node
                         #ifdef SAVE_CSV
                         std::pair <double, double> millis_count = calculateTime(); 
                         csv_file << millis_count.first << ",,,,,,"<< millis_count.second << std::endl;
+                        csv_file_success << millis_count.first << ",," << is_explored << std::endl;
                         ROS_WARN_STREAM("[exec time] [flyby_millis] " << millis_count.second);
                         operation_start = std::chrono::high_resolution_clock::now();
                         #endif
@@ -678,10 +703,11 @@ namespace state_manager_node
             double z = geofence_max.z() - geofence_min.z();
             double volume_meters = x * y * z;
             // WRITE
-            std::ofstream csv_file;
+            csv_file.close();
             csv_file.open (folder_name+"/exploration_time.csv", std::ofstream::app);
             csv_file << millis.count() << "," << volume_meters << "," << is_successfull_exploration << std::endl; 
             csv_file.close();
+            csv_file_success.close();
             #endif
 
             #ifdef SAVE_LOG
@@ -738,6 +764,8 @@ int main(int argc, char **argv)
     #ifdef SAVE_CSV
     state_manager_node::csv_file.open (state_manager_node::folder_name+"/current/execution_time.csv", std::ofstream::app);
     state_manager_node::csv_file << "timeline,initial_maneuver_millis,frontier_gen_millis,visit_waypoints_millis,goalSM_millis,ltstar_millis,flyby_millis" << std::endl;
+    state_manager_node::csv_file_success.open (state_manager_node::folder_name+"/current/success_rate.csv", std::ofstream::app);
+    state_manager_node::csv_file_success << "timeline,path_planner,sampling" << std::endl;
     state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
     state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
     #endif
