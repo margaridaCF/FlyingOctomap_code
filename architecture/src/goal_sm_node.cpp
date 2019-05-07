@@ -93,19 +93,22 @@ namespace goal_sm_node
             goal_state_machine->octree = octree_inUse;
             goal_state_machine->findFrontiers_CallService(current_position_e);
         }
-        log_file.close();
         res.success = goal_state_machine->NextGoal(current_position_e);
 
         if(res.success)
         {
-        	goal_state_machine->getFlybyStart(res.start_flyby);
-        	goal_state_machine->getFlybyEnd(res.end_flyby);
-        	Eigen::Vector3d unknown;
-        	res.unknown.x=unknown.x();
-        	res.unknown.y=unknown.y();
-        	res.unknown.z=unknown.z();
-    	    publishGoalToRviz(current_position);
+            goal_state_machine->getFlybyStart(res.start_flyby);
+            goal_state_machine->getFlybyEnd(res.end_flyby);
+            res.unknown = goal_state_machine->get_current_frontier();
+            publishGoalToRviz(current_position);
+            geometry_msgs::Point frontier_geom = goal_state_machine->get_current_frontier();
+            log_file << "[Goal SM] Next unknown is (" << res.unknown.x << ", " << res.unknown.y << ", " << res.unknown.y << "). Viewed from (" << res.start_flyby.x << ", " << res.start_flyby.y << ", " << res.start_flyby.z << ") to (" << res.end_flyby.x << ", " << res.end_flyby.y << ", " << res.end_flyby.z << ")" <<  std::endl;
         }
+        else
+        {
+            log_file << "[Goal SM] No goal available " << std::endl;
+        }
+        log_file.close();
 		return true;
 	}
 
