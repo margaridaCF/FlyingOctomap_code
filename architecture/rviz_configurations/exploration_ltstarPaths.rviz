@@ -252,7 +252,14 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
+        corridor_free: false
+        corridor_occupied: false
         lazy_theta_star_path: true
+        lazy_theta_star_waypoint: true
+        rejected_neighors: false
+        s: false
+        straight_line: false
+        usable_neighors: false
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -331,25 +338,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 29.1550026
+      Distance: 54.0096321
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -14.5461988
-        Y: -8.78168583
-        Z: 9.64102173
+        X: 2.88935018
+        Y: 0.0865173116
+        Z: 0.546034992
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.514796376
+      Pitch: 0.584796071
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.280003071
+      Yaw: 5.35319328
     Saved: ~
 Window Geometry:
   Displays:

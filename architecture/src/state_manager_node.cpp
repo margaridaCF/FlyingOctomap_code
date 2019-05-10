@@ -307,7 +307,6 @@ namespace state_manager_node
         {
             case init:
             {
-                ROS_INFO_STREAM("[State manager] updateWaypointSequenceStateMachine Init");
                 geometry_msgs::Pose next_waypoint;
                 buildTargetPose(next_waypoint);
                 if(askPositionServiceCall(next_waypoint))
@@ -636,7 +635,6 @@ namespace state_manager_node
                     convertPoint_to_eigen2d(flyby_2d_end, state_data.next_goal_msg.end_flyby);
                     // flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
                     double yaw = architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end);
-
 
                     tf2::Quaternion q_yaw;
                     q_yaw.setRPY( 0, 0, yaw );
