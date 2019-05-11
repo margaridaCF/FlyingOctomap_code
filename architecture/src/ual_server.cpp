@@ -142,20 +142,16 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             last_yaw = tf::getYaw(fix_pose_pose.pose.orientation);
             requested_yaw = tf::getYaw(req.pose.orientation);
             double amplitude = yawDiff(last_yaw, requested_yaw);
-            ROS_INFO_STREAM( "[UAL node] From " << toDegrees(last_yaw) << " to " << toDegrees(requested_yaw) << " amplitude is " << toDegrees(amplitude) << ". Limit is " << px4_orientation_confusion_limit_degrees);
             if (amplitude > px4_orientation_confusion_limit)
             {
-                ROS_INFO_STREAM("[UAL node] Yaw set to " << px4_orientation_confusion_limit_degrees << " degrees.");
                 last_yaw = px4_orientation_confusion_limit;
             }   
             else if(amplitude < -px4_orientation_confusion_limit)
             {
-                ROS_INFO_STREAM("[UAL node] Yaw set to -" << px4_orientation_confusion_limit_degrees << " degrees.");
                 last_yaw = -px4_orientation_confusion_limit;
             }   
             else
             {
-                // ROS_INFO_STREAM("[UAL node] Yaw set to " << requested_yaw << " degrees.");
                 last_yaw = requested_yaw;
             }
             update_yaw(last_yaw);
@@ -197,7 +193,7 @@ bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
         }
         else
         {
-            ROS_WARN("[State manager] Current position middle man node not accepting requests.");
+            ROS_WARN("[UAL Node] Current position middle man node not accepting requests.");
             return false;
         }
     }

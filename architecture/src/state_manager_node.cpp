@@ -247,7 +247,6 @@ namespace state_manager_node
             #ifdef SAVE_CSV
             std::pair <double, double> millis_count = calculateTime(); 
             csv_file << millis_count.first <<  ",,,,,"<<millis_count.second<<"," << std::endl;
-            ROS_WARN_STREAM("[exec time] [ltstar_millis] " << millis_count.second);
             operation_start = std::chrono::high_resolution_clock::now();
 
             int success = 2;
@@ -546,7 +545,6 @@ namespace state_manager_node
                 std::pair <double, double> millis_count = calculateTime(); 
                 csv_file << millis_count.first << ",,,,"<<millis_count.second<<",," << std::endl;
 
-                ROS_WARN_STREAM("[exec time] [find_next_goal] " << millis_count.second);
                 operation_start = std::chrono::high_resolution_clock::now();
                 #endif
                 #ifdef SAVE_LOG
@@ -602,7 +600,6 @@ namespace state_manager_node
                         #ifdef SAVE_CSV
                         std::pair <double, double> millis_count = calculateTime(); 
                         csv_file << millis_count.first <<  "," << millis_count.second<<",,,,," << std::endl;
-                        ROS_WARN_STREAM("[exec time] [initial_maneuver_millis] " << millis_count.second);
                         operation_start = std::chrono::high_resolution_clock::now();
                         #endif
                     }
@@ -613,7 +610,6 @@ namespace state_manager_node
                         #ifdef SAVE_CSV
                         std::pair <double, double> millis_count = calculateTime(); 
                         csv_file << millis_count.first <<  ",,,"<< millis_count.second <<",,," << std::endl;
-                        ROS_WARN_STREAM("[exec time] [visit_waypoints_millis] " << visit_waypoints_millis);
                         operation_start = std::chrono::high_resolution_clock::now();
                         #endif
                     }
@@ -663,7 +659,6 @@ namespace state_manager_node
                         std::pair <double, double> millis_count = calculateTime(); 
                         csv_file << millis_count.first << ",,,,,,"<< millis_count.second << std::endl;
                         csv_file_success << millis_count.first << ",," << is_explored << std::endl;
-                        ROS_WARN_STREAM("[exec time] [flyby_millis] " << millis_count.second);
                         operation_start = std::chrono::high_resolution_clock::now();
                         #endif
                     }
