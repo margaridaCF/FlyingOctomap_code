@@ -198,12 +198,15 @@ bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
         }
     }
 
-void initialization()
+void initialization(ros::NodeHandle nh)
 {   
+        
     px4_orientation_confusion_limit_degrees = 120;
     px4_orientation_confusion_limit = (px4_orientation_confusion_limit_degrees*(M_PI/180));
-
-    position_tolerance = 1;
+    double px4_loiter_radius, odometry_error;
+    nh.getParam("/px4_loiter_radius", px4_loiter_radius);
+    nh.getParam("/odometry_error", odometry_error);
+    position_tolerance = std::max(px4_loiter_radius, odometry_error);
     distance_switch_wp_control = 2;
     max_acceptance_orientation = 3.0;
     min_acceptance_orientation = 0.14;
@@ -321,7 +324,7 @@ int main(int _argc, char **_argv) {
     ual_server::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("/get_current_position");
 
 
-    ual_server::initialization();
+    ual_server::initialization(nh);
 
     while (!ual.isReady() && ros::ok()) {
         ROS_WARN("UAL %d not ready!", ual_server::uav_id);
