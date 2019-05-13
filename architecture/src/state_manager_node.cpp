@@ -242,7 +242,7 @@ namespace state_manager_node
             else
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
-                state_data.exploration_state = generating_path;
+                state_data.exploration_state = exploration_start;
             }
             #ifdef SAVE_CSV
             std::pair <double, double> millis_count = calculateTime(); 
@@ -296,8 +296,6 @@ namespace state_manager_node
         q_yaw.setRPY( 0, 0, yaw );
         q_yaw.normalize();
         target.orientation = tf2::toMsg(q_yaw);
-
-
     }
 
     bool updateWaypointSequenceStateMachine()
