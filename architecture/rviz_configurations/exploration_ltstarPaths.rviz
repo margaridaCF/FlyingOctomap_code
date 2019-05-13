@@ -8,6 +8,7 @@ Panels:
         - /TF1/Frames1
         - /Frontiers1/Namespaces1
         - /Lazy Theta Star1/Namespaces1
+        - /Path1
         - /State Manager1/Namespaces1
         - /Goal State Manager1/Namespaces1
       Splitter Ratio: 0.769452453
@@ -111,46 +112,19 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_link:
-          Value: false
-        base_link_inertia:
-          Value: false
-        fcu:
-          Value: false
-        fcu_frd:
-          Value: false
-        hokuyo:
-          Value: false
-        local_origin:
-          Value: false
-        local_origin_ned:
-          Value: false
-        map:
-          Value: true
-        uav_1:
-          Value: true
-        uav_1_home:
-          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          uav_1_home:
-            uav_1:
-              base_link:
-                base_link_inertia:
-                  {}
-                hokuyo:
-                  {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /free_cells_vis_array
@@ -236,23 +210,17 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        corridor_free: false
-        corridor_occupied: false
-        lazy_theta_star_path: true
-        lazy_theta_star_waypoint: true
-        rejected_neighors: false
-        s: false
-        usable_neighors: false
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
-      Color: 25; 255; 0
+      Color: 255; 255; 0
       Enabled: true
       Head Diameter: 0.300000012
       Head Length: 0.200000003
@@ -277,7 +245,7 @@ Visualization Manager:
       Marker Topic: /state_manager_viz
       Name: State Manager
       Namespaces:
-        geofence: true
+        geofence: false
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -292,7 +260,7 @@ Visualization Manager:
         oppair_start_outside: false
         straight_line: false
         uav_position: true
-        under_unknown_point: true
+        under_unknown_point: false
         unknown: true
         unknown_point: true
       Queue Size: 100
@@ -317,25 +285,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 42.2068634
+      Distance: 115.579376
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.0524869114
-        Y: -0.125158072
-        Z: 1.37341392
+        X: -8.89700031
+        Y: -9.75539494
+        Z: 3.07663441
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.104796492
+      Pitch: 1.20479786
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.11319017
+      Yaw: 6.17136812
     Saved: ~
 Window Geometry:
   Displays:

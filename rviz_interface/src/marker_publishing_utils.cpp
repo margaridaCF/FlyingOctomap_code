@@ -316,6 +316,32 @@ namespace rviz_interface
         marker_array.markers.push_back(marker);
     }
 
+    void publish_startSafetyZone(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter)
+    {
+        visualization_msgs::Marker marker;
+        marker.color.r = 1.0f;
+        marker.color.g = 1.0f;
+        marker.color.b = 0.38f;
+        marker.ns = "start_safetyZone";
+        marker.id = 52;
+        marker.type = visualization_msgs::Marker::SPHERE;
+        // Basic
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position = candidate;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = diameter;
+        marker.scale.y = diameter;
+        marker.scale.z = diameter;
+        marker.color.a = 0.4f;
+        marker.lifetime = ros::Duration();
+        marker_array.markers.push_back(marker);
+    }
+
     void publish_goal(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array)
     {
         visualization_msgs::Marker marker;
@@ -338,6 +364,32 @@ namespace rviz_interface
         marker.scale.y = 0.2f;
         marker.scale.z = 0.2f;
         marker.color.a = 1.0f;
+        marker.lifetime = ros::Duration();
+        marker_array.markers.push_back(marker);
+    }
+
+    void publish_goalSafetyZone(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter)
+    {
+        visualization_msgs::Marker marker;
+        marker.color.r = 1.0f;
+        marker.color.g = 1.0f;
+        marker.color.b = 0.38f;
+        marker.ns = "goal_safetyZone";
+        marker.id = 53;
+        marker.type = visualization_msgs::Marker::SPHERE;
+        // Basic
+        marker.header.frame_id = "/map";
+        marker.header.stamp = ros::Time::now();
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position = candidate;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = diameter;
+        marker.scale.y = diameter;
+        marker.scale.z = diameter;
+        marker.color.a = 0.4f;
         marker.lifetime = ros::Duration();
         marker_array.markers.push_back(marker);
     }

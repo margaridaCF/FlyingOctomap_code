@@ -49,7 +49,9 @@ namespace rviz_interface
 	void build_waypoint 			(octomath::Vector3 & candidate, double size, int color, int waypoint_id, visualization_msgs::Marker & marker, int series = 9);
 	void publish_current_position 	(octomath::Vector3 & candidate, visualization_msgs::MarkerArray marker_array);
 	void publish_start 				(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array);
+    void publish_startSafetyZone	(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter);
 	void publish_goal 				(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array);
+    void publish_goalSafetyZone		(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter);
 	void publish_random_important_cube(octomath::Vector3 const& candidate_vec3, ros::Publisher const& marker_pub);
 	void publish_s 					(geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id, float size);
     void publish_rejected_neighbor  (geometry_msgs::Point const& candidate, ros::Publisher const& marker_pub, visualization_msgs::MarkerArray & marker_array, int id, float size);
