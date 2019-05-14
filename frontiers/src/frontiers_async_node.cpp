@@ -117,7 +117,7 @@ namespace frontiers_async_node
 			}
 			else
 			{
-				octree->writeBinary(folder_name + "/current/octree_exaustedFrontierList.bt"); 
+				octree->writeBinary(folder_name + "/current/octree_requestNumberOutOfSync.bt"); 
 				if(last_request_id != req.request_id)
 				{
 					ROS_ERROR_STREAM("[Frontiers] Request number out of sync. Asked to continue search but current request number is " << last_request_id << " while in request message the id is " << req.request_id);
