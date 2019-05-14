@@ -348,11 +348,6 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::NextGoal(Eigen::Vector3d& uav_position)
 	{
-		// if(resetOPPair_flag)
-		// {
-		// 	resetOPPair(uav_position);
-		// 	resetOPPair_flag = false;
-		// }
 		return pointToNextGoal(uav_position);
 	}
 }
