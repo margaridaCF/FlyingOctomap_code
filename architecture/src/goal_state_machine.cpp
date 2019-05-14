@@ -238,7 +238,7 @@ namespace goal_state_machine
 		frontier_srv.request.current_position.x = uav_position.x();
 		frontier_srv.request.current_position.y = uav_position.y();
 		frontier_srv.request.current_position.z = uav_position.z();
-		frontier_srv.request.frontier_amount = 20;
+		frontier_srv.request.frontier_amount = 5;
 		frontier_srv.request.request_id = frontier_request_count;
 		frontier_srv.request.new_request = new_map;
 
@@ -294,6 +294,10 @@ namespace goal_state_machine
 					}
 					existsNextOPPair = oppairs_under.Next();	 
 				}
+			}
+			if(hasNextFrontier())
+			{
+				resetOPPair(uav_position);
 			}
 			frontier_index++;
 			if(!hasNextFrontier())
