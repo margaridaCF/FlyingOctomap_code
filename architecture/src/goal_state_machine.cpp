@@ -298,7 +298,7 @@ namespace goal_state_machine
 			frontier_index++;
 			if(!hasNextFrontier())
 			{
-				findFrontiers_CallService(uav_position);
+				has_more_goals = findFrontiers_CallService(uav_position);
 			}
 		}
 
