@@ -168,8 +168,6 @@ namespace state_manager_node
     { 
         architecture_msgs::FindNextGoal find_next_goal;
         find_next_goal.request.new_map = state_data.new_map;
-        if(find_next_goal.request.new_map) log_file << "[state manager] Asking for goal for a new map." << std::endl;
-        else log_file << "[state manager] Continue searching for goals in old map." << std::endl;
         if(ask_for_goal_client.call(find_next_goal)) 
         { 
             state_data.next_goal_msg = find_next_goal.response;
