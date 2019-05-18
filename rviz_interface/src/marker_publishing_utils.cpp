@@ -263,7 +263,7 @@ namespace rviz_interface
         marker.lifetime = ros::Duration();
     }
 
-    void build_sphere_basic(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, std::string ns, double red, double green, double blue, int id /*= 30*/)
+    void build_sphere_basic(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, std::string ns, double red, double green, double blue, int id /*= 30*/, double alpha /*= 1 */, double diameter /*= 0.2*/)
     {
         visualization_msgs::Marker marker;
         marker.color.r = red;
@@ -281,12 +281,34 @@ namespace rviz_interface
         marker.pose.orientation.y = 0.0;
         marker.pose.orientation.z = 0.0;
         marker.pose.orientation.w = 1.0;
-        marker.scale.x = 0.2f;
-        marker.scale.y = 0.2f;
-        marker.scale.z = 0.2f;
-        marker.color.a = 1.0f;
+        marker.scale.x = diameter;
+        marker.scale.y = diameter;
+        marker.scale.z = diameter;
+        marker.color.a = alpha;
         marker.lifetime = ros::Duration();
         marker_array.markers.push_back(marker);
+    }
+
+    void build_safetyzone_flybyStart(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter)
+    {
+        double red = 1.0f;
+        double green = 1.0f;
+        double blue = 0.38f;
+        int id = 55;
+        std::string ns = "safetyzone_flybyStart";
+        double alpha = 0.4;
+        build_sphere_basic(candidate, marker_array, ns, red, green, blue, id, alpha, diameter);
+    }
+
+    void build_safetyzone_unknown(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter)
+    {
+        double red = 1.0f;
+        double green = 1.0f;
+        double blue = 0.38f;
+        int id = 56;
+        std::string ns = "safetyzone_unknown";
+        double alpha = 0.4;
+        build_sphere_basic(candidate, marker_array, ns, red, green, blue, id, alpha, diameter);
     }
 
     void publish_start(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array)
