@@ -28,7 +28,7 @@ path/safety_margin: 5
 # == Observation Point Pairs ==
 oppairs/distance_inFront: 2
 oppairs/distance_behind: 2
-oppairs/circle_divisions: 6
+oppairs/circle_divisions: 4
 oppairs/sensing_distance: 4
 
 current_position_topic: "/uav_1/mavros/local_position/pose"
