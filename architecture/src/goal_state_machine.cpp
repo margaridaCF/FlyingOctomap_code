@@ -1,15 +1,21 @@
 #include <goal_state_machine.h>
 #include <ltStar_lib_ortho.h>
 #include <chrono>
+#include <utility>   
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <chrono>
+#include <boost/filesystem.hpp>
 
 #define RUNNING_ROS 1
 #define SAVE_CSV 1
 
 namespace goal_state_machine
 {
+    std::ofstream log_file;
     #ifdef SAVE_CSV
     std::ofstream csv_file;
-    std::chrono::high_resolution_clock::time_point timeline_start;
     #endif
 
     GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance)
@@ -41,12 +47,12 @@ namespace goal_state_machine
 
 		std::stringstream aux_envvar_home (std::getenv("HOME"));
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-		log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
+		// log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
 		#ifdef SAVE_CSV
 		csv_file.open (folder_name+"/current/goal_state_machine.csv", std::ofstream::app);
-        std::chrono::high_resolution_clock::time_point timeline_start = std::chrono::high_resolution_clock::now();
-		csv_file << "total_millis" << std::endl;
+		csv_file << "flyby,frontiers" << std::endl;
         #endif
+		log_file.open (folder_name+"/current/goal_sm.log", std::ofstream::app);
 	}
 
 	void GoalStateMachine::NewMap()
@@ -161,6 +167,10 @@ namespace goal_state_machine
 		octomath::Vector3 end  (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
 		LazyThetaStarOctree::InputData input (*octree, start, end, 0);
 		bool has_visibility = hasLineOfSight_UnknownAsFree(input);
+		if(!has_visibility)
+		{
+			ROS_INFO_STREAM("[Goal] There is an obstacle betweem the start of the flyby and the unknown point.");
+		}
         return has_visibility;
     }
 
@@ -238,11 +248,22 @@ namespace goal_state_machine
 		frontier_srv.request.current_position.x = uav_position.x();
 		frontier_srv.request.current_position.y = uav_position.y();
 		frontier_srv.request.current_position.z = uav_position.z();
-		frontier_srv.request.frontier_amount = 5;
+		frontier_srv.request.frontier_amount = 20;
 		frontier_srv.request.request_id = frontier_request_count;
 		frontier_srv.request.new_request = new_map;
 
-		if(find_frontiers_client.call(frontier_srv)) 
+		#ifdef SAVE_CSV
+		auto start_millis         = std::chrono::high_resolution_clock::now();
+		#endif
+		bool call = find_frontiers_client.call(frontier_srv);
+		#ifdef SAVE_CSV
+		auto end_millis         = std::chrono::high_resolution_clock::now();
+		auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - start_millis);
+        double frontiers_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+        csv_file << "," << frontiers_millis << std::endl;
+		#endif
+
+		if(call) 
         { 
         	has_more_goals = frontier_srv.response.success;
             if(frontier_srv.response.success)
@@ -263,33 +284,57 @@ namespace goal_state_machine
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
 	{	
 		#ifdef SAVE_CSV
-        std::chrono::high_resolution_clock::time_point pointToNextGoal_start = std::chrono::high_resolution_clock::now();
+        double total_millis = 0;
 		#endif
+
         Eigen::Vector3d unknown;
 		while(has_more_goals)
 		{
 			if(hasNextFrontier())
 			{
 				get_current_frontier(unknown);
-
+				#ifdef SAVE_CSV
+		        std::chrono::high_resolution_clock::time_point start_millis = std::chrono::high_resolution_clock::now();
+				#endif
 				bool existsNextOPPair = oppairs_side.Next();
+				#ifdef SAVE_CSV
+					auto end_millis         = std::chrono::high_resolution_clock::now();
+					auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - start_millis);
+			        double flyby_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+			        total_millis += flyby_millis;
+				#endif
 				while(existsNextOPPair)
 				{
-					if( !IsUnobservable(unknown) && IsVisible() && IsOPPairValid() )
+					if( IsObservable(unknown) && IsVisible() && IsOPPairValid() )
 					{
 						has_more_goals = true;
+						#ifdef SAVE_CSV
+						csv_file << total_millis << ",,1" << std::endl;
+						#endif
 						return true;
 					}		
 					existsNextOPPair = oppairs_side.Next();
 				}
 				is_oppairs_side = false;
 
+				#ifdef SAVE_CSV
+		        start_millis = std::chrono::high_resolution_clock::now();
+				#endif
 				existsNextOPPair = oppairs_under.Next(); 
+				#ifdef SAVE_CSV
+					end_millis         = std::chrono::high_resolution_clock::now();
+					time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - start_millis);
+			        flyby_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+			        total_millis += flyby_millis;
+				#endif
 				while(existsNextOPPair)
 				{
-					if( !IsUnobservable(unknown) && IsVisible() && IsOPPairValid() )
+					if( IsObservable(unknown) && IsVisible() && IsOPPairValid() )
 					{
 						has_more_goals = true;
+						#ifdef SAVE_CSV
+						csv_file << total_millis << ",,2" << std::endl;
+						#endif
 						return true;
 					}
 					existsNextOPPair = oppairs_under.Next();	 
@@ -305,14 +350,8 @@ namespace goal_state_machine
 				has_more_goals = findFrontiers_CallService(uav_position);
 			}
 		}
-
-
 		#ifdef SAVE_CSV
-		auto end_millis         = std::chrono::high_resolution_clock::now();
-		auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - pointToNextGoal_start);
-		double total_millis  	= std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-    	csv_file << total_millis  << std::endl;
-		csv_file.close();	
+		csv_file << total_millis << ",,3" << std::endl;
 		#endif
 		return has_more_goals;
 	}
@@ -337,16 +376,19 @@ namespace goal_state_machine
 		// #endif
 	}
 
-	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unknown)
+	bool GoalStateMachine::IsObservable(Eigen::Vector3d const& unknown)
 	{
-		return IsUnobservable(unknown, getCurrentOPPairs().get_current_start());
+		return IsObservable(unknown, getCurrentOPPairs().get_current_start());
 	}
 
-	bool GoalStateMachine::IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint)
+	bool GoalStateMachine::IsObservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint)
 	{
-		bool is_unobservable = ! (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
-		// if (is_unobservable) ros::Duration(60).sleep();
-		return is_unobservable;
+		bool is_observable =  (unobservable_set.find(std::make_pair(unobservable, viewpoint)) ==  unobservable_set.end() );
+		if(!is_observable)
+		{
+			ROS_INFO_STREAM("[Goal] Unobservable point from this particular viewpoint");
+		}
+		return is_observable;
 	}
 
 

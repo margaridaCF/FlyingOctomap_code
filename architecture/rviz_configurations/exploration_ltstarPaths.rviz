@@ -202,13 +202,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /frontiers/known_space
       Name: Frontiers
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /ltstar_path
@@ -254,7 +254,6 @@ Visualization Manager:
       Name: Goal State Manager
       Namespaces:
         oppair_end: true
-        oppair_end_outside: false
         oppair_path: true
         oppair_start: true
         oppair_start_outside: false

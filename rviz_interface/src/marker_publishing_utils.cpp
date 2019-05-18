@@ -203,10 +203,9 @@ namespace rviz_interface
     void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start,   visualization_msgs::MarkerArray & marker_array)
     {
         // oppair end   253,174,97     0.99    0.68    0.2
-        // oppair start 255,255,191    1       1       0.75
-        // start 255,255,191           1       1       0.75
-        // frontier 171,217,233        0.68    0.84    0.91
-        // margin 44,123,182           0.17    0.48    0.71
+        // oppair start 255,255,191    1       1       0.2
+        // uav_position 255,255,191    1       1       0.75
+        // unknown      173,214,232    1       1       0.75
         std::string ns = "oppair_end";
         double red   = 0.99;
         double green = 0.68;
