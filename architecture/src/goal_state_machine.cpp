@@ -160,17 +160,24 @@ namespace goal_state_machine
     	}
     }
 
-    bool GoalStateMachine::IsVisible()
+    bool GoalStateMachine::IsVisible(Eigen::Vector3d unknown)
     {
     	Eigen::Vector3d start_e = getCurrentOPPairs().get_current_start();
         octomath::Vector3 start(start_e.x(), start_e.y(), start_e.z());
-		octomath::Vector3 end  (get_current_frontier().x, get_current_frontier().y, get_current_frontier().z);
+		octomath::Vector3 end  (unknown.x(), unknown.y(), unknown.z());
 		LazyThetaStarOctree::InputData input (*octree, start, end, 0);
 		bool has_visibility = hasLineOfSight_UnknownAsFree(input);
-		if(!has_visibility)
-		{
-			ROS_INFO_STREAM("[Goal] There is an obstacle betweem the start of the flyby and the unknown point.");
-		}
+		// if(!has_visibility)
+		// {
+			// ROS_INFO_STREAM("[Goal] There is an obstacle betweem the start of the flyby and the unknown point.");
+			// rviz_interface::publish_arrow_path_visibility(input.start, input.goal, pi.marker_pub, false, 58);
+			// geometry_msgs::Point current_position;
+			// current_position.x = 0;
+			// current_position.y = 0;
+			// current_position.z = 0;
+			// publishGoalToRviz(current_position);
+    		// ros::Duration(1).sleep();
+		// }
         return has_visibility;
     }
 
@@ -305,7 +312,7 @@ namespace goal_state_machine
 				#endif
 				while(existsNextOPPair)
 				{
-					if( IsObservable(unknown) && IsVisible() && IsOPPairValid() )
+					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() )
 					{
 						has_more_goals = true;
 						#ifdef SAVE_CSV
@@ -329,7 +336,7 @@ namespace goal_state_machine
 				#endif
 				while(existsNextOPPair)
 				{
-					if( IsObservable(unknown) && IsVisible() && IsOPPairValid() )
+					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() )
 					{
 						has_more_goals = true;
 						#ifdef SAVE_CSV
@@ -391,6 +398,21 @@ namespace goal_state_machine
 		return is_observable;
 	}
 
+	void GoalStateMachine::publishGoalToRviz(geometry_msgs::Point current_position)
+    {
+        geometry_msgs::Point frontier_geom = get_current_frontier();
+        geometry_msgs::Point start_geom;
+        start_geom.x = current_position.x;
+        start_geom.y = current_position.y;
+        start_geom.z = current_position.z;
+        geometry_msgs::Point oppair_start_geom;
+        getFlybyStart(oppair_start_geom);
+        geometry_msgs::Point oppair_end_geom;
+        getFlybyEnd(oppair_end_geom);
+        visualization_msgs::MarkerArray marker_array;
+        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array);
+        pi.marker_pub.publish(marker_array);
+    }
 
 	bool GoalStateMachine::NextGoal(Eigen::Vector3d& uav_position)
 	{

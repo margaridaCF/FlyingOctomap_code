@@ -43,22 +43,6 @@ namespace goal_sm_node
         }
     }
 
-    void publishGoalToRviz(geometry_msgs::Point current_position)
-    {
-        geometry_msgs::Point frontier_geom = goal_state_machine->get_current_frontier();
-        geometry_msgs::Point start_geom;
-        start_geom.x = current_position.x;
-        start_geom.y = current_position.y;
-        start_geom.z = current_position.z;
-        geometry_msgs::Point oppair_start_geom;
-        goal_state_machine->getFlybyStart(oppair_start_geom);
-        geometry_msgs::Point oppair_end_geom;
-        goal_state_machine->getFlybyEnd(oppair_end_geom);
-        visualization_msgs::MarkerArray marker_array;
-        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array);
-        marker_pub.publish(marker_array);
-    }
-
     void updateOctree()
     {
         if (delete_octree_in_use){
@@ -100,7 +84,7 @@ namespace goal_sm_node
             goal_state_machine->getFlybyStart(res.start_flyby);
             goal_state_machine->getFlybyEnd(res.end_flyby);
             res.unknown = goal_state_machine->get_current_frontier();
-            publishGoalToRviz(current_position);
+            goal_state_machine->publishGoalToRviz(current_position);
             geometry_msgs::Point frontier_geom = goal_state_machine->get_current_frontier();
             log_file << "[Goal SM] Next unknown is (" << res.unknown.x << ", " << res.unknown.y << ", " << res.unknown.y << "). Viewed from (" << res.start_flyby.x << ", " << res.start_flyby.y << ", " << res.start_flyby.z << ") to (" << res.end_flyby.x << ", " << res.end_flyby.y << ", " << res.end_flyby.z << ")" <<  std::endl;
         }

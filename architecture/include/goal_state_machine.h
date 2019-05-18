@@ -92,7 +92,7 @@ namespace goal_state_machine
 		observation_lib::OPPairs& getCurrentOPPairs();
 		bool is_flightCorridor_free(double flight_corridor_width) ;
 		bool IsOPPairValid() ;
-    	bool IsVisible();
+    	bool IsVisible(Eigen::Vector3d unknown);
 		bool is_inside_geofence(Eigen::Vector3d target) const;
 		bool hasNextFrontier() const;
 		void resetOPPair(Eigen::Vector3d& uav_position);
@@ -117,6 +117,7 @@ namespace goal_state_machine
 		bool NextGoal(Eigen::Vector3d& uav_position);
 		void DeclareUnobservable();
 		bool IsObservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
+		void publishGoalToRviz(geometry_msgs::Point current_position);
 		int getUnobservableSetSize()
 		{
 			return unobservable_set.size();
