@@ -178,7 +178,7 @@ namespace Frontiers{
             return octomap::OcTree::leaf_bbx_iterator();
         }
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-        n_id = 0;
+        n_id = 100;
         searchFrontier(octree, it, request, reply, marker_pub, publish);
         return it;
     }
