@@ -8,8 +8,8 @@ Panels:
         - /TF1/Frames1
         - /Frontiers1/Namespaces1
         - /Lazy Theta Star1/Namespaces1
-        - /Path1
         - /State Manager1/Namespaces1
+        - /Goal State Manager1
         - /Goal State Manager1/Namespaces1
       Splitter Ratio: 0.769452453
     Tree Height: 609
@@ -202,21 +202,21 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /frontiers/known_space
       Name: Frontiers
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -283,26 +283,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
-      Distance: 115.579376
+      Angle: 0.0149999997
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: -8.89700031
-        Y: -9.75539494
-        Z: 3.07663441
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.20479786
+      Scale: 24.4030952
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 6.17136812
+      Value: TopDownOrtho (rviz)
+      X: 4.12218237
+      Y: 2.25679779
     Saved: ~
 Window Geometry:
   Displays:

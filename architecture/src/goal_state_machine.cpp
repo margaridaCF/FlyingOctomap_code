@@ -77,7 +77,7 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::checkFligthCorridor_(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub)
 	{
-		LazyThetaStarOctree::generateOffsets(octree->getResolution(), flight_corridor_width, LazyThetaStarOctree::semiSphereIn, LazyThetaStarOctree::semiSphereOut );
+		LazyThetaStarOctree::generateOffsets(octree->getResolution(), flight_corridor_width, LazyThetaStarOctree::semiSphereOut, LazyThetaStarOctree::semiSphereOut );
 		octomath::Vector3 start_o(start.x(), start.y(), start.z());
 		octomath::Vector3 end_o(end.x(), end.y(), end.z());
 		LazyThetaStarOctree::InputData input (*octree, start_o, end_o, flight_corridor_width);
@@ -101,11 +101,10 @@ namespace goal_state_machine
 			bool end_inside_geofence = is_inside_geofence(getCurrentOPPairs().get_current_end());
     		if(end_inside_geofence)
 	    	{
-	    		// bool fc_free = is_flightCorridor_free(path_safety_margin + 1);
 	    		Eigen::Vector3d start_e = getCurrentOPPairs().get_current_start();
 	    		Eigen::Vector3d end_e = getCurrentOPPairs().get_current_end();
 
-	    		bool fc_free = checkFligthCorridor_(path_safety_margin + 1, start_e, end_e, pi.marker_pub);
+	    		bool fc_free = checkFligthCorridor_(path_safety_margin + 0.5, start_e, end_e, pi.marker_pub);
 				if(!fc_free)
 				{
 					#ifdef RUNNING_ROS
