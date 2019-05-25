@@ -200,7 +200,7 @@ namespace rviz_interface
         build_sphere_basic(oppairEnd, marker_array, ns, red, green, blue, oppair_id);
     }
 
-    void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start,   visualization_msgs::MarkerArray & marker_array)
+    void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start,   visualization_msgs::MarkerArray & marker_array, double diameter)
     {
         // oppair end   253,174,97     0.99    0.68    0.2
         // oppair start 255,255,191    1       1       0.2
@@ -211,12 +211,14 @@ namespace rviz_interface
         double green = 0.68;
         double blue  = 0.2;
         build_sphere_basic(oppairEnd, marker_array, ns, red, green, blue);
+        build_safetyzone_flybyEnd(oppairEnd, marker_array, diameter);
 
         ns = "oppair_start";
         red   = 1;
         green = 1;
         blue  = 0.2;
         build_sphere_basic(oppairStart, marker_array, ns, red, green, blue);
+        build_safetyzone_flybyStart(oppairStart, marker_array, diameter);
 
         visualization_msgs::Marker marker;
         octomath::Vector3 start_v(oppairStart.x, oppairStart.y, oppairStart.z);
@@ -229,6 +231,7 @@ namespace rviz_interface
         green = 1;
         blue  = 0.75;
         build_sphere_basic(start, marker_array, ns, red, green, blue);
+        publish_startSafetyZone(start, marker_array, diameter);
 
         ns = "unknown";
         red   = 0.68;
@@ -296,6 +299,17 @@ namespace rviz_interface
         double blue = 0.38f;
         int id = 55;
         std::string ns = "safetyzone_flybyStart";
+        double alpha = 0.4;
+        build_sphere_basic(candidate, marker_array, ns, red, green, blue, id, alpha, diameter);
+    }
+
+    void build_safetyzone_flybyEnd(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter)
+    {
+        double red = 1.0f;
+        double green = 1.0f;
+        double blue = 0.38f;
+        int id = 57;
+        std::string ns = "safetyzone_flybyEnd";
         double alpha = 0.4;
         build_sphere_basic(candidate, marker_array, ns, red, green, blue, id, alpha, diameter);
     }
@@ -612,9 +626,8 @@ namespace rviz_interface
         marker.lifetime = ros::Duration();
     }
 
-    void publish_arrow_path_occupancyState(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free, int id)
+    void publish_arrow_path_occupancyState(octomath::Vector3 const& start, octomath::Vector3 const& goal, visualization_msgs::MarkerArray & marker_array, bool free, int id)
     {
-        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -653,15 +666,12 @@ namespace rviz_interface
         marker.color.a = 1;
         
         marker.lifetime = ros::Duration();
-        visualization_msgs::MarkerArray marker_array;
         marker_array.markers.push_back(marker);
-        marker_pub.publish(marker_array);
     }
 
 
     void publish_arrow_path_visibility(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free, int id)
     {
-        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -744,7 +754,6 @@ namespace rviz_interface
 
     void publish_arrow_path_father(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub)
     {
-        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -781,7 +790,6 @@ namespace rviz_interface
 
     void publish_arrow_corridor(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub)
     {
-        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -819,7 +827,6 @@ namespace rviz_interface
 
     void build_arrow_type(octomath::Vector3 const& start, octomath::Vector3 const& goal, visualization_msgs::MarkerArray & marker_array, int id, bool occupied)
     {
-        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -862,7 +869,6 @@ namespace rviz_interface
 
     void publish_arrow_straight_line(geometry_msgs::Point const& start, geometry_msgs::Point const& goal, ros::Publisher const& marker_pub, bool found_safe_alternative, int id)
     {
-        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -902,7 +908,6 @@ namespace rviz_interface
 
     void publish_arrow_corridor_center(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub)
     {
-        // ROS_WARN_STREAM("publish_arrow_path_occupancyState");
         visualization_msgs::Marker marker;
         uint32_t shape = visualization_msgs::Marker::ARROW;
         // Set the frame ID and timestamp.  See the TF tutorials for information on these.

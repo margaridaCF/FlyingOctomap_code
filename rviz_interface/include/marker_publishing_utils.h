@@ -33,7 +33,7 @@ namespace rviz_interface
 	// ARROWS
 	void build_arrow_path 			(octomath::Vector3 & start, octomath::Vector3 & goal, int request_id, visualization_msgs::Marker & marker, int series = 9, std::string ns = "lazy_theta_star_path");
     void publish_arrow_path_visibility  (octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free, int id);
-	void publish_arrow_path_occupancyState (octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, bool free, int id);
+	void publish_arrow_path_occupancyState (octomath::Vector3 const& start, octomath::Vector3 const& goal, visualization_msgs::MarkerArray & marker_array, bool free, int id);
 	void publish_arrow_path_unreachable	(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub, int id);
 	void publish_arrow_path_father		(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
 	void publish_arrow_corridor 		(octomath::Vector3 const& start, octomath::Vector3 const& goal, ros::Publisher const& marker_pub);
@@ -51,6 +51,7 @@ namespace rviz_interface
 	void publish_start 				(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array);
     void publish_startSafetyZone	(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter);
     void build_safetyzone_flybyStart(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter);
+    void build_safetyzone_flybyEnd  (geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter);
     void build_safetyzone_unknown	(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter);
 	void publish_goal 				(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array);
     void publish_goalSafetyZone		(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, double diameter);
@@ -66,7 +67,7 @@ namespace rviz_interface
 
 	// SPHERES
 	void build_sphere(octomath::Vector3 & candidate, double size, int green_base, int marker_id, visualization_msgs::Marker & marker, int red_base, std::string ns);
-    void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start,visualization_msgs::MarkerArray & marker_array);
+    void build_stateManager(geometry_msgs::Point const& frontier,geometry_msgs::Point const& oppairStart, geometry_msgs::Point const& oppairEnd, geometry_msgs::Point const& start,visualization_msgs::MarkerArray & marker_array, double diameter);
     void build_sphere_basic(geometry_msgs::Point const& candidate, visualization_msgs::MarkerArray & marker_array, std::string ns, double red, double green, double blue, int oppair_id = 30, double alpha = 1, double diameter = 0.2 );
     void build_startOPP_outsideGeofence(geometry_msgs::Point const& oppairStart, visualization_msgs::MarkerArray & marker_array, int oppair_id);
     void build_endOPP_outsideGeofence(geometry_msgs::Point const& oppairEnd, visualization_msgs::MarkerArray & marker_array, int oppair_id);

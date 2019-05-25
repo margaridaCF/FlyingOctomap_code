@@ -75,9 +75,8 @@ namespace goal_state_machine
 		else 				return oppairs_under;	
 	}
 
-	bool GoalStateMachine::checkFligthCorridor_(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub)
+	bool GoalStateMachine::checkFligthCorridor(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub)
 	{
-		LazyThetaStarOctree::generateOffsets(octree->getResolution(), flight_corridor_width, LazyThetaStarOctree::semiSphereOut, LazyThetaStarOctree::semiSphereOut );
 		octomath::Vector3 start_o(start.x(), start.y(), start.z());
 		octomath::Vector3 end_o(end.x(), end.y(), end.z());
 		LazyThetaStarOctree::InputData input (*octree, start_o, end_o, flight_corridor_width);
@@ -409,12 +408,14 @@ namespace goal_state_machine
         geometry_msgs::Point oppair_end_geom;
         getFlybyEnd(oppair_end_geom);
         visualization_msgs::MarkerArray marker_array;
-        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array);
+        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array, path_safety_margin);
         pi.marker_pub.publish(marker_array);
     }
 
 	bool GoalStateMachine::NextGoal(Eigen::Vector3d& uav_position)
 	{
+		ROS_WARN("[Goal] Next Goal");
+		LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_safety_margin, LazyThetaStarOctree::semiSphereIn, LazyThetaStarOctree::semiSphereOut );
 		return pointToNextGoal(uav_position);
 	}
 }

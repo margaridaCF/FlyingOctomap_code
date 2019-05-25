@@ -98,7 +98,7 @@ namespace goal_state_machine
 		void resetOPPair(Eigen::Vector3d& uav_position);
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
 		bool IsObservable(Eigen::Vector3d const& viewpoint);
-		bool checkFligthCorridor_(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
+		bool checkFligthCorridor(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
 
 
 	    

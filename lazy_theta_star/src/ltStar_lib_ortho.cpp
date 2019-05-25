@@ -216,10 +216,20 @@ namespace LazyThetaStarOctree{
 		Eigen::MatrixXd points_around_start = transformation_matrix_start * startOffsets;
 		Eigen::MatrixXd points_around_goal = transformation_matrix_goal * goalOffsets;
 
-		visualization_msgs::Marker marker;
 		octomath::Vector3 temp_start, temp_goal;
+		// geometry_msgs::Point start_point, end_point;
+		int id_marker = 100;
 		for (int i = 0; i < points_around_start.cols(); ++i)
 		{
+			// start_point.x = startOffsets(0, i);
+			// start_point.y = startOffsets(1, i);
+			// start_point.z = startOffsets(2, i);
+   //  		rviz_interface::build_sphere_basic(start_point, marker_array, "start_matrix", 1, 0, 0, 60+i);
+			// end_point.x = goalOffsets(0, i);
+			// end_point.y = goalOffsets(1, i);
+			// end_point.z = goalOffsets(2, i);
+   //  		rviz_interface::build_sphere_basic(end_point, marker_array, "end_matrix", 0, 0, 1, 80+i);
+
 			temp_start = octomath::Vector3(points_around_start(0, i), points_around_start(1, i), points_around_start(2, i));
 			temp_goal = octomath::Vector3(points_around_goal(0, i), points_around_goal(1, i), points_around_goal(2, i));
 
@@ -227,22 +237,25 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
-				// if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false, obstacle_hit_count);
+				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+				publish_input.marker_pub.publish(marker_array);
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin)) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
-    			// if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false, obstacle_hit_count);
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
 				obstacle_hit_count++;
+				publish_input.marker_pub.publish(marker_array);
 				return CellStatus::kOccupied; 
 			}   
 			else
 			{
-    			// if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true, obstacle_avoidance_calls*1000+i);
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, true, id_marker+i);
 				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
 			}
 		}
+		publish_input.marker_pub.publish(marker_array);
 		return CellStatus::kFree; 
 	}
 
