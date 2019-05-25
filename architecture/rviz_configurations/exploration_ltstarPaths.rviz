@@ -7,9 +7,9 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /Frontiers1/Namespaces1
+        - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
         - /State Manager1/Namespaces1
-        - /Goal State Manager1
         - /Goal State Manager1/Namespaces1
       Splitter Ratio: 0.769452453
     Tree Height: 609
@@ -30,7 +30,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: "Free Cloud "
+    SyncSource: ""
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -194,13 +194,13 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        map: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /frontiers/known_space
@@ -245,7 +245,7 @@ Visualization Manager:
       Marker Topic: /state_manager_viz
       Name: State Manager
       Namespaces:
-        geofence: false
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -253,15 +253,7 @@ Visualization Manager:
       Marker Topic: /goal_sm
       Name: Goal State Manager
       Namespaces:
-        oppair_end: true
-        oppair_path: true
-        oppair_start: true
-        oppair_start_outside: false
-        straight_line: false
-        uav_position: true
-        under_unknown_point: false
-        unknown: true
-        unknown_point: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -283,21 +275,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0.0149999997
-      Class: rviz/TopDownOrtho
+      Class: rviz/Orbit
+      Distance: 18.0110321
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Focal Point:
+        X: -1.97636497
+        Y: -0.138872057
+        Z: 9.43693066
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Scale: 24.4030952
+      Pitch: 0.784797072
       Target Frame: <Fixed Frame>
-      Value: TopDownOrtho (rviz)
-      X: 4.12218237
-      Y: 2.25679779
+      Value: Orbit (rviz)
+      Yaw: 1.23499918
     Saved: ~
 Window Geometry:
   Displays:
