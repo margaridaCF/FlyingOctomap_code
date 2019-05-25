@@ -43,6 +43,9 @@ target_link_libraries(state_manager_node goal_state_lib)
 cs_add_executable(goal_sm_node src/goal_sm_node.cpp)
 target_link_libraries(goal_sm_node goal_state_lib)
 
+cs_add_executable(fake_position_provider_node src/fake_position_provider_node.cpp)
+target_link_libraries(fake_position_provider_node)
+
 cs_add_executable(current_position_provider_node src/current_position_provider_node.cpp)
 target_link_libraries(current_position_provider_node)
 

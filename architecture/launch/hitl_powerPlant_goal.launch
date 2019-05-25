@@ -1,0 +1,16 @@
+<launch>
+
+    <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
+    <!-- #########################  Rviz ######################################### -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
+    
+    <!-- #######################  Octomap  ######################################## -->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen" args="$(find architecture)/test/data/safety_zone.bt">
+        <param name="frame_id" type="string" value="uav_1_home" />
+        <param name="publish_free_space" value="true"/>
+    </node>
+    <!-- #######################  Architecture nodes  ############################# -->
+    <node name="lazy_theta_star" type="ltStar_async_node" pkg="lazy_theta_star" output="screen" />
+    <node name="goal_finder" type="goal_sm_node" pkg="architecture" output="screen" />
+    <node name="frontier_finder" type="frontiers_async_node" pkg="frontiers" output="screen" />
+</launch>
