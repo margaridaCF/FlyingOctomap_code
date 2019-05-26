@@ -103,7 +103,7 @@ namespace goal_state_machine
 	    		Eigen::Vector3d start_e = getCurrentOPPairs().get_current_start();
 	    		Eigen::Vector3d end_e = getCurrentOPPairs().get_current_end();
 
-	    		bool fc_free = checkFligthCorridor(path_safety_margin + 0.5, start_e, end_e, pi.marker_pub);
+	    		bool fc_free = checkFligthCorridor(path_safety_margin + octree->getResolution(), start_e, end_e, pi.marker_pub);
 				if(!fc_free)
 				{
 					#ifdef RUNNING_ROS

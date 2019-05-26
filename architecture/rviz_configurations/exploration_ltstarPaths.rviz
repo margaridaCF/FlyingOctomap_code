@@ -10,6 +10,7 @@ Panels:
         - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
         - /State Manager1/Namespaces1
+        - /Goal State Manager1
         - /Goal State Manager1/Namespaces1
       Splitter Ratio: 0.769452453
     Tree Height: 609
@@ -30,7 +31,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: "Free Cloud "
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -194,13 +195,13 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        {}
+        map: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /frontiers/known_space
@@ -214,7 +215,16 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        {}
+        corridor_free: false
+        corridor_occupied: false
+        goal: true
+        goal_safetyZone: true
+        lazy_theta_star_path: true
+        lazy_theta_star_waypoint: false
+        s: false
+        start: true
+        start_safetyZone: true
+        straight_line: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -245,7 +255,7 @@ Visualization Manager:
       Marker Topic: /state_manager_viz
       Name: State Manager
       Namespaces:
-        {}
+        geofence: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -253,7 +263,20 @@ Visualization Manager:
       Marker Topic: /goal_sm
       Name: Goal State Manager
       Namespaces:
-        {}
+        corridor_free: false
+        corridor_occupied: false
+        oppair_end: true
+        oppair_path: true
+        oppair_start: true
+        oppair_start_outside: false
+        safetyzone_flybyEnd: true
+        safetyzone_flybyStart: true
+        start_safetyZone: true
+        straight_line: false
+        uav_position: true
+        under_unknown_point: false
+        unknown: true
+        unknown_point: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -276,25 +299,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 18.0110321
+      Distance: 22.0277233
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.97636497
-        Y: -0.138872057
-        Z: 9.43693066
+        X: -14.6321564
+        Y: -9.24764729
+        Z: 10.1696215
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.784797072
+      Pitch: 0.534798503
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.23499918
+      Yaw: 4.58001375
     Saved: ~
 Window Geometry:
   Displays:
