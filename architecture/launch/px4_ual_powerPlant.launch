@@ -15,7 +15,7 @@
     <!-- #########################  Robot  ######################################### -->
     <param name="robot_description" command="$(eval 'xacro --inorder ' + find('robots_description') + '/models/iris_hokuyo/model.xacro')"/>
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
-    <node pkg="tf2_ros" type="static_transform_publisher" name="tf_uav1_baselink" args="0 0 0 0 0 0 1 uav_1 base_link" />
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="tf_uav1_baselink" args="0 0 0 0 0 0 1 uav_1 base_link" /> -->
 
     <group if="$(eval mode=='sitl')">
         <!-- Launch Gazebo simulation -->
@@ -38,6 +38,7 @@
     <!-- #########################  UAL  ######################################### -->
     <include file="$(find architecture)/launch/test_server.launch"/>
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture" output="screen" />
+    <node name="tf_broadcast" type="gps_utm_tf_broadcaster_node" pkg="architecture" output="screen" />
     <!-- <node name="middle_man_current_position" type="fake_position_provider_node" pkg="architecture" output="screen" /> -->
     
 </launch>

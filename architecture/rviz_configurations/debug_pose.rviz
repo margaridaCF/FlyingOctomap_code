@@ -5,6 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /TF1
+        - /TF1/Status1
         - /TF1/Frames1
         - /Frontiers1/Namespaces1
         - /Lazy Theta Star1/Namespaces1
@@ -31,7 +33,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: "Free Cloud "
+    SyncSource: ""
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -61,56 +63,18 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
-        /imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link_inertia:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hokuyo:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor_0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor_1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor_2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor_3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: true
@@ -143,17 +107,10 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        fcu:
-          fcu_frd:
-            {}
-          map:
-            uav_1_home:
-              uav_1:
-                base_link:
-                  base_link_inertia:
-                    {}
-                  hokuyo:
-                    {}
+        map:
+          uav_1_home:
+            uav_1:
+              {}
       Update Interval: 0
       Value: true
     - Class: rviz/MarkerArray
@@ -206,7 +163,7 @@ Visualization Manager:
       Color: 255; 155; 255
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 0
@@ -223,7 +180,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /occupied_cells_vis_array
@@ -252,7 +209,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 255; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -270,7 +227,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /ual/current_path
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /state_manager_viz
@@ -292,7 +249,7 @@ Visualization Manager:
       Axes Radius: 0.100000001
       Class: rviz/Pose
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Head Length: 0.300000012
       Head Radius: 0.100000001
       Name: Pose
@@ -301,12 +258,12 @@ Visualization Manager:
       Shape: Arrow
       Topic: /uav_1/mavros/local_position/pose
       Unreliable: false
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 127; 180; 169
     Default Light: true
-    Fixed Frame: uav_1_home
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -321,21 +278,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0.0149999997
-      Class: rviz/TopDownOrtho
+      Class: rviz/Orbit
+      Distance: 4.78929853
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Focal Point:
+        X: -0.180560082
+        Y: 0.570302784
+        Z: 0.546927452
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Scale: 24.4030952
+      Pitch: 0.764797091
       Target Frame: <Fixed Frame>
-      Value: TopDownOrtho (rviz)
-      X: 4.12218237
-      Y: 2.25679779
+      Value: Orbit (rviz)
+      Yaw: 6.16318274
     Saved: ~
 Window Geometry:
   Displays:
