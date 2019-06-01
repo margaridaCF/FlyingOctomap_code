@@ -41,4 +41,7 @@
     <node name="tf_broadcast" type="gps_utm_tf_broadcaster_node" pkg="architecture" output="screen" />
     <!-- <node name="middle_man_current_position" type="fake_position_provider_node" pkg="architecture" output="screen" /> -->
     
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
+    
 </launch>
