@@ -31,6 +31,7 @@ namespace architecture_math
 	   	double result;
 		Eigen::Vector2d d = end - start;
 		d.normalize();
+
 		double adjacent = d.x();
 		double hipotenuse = d.stableNorm();
 		if(hipotenuse == 0 || std::isnan(hipotenuse))
@@ -46,6 +47,13 @@ namespace architecture_math
 				result = 2*M_PI-result;	
 			}
 		} 
+
+        if (result > M_PI)
+        {
+        	result =  -(M_PI*2 - result);
+        }
+
+        // ROS_INFO_STREAM( "[State manager] buildTargetPose from (" << start.x() << ", " << start.y() << ")  to  (" << end.x() << ", " << end.y() << ")  yaw = " << result );
 		return result ;
 	}
 

@@ -42,6 +42,7 @@ namespace LazyThetaStarOctree{
 
 	enum CellStatus { kFree = 0, kOccupied = 1, kUnknown = 2 };
 	
+	bool 		hasLineOfSight_UnknownAsFree(InputData const& input, rviz_interface::PublishingInput const& publish_input);
 	double scale_float						(float value);
 	CellStatus 	getLineStatus 				(InputData const& input);
 	CellStatus 	getLineStatusBoundingBox	(InputData const& input);

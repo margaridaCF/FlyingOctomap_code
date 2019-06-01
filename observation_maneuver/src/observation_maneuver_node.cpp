@@ -36,7 +36,7 @@ namespace observation_node
 		double distance_behind = opp_request->distance_behind;
 		double distance_inFront = opp_request->distance_inFront;
 		int circle_divisions = opp_request->circle_divisions;
-		observation_lib::OPPairs oppairs (circle_divisions, opp_request->distance_toTarget, distance_inFront, distance_behind);
+		observation_lib::OPPairs oppairs (circle_divisions, opp_request->distance_toTarget, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
 
 		int index = 0;
 		rviz_interface::PublishingInput pi (marker_pub, true, "test_node", waypoint_array);

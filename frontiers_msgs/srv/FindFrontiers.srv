@@ -1,0 +1,11 @@
+geometry_msgs/Point min
+geometry_msgs/Point max
+geometry_msgs/Point current_position
+int8 frontier_amount
+uint32 request_number
+uint32 request_id
+bool new_request
+---
+bool success
+uint32 frontiers_found
+frontiers_msgs/VoxelMsg[] frontiers

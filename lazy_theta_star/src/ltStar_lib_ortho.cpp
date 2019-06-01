@@ -4,7 +4,7 @@
 #include <orthogonal_planes.h>
 
 // #define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
-#define RUNNING_ROS 0 	// enable to publish markers on rViz
+#define RUNNING_ROS 1 	// enable to publish markers on rViz
 
 
 namespace std
@@ -29,6 +29,7 @@ namespace LazyThetaStarOctree{
 	int updateVertex_time;
 	std::ofstream log_file;
 	int id_unreachable;
+	int id_visibility;
 
 
 	void generateOffsets(double resolution, double safety_margin, double (*startDepthGenerator)(double, double, double), double (*goalDepthGenerator)(double, double, double) )
@@ -146,6 +147,24 @@ namespace LazyThetaStarOctree{
 		return CellStatus::kFree;
 	}
 
+	bool hasLineOfSight_UnknownAsFree(InputData const& input,
+		rviz_interface::PublishingInput const& publish_input)
+	{
+		// ROS_WARN_STREAM("Start " << input.start << " goal "  << input.goal);
+
+		octomath::Vector3 dummy;
+		octomath::Vector3 direction = input.goal - input.start;
+		bool is_visible = !input.octree.castRay( input.start, direction, dummy, true, direction.norm());
+		
+    	if(publish_input.publish) 
+		{
+			rviz_interface::publish_arrow_path_visibility(input.start, input.goal, publish_input.marker_pub, is_visible, id_visibility);
+			id_visibility++;
+		}
+
+		return is_visible;
+	}
+
 	bool hasLineOfSight(InputData const& input)
 	{
 		// There seems to be a blind spot when the very first node is occupied, so this covers that case
@@ -197,10 +216,20 @@ namespace LazyThetaStarOctree{
 		Eigen::MatrixXd points_around_start = transformation_matrix_start * startOffsets;
 		Eigen::MatrixXd points_around_goal = transformation_matrix_goal * goalOffsets;
 
-		visualization_msgs::Marker marker;
 		octomath::Vector3 temp_start, temp_goal;
+		// geometry_msgs::Point start_point, end_point;
+		int id_marker = 100;
 		for (int i = 0; i < points_around_start.cols(); ++i)
 		{
+			// start_point.x = startOffsets(0, i);
+			// start_point.y = startOffsets(1, i);
+			// start_point.z = startOffsets(2, i);
+   //  		rviz_interface::build_sphere_basic(start_point, marker_array, "start_matrix", 1, 0, 0, 60+i);
+			// end_point.x = goalOffsets(0, i);
+			// end_point.y = goalOffsets(1, i);
+			// end_point.z = goalOffsets(2, i);
+   //  		rviz_interface::build_sphere_basic(end_point, marker_array, "end_matrix", 0, 0, 1, 80+i);
+
 			temp_start = octomath::Vector3(points_around_start(0, i), points_around_start(1, i), points_around_start(2, i));
 			temp_goal = octomath::Vector3(points_around_goal(0, i), points_around_goal(1, i), points_around_goal(2, i));
 
@@ -208,22 +237,25 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
-				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false, obstacle_hit_count);
+				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+				publish_input.marker_pub.publish(marker_array);
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin)) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, false, obstacle_hit_count);
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
 				obstacle_hit_count++;
+				publish_input.marker_pub.publish(marker_array);
 				return CellStatus::kOccupied; 
 			}   
 			else
 			{
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, publish_input.marker_pub, true, obstacle_avoidance_calls*1000+i);
+    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, true, id_marker+i);
 				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
 			}
 		}
+		publish_input.marker_pub.publish(marker_array);
 		return CellStatus::kFree; 
 	}
 
@@ -540,15 +572,6 @@ namespace LazyThetaStarOctree{
 		{
 			ROS_ERROR_STREAM("[LTStar] Goal " << input.goal << " is unknown.");
 			log_file << "[ERROR] " << "[LTStar] Goal " << input.goal << " is unknown." << std::endl;
-			visualization_msgs::Marker marker;
-			visualization_msgs::MarkerArray marker_array;
-			rviz_interface::build_small_marker(input.goal, marker, 1, 0, 0, "unknown_goal", 99);
-        	marker_array.markers.push_back(marker);
-	        publish_input.marker_pub.publish(marker_array);
-			std::stringstream ss;
-			ss << folder_name << "/" << input.goal.x() << "_" << input.goal.y() << "_" << input.goal.z() << "__goalUnknown.bt";
-			input.octree.writeBinaryConst(ss.str());
-			// ros::Duration(20).sleep();
 			return path;	
 		} 
 
@@ -581,16 +604,18 @@ namespace LazyThetaStarOctree{
 			goal_point.y = input.goal.y();
 			goal_point.z = input.goal.z();
 			rviz_interface::publish_start(start_point, marker_array);
+			rviz_interface::publish_startSafetyZone(start_point, marker_array, input.margin);
 			rviz_interface::publish_goal(goal_point, marker_array);
+			rviz_interface::publish_goalSafetyZone(goal_point, marker_array, input.margin);
 
-			start_point.x = cell_center_coordinates_start.x();
-			start_point.y = cell_center_coordinates_start.y();
-			start_point.z = cell_center_coordinates_start.z();
-			goal_point.x = cell_center_coordinates_goal.x();
-			goal_point.y = cell_center_coordinates_goal.y();
-			goal_point.z = cell_center_coordinates_goal.z();
-			rviz_interface::publish_start_voxel(start_point, marker_array, cell_size_start);
-			rviz_interface::publish_goal_voxel(goal_point, marker_array, cell_size_goal);
+			// start_point.x = cell_center_coordinates_start.x();
+			// start_point.y = cell_center_coordinates_start.y();
+			// start_point.z = cell_center_coordinates_start.z();
+			// goal_point.x = cell_center_coordinates_goal.x();
+			// goal_point.y = cell_center_coordinates_goal.y();
+			// goal_point.z = cell_center_coordinates_goal.z();
+			// rviz_interface::publish_start_voxel(start_point, marker_array, cell_size_start);
+			// rviz_interface::publish_goal_voxel(goal_point, marker_array, cell_size_goal);
 	        publish_input.marker_pub.publish(marker_array);
 			#endif
 		}
@@ -634,7 +659,7 @@ namespace LazyThetaStarOctree{
 		id_unreachable = 0;	
         visualization_msgs::MarkerArray marker_array_closed, marker_array_s;
         int closed_id = 0;
-        int s_id = 0;
+        int s_id = 200;
 		while(!open.empty() && !solution_found)
 		{
 			visualization_msgs::MarkerArray marker_array_single_loop;
@@ -665,7 +690,7 @@ namespace LazyThetaStarOctree{
 				s_point.x = s->coordinates->x();
 				s_point.y = s->coordinates->y();
 				s_point.z = s->coordinates->z();
-				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_s, s_id, s->cell_size);
+				// rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_s, s_id, s->cell_size);
 				rviz_interface::publish_s(s_point, publish_input.marker_pub, marker_array_single_loop, s_id, s->cell_size);
 				s_id++;
 				// if(neighbors.size() > 100)
@@ -684,12 +709,12 @@ namespace LazyThetaStarOctree{
 						int id =  s_id*1000 + n_id;
 						if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input) )
 						{
-		    				rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
+		    				// rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
 							
 						}
 						else
 						{
-		    				rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
+		    				// rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
 						}
 						n_id++;
 					}
@@ -778,7 +803,7 @@ namespace LazyThetaStarOctree{
 				ROS_ERROR_STREAM("Reached maximum time for A*. Breaking out");
 				break;	
 			}
-			ros::Duration(1).sleep();
+			// ros::Duration(1).sleep();
 		}
 		resultSet.iterations_used = used_search_iterations;
 		// ROS_WARN_STREAM("Used "<< used_search_iterations << " iterations to find path");

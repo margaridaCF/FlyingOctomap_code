@@ -11,7 +11,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, 5.198341144833269, 0.01);
+        ASSERT_NEAR(yaw, -1.0848441623463163, 0.01);
 	}
 
 	TEST(LazyThetaStarMeasurements, CalculateOrientation_2)
@@ -32,7 +32,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, 3*M_PI/2, 0.01);
+        ASSERT_NEAR(yaw, -1.5707963267948966, 0.01);
 	}
 
 	TEST(LazyThetaStarMeasurements, CalculateOrientation_front)
@@ -92,7 +92,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, 4.205290475992352, 0.01);
+        ASSERT_NEAR(yaw, -2.0778948311872334, 0.01);
 	}
 
 	TEST(LazyThetaStarMeasurements, CalculateOrientation_q4)
@@ -102,7 +102,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, 5.219487484777026, 0.01);
+        ASSERT_NEAR(yaw,  -1.0636978224025597, 0.01);
 	}
     TEST(LazyThetaStarMeasurements, CalculateOrientation_q1_diag)
     {
@@ -131,7 +131,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, (5*M_PI/4), 0.01);
+        ASSERT_NEAR(yaw, (-2.3561944901923448), 0.01);
     }
 
     TEST(LazyThetaStarMeasurements, CalculateOrientation_q4_diag)
@@ -141,7 +141,7 @@ namespace architecture_math
 
         double yaw = calculateOrientation(start, end);
 
-        ASSERT_NEAR(yaw, (7*M_PI/4), 0.01);
+        ASSERT_NEAR(yaw, (-0.78539816339744828), 0.01);
     }
 }
 

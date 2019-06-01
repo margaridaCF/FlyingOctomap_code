@@ -13,8 +13,8 @@ namespace observation_lib
 
     std::ofstream log_file;
 
-	OPPairs::OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind)
-		: circle_divisions(circle_divisions)
+	OPPairs::OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind, translate_func_ptr translate_func)
+		: circle_divisions(circle_divisions), translate_func(translate_func), index(circle_divisions)
 	{
 		current = OPPair();
 		starts_zero     = Eigen::MatrixXd (3, circle_divisions);
@@ -33,25 +33,14 @@ namespace observation_lib
 
 	bool OPPairs::Next()
 	{	
-		#ifdef SAVE_LOG
-		log_file.open ("/home/mfaria/Flying_Octomap_code/src/data/current/oppair.log", std::ofstream::app);
-		#endif
-		log_file << "[OPPairs] Next. circle_divisions " << circle_divisions << std::endl;
 		if (index < circle_divisions )
 		{
-			observation_lib::translate(motion_direction, starts_zero.col(index), ends_zero.col(index), directions_zero.col(index), frontier, current.start, current.end);
-			#ifdef SAVE_LOG
-			log_file << "[OPPairs] [" << index << "] (" << current.start(0) << ", " << current.start(1) << ", " << current.start(2) << ") --> (" << current.end(0) << ", " << current.end(1) << ", " << current.end(2) << ")" << std::endl;
-            log_file.close();
-			#endif
+			translate_func(motion_direction, starts_zero.col(index), ends_zero.col(index), directions_zero.col(index), frontier, current.start, current.end);
 			index++;
 			return true;
 		}
 		else
 		{
-			#ifdef SAVE_LOG
-            log_file.close();
-			#endif
 			return false;
 		}
 	}
@@ -96,7 +85,7 @@ namespace observation_lib
 		ends_zero   = circle_radius + distance_inFront*directions_zero;
 	}
 
-	void translate( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end)
+	void translateAdjustDirection( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end)
 	{
 		double check = direction_zero.dot(motion_direction);
 		if(check >= 0)
@@ -109,6 +98,12 @@ namespace observation_lib
 			end   = frontier + start_zero;
 			start = frontier + end_zero;
 		}
+	}
+
+	void translate( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end)
+	{
+		start = frontier + start_zero;
+		end   = frontier + end_zero;
 	}
 
 	

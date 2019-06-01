@@ -7,6 +7,9 @@
 
 namespace observation_lib
 {
+	typedef void (*translate_func_ptr)( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end);
+
+
 	class OPPair
 	{
 	public:
@@ -25,8 +28,9 @@ namespace observation_lib
 		int index;
 		Eigen::Vector3d frontier;
 		OPPair current;
+		translate_func_ptr translate_func;
 	public:
-		OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind);
+		OPPairs(int circle_divisions, double distance_toTarget, double distance_inFront, double distance_behind, translate_func_ptr translate_func);
 		OPPairs(){}
 		void NewFrontier(Eigen::Vector3d new_frontier, Eigen::Vector3d uav_position, rviz_interface::PublishingInput pi);
 		bool Next();
@@ -40,6 +44,7 @@ namespace observation_lib
 	void generateCirclePoints(int point_number, Eigen::MatrixXd & circle_points);
 	void precalculation (double radius, int point_number, double distance_inFront, double distance_behind, Eigen::MatrixXd & starts_zero, Eigen::MatrixXd & ends_zero, Eigen::MatrixXd & directions_zero);
 	void translate( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end);
+	void translateAdjustDirection( Eigen::Vector3d const& motion_direction, Eigen::Vector3d const& start_zero, Eigen::Vector3d const& end_zero, Eigen::Vector3d const& direction_zero, Eigen::Vector3d const& frontier, Eigen::Vector3d & start, Eigen::Vector3d & end);
 }
 
 

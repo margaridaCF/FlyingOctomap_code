@@ -29,6 +29,7 @@
 #include <Eigen/Eigen>
 #include <Eigen/Geometry>
 #include <architecture_msgs/PositionMiddleMan.h>
+#include <tf/transform_datatypes.h>
 
 namespace ual_server
 {
@@ -42,8 +43,10 @@ nav_msgs::Path uav_current_path, uav_target_path;
 Eigen::Vector3f target_point, current_point, fix_pose_point;
 geometry_msgs::PoseStamped target_pose, current_pose, fix_pose_pose;
 geometry_msgs::TwistStamped velocity_to_pub;
-Eigen::Quaterniond q_current, q_target, q_target_fix;
+Eigen::Quaterniond q_current, q_target;
 uav_abstraction_layer::State uav_state;
+double last_yaw, requested_yaw;
+double px4_orientation_confusion_limit, px4_orientation_confusion_limit_degrees;
 bool new_target = false;
 bool new_orientation = false;
 bool taking_off = false;
@@ -77,33 +80,82 @@ void update_target_fix_variables(geometry_msgs::Pose fix_pose) {
     fix_pose_pose.pose.orientation = fix_pose.orientation;
     fix_pose_pose.pose.position = uav_target_path.poses.at(uav_target_path.poses.size() - 2).pose.position;  // Take previous target_pose.position to fix orientation before next target
     fix_pose_point = Eigen::Vector3f(fix_pose_pose.pose.position.x, fix_pose_pose.pose.position.y, fix_pose_pose.pose.position.z);
-    q_target_fix.x() = fix_pose_pose.pose.orientation.x;
-    q_target_fix.y() = fix_pose_pose.pose.orientation.y;
-    q_target_fix.z() = fix_pose_pose.pose.orientation.z;
-    q_target_fix.w() = fix_pose_pose.pose.orientation.w;
     return;
+}
+
+void update_yaw(double yaw)
+{
+    target_pose.pose.orientation   = tf::createQuaternionMsgFromYaw(yaw);
+    fix_pose_pose.pose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+    q_target.x() = target_pose.pose.orientation.x;
+    q_target.y() = target_pose.pose.orientation.y;
+    q_target.z() = target_pose.pose.orientation.z;
+    q_target.w() = target_pose.pose.orientation.w;
+}
+
+double yawDiff(double last_yaw, double requested_yaw)
+{
+    double yawDiff = 0;
+    if (std::isnan(last_yaw))
+    {
+        yawDiff = requested_yaw;
+    }
+    else if (last_yaw >= 0 && requested_yaw >= 0)
+    {
+        yawDiff = std::abs(last_yaw - requested_yaw);
+    }
+    else if (last_yaw < 0 && requested_yaw < 0)
+    { 
+        yawDiff = std::abs(last_yaw - requested_yaw);
+    }
+    else if (last_yaw >= 0 && requested_yaw < 0)
+    { 
+        yawDiff = std::abs(requested_yaw) + last_yaw;
+    }
+    else if (last_yaw < 0 && requested_yaw >= 0)
+    { 
+        yawDiff = std::abs(last_yaw) + requested_yaw;
+    }
+    else
+    {
+        ROS_ERROR_STREAM("[ual] 1 There is a major bug in yawDiff. last_yaw " << last_yaw << " - requested_yaw " << requested_yaw );
+    }
+    return yawDiff;
+}
+
+double toDegrees(double radians)
+{
+    return (radians*(180/M_PI));
 }
 
 bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
                         architecture_msgs::PositionRequest::Response &res) {
     if (uav_state.state == 4) {
-        if (!new_target) {
-            fix_pose_pose.pose.orientation = req.pose.orientation;
-            fix_pose_pose.pose.position = target_pose.pose.position;
+        if (!new_target) 
+        {
             movement_state = fix_pose;
             target_pose.pose = req.pose;
             target_pose.header.frame_id = "uav_1_home";
             uav_target_path.poses.push_back(target_pose);
+            Eigen::Quaterniond q(req.pose.orientation.w, req.pose.orientation.x, req.pose.orientation.y, req.pose.orientation.z);
+            auto euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
+            last_yaw = tf::getYaw(fix_pose_pose.pose.orientation);
+            requested_yaw = tf::getYaw(req.pose.orientation);
+            double amplitude = yawDiff(last_yaw, requested_yaw);
+            if (amplitude > px4_orientation_confusion_limit)
+            {
+                last_yaw = px4_orientation_confusion_limit;
+            }   
+            else if(amplitude < -px4_orientation_confusion_limit)
+            {
+                last_yaw = -px4_orientation_confusion_limit;
+            }   
+            else
+            {
+                last_yaw = requested_yaw;
+            }
+            update_yaw(last_yaw);
             target_point = Eigen::Vector3f(target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
-            q_target.x() = target_pose.pose.orientation.x;
-            q_target.y() = target_pose.pose.orientation.y;
-            q_target.z() = target_pose.pose.orientation.z;
-            q_target.w() = target_pose.pose.orientation.w;
-            update_current_variables(current_pose);
-            ROS_INFO_STREAM("[UAL Node] Incoming " << req.pose.orientation);
-            ROS_INFO("[UAL Node] New target -> P: %f, %f, %f", target_pose.pose.position.x, target_pose.pose.position.y, target_pose.pose.position.z);
-            ROS_INFO("                    O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
-            ROS_INFO("[UAL Node] Fixing Pose");
             update_target_fix_variables(target_pose.pose);
             res.is_going_to_position = true;
         }else{
@@ -141,16 +193,21 @@ bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
         }
         else
         {
-            ROS_WARN("[State manager] Current position middle man node not accepting requests.");
+            ROS_WARN("[UAL Node] Current position middle man node not accepting requests.");
             return false;
         }
     }
 
-void initialization()
-{
-
-    position_tolerance = 0.3;
-    distance_switch_wp_control = 0.5;
+void initialization(ros::NodeHandle nh)
+{   
+        
+    px4_orientation_confusion_limit_degrees = 120;
+    px4_orientation_confusion_limit = (px4_orientation_confusion_limit_degrees*(M_PI/180));
+    double px4_loiter_radius, odometry_error;
+    nh.getParam("/px4_loiter_radius", px4_loiter_radius);
+    nh.getParam("/odometry_error", odometry_error);
+    position_tolerance = std::max(px4_loiter_radius, odometry_error);
+    distance_switch_wp_control = 2;
     max_acceptance_orientation = 3.0;
     min_acceptance_orientation = 0.14;
     ros::param::param<int>("~uav_id", uav_id, 1);
@@ -215,22 +272,27 @@ void main_loop(grvc::ual::UAL& ual)
                 }
                 break;
             case fix_pose:
-                update_target_fix_variables(fix_pose_pose.pose);
-                if (new_orientation) {
-                    ROS_INFO("[UAL Node] Requesting -> P: %f, %f, %f", fix_pose_pose.pose.position.x, fix_pose_pose.pose.position.y, fix_pose_pose.pose.position.z);
-                    ROS_INFO("                         O: %f, %f, %f, %f", target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w);
+                bool changedOrientation = (max_acceptance_orientation > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > min_acceptance_orientation);
+                if (changedOrientation) {
+                    // Eigen::Quaterniond q(fix_pose_pose.pose.orientation.w, fix_pose_pose.pose.orientation.x, fix_pose_pose.pose.orientation.y, fix_pose_pose.pose.orientation.z);
+                    // auto euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
+                    // ROS_INFO_STREAM( "[Ual Node] fix pose Yaw " << euler[2] << " = " << (euler[2]*(180/M_PI)));
                     ual.goToWaypoint(fix_pose_pose, false);
                     new_orientation = false;
                 } 
                 else 
                 {
-                    // ROS_INFO("                     q_current: %f, %f, %f, %f", q_current.x(), q_current.y(), q_current.z(), q_current.w());
-                    // ROS_INFO("                      q_target: %f, %f, %f, %f", q_target.x(), q_target.y(), q_target.z(), q_target.w());
+                    if(last_yaw != requested_yaw)
+                    {
+                        update_yaw(requested_yaw);
+                        last_yaw = requested_yaw;
+                    }
+
                     bool command_in_position = (max_acceptance_orientation > q_current.angularDistance(q_target) && q_current.angularDistance(q_target) > min_acceptance_orientation) 
                         || (fix_pose_point - current_point).norm() > position_tolerance;
                     if (command_in_position)
                     {
-                        // ROS_INFO("[UAL Node] Waiting until arrival.");
+                        // ROS_INFO("[UAL Node] Waiting until position arrival.");
                     }
                     else 
                     {
@@ -262,7 +324,7 @@ int main(int _argc, char **_argv) {
     ual_server::current_position_client = nh.serviceClient<architecture_msgs::PositionMiddleMan>("/get_current_position");
 
 
-    ual_server::initialization();
+    ual_server::initialization(nh);
 
     while (!ual.isReady() && ros::ok()) {
         ROS_WARN("UAL %d not ready!", ual_server::uav_id);

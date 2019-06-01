@@ -4,13 +4,12 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
-        - /Frontiers1/Namespaces1
         - /Geofence1/Namespaces1
-        - /MarkerArray1/Namespaces1
+        - /State Manager1
+        - /State Manager1/Namespaces1
         - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
+        - /Frontiers1
       Splitter Ratio: 0.652941167
     Tree Height: 550
   - Class: rviz/Selection
@@ -58,22 +57,6 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 1
-      Class: rviz/RobotModel
-      Collision Enabled: false
-      Enabled: false
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-      Name: RobotModel
-      Robot Description: robot_description
-      TF Prefix: ""
-      Update Interval: 0
-      Value: false
-      Visual Enabled: true
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 15
@@ -94,14 +77,6 @@ Visualization Manager:
             {}
       Update Interval: 0
       Value: true
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /is_frontier_markers
-      Name: Frontiers
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /free_cells_vis_array
@@ -109,36 +84,6 @@ Visualization Manager:
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/LaserScan
-      Color: 155; 255; 255
-      Color Transformer: FlatColor
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: -999999
-      Min Color: 0; 0; 0
-      Min Intensity: 999999
-      Name: Hokuyo
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.5
-      Style: Points
-      Topic: /scan
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
       Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -188,8 +133,8 @@ Visualization Manager:
       Value: false
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /frontiers/known_space
-      Name: MarkerArray
+      Marker Topic: /state_manager_viz
+      Name: State Manager
       Namespaces:
         {}
       Queue Size: 100
@@ -199,66 +144,41 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        corridor_free: false
-        goal: true
-        goal_voxel: true
-        rejected_neighors: true
-        s: true
-        start: true
-        start_voxel: true
-        straight_line: true
-        usable_neighors: true
+        corridor_free: true
+        corridor_occupied: true
       Queue Size: 100
       Value: true
-    - Angle Tolerance: 0.100000001
-      Class: rviz/Odometry
-      Covariance:
-        Orientation:
-          Alpha: 0.5
-          Color: 255; 255; 127
-          Color Style: Unique
-          Frame: Local
-          Offset: 1
-          Scale: 1
-          Value: true
-        Position:
-          Alpha: 0.300000012
-          Color: 204; 51; 204
-          Scale: 1
-          Value: true
-        Value: false
-      Enabled: false
-      Keep: 100
-      Name: Global - UTM
-      Position Tolerance: 0.100000001
-      Shape:
-        Alpha: 1
-        Axes Length: 1
-        Axes Radius: 0.100000001
-        Color: 255; 25; 0
-        Head Length: 0.300000012
-        Head Radius: 0.100000001
-        Shaft Length: 1
-        Shaft Radius: 0.0500000007
-        Value: Arrow
-      Topic: /mavros/global_position/local
-      Unreliable: false
-      Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /is_frontier_markers
+      Name: Frontiers
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
     - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.100000001
-      Class: rviz/Pose
-      Color: 255; 25; 0
-      Enabled: false
-      Head Length: 3
-      Head Radius: 1
-      Name: Pose
-      Shaft Length: 1
-      Shaft Radius: 0.0500000007
-      Shape: Arrow
-      Topic: /mavros/local_position/pose
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /ual/current_path
       Unreliable: false
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 0; 170; 255
@@ -284,25 +204,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 17.2026062
+      Distance: 65.6989594
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -14.3097754
-        Y: -5.80364275
-        Z: -0.082076177
+        X: -11.4855995
+        Y: -1.78261256
+        Z: 6.16553497
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.39979744
+      Pitch: 1.12479782
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.09544373
+      Yaw: 5.11042213
     Saved: ~
 Window Geometry:
   Displays:

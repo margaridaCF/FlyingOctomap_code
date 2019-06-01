@@ -40,6 +40,12 @@ target_link_libraries(ual_server)
 cs_add_executable(state_manager_node src/state_manager_node.cpp)
 target_link_libraries(state_manager_node goal_state_lib)
 
+cs_add_executable(goal_sm_node src/goal_sm_node.cpp)
+target_link_libraries(goal_sm_node goal_state_lib)
+
+cs_add_executable(fake_position_provider_node src/fake_position_provider_node.cpp)
+target_link_libraries(fake_position_provider_node)
+
 cs_add_executable(current_position_provider_node src/current_position_provider_node.cpp)
 target_link_libraries(current_position_provider_node)
 
@@ -65,11 +71,11 @@ if(CATKIN_ENABLE_TESTING)
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} goal_state_lib)
 
-  # Goal State Machine
-  catkin_add_gtest(goal_sm_tests 
-    test/goal_state_machine_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(goal_sm_tests ${catkin_LIBRARIES} goal_state_lib)
+  # # Goal State Machine
+  # catkin_add_gtest(goal_sm_tests 
+  #   test/goal_state_machine_tests.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(goal_sm_tests ${catkin_LIBRARIES} goal_state_lib)
 
   #MATH
   catkin_add_gtest(architecture_tests 

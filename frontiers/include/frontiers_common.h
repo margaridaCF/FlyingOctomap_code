@@ -14,8 +14,7 @@
 #include <marker_publishing_utils.h>
 #include <octomap/OcTree.h>
 #include <octomap/math/Vector3.h>
-#include <frontiers_msgs/FrontierReply.h>
-#include <frontiers_msgs/FrontierRequest.h>
+#include <frontiers_msgs/FindFrontiers.h>
 
 // #define BASELINE 1
 #define RUNNING_ROS 1

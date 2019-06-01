@@ -2,40 +2,36 @@
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 #include <nav_msgs/Odometry.h>
-
-
-namespace gps_utm_tf_broadcaster
-{
-  double z_offset_pixhawk = 0.44;
-  std::string uav_f;
-  std::string world_f;
-
-  void poseCallback(const nav_msgs::OdometryConstPtr& msg){
-    static tf::TransformBroadcaster br;
-    tf::Transform transform;
-    transform.setOrigin( tf::Vector3(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z + z_offset_pixhawk) );
-    tf::Quaternion q;
-    tf::quaternionMsgToTF(msg->pose.pose.orientation, q);
-    transform.setRotation(q);
-    
-    br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, "world", "custom_conversion_uav_frame"));
-    // br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, world_f, uav_f));
-  }
-  
-}
-
+#include <gazebo_msgs/GetLinkState.h>
 
 
 int main(int argc, char** argv){
-  ros::init(argc, argv, "gps_utm_tf_broadcaster");
-  ros::NodeHandle node;
+  ros::init(argc, argv, "tf_broadcaster");
+  ros::NodeHandle nh;
 
-  node.getParam("uav_frame", gps_utm_tf_broadcaster::uav_f);
-  node.getParam("world_frame", gps_utm_tf_broadcaster::world_f);
-  ROS_WARN_STREAM("uav_frame " << gps_utm_tf_broadcaster::world_f << " world_frame " << gps_utm_tf_broadcaster::uav_f);
 
-  ros::Subscriber sub = node.subscribe("mavros/global_position/local", 10, &gps_utm_tf_broadcaster::poseCallback);
+  ros::ServiceClient get_transform           = nh.serviceClient<gazebo_msgs::GetLinkState>("/gazebo/get_link_state");
+  static tf::TransformBroadcaster br;
 
-  ros::spin();
+  while (ros::ok())
+  {
+    gazebo_msgs::GetLinkState srv;
+    srv.request.link_name = "base_link";
+    srv.request.reference_frame = "map";
+
+    if(get_transform.call(srv))
+    {
+      auto timestamp = ros::Time::now();
+      tf::Transform transform;
+      transform.setOrigin( tf::Vector3(srv.response.link_state.pose.position.x, srv.response.link_state.pose.position.y, srv.response.link_state.pose.position.z) );
+      tf::Quaternion q (srv.response.link_state.pose.orientation.x, srv.response.link_state.pose.orientation.y, srv.response.link_state.pose.orientation.z, srv.response.link_state.pose.orientation.w);
+      transform.setRotation(q);
+      br.sendTransform(tf::StampedTransform(transform, timestamp, "map", "base_link"));
+    }
+    else
+    {
+        ROS_ERROR("[tf_broadcaster] Gazebo not accepting get_link_state requests.");
+    }
+  }
   return 0;
 };

@@ -8,12 +8,11 @@
 
 namespace Frontiers{
 
-    std::ofstream log_file;
-
     enum State
     {
         free = 0, occupied = 1 , unknown = 2
     };
+    int n_id;
 
 
     bool isInsideGeofence(octomath::Vector3 const&  candidate, geometry_msgs::Point geofence_min, geometry_msgs::Point geofence_max)
@@ -25,10 +24,6 @@ namespace Frontiers{
             || candidate.y() > geofence_max.y  
             || candidate.z() > geofence_max.z)
         {
-            
-            #ifdef SAVE_LOG            
-            log_file << "[Frontiers] Rejected " << candidate << " because it is outside geofence " << std::endl;
-            #endif
             return false;
         }
         return true;
@@ -72,7 +67,8 @@ namespace Frontiers{
         marker_array.markers.push_back(marker);
     }
 
-    void searchFrontier(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish)
+    void searchFrontier(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FindFrontiers::Request  &request,
+        frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish)
     {
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
         
@@ -89,7 +85,17 @@ namespace Frontiers{
         int frontiers_count = 0;
         visualization_msgs::MarkerArray marker_array;
         LazyThetaStarOctree::unordered_set_pointers analyzed;
-        int n_id = 0;
+
+        if(it == octree.end_leafs_bbx())
+        {
+            ROS_ERROR_STREAM("[Frontier] End of iterator");
+        }
+
+        if(!(frontiers_count < request.frontier_amount ))
+        {
+            ROS_ERROR_STREAM("[Frontier] Already found " << frontiers_count << " frontiers out of " << request.frontier_amount);
+
+        }
         while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount )
         {
             octomath::Vector3 coord = it.getCoordinate();
@@ -115,10 +121,10 @@ namespace Frontiers{
                         continue;
                     }   
                     State n_state = getState(*n_coordinates, octree);
-                    paintState(n_state, *n_coordinates, marker_array, n_id);
-                    n_id++;
                     if(n_state == unknown)
                     {
+                        paintState(n_state, *n_coordinates, marker_array, n_id);
+                        n_id++;
                         frontiers_msgs::VoxelMsg voxel_msg;
                         voxel_msg.size = currentVoxel.size;
                         voxel_msg.xyz_m.x = n_coordinates->x();
@@ -131,7 +137,6 @@ namespace Frontiers{
                         frontiers_count++;
                         if( frontiers_count == request.frontier_amount)
                         {
-                            ROS_INFO_STREAM("[Frontiers] Added last neighbor. ");
                             break;
                         }
                         #endif
@@ -148,14 +153,13 @@ namespace Frontiers{
         allNeighbors.buildMessageList(request.frontier_amount, reply);
         #else
         reply.frontiers_found = frontiers_count;
+        reply.success = frontiers_count > 0;
         #endif
     }
 
-    octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FrontierRequest const& request, frontiers_msgs::FrontierReply & reply, ros::Publisher const& marker_pub, bool publish )
+    octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FindFrontiers::Request  &request,
+        frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish )
     {
-        reply.header.seq = request.header.seq + 1;
-        reply.request_id = request.header.seq;
-        reply.header.frame_id = request.header.frame_id;
         double resolution = octree.getResolution();
         octomath::Vector3  max = octomath::Vector3(request.max.x-resolution, request.max.y-resolution, request.max.z-resolution);
         octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
@@ -174,10 +178,8 @@ namespace Frontiers{
             return octomap::OcTree::leaf_bbx_iterator();
         }
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
+        n_id = 100;
         searchFrontier(octree, it, request, reply, marker_pub, publish);
-
-        reply.success = true;
-
         return it;
     }
     
@@ -215,12 +217,6 @@ namespace Frontiers{
         octomath::Vector3 cell_center = octree.keyToCoord(key, depth); 
         double voxel_size = ((tree_depth + 1) - depth) * resolution; 
 
-// #ifdef SAVE_LOG
-//         log_file.open ("/ros_ws/src/data/current/frontiers.log", std::ofstream::app);
-//         log_file << " == " << candidate << " == " << std::endl;
-//         log_file << " Voxel center " << cell_center << std::endl;
-// #endif
-
         bool is_frontier = false;
         if( isExplored(cell_center, octree)
             && !isOccupied(cell_center, octree) ) 
@@ -234,31 +230,15 @@ namespace Frontiers{
                 {
                     if(!isExplored(*n_coordinates, octree))
                     {
-// #ifdef SAVE_LOG
-//                         log_file << "[isFrontier] Neighbor " << *n_coordinates << " UNKNOWN! "  << std::endl;
-// #endif
                         ROS_ERROR_STREAM("[isFrontier] Unknown neighbor is " << *n_coordinates);
                         is_frontier = true;
                     }
                     else
                     {
-// #ifdef SAVE_LOG
-//                 log_file << "[isFrontier] Neighbor " << *n_coordinates << " free. " << std::endl;
-// #endif 
                     }
-                }
-                else
-                {
-// #ifdef SAVE_LOG
-//                 log_file << "[isFrontier] Neighbor " << *n_coordinates << " occupied. " << std::endl;
-// #endif
-
                 }
             }
         }
-#ifdef SAVE_LOG
-        log_file.close();
-#endif
         return is_frontier;
     }
 }

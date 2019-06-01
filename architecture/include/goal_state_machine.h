@@ -1,12 +1,14 @@
 #ifndef GOAL_STATE_MACHINE_H
 #define GOAL_STATE_MACHINE_H
 
-#include <frontiers_msgs/FrontierReply.h>
+#include <frontiers_msgs/FindFrontiers.h>
 #include <unordered_set>
 #include <architecture_math.h>
 #include <marker_publishing_utils.h>
 #include <observation_maneuver.h>
-#include <lazy_theta_star_msgs/CheckFlightCorridor.h>
+#include <iostream>
+#include <fstream>
+#include <octomap/OcTree.h>
 
 #define SAVE_LOG 1
 
@@ -71,38 +73,51 @@ namespace goal_state_machine
 	class GoalStateMachine
 	{
 	    rviz_interface::PublishingInput 	pi;
-	    frontiers_msgs::FrontierReply & 	frontiers_msg;
+		frontiers_msgs::FindFrontiers 		frontier_srv;
 	    geometry_msgs::Point 				geofence_min, geofence_max;
-	    ros::ServiceClient &				check_flightCorridor_client;
+	    ros::ServiceClient &				find_frontiers_client;
 	    bool 								has_more_goals, resetOPPair_flag;
-	    int 								frontier_index;
+	    bool								is_oppairs_side;
+	    bool								new_map;
     	double 								path_safety_margin;
     	double 								sensing_distance;
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
-	    bool								is_oppairs_side;
         unobservable_pair_set	 			unobservable_set; 
+	    int 								frontier_index;
+        int 								oppair_id;
+        int 								frontier_request_count;
+		std::ofstream log_file;
 
 
 		observation_lib::OPPairs& getCurrentOPPairs();
-		bool is_flightCorridor_free() ;
+		bool is_flightCorridor_free(double flight_corridor_width) ;
 		bool IsOPPairValid() ;
+    	bool IsVisible(Eigen::Vector3d unknown);
 		bool is_inside_geofence(Eigen::Vector3d target) const;
 		bool hasNextFrontier() const;
 		void resetOPPair(Eigen::Vector3d& uav_position);
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
-		bool IsUnobservable(Eigen::Vector3d const& viewpoint);
+		bool IsObservable(Eigen::Vector3d const& viewpoint);
+		bool checkFligthCorridor(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
 
 
 	    
 	    
 	public:
-		geometry_msgs::Point get_current_frontier() const;
-		GoalStateMachine(frontiers_msgs::FrontierReply & frontiers_msg, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, ros::ServiceClient& check_flightCorridor_client, double path_safety_margin);
-		~GoalStateMachine(){}
-		void NewFrontiers(frontiers_msgs::FrontierReply & new_frontiers_msg);
+    	octomap::OcTree* octree;
+		geometry_msgs::Point get_current_frontier() ;
+		void get_current_frontier(Eigen::Vector3d& frontier) ;
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance);
+		~GoalStateMachine()
+		{
+			log_file.close();
+		}
+		bool findFrontiers_CallService(Eigen::Vector3d& uav_position);
+		void NewMap();
 		bool NextGoal(Eigen::Vector3d& uav_position);
-		void DeclareUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
-		bool IsUnobservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
+		void DeclareUnobservable();
+		bool IsObservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
+		void publishGoalToRviz(geometry_msgs::Point current_position);
 		int getUnobservableSetSize()
 		{
 			return unobservable_set.size();
@@ -119,6 +134,7 @@ namespace goal_state_machine
 			else
 			{
 				ROS_ERROR("[goal_state_machine] Asked for 3d flyby end but no goal is available.");
+				log_file << "[goal_state_machine] Asked for 3d flyby end but no goal is available." << std::endl;
 			}
 			return has_more_goals;
 		}
@@ -134,6 +150,7 @@ namespace goal_state_machine
 			else
 			{
 				ROS_ERROR("[goal_state_machine] Asked for 3d flyby start but no goal is available.");
+				log_file << "[goal_state_machine] Asked for 3d flyby start but no goal is available." << std::endl;
 			}
 			return has_more_goals;
 		}
@@ -149,37 +166,11 @@ namespace goal_state_machine
 			else
 			{
 				ROS_ERROR("[goal_state_machine] Asked for 3d flyby end but no goal is available.");
+				log_file << "[goal_state_machine] Asked for 3d flyby end but no goal is available." << std::endl;
 			}
 			return has_more_goals;
 		}
 
-		bool get2DFlybyStart(Eigen::Vector2d & start)
-		{
-			if (has_more_goals)
-			{
-				start.x() = getCurrentOPPairs().get_current_start().x();
-				start.y() = getCurrentOPPairs().get_current_start().y();
-			}
-			else
-			{
-				ROS_ERROR("[goal_state_machine] Asked for 2d flyby start but no goal is available.");
-			}
-			return has_more_goals;
-		}
-
-		bool get2DFlybyEnd(Eigen::Vector2d & end)
-		{
-			if (has_more_goals)
-			{
-				end.x() = getCurrentOPPairs().get_current_end().x();
-				end.y() = getCurrentOPPairs().get_current_end().y();
-			}
-			else
-			{
-				ROS_ERROR("[goal_state_machine] Asked for 2d flyby end but no goal is available.");
-			}
-			return has_more_goals;
-		}
 
 	};
 
