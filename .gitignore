@@ -46,3 +46,7 @@ generate_plots/temp-plot\.html
 points\.txt
 
 laser_to_free_points_cloud
+
+_generate_plots/Exploration/volume_exploration_vs_time\.html
+
+_generate_plots/Exploration/\.ipynb_checkpoints/Volume-checkpoint\.ipynb
