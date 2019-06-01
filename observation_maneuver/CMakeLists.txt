@@ -52,12 +52,12 @@ cs_export()
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
   # target_link_libraries(workInProgress_observation_maneuver ${catkin_LIBRARIES} observation_maneuver_lib)
 
-  # # WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # # Observation maneuver ##
-  # catkin_add_gtest(observation_maneuver_test
-  #   test/observationPoints_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(observation_maneuver_test ${catkin_LIBRARIES} observation_maneuver_lib)
+#   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # Observation maneuver ##
+  catkin_add_gtest(observation_maneuver_test
+    test/observationPoints_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(observation_maneuver_test ${catkin_LIBRARIES} observation_maneuver_lib)
 
 # endif()
 
