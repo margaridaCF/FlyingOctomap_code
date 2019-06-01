@@ -109,6 +109,5 @@ namespace LazyThetaStarOctree{
 	void findDifferentSizeCells_ptr_3D(octomap::OcTree const& octree);
 
     double calculateCellSpace(octomap::OcTree const& octree);
-    bool isInsideBlindR(double n_x, double n_y, double c_x, double c_y, double blind_perimeter);
 }
 #endif // NEIGHBORS_H

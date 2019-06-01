@@ -2,8 +2,8 @@
 #include <neighbors.h>
 #include <ordered_neighbors.h>
 
-#define SAVE_LOG 1
-#define RUNNING_ROS 1
+// #define SAVE_LOG 1
+// #define RUNNING_ROS 1
 
 
 namespace Frontiers{
@@ -123,7 +123,9 @@ namespace Frontiers{
                     State n_state = getState(*n_coordinates, octree);
                     if(n_state == unknown)
                     {
-                        paintState(n_state, *n_coordinates, marker_array, n_id);
+                        #ifdef RUNNING_ROS
+                            paintState(n_state, *n_coordinates, marker_array, n_id);
+                        #endif
                         n_id++;
                         frontiers_msgs::VoxelMsg voxel_msg;
                         voxel_msg.size = currentVoxel.size;

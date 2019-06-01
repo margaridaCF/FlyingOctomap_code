@@ -17,7 +17,7 @@
 #include <frontiers_msgs/FindFrontiers.h>
 
 // #define BASELINE 1
-#define RUNNING_ROS 1
+// #define RUNNING_ROS 1
 
 
 namespace Frontiers{
