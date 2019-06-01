@@ -16,7 +16,7 @@
 #include "sys/types.h"
 #include "sys/sysinfo.h"
 
-#define SAVE_CSV 1
+// #define SAVE_CSV 1
 
 namespace frontiers_async_node
 {
@@ -141,7 +141,7 @@ namespace frontiers_async_node
 			log << millis.count() << ", " << seconds.count() << "\n";
 			log.close();
 			// Explored volume
-			volume_explored.open (folder_name + "/volume_explored.csv", std::ofstream::app);
+			volume_explored.open (folder_name + "/current/volume_explored.csv", std::ofstream::app);
 			std::chrono::duration<double> ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start_exploration);
 			std::chrono::milliseconds ellapsed_time_millis = std::chrono::duration_cast<std::chrono::milliseconds>(ellapsed_time);
 			double resolution = octree->getResolution();
@@ -186,8 +186,8 @@ int main(int argc, char **argv)
 		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/frontiers_computation_time.csv", std::ofstream::app);
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
-		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/volume_explored.csv", std::ofstream::app);
-		frontiers_async_node::volume_explored << "time ellapsed minutes,volume,RAM\n";
+		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/current/volume_explored.csv", std::ofstream::app);
+		frontiers_async_node::volume_explored << "time ellapsed minutes,volume\n";
 		frontiers_async_node::volume_explored.close();
 		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
 #endif
