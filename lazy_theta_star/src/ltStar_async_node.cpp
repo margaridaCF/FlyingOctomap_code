@@ -172,6 +172,9 @@ int main(int argc, char **argv)
 {
 
 #ifdef STANDALONE
+	
+	std::stringstream aux_envvar_home (std::getenv("HOME"));
+	LazyThetaStarOctree::folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 	auto timestamp_chrono = std::chrono::high_resolution_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
     std::stringstream folder_name_stream;
