@@ -21,25 +21,26 @@ namespace Frontiers_test
 	{
 		double how_much;
 		bool is_inside = side_max > min; 
-		ROS_INFO_STREAM("is_inside: side_max > min <==> " << side_max << " > " << min);
+		// ROS_INFO_STREAM("is_inside: side_max > min <==> " << side_max << " > " << min);
 		if(is_inside)
 		{
 			bool all_in = side_min >= min;
-			ROS_INFO_STREAM("All in? " << side_min << " > " << min);
+			// ROS_INFO_STREAM("All in? " << side_min << " > " << min);
 			if (all_in)
 			{
-				ROS_INFO_STREAM("Yup, all in!");
+				ROS_INFO_STREAM("[Min] Yup, all in!");
 				return size;
 			}
 			else
 			{
 				how_much = std::abs(min - side_max);
-				ROS_INFO_STREAM("Nope, just " << how_much << " = std::abs(" << min << " - " << side_max << ")");
+				ROS_INFO_STREAM("[Min] Nope, just " << how_much << " = std::abs(" << min << " - " << side_max << ")");
 				return how_much;
 			}
 		}
 		else
 		{
+			ROS_INFO_STREAM("[Min] Completely out!");
 			return 0;
 		}
 	}
@@ -48,25 +49,26 @@ namespace Frontiers_test
 	{
 		double how_much;
 		bool is_inside = side_min < max; 
-		ROS_INFO_STREAM("is_inside: side_min < max <==> " << side_min << " < " << max);
+		// ROS_INFO_STREAM("is_inside: side_min < max <==> " << side_min << " < " << max);
 		if(is_inside)
 		{
 			bool all_in = side_max <= max;
-			ROS_INFO_STREAM("All in? " << side_max << " <= " << max);
+			// ROS_INFO_STREAM("All in? " << side_max << " <= " << max);
 			if (all_in)
 			{
-				ROS_INFO_STREAM("Yup, all in!");
+				ROS_INFO_STREAM("[Max] Yup, all in!");
 				return size;
 			}
 			else
 			{
 				how_much = std::abs(max - side_min);
-				ROS_INFO_STREAM("Nope, just " << how_much << " = std::abs(" << max << " - " << side_min<< ")");
+				ROS_INFO_STREAM("[Max] Nope, just " << how_much << " = std::abs(" << max << " - " << side_min<< ")");
 				return how_much;
 			}
 		}
 		else
 		{
+			ROS_INFO_STREAM("[Max] Completely out!");
 			return 0;
 		}
 	}
@@ -78,8 +80,45 @@ namespace Frontiers_test
 		ROS_INFO_STREAM("Center: " << it.getCoordinate() << " size " << it.getSize() << ". Sides " << side_min << " to " << side_max << ". Geofence " << min << " to " << max);
 		double how_much;
 		bool is_inside = side_max.x() > min.x(); 
-		double side_x = sizeInsideGeofence_min(side_min.x(), side_max.x(), it.getSize(), min.x());
-		return side_x;
+		double side_x_min = sizeInsideGeofence_min(side_min.x(), side_max.x(), it.getSize(), min.x());
+		double side_x_max = sizeInsideGeofence_max(side_min.x(), side_max.x(), it.getSize(), max.x());
+
+		bool inside = side_x_min > 0 && side_x_max > 0 ;
+		if(inside)
+		{
+			double side = std::min(side_x_min, side_x_max);
+			ROS_INFO_STREAM(side);
+			return side;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	TEST(VolumeTest, volumeInsideGeofence_halfMax)
+	{
+		octomap::OcTree octree ("data/experimentalDataset.bt");
+		octomath::Vector3 min (0, 0, 0);
+		octomath::Vector3 max (1, 1, 1);
+
+		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
+        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
+        {
+            ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
+        }
+		octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
+		bool search = true;
+		double volume, size;
+		while(it != octree.end_leafs_bbx() && search)
+		{
+			volume = volumeInsideGeofence (min, max, it);
+			search = (volume == it.getSize())  || (volume == 0);
+			size = it.getSize();
+			it++;
+		}
+		ASSERT_NEAR(volume, 0.2, 0.01);
+		ASSERT_NEAR(size, 0.4, 0.01);
 	}
 
 	TEST(VolumeTest, sizeInsideGeofenceMax_half)
@@ -105,7 +144,7 @@ namespace Frontiers_test
 	}
 
 
-	TEST(VolumeTest, sizeInsideGeofenceMax_allin)
+	TEST(VolumeTest, sizeInsideGeofenceMax_Octree_allin)
 	{
 		octomap::OcTree octree ("data/experimentalDataset.bt");
 		octomath::Vector3 min (0, 0, 0);
