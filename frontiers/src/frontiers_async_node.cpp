@@ -12,6 +12,7 @@
 
 #include <geometry_msgs/Point.h>
 #include <frontiers_common.h>
+#include <volume.h>
 // RAM
 #include "sys/types.h"
 #include "sys/sysinfo.h"
@@ -147,7 +148,7 @@ namespace frontiers_async_node
 			double resolution = octree->getResolution();
 	        octomath::Vector3  max = octomath::Vector3(req.max.x-resolution, req.max.y-resolution, req.max.z-resolution);
 	        octomath::Vector3  min = octomath::Vector3(req.min.x+resolution, req.min.y+resolution, req.min.z+resolution);
-			double explored_volume_meters = calculate_volume_explored(min, max);
+			double explored_volume_meters = calculateVolume(octree, min, max);
 			volume_explored << ellapsed_time_millis.count() / 1000 / 60 << ", " << explored_volume_meters << std::endl;
 			volume_explored.close();
 			#endif
