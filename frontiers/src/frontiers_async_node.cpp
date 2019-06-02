@@ -17,7 +17,7 @@
 #include "sys/types.h"
 #include "sys/sysinfo.h"
 
-// #define SAVE_CSV 1
+#define SAVE_CSV 1
 
 namespace frontiers_async_node
 {
