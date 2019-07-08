@@ -27,17 +27,48 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="multi" default="false" if="$(arg debug)"/>
 
 
+    <arg name="mode" default="sitl"/>
+    <arg name="pose_frame_id" default=""/>
+    <arg name="ual_server" default="on"/>
+    <arg name="ual_pub_rate" default="30.0"/>
+    <arg name="mavros_offboard_rate" default="30.0"/>
+
+
 
     <!-- Visualization -->
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/debug.rviz" required="true" if="$(arg debug)"/>
 
     <!-- UAL Server -->
-    <include file="$(find upat_follower)/launch/server_ual.launch">
-        <arg name="multi" value="$(arg multi)"/>
+    <!-- Launch Gazebo simulation -->
+    <rosparam param="/use_sim_time">true</rosparam>
+    <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
+        <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam>            <!-- [lat,lon,alt] -->
+    </node>
+
+    <!-- Launch robot id=1 -->
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
         <arg name="robot_model" value="$(arg robot_model)"/>
-        <arg name="ual_pub_rate" value="$(arg pub_rate)"/>
+        <arg name="id" value="1"/>
+        <arg name="material" value="Blue"/>
+        <arg name="mode" value="$(arg mode)"/>
+        <arg name="x" value="0"/>
+        <arg name="y" value="5"/>
+        <arg name="z" value="0"/>
+        <arg name="yaw" value="0"/>
     </include>
+
+    <!-- Launch UAL server for uav id=1 -->
+    <node pkg="uav_abstraction_layer" type="server" name="ual" ns="$(arg ns_prefix)1" output="screen">
+        <param name="uav_id" value="1"/>
+        <param name="pose_frame_id" value="$(arg pose_frame_id)"/>
+        <param name="ual_server" value="$(arg ual_server)"/>
+        <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
+        <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
+        <param name="home_pose_parent_frame" value="map"/>
+        <!-- Define home pose relative to global map frame -->
+        <rosparam param="home_pose">[0, 5, 0]</rosparam>  
+    </node>
 
     <!-- UAV Path Manager nodes -->
     <group ns="upat_follower">
@@ -63,28 +94,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="save_experiment_data" value="$(arg save_experiment_data)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
-            </node>
-        </group>
-
-        <!-- Add one more UAV and nodes to manage it -->
-        <group if="$(arg multi)" ns="$(arg ns_prefix)2">
-            <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" required="true" output="screen">
-                <param name="uav_id" value="2"/>
-                <param name="trajectory" value="$(arg trajectory)"/>
-                <param name="pub_rate" value="$(arg pub_rate)"/>
-                <param name="path" value="$(arg path)"/>
-                <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
-                <param name="use_class" value="$(arg use_class)"/>
-                <param name="generator_mode" value="$(arg generator_mode)"/>
-            </node>
-            <node pkg="upat_follower" type="follower_node" name="follower" required="true" unless="$(arg use_class)">
-                <param name="uav_id" value="2"/>
-                <param name="pub_rate" value="$(arg pub_rate)"/>
-            </node>
-            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true">
-                <param name="uav_id" value="2"/>
-                <param name="pub_rate" value="$(arg pub_rate)"/>
-                <param name="robot_model" value="$(arg robot_model)"/>
             </node>
         </group>
     </group>
