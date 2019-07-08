@@ -89,11 +89,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="use_class" value="$(arg use_class)"/>
                 <param name="generator_mode" value="$(arg generator_mode)"/>
             </node>
-            <node pkg="upat_follower" type="follower_node" name="follower" output="screen" required="true" unless="$(arg use_class)">
-                <param name="uav_id" value="1"/>
-                <param name="debug" value="$(arg debug)"/>
-                <param name="pub_rate" value="$(arg pub_rate)"/>
-            </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
                 <param name="uav_id" value="1"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
