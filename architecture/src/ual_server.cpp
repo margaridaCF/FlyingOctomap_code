@@ -207,7 +207,7 @@ void initialization(ros::NodeHandle nh)
     nh.getParam("/px4_loiter_radius", px4_loiter_radius);
     nh.getParam("/odometry_error", odometry_error);
     position_tolerance = std::max(px4_loiter_radius, odometry_error);
-    distance_switch_wp_control = 2;
+    nh.getParam("/distance_switch_wp_control", distance_switch_wp_control);
     max_acceptance_orientation = 3.0;
     min_acceptance_orientation = 0.14;
     ros::param::param<int>("~uav_id", uav_id, 1);
