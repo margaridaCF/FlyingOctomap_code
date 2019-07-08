@@ -24,7 +24,6 @@ namespace upat_follower {
 UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
-    pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("path", init_path_name_);
     pnh_.getParam("pkg_name", pkg_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
@@ -32,8 +31,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
 
 
     // === Final data flow ===
-
-
+    sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/fligh_plan", 0, &UALCommunication::flightPlanCallback, this);
     // =======================
 
 
@@ -135,6 +133,10 @@ std::vector<double> UALCommunication::csvToVector(std::string _file_name)
     return out_vector;
 }
 
+void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
+    flight_plan = *_flight_plan;
+}
+
 void UALCommunication::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose_ = *_ual_pose;
 }
@@ -164,21 +166,11 @@ void UALCommunication::runMission() {
     upat_follower::PreparePath prepare_path;
     upat_follower::PrepareTrajectory prepare_trajectory;
     if (target_path_.poses.size() < 1) {
-        if (trajectory_) {
-            for (int i = 0; i < times_.size(); i++) {
-                std_msgs::Float32 v_percentage;
-                v_percentage.data = times_[i];
-                prepare_trajectory.request.times.push_back(v_percentage);
-            }
-            prepare_trajectory.request.init_path = init_path_;
-            target_path_ = follower_.prepareTrajectory(init_path_, times_);
-        } else {
-            prepare_path.request.init_path = init_path_;
-            prepare_path.request.generator_mode.data = 2;
-            prepare_path.request.look_ahead.data = 1.2;
-            prepare_path.request.cruising_speed.data = 1.0;
-            target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
-        }
+        prepare_path.request.init_path = init_path_;
+        prepare_path.request.generator_mode.data = 2;
+        prepare_path.request.look_ahead.data = 1.2;
+        prepare_path.request.cruising_speed.data = 1.0;
+        target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
     }
 
     Eigen::Vector3f current_p, path0_p, path_end_p;

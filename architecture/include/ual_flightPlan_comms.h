@@ -66,7 +66,7 @@ class UALCommunication {
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers
-    ros::Subscriber sub_pose_, sub_state_, sub_velocity_;
+    ros::Subscriber sub_pose_, sub_state_, sub_velocity_, sub_flight_plan_;
     // Publishers
     ros::Publisher pub_set_velocity_, pub_set_pose_;
     // Services
@@ -74,14 +74,14 @@ class UALCommunication {
     // Variables
     std::string folder_data_name_;
     bool on_path_, end_path_;
-    nav_msgs::Path target_path_, vel_percentage_path_, init_path_, current_path_;
+    nav_msgs::Path target_path_, vel_percentage_path_, init_path_, current_path_, flight_plan;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
     std::vector<double> times_;
     // Params
     int uav_id_, generator_mode_;
-    bool save_test_, trajectory_;
+    bool save_test_;
     double reach_tolerance_;
     std::string init_path_name_;
     std::string pkg_name_ = "upat_follower";

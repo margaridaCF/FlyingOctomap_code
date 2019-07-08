@@ -1,5 +1,4 @@
 #UAL
-trajectory: true
 path: cubic
 pkg_name: upat_follower
 reach_tolerance: 0.1
