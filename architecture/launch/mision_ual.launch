@@ -1,0 +1,92 @@
+<!-- 
+The MIT License (MIT)
+Copyright (c) 2016 GRVC University of Seville
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+-->
+<launch>
+    <!-- Arguments -->
+    <arg name="ns_prefix" default="uav_"/>
+    <arg name="robot_model" default="iris"/>
+    <arg name="pub_rate" default="50.0"/>
+    <arg name="debug" default="false"/>
+    <arg name="save_test_data" default="false"/>
+    <arg name="save_experiment_data" default="false"/>
+    <arg name="trajectory" default="true"/>
+    <arg name="reach_tolerance" default="0.1"/>
+    <arg name="path" default="cubic"/>
+    <arg name="generator_mode" default="0"/>
+    <arg name="pkg_name" default="upat_follower"/>
+    <arg name="use_class" default="true" unless="$(arg debug)"/>
+    <arg name="use_class" default="false" if="$(arg debug)"/>
+    <arg name="multi" default="true" unless="$(arg debug)"/>
+    <arg name="multi" default="false" if="$(arg debug)"/>
+
+
+
+    <!-- Visualization -->
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/debug.rviz" required="true" if="$(arg debug)"/>
+
+    <!-- UAL Server -->
+    <include file="$(find upat_follower)/launch/server_ual.launch">
+        <arg name="multi" value="$(arg multi)"/>
+        <arg name="robot_model" value="$(arg robot_model)"/>
+        <arg name="ual_pub_rate" value="$(arg pub_rate)"/>
+    </include>
+
+    <!-- UAV Path Manager nodes -->
+    <group ns="upat_follower">
+        <group ns="$(arg ns_prefix)1">
+            <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" output="screen" required="true">
+                <param name="uav_id" value="1"/>
+                <param name="save_test_data" value="$(arg save_test_data)"/>
+                <param name="trajectory" value="$(arg trajectory)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="path" value="$(arg path)"/>
+                <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
+                <param name="use_class" value="$(arg use_class)"/>
+                <param name="generator_mode" value="$(arg generator_mode)"/>
+            </node>
+            <node pkg="upat_follower" type="follower_node" name="follower" output="screen" required="true" unless="$(arg use_class)">
+                <param name="uav_id" value="1"/>
+                <param name="debug" value="$(arg debug)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+            </node>
+            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
+                <param name="uav_id" value="1"/>
+                <param name="robot_model" value="$(arg robot_model)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="save_experiment_data" value="$(arg save_experiment_data)"/>
+                <param name="trajectory" value="$(arg trajectory)"/>
+            </node>
+        </group>
+
+        <!-- Add one more UAV and nodes to manage it -->
+        <group if="$(arg multi)" ns="$(arg ns_prefix)2">
+            <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" required="true" output="screen">
+                <param name="uav_id" value="2"/>
+                <param name="trajectory" value="$(arg trajectory)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="path" value="$(arg path)"/>
+                <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
+                <param name="use_class" value="$(arg use_class)"/>
+                <param name="generator_mode" value="$(arg generator_mode)"/>
+            </node>
+            <node pkg="upat_follower" type="follower_node" name="follower" required="true" unless="$(arg use_class)">
+                <param name="uav_id" value="2"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+            </node>
+            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true">
+                <param name="uav_id" value="2"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="robot_model" value="$(arg robot_model)"/>
+            </node>
+        </group>
+    </group>
+
+</launch>

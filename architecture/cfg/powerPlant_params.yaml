@@ -1,3 +1,13 @@
+#UAL
+trajectory: true
+path: cubic
+pkg_name: upat_follower
+reach_tolerance: 0.1
+use_class: true
+generator_mode: 0
+
+
+
 distance_switch_wp_control: 3
 px4_loiter_radius: 2
 px4/flight_speed: 3
