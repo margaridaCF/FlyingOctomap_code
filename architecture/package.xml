@@ -27,5 +27,6 @@
   <depend>laser_filters</depend>
   <depend>observation_maneuver</depend>
   <depend>uav_abstraction_layer</depend>
+  <depend>upat_follower</depend>
 
 </package>

@@ -17,7 +17,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <upat_follower/ual_communication.h>
+#include <ual_flightPlan_comms.h>
 
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "ual_communication_node");
