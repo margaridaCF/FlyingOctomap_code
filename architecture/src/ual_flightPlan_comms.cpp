@@ -28,7 +28,6 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pnh_.getParam("path", init_path_name_);
     pnh_.getParam("pkg_name", pkg_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
-    pnh_.getParam("use_class", use_class_);
     pnh_.getParam("generator_mode", generator_mode_);
 
 
@@ -50,8 +49,6 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Services
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
-    client_prepare_path_ = nh_.serviceClient<upat_follower::PreparePath>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_path");
-    client_prepare_trajectory_ = nh_.serviceClient<upat_follower::PrepareTrajectory>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory");
     client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
     // Flags
     on_path_ = false;
@@ -174,21 +171,13 @@ void UALCommunication::runMission() {
                 prepare_trajectory.request.times.push_back(v_percentage);
             }
             prepare_trajectory.request.init_path = init_path_;
-            if (!use_class_) {
-                client_prepare_trajectory_.call(prepare_trajectory);
-                target_path_ = prepare_trajectory.response.generated_path;
-            }
-            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, times_);
+            target_path_ = follower_.prepareTrajectory(init_path_, times_);
         } else {
             prepare_path.request.init_path = init_path_;
             prepare_path.request.generator_mode.data = 2;
             prepare_path.request.look_ahead.data = 1.2;
             prepare_path.request.cruising_speed.data = 1.0;
-            if (!use_class_) {
-                client_prepare_path_.call(prepare_path);
-                target_path_ = prepare_path.response.generated_path;
-            }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
+            target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
         }
     }
 
@@ -221,10 +210,9 @@ void UALCommunication::runMission() {
                         on_path_ = false;
                         end_path_ = true;
                     } else {
-                        if (use_class_) {
-                            follower_.updatePose(ual_pose_);
-                            velocity_ = follower_.getVelocity();
-                        }
+                        follower_.updatePose(ual_pose_);
+                        velocity_ = follower_.getVelocity();
+                        
                         pub_set_velocity_.publish(velocity_);
                         current_path_.header.frame_id = ual_pose_.header.frame_id;
                         current_path_.poses.push_back(ual_pose_);

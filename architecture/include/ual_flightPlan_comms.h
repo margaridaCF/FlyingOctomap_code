@@ -70,7 +70,7 @@ class UALCommunication {
     // Publishers
     ros::Publisher pub_set_velocity_, pub_set_pose_;
     // Services
-    ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_;
+    ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_visualize_;
     // Variables
     std::string folder_data_name_;
     bool on_path_, end_path_;
@@ -81,7 +81,7 @@ class UALCommunication {
     std::vector<double> times_;
     // Params
     int uav_id_, generator_mode_;
-    bool save_test_, trajectory_, use_class_;
+    bool save_test_, trajectory_;
     double reach_tolerance_;
     std::string init_path_name_;
     std::string pkg_name_ = "upat_follower";
