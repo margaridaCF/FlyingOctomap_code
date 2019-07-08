@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 <launch>
     <!-- Arguments -->
     <arg name="ns_prefix" default="uav_"/>
-    <arg name="robot_model" default="iris"/>
+    <arg name="robot_model" default="iris_hokuyo"/>
     <arg name="pub_rate" default="50.0"/>
     <arg name="debug" default="false"/>
     <arg name="save_test_data" default="false"/>
@@ -40,22 +40,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/debug.rviz" required="true" if="$(arg debug)"/>
 
     <!-- UAL Server -->
-    <!-- Launch Gazebo simulation -->
-    <rosparam param="/use_sim_time">true</rosparam>
-    <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
-        <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam>            <!-- [lat,lon,alt] -->
-    </node>
+    <!-- #########################  Robot  ######################################### -->
+    <param name="robot_description" command="$(eval 'xacro --inorder ' + find('robots_description') + '/models/iris_hokuyo/model.xacro')"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="tf_uav1_baselink" args="0 0 0 0 0 0 1 uav_1 base_link" /> -->
 
-    <!-- Launch robot id=1 -->
+    <group if="$(eval mode=='sitl')">
+        <!-- Launch Gazebo simulation -->
+        <rosparam param="/use_sim_time">true</rosparam>
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
+        <!-- <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find architecture)/worlds/power_plant/power_plant.world"> -->
+        </node>
+    </group>
+    
     <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
-        <arg name="robot_model" value="$(arg robot_model)"/>
         <arg name="id" value="1"/>
         <arg name="material" value="Blue"/>
         <arg name="mode" value="$(arg mode)"/>
         <arg name="x" value="0"/>
-        <arg name="y" value="5"/>
+        <arg name="y" value="0"/>
         <arg name="z" value="0"/>
         <arg name="yaw" value="0"/>
+        <arg name="robot_model" value="iris_hokuyo"/>
     </include>
 
     <!-- Launch UAL server for uav id=1 -->
