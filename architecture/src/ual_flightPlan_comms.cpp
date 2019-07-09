@@ -214,7 +214,7 @@ void UALCommunication::runMission() {
                     } else {
                         follower_.updatePose(ual_pose_);
                         velocity_ = follower_.getVelocity();
-                        
+                        velocity_.twist.angular.z = 1;
                         pub_set_velocity_.publish(velocity_);
                         current_path_.header.frame_id = ual_pose_.header.frame_id;
                         current_path_.poses.push_back(ual_pose_);
