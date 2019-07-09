@@ -137,8 +137,8 @@ bool target_position_cb(architecture_msgs::PositionRequest::Request &req,
             target_pose.pose = req.pose;
             target_pose.header.frame_id = "uav_1_home";
             uav_target_path.poses.push_back(target_pose);
-            Eigen::Quaterniond q(req.pose.orientation.w, req.pose.orientation.x, req.pose.orientation.y, req.pose.orientation.z);
-            auto euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
+            // Eigen::Quaterniond q(req.pose.orientation.w, req.pose.orientation.x, req.pose.orientation.y, req.pose.orientation.z);
+            // auto euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
             last_yaw = tf::getYaw(fix_pose_pose.pose.orientation);
             requested_yaw = tf::getYaw(req.pose.orientation);
             double amplitude = yawDiff(last_yaw, requested_yaw);
