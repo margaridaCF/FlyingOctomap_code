@@ -39,7 +39,7 @@
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
 
-namespace upat_follower {
+namespace flight_plan_comms {
 
 class UALCommunication {
    public:
@@ -58,6 +58,8 @@ class UALCommunication {
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
+    void flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan);
+
     // Methods
     nav_msgs::Path csvToPath(std::string _file_name);
     std::vector<double> csvToVector(std::string _file_name);
@@ -85,6 +87,10 @@ class UALCommunication {
     double reach_tolerance_;
     std::string init_path_name_;
     std::string pkg_name_ = "upat_follower";
+
+    enum comms_state_t {ground = 0, wait_for_flight= 1, init_flight = 2, execute_flight = 3, finished_flight = 4};
+    comms_state_t comms_state;
+    bool flight_plan_received;
 };
 
 }  // namespace upat_follower

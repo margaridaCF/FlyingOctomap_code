@@ -19,7 +19,7 @@
 
 #include <ual_flightPlan_comms.h>
 
-namespace upat_follower {
+namespace flight_plan_comms {
 
 UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
@@ -32,6 +32,8 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
 
     // === Final data flow ===
     sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/fligh_plan", 0, &UALCommunication::flightPlanCallback, this);
+    comms_state = ground;
+    flight_plan_received = false;
     // =======================
 
 
@@ -135,6 +137,7 @@ std::vector<double> UALCommunication::csvToVector(std::string _file_name)
 
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
     flight_plan = *_flight_plan;
+    flight_plan_received = true;
 }
 
 void UALCommunication::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {

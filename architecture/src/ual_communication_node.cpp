@@ -22,7 +22,7 @@
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "ual_communication_node");
 
-    upat_follower::UALCommunication ual_communication;
+    flight_plan_comms::UALCommunication ual_communication;
     int pub_rate_;
     ros::param::param<int>("~pub_rate", pub_rate_, 30);
     ros::Rate rate(pub_rate_);

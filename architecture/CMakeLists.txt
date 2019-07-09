@@ -28,6 +28,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # target_link_libraries(my_lib ${catkin_LIBRARIES}) to link your new library against any catkin libraries you have build depended on in your package.xml
 # does some bookkeeping so that your library target can be implicitly used later
 cs_add_library(goal_state_lib src/goal_state_machine.cpp)
+cs_add_library(ual_flightPlan_comms src/ual_flightPlan_comms.cpp)
 # cs_add_targets_to_package(frontiers_msgs)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
@@ -53,7 +54,7 @@ cs_add_executable(gps_utm_tf_broadcaster_node src/gps_utm_tf_broadcaster_node.cp
 target_link_libraries(gps_utm_tf_broadcaster_node )
 
 cs_add_executable(ual_communication_node src/ual_communication_node.cpp)
-target_link_libraries(ual_communication_node )
+target_link_libraries(ual_communication_node ual_flightPlan_comms)
 
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
