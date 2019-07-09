@@ -252,7 +252,6 @@ void UALCommunication::runMission_try2() {
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
 
-    prepare();
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
@@ -264,6 +263,7 @@ void UALCommunication::runMission_try2() {
         case 3:  // Taking of
             break;
         case 4:  // Flying auto
+            prepare();
             followFlightPlan();
             break;
         case 5:  // Landing
