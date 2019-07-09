@@ -27,7 +27,7 @@ int main(int _argc, char **_argv) {
     ros::param::param<int>("~pub_rate", pub_rate_, 30);
     ros::Rate rate(pub_rate_);
     while (ros::ok()) {
-        ual_communication.runMission();
+        ual_communication.executeFlightPlan();
         ual_communication.callVisualization();
         ros::spinOnce();
         rate.sleep();
