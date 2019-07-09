@@ -3,7 +3,7 @@ path: cubic
 pkg_name: upat_follower
 reach_tolerance: 0.1
 generator_mode: 0
-
+take_off_height: 5
 
 
 distance_switch_wp_control: 3

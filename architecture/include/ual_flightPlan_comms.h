@@ -61,6 +61,8 @@ class UALCommunication {
     void flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan);
 
     // Methods
+    void followFlightPlan();
+    void executeFlightPlan();
     nav_msgs::Path csvToPath(std::string _file_name);
     std::vector<double> csvToVector(std::string _file_name);
     nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);
@@ -74,6 +76,7 @@ class UALCommunication {
     // Services
     ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_visualize_;
     // Variables
+    upat_follower::Follower follower_;
     std::string folder_data_name_;
     bool on_path_, end_path_;
     nav_msgs::Path target_path_, vel_percentage_path_, init_path_, current_path_, flight_plan;
@@ -88,9 +91,10 @@ class UALCommunication {
     std::string init_path_name_;
     std::string pkg_name_ = "upat_follower";
 
-    enum comms_state_t {ground = 0, wait_for_flight= 1, init_flight = 2, execute_flight = 3, finished_flight = 4};
+    enum comms_state_t {take_off = 0, wait_for_flight= 1, init_flight = 2, execute_flight = 3, finished_mission = 4, starting = 5};
     comms_state_t comms_state;
     bool flight_plan_received;
+    double take_off_height;
 };
 
 }  // namespace upat_follower
