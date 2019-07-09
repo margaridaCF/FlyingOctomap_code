@@ -47,6 +47,7 @@ class UALCommunication {
     ~UALCommunication();
 
     void runMission();
+    void runMission_try2();
     void executeFlightPlan();
     void callVisualization();
     bool flag_hover_ = false;
@@ -63,6 +64,7 @@ class UALCommunication {
 
     // Methods
     void followFlightPlan();
+    void prepare();
     nav_msgs::Path csvToPath(std::string _file_name);
     std::vector<double> csvToVector(std::string _file_name);
     nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);

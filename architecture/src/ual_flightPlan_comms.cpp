@@ -169,7 +169,7 @@ void UALCommunication::callVisualization() {
 }
 
 void UALCommunication::runMission() {
-    static upat_follower::Follower follower_(uav_id_);
+    // static upat_follower::Follower follower_(uav_id_);
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
@@ -187,6 +187,77 @@ void UALCommunication::runMission() {
     current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
     path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
+    switch (ual_state_.state) {
+        case 2:  // Landed armed
+            if (!end_path_) {
+                take_off.request.height = 12.5;
+                take_off.request.blocking = true;
+                client_take_off_.call(take_off);
+            }
+            break;
+        case 3:  // Taking of
+            break;
+        case 4:  // Flying auto
+            if (!end_path_) {
+                if (!on_path_) {
+                    if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
+                        pub_set_pose_.publish(target_path_.poses.at(0));
+                    } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
+                        pub_set_pose_.publish(target_path_.poses.front());
+                        on_path_ = true;
+                    }
+                } else {
+                    if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
+                        pub_set_pose_.publish(target_path_.poses.back());
+                        on_path_ = false;
+                        end_path_ = true;
+                    } else {
+                        follower_.updatePose(ual_pose_);
+                        velocity_ = follower_.getVelocity();
+                        velocity_.twist.angular.z = 1;
+                        pub_set_velocity_.publish(velocity_);
+                        current_path_.header.frame_id = ual_pose_.header.frame_id;
+                        current_path_.poses.push_back(ual_pose_);
+                    }
+                }
+            } else {
+                if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
+                    pub_set_pose_.publish(target_path_.poses.back());
+                } else {
+                    land.request.blocking = true;
+                    client_land_.call(land);
+                }
+            }
+            break;
+        case 5:  // Landing
+            break;
+    }
+}
+
+void UALCommunication::prepare()
+{
+    upat_follower::PreparePath prepare_path;
+    upat_follower::PrepareTrajectory prepare_trajectory;
+    if (target_path_.poses.size() < 1) {
+        prepare_path.request.init_path = init_path_;
+        prepare_path.request.generator_mode.data = 2;
+        prepare_path.request.look_ahead.data = 1.2;
+        prepare_path.request.cruising_speed.data = 1.0;
+        target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
+    }
+
+}
+
+void UALCommunication::runMission_try2() {
+
+    uav_abstraction_layer::TakeOff take_off;
+    uav_abstraction_layer::Land land;
+
+    prepare();
+    Eigen::Vector3f current_p, path0_p, path_end_p;
+    path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
+    path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
+    current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
