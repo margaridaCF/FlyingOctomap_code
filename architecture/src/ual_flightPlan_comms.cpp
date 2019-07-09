@@ -30,10 +30,9 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pnh_.getParam("generator_mode", generator_mode_);
     pnh_.getParam("take_off_height", take_off_height);
 
-
     // === Final data flow ===
     follower_ = upat_follower::Follower(uav_id_);
-    sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/fligh_plan", 0, &UALCommunication::flightPlanCallback, this);
+    sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/flight_plan", 0, &UALCommunication::flightPlanCallback, this);
     comms_state = starting;
     flight_plan_received = false;
     // =======================
@@ -257,7 +256,7 @@ void UALCommunication::runMission_try2() {
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
-                take_off.request.height = 12.5;
+                take_off.request.height = take_off_height;
                 take_off.request.blocking = true;
                 client_take_off_.call(take_off);
             }

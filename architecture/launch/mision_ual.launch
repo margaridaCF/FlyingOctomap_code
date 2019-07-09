@@ -34,7 +34,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="mavros_offboard_rate" default="30.0"/>
 
 
-    <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
 
     <!-- Visualization -->
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
@@ -77,6 +76,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <rosparam param="home_pose">[0, 5, 0]</rosparam>  
     </node>
 
+
     <!-- UAV Path Manager nodes -->
     <group ns="upat_follower">
         <group ns="$(arg ns_prefix)1">
@@ -92,9 +92,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="uav_id" value="1"/>
                 <param name="save_test_data" value="$(arg save_test_data)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
-                <param name="path" value="$(arg path)"/>
-                <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
-                <param name="generator_mode" value="$(arg generator_mode)"/>
+                <param name="path" value="cubic"/>
+                <param name="reach_tolerance" value="0.1"/>
+                <param name="generator_mode" value="0"/>
+                <param name="take_off_height" value="5"/>
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
                 <param name="uav_id" value="1"/>
