@@ -254,10 +254,6 @@ void UALCommunication::runMission_try2() {
     uav_abstraction_layer::Land land;
 
     prepare();
-    Eigen::Vector3f current_p, path0_p, path_end_p;
-    path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
-    path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
-    current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
@@ -269,36 +265,7 @@ void UALCommunication::runMission_try2() {
         case 3:  // Taking of
             break;
         case 4:  // Flying auto
-            if (!end_path_) {
-                if (!on_path_) {
-                    if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
-                        pub_set_pose_.publish(target_path_.poses.at(0));
-                    } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
-                        pub_set_pose_.publish(target_path_.poses.front());
-                        on_path_ = true;
-                    }
-                } else {
-                    if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
-                        pub_set_pose_.publish(target_path_.poses.back());
-                        on_path_ = false;
-                        end_path_ = true;
-                    } else {
-                        follower_.updatePose(ual_pose_);
-                        velocity_ = follower_.getVelocity();
-                        velocity_.twist.angular.z = 1;
-                        pub_set_velocity_.publish(velocity_);
-                        current_path_.header.frame_id = ual_pose_.header.frame_id;
-                        current_path_.poses.push_back(ual_pose_);
-                    }
-                }
-            } else {
-                if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
-                    pub_set_pose_.publish(target_path_.poses.back());
-                } else {
-                    land.request.blocking = true;
-                    client_land_.call(land);
-                }
-            }
+            followFlightPlan();
             break;
         case 5:  // Landing
             break;
