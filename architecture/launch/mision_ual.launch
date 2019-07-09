@@ -34,6 +34,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="mavros_offboard_rate" default="30.0"/>
 
 
+    <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
 
     <!-- Visualization -->
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
