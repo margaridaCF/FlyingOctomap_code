@@ -65,10 +65,9 @@ class UALCommunication {
     // Methods
     void followFlightPlan();
     void runFlightPlan();
-    void prepare();
+    bool prepare();
     nav_msgs::Path csvToPath(std::string _file_name);
     std::vector<double> csvToVector(std::string _file_name);
-    nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);
     void saveDataForTesting();
     // Node handlers
     ros::NodeHandle nh_, pnh_;

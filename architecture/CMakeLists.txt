@@ -69,11 +69,11 @@ cs_export()
 if(CATKIN_ENABLE_TESTING)
 #   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
-  # #WIP
-  # catkin_add_gtest(work_in_progress_architecture_tests 
-  #   test/work_in_progress_architecture_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} goal_state_lib)
+  #WIP
+  catkin_add_gtest(work_in_progress_architecture_tests 
+    test/work_in_progress_architecture_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} goal_state_lib ual_flightPlan_comms)
 
   #MATH
   catkin_add_gtest(architecture_tests 

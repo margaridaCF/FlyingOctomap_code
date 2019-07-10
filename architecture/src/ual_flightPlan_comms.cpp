@@ -24,7 +24,7 @@ namespace flight_plan_comms {
 UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
-    pnh_.getParam("path", init_path_name_);
+    pnh_.getParam("initial_maneuver", init_path_name_);
     pnh_.getParam("pkg_name", pkg_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
     pnh_.getParam("generator_mode", generator_mode_);
@@ -33,7 +33,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // === Final data flow ===
     follower_ = upat_follower::Follower(uav_id_);
     sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/flight_plan", 0, &UALCommunication::flightPlanCallback, this);
-    switchState(wait_for_flight);
+    switchState(init_flight);
     // =======================
 
 
@@ -72,73 +72,45 @@ void UALCommunication::switchState(comms_state_t new_comms_state)
     }
 }
 
-nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id) 
-{
-    nav_msgs::Path out_path;
-    std::vector<geometry_msgs::PoseStamped> poses(_wps_x.size());
-    out_path.header.frame_id = frame_id;
-    for (int i = 0; i < _wps_x.size(); i++) {
-        poses.at(i).pose.position.x = _wps_x[i];
-        poses.at(i).pose.position.y = _wps_y[i];
-        poses.at(i).pose.position.z = _wps_z[i];
-        poses.at(i).pose.orientation.x = 0;
-        poses.at(i).pose.orientation.y = 0;
-        poses.at(i).pose.orientation.z = 0;
-        poses.at(i).pose.orientation.w = 1;
-    }
-    out_path.poses = poses;
-    return out_path;
-}
-
 nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) 
 {
     nav_msgs::Path out_path;
+    out_path.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
     std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/config" + _file_name;
+    std::string folder_name = pkg_name_path + "/data/" + _file_name + ".csv";
     std::fstream read_csv;
     read_csv.open(folder_name);
-    std::vector<double> list_x, list_y, list_z;
+    int waypoint_amount;
+    read_csv >> waypoint_amount;
+    if (read_csv.fail() || read_csv.eof()) 
+    {
+        ROS_ERROR_STREAM("[UAL COMMS] Could not read file " << folder_name);
+        switchState(wait_for_flight);
+        return out_path;
+    }
+    ROS_INFO_STREAM("[UAL COMMS] Initial maneuver has " << waypoint_amount << " points");
+    read_csv.ignore(100, '\n');
+    std::vector<geometry_msgs::PoseStamped> poses(waypoint_amount);
+    ROS_INFO("[UAL COMMS] Reading initial_maneuver");
     if (read_csv.is_open()) {
-        while (read_csv.good()) {
-            std::string x, y, z;
-            double dx, dy, dz;
-            getline(read_csv, x, ',');
-            getline(read_csv, y, ',');
-            getline(read_csv, z, '\n');
-            std::stringstream sx(x);
-            std::stringstream sy(y);
-            std::stringstream sz(z);
-            sx >> dx;
-            sy >> dy;
-            sz >> dz;
-            list_x.push_back(dx);
-            list_y.push_back(dy);
-            list_z.push_back(dz);
+        char comma;
+        for (int i = 0; i < waypoint_amount; ++i)
+        {
+            read_csv >> poses.at(i).pose.position.x  >> comma >> poses.at(i).pose.position.y >> comma >> poses.at(i).pose.position.z;
+            poses.at(i).pose.orientation.x = 0;
+            poses.at(i).pose.orientation.y = 0;
+            poses.at(i).pose.orientation.z = 0;
+            poses.at(i).pose.orientation.w = 1;
+            // ROS_INFO_STREAM("(" << poses.at(i).x << ", " << poses.at(i).y ", "<<poses.at(i).z<<")");
+            ROS_INFO_STREAM("[UAL COMMS] [" << i << "] " << poses.at(i).pose.position);
         }
     }
-
-    return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
-}
-
-std::vector<double> UALCommunication::csvToVector(std::string _file_name) 
-{
-    std::vector<double> out_vector;
-    std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/config" + _file_name;
-    std::fstream read_csv;
-    read_csv.open(folder_name);
-    if (read_csv.is_open()) {
-        while (read_csv.good()) {
-            std::string x;
-            double dx;
-            getline(read_csv, x, '\n');
-            std::stringstream sx(x);
-            sx >> dx;
-            out_vector.push_back(dx);
-        }
+    else
+    {
+        ROS_ERROR_STREAM("read_csv is someshow closed...");
     }
-
-    return out_vector;
+    out_path.poses = poses;
+    return out_path;
 }
 
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
@@ -167,11 +139,11 @@ void UALCommunication::callVisualization() {
     client_visualize_.call(visualize);
 }
 
-void UALCommunication::prepare()
+bool UALCommunication::prepare()
 {
     // Initialize path
-    init_path_ = csvToPath("/" + init_path_name_ + ".csv");
-    times_ = csvToVector("/times.csv");
+    init_path_ = csvToPath(init_path_name_);
+    if(comms_state == wait_for_flight) return false;
     // Save data
     if (save_test_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
@@ -190,6 +162,7 @@ void UALCommunication::prepare()
         prepare_path.request.cruising_speed.data = 1.0;
         target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
     }
+    return true;
 }
 
 void UALCommunication::runFlightPlan()
@@ -197,15 +170,12 @@ void UALCommunication::runFlightPlan()
     switch(comms_state)
     {
         case init_flight:
-            prepare();
-            switchState(execute_flight);
+            if(prepare())   switchState(execute_flight);
+            else            switchState(wait_for_flight);
             break;
         case execute_flight:
             followFlightPlan();
-            if(end_path_)
-            {
-                switchState(wait_for_flight);
-            }
+            if(end_path_)   switchState(wait_for_flight);
             break;
     }
 }
