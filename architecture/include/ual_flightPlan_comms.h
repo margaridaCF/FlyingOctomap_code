@@ -64,6 +64,7 @@ class UALCommunication {
 
     // Methods
     void followFlightPlan();
+    void runFlightPlan();
     void prepare();
     nav_msgs::Path csvToPath(std::string _file_name);
     std::vector<double> csvToVector(std::string _file_name);
@@ -93,9 +94,9 @@ class UALCommunication {
     std::string init_path_name_;
     std::string pkg_name_ = "upat_follower";
 
-    enum comms_state_t {take_off = 0, wait_for_flight= 1, init_flight = 2, execute_flight = 3, finished_mission = 4, starting = 5};
+    enum comms_state_t {wait_for_flight= 1, init_flight = 2, execute_flight = 3};
+    void switchState(comms_state_t new_comms_state);
     comms_state_t comms_state;
-    bool flight_plan_received;
     double take_off_height;
 };
 

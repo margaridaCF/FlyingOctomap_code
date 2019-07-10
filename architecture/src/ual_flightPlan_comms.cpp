@@ -33,8 +33,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // === Final data flow ===
     follower_ = upat_follower::Follower(uav_id_);
     sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/flight_plan", 0, &UALCommunication::flightPlanCallback, this);
-    comms_state = starting;
-    flight_plan_received = false;
+    switchState(wait_for_flight);
     // =======================
 
 
@@ -51,20 +50,26 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
     client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
-    // Flags
-    on_path_ = false;
-    end_path_ = false;
-    // Initialize path
-    init_path_ = csvToPath("/" + init_path_name_ + ".csv");
-    times_ = csvToVector("/times.csv");
-    // Save data
-    if (save_test_) {
-        std::string pkg_name_path = ros::package::getPath(pkg_name_);
-        folder_data_name_ = pkg_name_path + "/tests/splines";
     }
-}
 
 UALCommunication::~UALCommunication() {
+}
+
+void UALCommunication::switchState(comms_state_t new_comms_state)
+{
+    comms_state = new_comms_state;
+    switch(comms_state)
+    {
+        case wait_for_flight:
+            ROS_INFO("[UAL COMMS] wait_for_flight");
+            break;
+        case init_flight:
+            ROS_INFO("[UAL COMMS] init_flight");
+            break;
+        case execute_flight:
+            ROS_INFO("[UAL COMMS] execute_flight");
+            break;
+    }
 }
 
 nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id) 
@@ -137,8 +142,8 @@ std::vector<double> UALCommunication::csvToVector(std::string _file_name)
 }
 
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
-    flight_plan = *_flight_plan;
-    flight_plan_received = true;
+    init_path_ = *_flight_plan;
+    switchState(init_flight);
 }
 
 void UALCommunication::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
@@ -147,11 +152,6 @@ void UALCommunication::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPt
 
 void UALCommunication::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
     ual_state_.state = _ual_state.state;
-    
-    if(comms_state != finished_mission)
-    {
-        comms_state = take_off;
-    }
 }
 
 void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
@@ -167,11 +167,20 @@ void UALCommunication::callVisualization() {
     client_visualize_.call(visualize);
 }
 
-void UALCommunication::runMission() {
-    // static upat_follower::Follower follower_(uav_id_);
+void UALCommunication::prepare()
+{
+    // Initialize path
+    init_path_ = csvToPath("/" + init_path_name_ + ".csv");
+    times_ = csvToVector("/times.csv");
+    // Save data
+    if (save_test_) {
+        std::string pkg_name_path = ros::package::getPath(pkg_name_);
+        folder_data_name_ = pkg_name_path + "/tests/splines";
+    }
 
-    uav_abstraction_layer::TakeOff take_off;
-    uav_abstraction_layer::Land land;
+    // Flags
+    on_path_ = false;
+    end_path_ = false;
     upat_follower::PreparePath prepare_path;
     upat_follower::PrepareTrajectory prepare_trajectory;
     if (target_path_.poses.size() < 1) {
@@ -180,81 +189,32 @@ void UALCommunication::runMission() {
         prepare_path.request.look_ahead.data = 1.2;
         prepare_path.request.cruising_speed.data = 1.0;
         target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
-    }
-
-    Eigen::Vector3f current_p, path0_p, path_end_p;
-    current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
-    path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
-    path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
-    switch (ual_state_.state) {
-        case 2:  // Landed armed
-            if (!end_path_) {
-                take_off.request.height = 12.5;
-                take_off.request.blocking = true;
-                client_take_off_.call(take_off);
-            }
-            break;
-        case 3:  // Taking of
-            break;
-        case 4:  // Flying auto
-            if (!end_path_) {
-                if (!on_path_) {
-                    if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
-                        pub_set_pose_.publish(target_path_.poses.at(0));
-                    } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
-                        pub_set_pose_.publish(target_path_.poses.front());
-                        on_path_ = true;
-                    }
-                } else {
-                    if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
-                        pub_set_pose_.publish(target_path_.poses.back());
-                        on_path_ = false;
-                        end_path_ = true;
-                    } else {
-                        follower_.updatePose(ual_pose_);
-                        velocity_ = follower_.getVelocity();
-                        velocity_.twist.angular.z = 1;
-                        pub_set_velocity_.publish(velocity_);
-                        current_path_.header.frame_id = ual_pose_.header.frame_id;
-                        current_path_.poses.push_back(ual_pose_);
-                    }
-                }
-            } else {
-                if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
-                    pub_set_pose_.publish(target_path_.poses.back());
-                } else {
-                    land.request.blocking = true;
-                    client_land_.call(land);
-                }
-            }
-            break;
-        case 5:  // Landing
-            break;
     }
 }
 
-void UALCommunication::prepare()
+void UALCommunication::runFlightPlan()
 {
-    upat_follower::PreparePath prepare_path;
-    upat_follower::PrepareTrajectory prepare_trajectory;
-    if (target_path_.poses.size() < 1) {
-        prepare_path.request.init_path = init_path_;
-        prepare_path.request.generator_mode.data = 2;
-        prepare_path.request.look_ahead.data = 1.2;
-        prepare_path.request.cruising_speed.data = 1.0;
-        target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
+    switch(comms_state)
+    {
+        case init_flight:
+            prepare();
+            switchState(execute_flight);
+            break;
+        case execute_flight:
+            followFlightPlan();
+            if(end_path_)
+            {
+                switchState(wait_for_flight);
+            }
+            break;
     }
-
 }
 
 void UALCommunication::runMission_try2() {
-
-    uav_abstraction_layer::TakeOff take_off;
-    uav_abstraction_layer::Land land;
-
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
+                uav_abstraction_layer::TakeOff take_off;
                 take_off.request.height = take_off_height;
                 take_off.request.blocking = true;
                 client_take_off_.call(take_off);
@@ -263,8 +223,7 @@ void UALCommunication::runMission_try2() {
         case 3:  // Taking of
             break;
         case 4:  // Flying auto
-            prepare();
-            followFlightPlan();
+            runFlightPlan();
             break;
         case 5:  // Landing
             break;
@@ -302,39 +261,11 @@ void UALCommunication::followFlightPlan()
     } else {
         if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
             pub_set_pose_.publish(target_path_.poses.back());
-        } 
-    }
-}
-
-void UALCommunication::executeFlightPlan() 
-{
-    switch(comms_state)
-    {
-        case take_off:
-            {
-            uav_abstraction_layer::TakeOff take_off_msg;
-            take_off_msg.request.height = take_off_height;
-            take_off_msg.request.blocking = true;
-            client_take_off_.call(take_off_msg);
-            }
-            break;
-        case wait_for_flight:
-            break;
-        case init_flight:
-
-            break;
-        case execute_flight:
-            followFlightPlan();
-            if (end_path_)
-            {
-                comms_state = wait_for_flight;
-            }
-            break;
-        case finished_mission:
+        } else {
             uav_abstraction_layer::Land land;
             land.request.blocking = true;
             client_land_.call(land);
-            break;
+        }
     }
 }
 
