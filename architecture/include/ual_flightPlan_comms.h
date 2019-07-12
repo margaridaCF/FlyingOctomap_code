@@ -39,6 +39,7 @@
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
 #include <architecture_math.h>
+#include <tf/transform_datatypes.h>
 
 namespace flight_plan_comms {
 

@@ -217,8 +217,8 @@ void UALCommunication::followFlightPlan()
                 end_path_ = true;
             } else {
                 follower_.updatePose(ual_pose_);
-                velocity_ = follower_.getVelocity();
-                velocity_.twist.angular.z = 1;
+                double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
+                velocity_ = follower_.getVelocity(current_yaw);
                 pub_set_velocity_.publish(velocity_);
                 current_path_.header.frame_id = ual_pose_.header.frame_id;
                 current_path_.poses.push_back(ual_pose_);
@@ -235,11 +235,11 @@ void UALCommunication::followFlightPlan()
     }
 }
 
-// tf::getYaw 
-double calculateYawRate(double current_yaw, double desired_yaw, double time_interval)
-{
-    double dx = desired_yaw - current_yaw;
-    return dx/time_interval;
-}
+// // tf::getYaw 
+// double calculateYawRate(double current_yaw, double desired_yaw, double time_interval)
+// {
+//     double dx = desired_yaw - current_yaw;
+//     return dx/time_interval;
+// }
 
 }  // namespace upat_follower
