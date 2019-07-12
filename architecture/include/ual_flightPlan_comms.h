@@ -17,8 +17,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#ifndef UALCOMMUNICATION_H
-#define UALCOMMUNICATION_H
+#ifndef FLIGHT_PLAN_COMMS_H
+#define FLIGHT_PLAN_COMMS_H
 
 #include <ros/package.h>
 #include <ros/ros.h>
@@ -101,4 +101,4 @@ class UALCommunication {
 
 }  // namespace upat_follower
 
-#endif /* UALCOMMUNICATION_H */
+#endif /* FLIGHT_PLAN_COMMS_H */
