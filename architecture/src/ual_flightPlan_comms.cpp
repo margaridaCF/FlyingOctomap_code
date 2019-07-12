@@ -77,7 +77,7 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name)
     nav_msgs::Path out_path;
     out_path.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
     std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/data/" + _file_name + ".csv";
+    std::string folder_name = pkg_name_path + "/maneuvers/" + _file_name + ".csv";
     std::fstream read_csv;
     read_csv.open(folder_name);
     int waypoint_amount;
@@ -88,10 +88,8 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name)
         switchState(wait_for_flight);
         return out_path;
     }
-    ROS_INFO_STREAM("[UAL COMMS] Initial maneuver has " << waypoint_amount << " points");
-    read_csv.ignore(100, '\n');
+    // read_csv.ignore(100, '\n');
     std::vector<geometry_msgs::PoseStamped> poses(waypoint_amount);
-    ROS_INFO("[UAL COMMS] Reading initial_maneuver");
     if (read_csv.is_open()) {
         char comma;
         for (int i = 0; i < waypoint_amount; ++i)
@@ -101,14 +99,9 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name)
             poses.at(i).pose.orientation.y = 0;
             poses.at(i).pose.orientation.z = 0;
             poses.at(i).pose.orientation.w = 1;
-            // ROS_INFO_STREAM("(" << poses.at(i).x << ", " << poses.at(i).y ", "<<poses.at(i).z<<")");
-            ROS_INFO_STREAM("[UAL COMMS] [" << i << "] " << poses.at(i).pose.position);
         }
     }
-    else
-    {
-        ROS_ERROR_STREAM("read_csv is someshow closed...");
-    }
+    else ROS_ERROR_STREAM("read_csv is someshow closed...");
     out_path.poses = poses;
     return out_path;
 }
@@ -153,14 +146,10 @@ bool UALCommunication::prepare()
     // Flags
     on_path_ = false;
     end_path_ = false;
-    upat_follower::PreparePath prepare_path;
-    upat_follower::PrepareTrajectory prepare_trajectory;
     if (target_path_.poses.size() < 1) {
-        prepare_path.request.init_path = init_path_;
-        prepare_path.request.generator_mode.data = 2;
-        prepare_path.request.look_ahead.data = 1.2;
-        prepare_path.request.cruising_speed.data = 1.0;
-        target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
+        double look_ahead = 0.4;
+        double cruising_speed = 1.0;
+        target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
     }
     return true;
 }
