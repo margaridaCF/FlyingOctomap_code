@@ -35,8 +35,6 @@
 #include <lazy_theta_star_msgs/LTStarRequest.h>
 #include <lazy_theta_star_msgs/LTStarNodeStatus.h>
 
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 
 #define SAVE_CSV 1
@@ -136,6 +134,7 @@ namespace state_manager_node
         architecture_msgs::PositionRequest position_request_srv;
         position_request_srv.request.waypoint_sequence_id = state_data.ltstar_request_id;
         position_request_srv.request.pose = pose;
+        ROS_INFO_STREAM("[State] askPositionServiceCall " << pose);
         if(target_position_client.call(position_request_srv))
         {
             return position_request_srv.response.is_going_to_position;
@@ -286,10 +285,6 @@ namespace state_manager_node
         Eigen::Vector3d current_e (current_position.x, current_position.y, current_position.z);
         Eigen::Vector3d next_e (target.position.x, target.position.y, target.position.z);
         double yaw = architecture_math::calculateOrientation(Eigen::Vector2d(current_e.x(), current_e.y()), Eigen::Vector2d(next_e.x(), next_e.y())) ;
-
-            // target.orientation = tf::createQuaternionMsgFromYaw(yaw);
-
-
         tf2::Quaternion q_yaw;
         q_yaw.setRPY( 0, 0, yaw );
         q_yaw.normalize();
@@ -625,7 +620,6 @@ namespace state_manager_node
                     Eigen::Vector2d flyby_2d_start, flyby_2d_end;
                     convertPoint_to_eigen2d(flyby_2d_start, state_data.next_goal_msg.start_flyby);
                     convertPoint_to_eigen2d(flyby_2d_end, state_data.next_goal_msg.end_flyby);
-                    // flyby_end.orientation = tf::createQuaternionMsgFromYaw( architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end));
                     double yaw = architecture_math::calculateOrientation(flyby_2d_start, flyby_2d_end);
 
                     tf2::Quaternion q_yaw;

@@ -38,8 +38,12 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
+#include <architecture_math.h>
 
 namespace flight_plan_comms {
+
+double calculateYawRate(double current_yaw, double desired_yaw, double time_interval);
+
 
 class UALCommunication {
    public:

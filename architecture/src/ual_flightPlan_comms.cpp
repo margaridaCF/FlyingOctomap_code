@@ -88,18 +88,25 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name)
         switchState(wait_for_flight);
         return out_path;
     }
-    // read_csv.ignore(100, '\n');
     std::vector<geometry_msgs::PoseStamped> poses(waypoint_amount);
     if (read_csv.is_open()) {
         char comma;
+        double yaw;
+        tf2::Quaternion q_yaw;
         for (int i = 0; i < waypoint_amount; ++i)
         {
             read_csv >> poses.at(i).pose.position.x  >> comma >> poses.at(i).pose.position.y >> comma >> poses.at(i).pose.position.z;
-            poses.at(i).pose.orientation.x = 0;
-            poses.at(i).pose.orientation.y = 0;
-            poses.at(i).pose.orientation.z = 0;
-            poses.at(i).pose.orientation.w = 1;
+
+            if(i > 0)
+            {
+                // ROS_INFO_STREAM("[UAL COMMS] [" << i << "] (" << poses.at(i).pose.position.x  << ", "<< poses.at(i).pose.position.y<< ", " << poses.at(i).pose.position.z << ")");
+                yaw = architecture_math::calculateOrientation(Eigen::Vector2d(poses.at(i-1).pose.position.x, poses.at(i-1).pose.position.y), Eigen::Vector2d(poses.at(i).pose.position.x, poses.at(i).pose.position.y)) ;
+                q_yaw.setRPY( 0, 0, yaw );
+                q_yaw.normalize();
+                poses.at(i-1).pose.orientation = tf2::toMsg(q_yaw);
+            }
         }
+        poses.at(waypoint_amount-1).pose.orientation = tf2::toMsg(q_yaw);
     }
     else ROS_ERROR_STREAM("read_csv is someshow closed...");
     out_path.poses = poses;
@@ -226,6 +233,13 @@ void UALCommunication::followFlightPlan()
             client_land_.call(land);
         }
     }
+}
+
+// tf::getYaw 
+double calculateYawRate(double current_yaw, double desired_yaw, double time_interval)
+{
+    double dx = desired_yaw - current_yaw;
+    return dx/time_interval;
 }
 
 }  // namespace upat_follower
