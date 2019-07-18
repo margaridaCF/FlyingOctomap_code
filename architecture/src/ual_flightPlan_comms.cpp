@@ -32,7 +32,9 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
 
     // === Final data flow ===
     follower_ = upat_follower::Follower(uav_id_);
-    sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/flight_plan", 0, &UALCommunication::flightPlanCallback, this);
+    sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/flight_plan_requests", 0, &UALCommunication::flightPlanCallback, this);
+    flight_plan_state_ = nh_.advertise<std_msgs::Empty>("/uav_" + std::to_string(uav_id_) + "/flight_plan_notifications", 1000);
+    init_path_ = csvToPath(init_path_name_);
     switchState(init_flight);
     // =======================
 
@@ -96,20 +98,43 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name)
         for (int i = 0; i < waypoint_amount; ++i)
         {
             read_csv >> poses.at(i).pose.position.x  >> comma >> poses.at(i).pose.position.y >> comma >> poses.at(i).pose.position.z;
-
-            if(i > 0)
-            {
-                yaw = architecture_math::calculateOrientation(Eigen::Vector2d(poses.at(i-1).pose.position.x, poses.at(i-1).pose.position.y), Eigen::Vector2d(poses.at(i).pose.position.x, poses.at(i).pose.position.y)) ;
-                q_yaw.setRPY( 0, 0, yaw );
-                q_yaw.normalize();
-                poses.at(i-1).pose.orientation = tf2::toMsg(q_yaw);
-            }
         }
-        poses.at(waypoint_amount-1).pose.orientation = tf2::toMsg(q_yaw);
     }
     else ROS_ERROR_STREAM("read_csv is someshow closed...");
     out_path.poses = poses;
     return out_path;
+}
+
+bool generateYaw(nav_msgs::Path & path)
+{
+    tf2::Quaternion q_yaw;
+    double yaw;
+    for (int i = 0; i < path.poses.size(); ++i)
+    {
+        if(i > 0)
+        {
+            yaw = architecture_math::calculateOrientation(Eigen::Vector2d(path.poses.at(i-1).pose.position.x, path.poses.at(i-1).pose.position.y), Eigen::Vector2d(path.poses.at(i).pose.position.x, path.poses.at(i).pose.position.y)) ;
+            q_yaw.setRPY( 0, 0, yaw );
+            q_yaw.normalize();
+            path.poses.at(i-1).pose.orientation = tf2::toMsg(q_yaw);
+        }
+    }
+    if(path.poses.size() > 1)
+    {
+        path.poses.at(path.poses.size()-1).pose.orientation = tf2::toMsg(q_yaw);
+    }
+    else if(path.poses.size() == 1)
+    {
+        ROS_WARN("[UAL COMMS] The received path with one waypoint. The yaw is zero because to face forwards two points are needed to create a line to align with.");
+        q_yaw.setRPY( 0, 0, 0 );
+        path.poses.at(0).pose.orientation = tf2::toMsg(q_yaw);
+    }
+    else
+    {
+        ROS_ERROR_STREAM("[UAL COMMS] The received path has no waypoints.");
+        return false;
+    }
+    return true;
 }
 
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
@@ -141,8 +166,9 @@ void UALCommunication::callVisualization() {
 bool UALCommunication::prepare()
 {
     // Initialize path
-    init_path_ = csvToPath(init_path_name_);
-    if(comms_state == wait_for_flight) return false;
+    // init_path_ = csvToPath(init_path_name_);
+    if( !generateYaw(init_path_) ) return false;
+    ROS_ERROR_STREAM(init_path_);
     // Save data
     if (save_test_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
@@ -170,7 +196,12 @@ void UALCommunication::runFlightPlan()
             break;
         case execute_flight:
             followFlightPlan();
-            if(end_path_)   switchState(wait_for_flight);
+            if(end_path_)
+            {
+                switchState(wait_for_flight);
+                std_msgs::Empty done;
+                flight_plan_state_.publish(done);
+            }
             break;
     }
 }

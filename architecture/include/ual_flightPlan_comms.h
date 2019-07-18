@@ -40,6 +40,7 @@
 #include "std_msgs/Int8.h"
 #include <architecture_math.h>
 #include <tf/transform_datatypes.h>
+#include "std_msgs/Empty.h"
 
 namespace flight_plan_comms {
 
@@ -79,7 +80,7 @@ class UALCommunication {
     // Subscribers
     ros::Subscriber sub_pose_, sub_state_, sub_velocity_, sub_flight_plan_;
     // Publishers
-    ros::Publisher pub_set_velocity_, pub_set_pose_;
+    ros::Publisher pub_set_velocity_, pub_set_pose_, flight_plan_state_;
     // Services
     ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_visualize_;
     // Variables
