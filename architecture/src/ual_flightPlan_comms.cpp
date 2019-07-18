@@ -99,7 +99,6 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name)
 
             if(i > 0)
             {
-                // ROS_INFO_STREAM("[UAL COMMS] [" << i << "] (" << poses.at(i).pose.position.x  << ", "<< poses.at(i).pose.position.y<< ", " << poses.at(i).pose.position.z << ")");
                 yaw = architecture_math::calculateOrientation(Eigen::Vector2d(poses.at(i-1).pose.position.x, poses.at(i-1).pose.position.y), Eigen::Vector2d(poses.at(i).pose.position.x, poses.at(i).pose.position.y)) ;
                 q_yaw.setRPY( 0, 0, yaw );
                 q_yaw.normalize();
@@ -234,12 +233,5 @@ void UALCommunication::followFlightPlan()
         }
     }
 }
-
-// // tf::getYaw 
-// double calculateYawRate(double current_yaw, double desired_yaw, double time_interval)
-// {
-//     double dx = desired_yaw - current_yaw;
-//     return dx/time_interval;
-// }
 
 }  // namespace upat_follower
