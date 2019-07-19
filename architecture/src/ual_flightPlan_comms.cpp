@@ -139,6 +139,7 @@ bool generateYaw(nav_msgs::Path & path)
 
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
     init_path_ = *_flight_plan;
+    init_path_.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
     switchState(init_flight);
 }
 
@@ -177,11 +178,9 @@ bool UALCommunication::prepare()
     // Flags
     on_path_ = false;
     end_path_ = false;
-    if (target_path_.poses.size() < 1) {
-        double look_ahead = 0.4;
-        double cruising_speed = 1.0;
-        target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
-    }
+    double look_ahead = 0.4;
+    double cruising_speed = 1.0;
+    target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
     return true;
 }
 
