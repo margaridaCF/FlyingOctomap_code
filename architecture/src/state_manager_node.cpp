@@ -53,6 +53,7 @@ namespace state_manager_node
     ros::Publisher frontier_request_pub;
     ros::Publisher ltstar_request_pub;
     ros::Publisher marker_pub;
+    ros::Publisher flight_plan_pub;
     ros::ServiceClient target_position_client;
     ros::ServiceClient is_explored_client;
     ros::ServiceClient ltstar_status_cliente;
@@ -221,6 +222,7 @@ namespace state_manager_node
                 state_data.ltstar_reply = *msg;
                 nav_msgs::Path flight_plan_request = generateFlightPlanRequest();
                 state_data.exploration_state.switchState(exploration_sm::visit_waypoints);
+                flight_plan_pub.publish(flight_plan_request);
                 #ifdef SAVE_LOG
                     log_file << "[State manager] Path reply " << *msg << std::endl;
                     log_file << "[State manager] Flight plan request " << flight_plan_request << std::endl;
@@ -424,6 +426,8 @@ int main(int argc, char **argv)
     // Topic publishers
     state_manager_node::ltstar_request_pub = nh.advertise<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10);
     state_manager_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("state_manager_viz", 1);
+    state_manager_node::flight_plan_pub = nh.advertise<nav_msgs::Path>("/uav_" + std::to_string(state_manager_node::uav_id_) + "/flight_plan_requests", 1);
+
 
     #ifdef SAVE_LOG
     state_manager_node::log_file.open (state_manager_node::folder_name+"/current/state_manager.log", std::ofstream::app);
