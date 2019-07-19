@@ -28,6 +28,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # target_link_libraries(my_lib ${catkin_LIBRARIES}) to link your new library against any catkin libraries you have build depended on in your package.xml
 # does some bookkeeping so that your library target can be implicitly used later
 cs_add_library(goal_state_lib src/goal_state_machine.cpp)
+cs_add_library(exploration_state_lib src/exploration_state_machine.cpp)
 cs_add_library(ual_flightPlan_comms src/ual_flightPlan_comms.cpp)
 # cs_add_targets_to_package(frontiers_msgs)
 
@@ -39,7 +40,7 @@ cs_add_executable(ual_server src/ual_server.cpp)
 target_link_libraries(ual_server)
 
 cs_add_executable(state_manager_node src/state_manager_node.cpp)
-target_link_libraries(state_manager_node goal_state_lib)
+target_link_libraries(state_manager_node  exploration_state_lib goal_state_lib )
 
 cs_add_executable(goal_sm_node src/goal_sm_node.cpp)
 target_link_libraries(goal_sm_node goal_state_lib)
@@ -73,7 +74,7 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(work_in_progress_architecture_tests 
     test/work_in_progress_architecture_tests.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} goal_state_lib ual_flightPlan_comms)
+  target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} )
 
   #MATH
   catkin_add_gtest(architecture_tests 

@@ -168,7 +168,6 @@ bool UALCommunication::prepare()
     // Initialize path
     // init_path_ = csvToPath(init_path_name_);
     if( !generateYaw(init_path_) ) return false;
-    ROS_ERROR_STREAM(init_path_);
     // Save data
     if (save_test_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);

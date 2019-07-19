@@ -9,6 +9,11 @@
     <arg name="ual_server" default="on"/>
     <arg name="ual_pub_rate" default="30.0"/>
     <arg name="mavros_offboard_rate" default="30.0"/>
+    <arg name="save_test_data" default="false"/>
+    <arg name="pub_rate" default="50.0"/>
+    <arg name="robot_model" default="iris_hokuyo"/>
+    <arg name="save_experiment_data" default="false"/>
+    <arg name="trajectory" default="false"/>
 
 
     <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
@@ -32,11 +37,42 @@
         <arg name="y" value="0"/>
         <arg name="z" value="0"/>
         <arg name="yaw" value="0"/>
-        <arg name="robot_model" value="iris_hokuyo"/>
+        <arg name="robot_model" value="$(arg robot_model)"/>
     </include>
 
     <!-- #########################  UAL  ######################################### -->
-    <include file="$(find architecture)/launch/test_server.launch"/>
+    <node pkg="uav_abstraction_layer" type="server" name="ual" ns="$(arg ns_prefix)1" output="screen">
+        <param name="uav_id" value="1"/>
+        <param name="pose_frame_id" value="$(arg pose_frame_id)"/>
+        <param name="ual_server" value="$(arg ual_server)"/>
+        <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
+        <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
+        <param name="home_pose_parent_frame" value="map"/>
+        <!-- Define home pose relative to global map frame -->
+        <rosparam param="home_pose">[0, 0, 0]</rosparam>  
+    </node>
+    <!-- ######################### UAV Path Manager nodes ######################### -->
+    <group ns="upat_follower">
+        <group ns="$(arg ns_prefix)1">
+            <node pkg="architecture" type="ual_communication_node" name="ual_communication" output="screen" required="true">
+                <param name="uav_id" value="1"/>
+                <param name="save_test_data" value="$(arg save_test_data)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="initial_maneuver" value="corridor_path"/>
+                <param name="reach_tolerance" value="0.1"/>
+                <param name="generator_mode" value="0"/>
+                <param name="take_off_height" value="5"/>
+                <param name="pkg_name" value="architecture"/>
+            </node>
+            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
+                <param name="uav_id" value="1"/>
+                <param name="robot_model" value="$(arg robot_model)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="save_experiment_data" value="$(arg save_experiment_data)"/>
+                <param name="trajectory" value="$(arg trajectory)"/>
+            </node>
+        </group>
+    </group>
     <node name="tf_broadcast" type="gps_utm_tf_broadcaster_node" pkg="architecture" output="screen" />
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture" output="screen" />
     <!-- <node name="middle_man_current_position" type="fake_position_provider_node" pkg="architecture" output="screen" /> -->
