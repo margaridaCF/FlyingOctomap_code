@@ -70,6 +70,7 @@ class UALCommunication {
 
     // Methods
     void followFlightPlan();
+    void followFlightPlan_velocity();
     void runFlightPlan();
     bool prepare();
     nav_msgs::Path csvToPath(std::string _file_name);

@@ -166,8 +166,13 @@ void UALCommunication::callVisualization() {
 
 bool UALCommunication::prepare()
 {
+    // Add current position to flight plan
+    std::vector<geometry_msgs::PoseStamped>::iterator it;
+    geometry_msgs::PoseStamped current_pose;
+    current_pose.pose.position = ual_pose_.pose.position;
+    it = init_path_.poses.begin();
+    it = init_path_.poses.insert ( it , current_pose );
     // Initialize path
-    // init_path_ = csvToPath(init_path_name_);
     if( !generateYaw(init_path_) ) return false;
     // Save data
     if (save_test_) {
@@ -193,7 +198,7 @@ void UALCommunication::runFlightPlan()
             else            switchState(wait_for_flight);
             break;
         case execute_flight:
-            followFlightPlan();
+            followFlightPlan_velocity();
             if(end_path_)
             {
                 switchState(wait_for_flight);
@@ -224,41 +229,27 @@ void UALCommunication::runMission_try2() {
     }
 }
 
-void UALCommunication::followFlightPlan()
+void UALCommunication::followFlightPlan_velocity()
 {
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
     path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
-    if (!end_path_) {
-        if (!on_path_) {
-            if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
-                pub_set_pose_.publish(target_path_.poses.at(0));
-            } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
-                pub_set_pose_.publish(target_path_.poses.front());
-                on_path_ = true;
-            }
-        } else {
-            if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
-                pub_set_pose_.publish(target_path_.poses.back());
-                on_path_ = false;
-                end_path_ = true;
-            } else {
-                follower_.updatePose(ual_pose_);
-                double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
-                velocity_ = follower_.getVelocity(current_yaw);
-                pub_set_velocity_.publish(velocity_);
-                current_path_.header.frame_id = ual_pose_.header.frame_id;
-                current_path_.poses.push_back(ual_pose_);
-            }
-        }
-    } else {
-        if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
-            pub_set_pose_.publish(target_path_.poses.back());
-        } else {
-            uav_abstraction_layer::Land land;
-            land.request.blocking = true;
-            client_land_.call(land);
+    if(!end_path_)
+    {
+        if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) 
+        {
+            on_path_ = false;
+            end_path_ = true;
+        } 
+        else 
+        {
+            follower_.updatePose(ual_pose_);
+            double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
+            velocity_ = follower_.getVelocity(current_yaw);
+            pub_set_velocity_.publish(velocity_);
+            current_path_.header.frame_id = ual_pose_.header.frame_id;
+            current_path_.poses.push_back(ual_pose_);
         }
     }
 }
