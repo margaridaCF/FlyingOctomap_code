@@ -235,7 +235,6 @@ namespace state_manager_node
             }
             #ifdef SAVE_CSV
                 std::pair <double, double> millis_count = calculateTime(); 
-                csv_file << millis_count.first <<  ",,,,,"<<millis_count.second<<"," << std::endl;
                 operation_start = std::chrono::high_resolution_clock::now();
                 int success = 2;
                 if (msg->success) success = 1;
@@ -292,7 +291,7 @@ namespace state_manager_node
         std::chrono::high_resolution_clock::time_point end_millis;
         std::chrono::duration<double> time_span;
         std::chrono::milliseconds millis;
-        double initial_maneuver_millis, frontier_gen_millis, visit_waypoints_millis, goalSM_millis, ltstar_millis, flyby_millis;
+        // double initial_maneuver_millis, frontier_gen_millis, visit_waypoints_millis, goalSM_millis, ltstar_millis, flyby_millis;
         #endif
         switch(state_data.exploration_state.getState())
         {
@@ -303,11 +302,6 @@ namespace state_manager_node
                 #endif
 
                 while(!askForGoalServiceCall()){}
-                #ifdef SAVE_CSV
-                    std::pair <double, double> millis_count = calculateTime(); 
-                    csv_file << millis_count.first << ",,,,"<<millis_count.second<<",," << std::endl;
-                    operation_start = std::chrono::high_resolution_clock::now();
-                #endif
                 #ifdef SAVE_LOG
                     log_file << "[State manager][Exploration] asked for next goal " << std::endl;
                 #endif
@@ -383,7 +377,6 @@ namespace state_manager_node
             double z = geofence_max.z() - geofence_min.z();
             double volume_meters = x * y * z;
             // WRITE
-            csv_file.close();
             csv_file.open (folder_name+"/exploration_time.csv", std::ofstream::app);
             csv_file << millis.count() << "," << volume_meters << "," << is_successfull_exploration << std::endl; 
             csv_file.close();
@@ -445,22 +438,12 @@ int main(int argc, char **argv)
     geofence_max_point.z = state_manager_node::geofence_max.z();
 
     #ifdef SAVE_CSV
-    state_manager_node::csv_file.open (state_manager_node::folder_name+"/current/execution_time.csv", std::ofstream::app);
-    state_manager_node::csv_file << "timeline,initial_maneuver_millis,frontier_gen_millis,visit_waypoints_millis,goalSM_millis,ltstar_millis,flyby_millis" << std::endl;
     state_manager_node::csv_file_success.open (state_manager_node::folder_name+"/current/success_rate.csv", std::ofstream::app);
     state_manager_node::csv_file_success << "timeline,path_planner,sampling" << std::endl;
     state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
     state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
     #endif
-    // #ifdef SAVE_CSV
-    // std::ofstream csv_file;
-    // csv_file.open (state_manager_node::folder_name+"/exploration_time.csv", std::ofstream::app);
-    // // csv_file << "timestamp,computation_time_millis,volume_cubic_meters" << std::endl;
-    // csv_file << std::put_time(std::localtime(&now_c), "%F %T") << ",";
-    // csv_file.close();
-    // // state_manager_node::start = std::chrono::high_resolution_clock::now();
-    // #endif
-    state_manager_node::timer = nh.createTimer(ros::Duration(0.5), state_manager_node::main_loop);
+    state_manager_node::timer = nh.createTimer(ros::Duration(0.1), state_manager_node::main_loop);
     ros::spin();
     return 0;
 }
