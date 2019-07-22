@@ -90,6 +90,7 @@ namespace state_manager_node
         lazy_theta_star_msgs::LTStarRequest ltstar_request;
         lazy_theta_star_msgs::LTStarReply ltstar_reply;
         exploration_sm::ExplorationStateMachine exploration_state;
+        geometry_msgs::Point last_flyby_start;
     };  
     state_manager_node::StateData state_data;
 
@@ -198,6 +199,15 @@ namespace state_manager_node
         }
         pose_s.pose.position = state_data.next_goal_msg.end_flyby;
         flight_plan_request.poses.push_back(pose_s);
+
+        std::ofstream pathWaypoints;
+        pathWaypoints.open (folder_name + "/final_path_state_manager.txt", std::ofstream::out | std::ofstream::app);
+        for (std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan_request.poses.begin(); i != flight_plan_request.poses.end(); ++i)
+        {
+            pathWaypoints << std::setprecision(5) << i->pose.position.x << ", " << i->pose.position.y << ", " << i->pose.position.z << std::endl;
+            
+        }
+        pathWaypoints.close();
         return flight_plan_request;
     }
 
@@ -254,6 +264,9 @@ namespace state_manager_node
         state_data.new_map = true;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
+        state_data.last_flyby_start.x = 0;
+        state_data.last_flyby_start.y = -6;
+        state_data.last_flyby_start.z = 3;
     }
 
     void init_param_variables(ros::NodeHandle& nh)
@@ -329,7 +342,7 @@ namespace state_manager_node
                         geometry_msgs::Point current_position;
                         if(getUavPositionServiceCall(current_position))
                         {
-                            askForObstacleAvoidingPath(current_position);
+                            askForObstacleAvoidingPath(state_data.last_flyby_start);
                             state_data.exploration_state.switchState(exploration_sm::waiting_path_response);
                         }
                     }

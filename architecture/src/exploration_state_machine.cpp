@@ -6,7 +6,7 @@ namespace exploration_sm
 	ExplorationStateMachine::ExplorationStateMachine()
 	{
 	    std::stringstream aux_envvar_home (std::getenv("HOME"));
-	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data/current";
 		switchState(visit_waypoints);
 
 	    #ifdef SAVE_CSV

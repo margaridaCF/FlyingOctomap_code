@@ -186,6 +186,11 @@ bool UALCommunication::prepare()
     double look_ahead = 0.4;
     double cruising_speed = 1.0;
     target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
+    // ROS_ERROR_STREAM("init_path_" );
+    // for (std::vector<geometry_msgs::PoseStamped>::iterator i = init_path_.poses.begin(); i != init_path_.poses.end(); ++i)
+    // {
+    //     ROS_ERROR_STREAM(i->pose.position.x << "," << i->pose.position.y << "," << i->pose.position.z << "," << i->pose.orientation.x  << "," << i->pose.orientation.y  << "," << i->pose.orientation.z  << "," << i->pose.orientation.w );
+    // }
     return true;
 }
 
@@ -250,6 +255,45 @@ void UALCommunication::followFlightPlan_velocity()
             pub_set_velocity_.publish(velocity_);
             current_path_.header.frame_id = ual_pose_.header.frame_id;
             current_path_.poses.push_back(ual_pose_);
+        }
+    }
+}
+
+void UALCommunication::followFlightPlan()
+{
+    Eigen::Vector3f current_p, path0_p, path_end_p;
+    current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
+    path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
+    path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
+    if (!end_path_) {
+        if (!on_path_) {
+            if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
+                pub_set_pose_.publish(target_path_.poses.at(0));
+            } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
+                pub_set_pose_.publish(target_path_.poses.front());
+                on_path_ = true;
+            }
+        } else {
+            if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
+                pub_set_pose_.publish(target_path_.poses.back());
+                on_path_ = false;
+                end_path_ = true;
+            } else {
+                follower_.updatePose(ual_pose_);
+                double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
+                velocity_ = follower_.getVelocity(current_yaw);
+                pub_set_velocity_.publish(velocity_);
+                current_path_.header.frame_id = ual_pose_.header.frame_id;
+                current_path_.poses.push_back(ual_pose_);
+            }
+        }
+    } else {
+        if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
+            pub_set_pose_.publish(target_path_.poses.back());
+        } else {
+            uav_abstraction_layer::Land land;
+            land.request.blocking = true;
+            client_land_.call(land);
         }
     }
 }
