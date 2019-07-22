@@ -73,6 +73,11 @@ class UALCommunication {
     void followFlightPlan_velocity();
     void runFlightPlan();
     bool prepare();
+    double publishYawControl();
+    void runFlightPlan_segments();
+    bool prepare_yaw();
+    bool prepare_position();
+
     nav_msgs::Path csvToPath(std::string _file_name);
     std::vector<double> csvToVector(std::string _file_name);
     void saveDataForTesting();
@@ -100,10 +105,12 @@ class UALCommunication {
     std::string init_path_name_;
     std::string pkg_name_ = "upat_follower";
 
-    enum comms_state_t {wait_for_flight= 1, init_flight = 2, execute_flight = 3};
+    enum comms_state_t {wait_for_flight= 1, init_segment = 2, execute_yaw= 3, execute_position = 4};
     void switchState(comms_state_t new_comms_state);
     comms_state_t comms_state;
     double take_off_height;
+
+    int current_target;
 };
 
 }  // namespace upat_follower

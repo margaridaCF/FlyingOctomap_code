@@ -34,8 +34,9 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     follower_ = upat_follower::Follower(uav_id_);
     sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/flight_plan_requests", 0, &UALCommunication::flightPlanCallback, this);
     flight_plan_state_ = nh_.advertise<std_msgs::Empty>("/uav_" + std::to_string(uav_id_) + "/flight_plan_notifications", 1000);
-    init_path_ = csvToPath(init_path_name_);
-    switchState(init_flight);
+    flight_plan = csvToPath(init_path_name_);
+    current_target = 0;
+    switchState(init_segment);
     // =======================
 
 
@@ -65,11 +66,14 @@ void UALCommunication::switchState(comms_state_t new_comms_state)
         case wait_for_flight:
             ROS_INFO("[UAL COMMS] wait_for_flight");
             break;
-        case init_flight:
-            ROS_INFO("[UAL COMMS] init_flight");
+        case init_segment:
+            ROS_INFO("[UAL COMMS] init_segment");
             break;
-        case execute_flight:
-            ROS_INFO("[UAL COMMS] execute_flight");
+        case execute_yaw:
+            ROS_INFO("[UAL COMMS] execute_yaw");
+            break;
+        case execute_position:
+            ROS_INFO("[UAL COMMS] execute_position");
             break;
     }
 }
@@ -138,9 +142,9 @@ bool generateYaw(nav_msgs::Path & path)
 }
 
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
-    init_path_ = *_flight_plan;
-    init_path_.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
-    switchState(init_flight);
+    flight_plan = *_flight_plan;
+    current_target = 0;
+    switchState(init_segment);
 }
 
 void UALCommunication::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
@@ -194,30 +198,124 @@ bool UALCommunication::prepare()
     return true;
 }
 
-void UALCommunication::runFlightPlan()
+bool UALCommunication::prepare_yaw()
+{
+    nav_msgs::Path segment;
+    init_path_.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
+    init_path_.poses = {ual_pose_, flight_plan.poses.at(current_target)};
+    if( !generateYaw(init_path_) ) return false;
+    target_path_ = init_path_;
+    return true;
+}
+
+bool UALCommunication::prepare_position()
+{
+    nav_msgs::Path segment;
+    init_path_.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
+    init_path_.poses = {ual_pose_, flight_plan.poses.at(current_target)};
+    // Flags
+    on_path_ = false;
+    end_path_ = false;
+    double look_ahead = 0.4;
+    double cruising_speed = 1.0;
+    target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
+    return true;
+}
+
+// void UALCommunication::runFlightPlan()
+// {
+//     switch(comms_state)
+//     {
+//         case init_flight:
+//             if(prepare())   switchState(execute_flight);
+//             else            switchState(wait_for_flight);
+//             break;
+//         case execute_flight:
+//             followFlightPlan_velocity();
+//             if(end_path_)
+//             {
+//                 switchState(wait_for_flight);
+//                 std_msgs::Empty done;
+//                 flight_plan_state_.publish(done);
+//             }
+//             break;
+//     }
+// }
+
+
+double calculateYawRate(double current_yaw, double desired_yaw)
+{
+    double yaw_rate_dt = 2;
+    double dx = desired_yaw - current_yaw;
+    if      ( dx > M_PI )  { dx =  -(dx - M_PI);}
+    else if ( dx < -M_PI ) { dx = -(dx + M_PI); }
+    double yaw_rate = dx / yaw_rate_dt; 
+    yaw_rate = std::min(yaw_rate, 1.0);
+    yaw_rate = std::max(yaw_rate, -1.0);
+    return yaw_rate;
+
+}
+double UALCommunication::publishYawControl()
+{
+    double desired_yaw = tf::getYaw(target_path_.poses.at(1).pose.orientation);
+    velocity_.twist.linear.x = 0;
+    velocity_.twist.linear.y = 0;
+    velocity_.twist.linear.z = 0;
+    double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
+    velocity_.twist.angular.z = calculateYawRate(current_yaw, desired_yaw);
+    pub_set_velocity_.publish(velocity_);
+    current_path_.header.frame_id = ual_pose_.header.frame_id;
+    current_path_.poses.push_back(ual_pose_);
+    return velocity_.twist.angular.z;
+}
+
+void UALCommunication::runFlightPlan_segments()
 {
     switch(comms_state)
     {
-        case init_flight:
-            if(prepare())   switchState(execute_flight);
-            else            switchState(wait_for_flight);
+        case init_segment:
+            if(prepare_yaw())                               switchState(execute_yaw);
+            else                                            switchState(wait_for_flight);
             break;
-        case execute_flight:
+        case execute_yaw:
+            {
+            double curr_yaw_rate = publishYawControl();
+            ROS_WARN_STREAM ("[UAL COMMS] yaw rate " << curr_yaw_rate);
+            if(std::abs(curr_yaw_rate) < 0.01)
+            {
+                prepare_position();
+                                                            switchState(execute_position);
+            }                      
+            // else ROS_WARN_STREAM ("[UAL COMMS] yaw rate " << curr_yaw_rate);
+            }
+            break;
+        case execute_position:
             followFlightPlan_velocity();
             if(end_path_)
             {
-                switchState(wait_for_flight);
-                std_msgs::Empty done;
-                flight_plan_state_.publish(done);
+                current_target++;
+                if(current_target < flight_plan.poses.size())  switchState(init_segment);
+                else
+                {                                            
+                                                                switchState(wait_for_flight);
+                    std_msgs::Empty done;
+                    flight_plan_state_.publish(done);
+                }
             }
+            break;
+        case wait_for_flight: break;
+        default:
+            ROS_WARN_STREAM("[UAL COMMS] Something went very wrong. comms_state = " << comms_state);
             break;
     }
 }
 
 void UALCommunication::runMission_try2() {
+    // ROS_WARN_STREAM("ual_state_.state = " << ual_state_);
     switch (ual_state_.state) {
         case 2:  // Landed armed
-            if (!end_path_) {
+            // if (!end_path_) 
+            {
                 uav_abstraction_layer::TakeOff take_off;
                 take_off.request.height = take_off_height;
                 take_off.request.blocking = true;
@@ -227,7 +325,7 @@ void UALCommunication::runMission_try2() {
         case 3:  // Taking of
             break;
         case 4:  // Flying auto
-            runFlightPlan();
+            runFlightPlan_segments();
             break;
         case 5:  // Landing
             break;
@@ -236,9 +334,8 @@ void UALCommunication::runMission_try2() {
 
 void UALCommunication::followFlightPlan_velocity()
 {
-    Eigen::Vector3f current_p, path0_p, path_end_p;
+    Eigen::Vector3f current_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
-    path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
     path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
     if(!end_path_)
     {
@@ -251,7 +348,7 @@ void UALCommunication::followFlightPlan_velocity()
         {
             follower_.updatePose(ual_pose_);
             double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
-            velocity_ = follower_.getVelocity(current_yaw);
+            velocity_ = follower_.getVelocity(0);
             pub_set_velocity_.publish(velocity_);
             current_path_.header.frame_id = ual_pose_.header.frame_id;
             current_path_.poses.push_back(ual_pose_);
