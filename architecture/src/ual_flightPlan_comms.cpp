@@ -35,6 +35,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     sub_flight_plan_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/flight_plan_requests", 0, &UALCommunication::flightPlanCallback, this);
     flight_plan_state_ = nh_.advertise<std_msgs::Empty>("/uav_" + std::to_string(uav_id_) + "/flight_plan_notifications", 1000);
     flight_plan = csvToPath(init_path_name_);
+    flight_plan.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
     current_target = 0;
     switchState(init_segment);
     // =======================
@@ -49,6 +50,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Publishers
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
+    pub_flight_plan_ = nh_.advertise<nav_msgs::Path>("/uav_" + std::to_string(uav_id_) + "/flight_plan", 1);
     // Services
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
@@ -143,6 +145,7 @@ bool generateYaw(nav_msgs::Path & path)
 
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
     flight_plan = *_flight_plan;
+    flight_plan.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
     current_target = 0;
     switchState(init_segment);
 }
@@ -166,6 +169,7 @@ void UALCommunication::callVisualization() {
     visualize.request.generated_path = target_path_;
     visualize.request.current_path = current_path_;
     client_visualize_.call(visualize);
+    pub_flight_plan_.publish(flight_plan);
 }
 
 bool UALCommunication::prepare()

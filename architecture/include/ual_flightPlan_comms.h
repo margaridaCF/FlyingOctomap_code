@@ -86,7 +86,7 @@ class UALCommunication {
     // Subscribers
     ros::Subscriber sub_pose_, sub_state_, sub_velocity_, sub_flight_plan_;
     // Publishers
-    ros::Publisher pub_set_velocity_, pub_set_pose_, flight_plan_state_;
+    ros::Publisher pub_set_velocity_, pub_set_pose_, flight_plan_state_, pub_flight_plan_;
     // Services
     ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_visualize_;
     // Variables
