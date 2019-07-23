@@ -60,71 +60,61 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
-        /imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link_inertia:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hokuyo:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor_0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor_1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor_2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        rotor_3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        base_link:
+          Value: false
+        base_link_inertia:
+          Value: false
+        fcu:
+          Value: false
+        fcu_frd:
+          Value: false
+        hokuyo:
+          Value: false
+        local_origin:
+          Value: false
+        local_origin_ned:
+          Value: false
+        map:
+          Value: false
+        uav_1:
+          Value: true
+        uav_1_home:
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        map:
+          base_link:
+            base_link_inertia:
+              {}
+            hokuyo:
+              {}
+          uav_1_home:
+            uav_1:
+              {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /free_cells_vis_array
@@ -279,6 +269,29 @@ Visualization Manager:
       Topic: /upat_follower/visualization/uav_1/init_path
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /uav_1/flight_plan
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 127; 180; 169
@@ -299,25 +312,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 41.4423332
+      Distance: 19.2459888
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.98851788
-        Y: -6.62925482
-        Z: -2.53381944
+        X: 3.13605094
+        Y: -2.81626654
+        Z: -2.87882662
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.979796648
+      Pitch: 1.36979628
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.47818696
+      Yaw: 1.46818697
     Saved: ~
 Window Geometry:
   Displays:
