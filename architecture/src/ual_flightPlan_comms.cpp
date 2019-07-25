@@ -284,13 +284,11 @@ void UALCommunication::runFlightPlan_segments()
         case execute_yaw:
             {
             double curr_yaw_rate = publishYawControl();
-            ROS_WARN_STREAM ("[UAL COMMS] yaw rate " << curr_yaw_rate);
             if(std::abs(curr_yaw_rate) < 0.01)
             {
                 prepare_position();
                                                             switchState(execute_position);
             }                      
-            // else ROS_WARN_STREAM ("[UAL COMMS] yaw rate " << curr_yaw_rate);
             }
             break;
         case execute_position:
@@ -352,7 +350,7 @@ void UALCommunication::followFlightPlan_velocity()
         {
             follower_.updatePose(ual_pose_);
             double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
-            velocity_ = follower_.getVelocity(0);
+            velocity_ = follower_.getVelocity();
             pub_set_velocity_.publish(velocity_);
             current_path_.header.frame_id = ual_pose_.header.frame_id;
             current_path_.poses.push_back(ual_pose_);
@@ -382,7 +380,7 @@ void UALCommunication::followFlightPlan()
             } else {
                 follower_.updatePose(ual_pose_);
                 double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
-                velocity_ = follower_.getVelocity(current_yaw);
+                velocity_ = follower_.getVelocity();
                 pub_set_velocity_.publish(velocity_);
                 current_path_.header.frame_id = ual_pose_.header.frame_id;
                 current_path_.poses.push_back(ual_pose_);
