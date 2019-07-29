@@ -36,6 +36,7 @@
 #include <fstream>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/Quaternion.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
 #include <architecture_math.h>
@@ -74,6 +75,7 @@ class UALCommunication {
     void runFlightPlan();
     bool prepare();
     double publishYawControl();
+    double checkYaw();
     void runFlightPlan_segments();
     bool prepare_yaw();
     bool prepare_position();
@@ -96,6 +98,8 @@ class UALCommunication {
     nav_msgs::Path target_path_, vel_percentage_path_, init_path_, current_path_, flight_plan;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped velocity_;
+    geometry_msgs::Quaternion desired_quaternion;
+    nav_msgs::Path temp_segment_path; 
     uav_abstraction_layer::State ual_state_;
     std::vector<double> times_;
     // Params

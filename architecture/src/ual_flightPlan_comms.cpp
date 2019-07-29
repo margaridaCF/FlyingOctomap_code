@@ -36,7 +36,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     flight_plan_state_ = nh_.advertise<std_msgs::Empty>("/uav_" + std::to_string(uav_id_) + "/flight_plan_notifications", 1000);
     flight_plan = csvToPath(init_path_name_);
     flight_plan.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
-    current_target = 0;
+    current_target = 1;
     switchState(init_segment);
     // =======================
 
@@ -146,7 +146,7 @@ bool generateYaw(nav_msgs::Path & path)
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
     flight_plan = *_flight_plan;
     flight_plan.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
-    current_target = 0;
+    current_target = 1;
     switchState(init_segment);
 }
 
@@ -191,7 +191,7 @@ bool UALCommunication::prepare()
     // Flags
     on_path_ = false;
     end_path_ = false;
-    double look_ahead = 0.4;
+    double look_ahead = 1.0;
     double cruising_speed = 1.0;
     target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
     // ROS_ERROR_STREAM("init_path_" );
@@ -206,9 +206,9 @@ bool UALCommunication::prepare_yaw()
 {
     nav_msgs::Path segment;
     init_path_.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
-    init_path_.poses = {ual_pose_, flight_plan.poses.at(current_target)};
+    init_path_.poses = {flight_plan.poses.at(current_target-1), flight_plan.poses.at(current_target)};
     if( !generateYaw(init_path_) ) return false;
-    target_path_ = init_path_;
+    temp_segment_path = init_path_;
     return true;
 }
 
@@ -216,11 +216,11 @@ bool UALCommunication::prepare_position()
 {
     nav_msgs::Path segment;
     init_path_.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
-    init_path_.poses = {ual_pose_, flight_plan.poses.at(current_target)};
+    init_path_.poses = {flight_plan.poses.at(current_target-1), flight_plan.poses.at(current_target)};
     // Flags
     on_path_ = false;
     end_path_ = false;
-    double look_ahead = 0.4;
+    double look_ahead = 1.0;
     double cruising_speed = 1.0;
     target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
     return true;
@@ -261,7 +261,8 @@ double calculateYawRate(double current_yaw, double desired_yaw)
 }
 double UALCommunication::publishYawControl()
 {
-    double desired_yaw = tf::getYaw(target_path_.poses.at(1).pose.orientation);
+    double desired_yaw = tf::getYaw(temp_segment_path.poses.at(1).pose.orientation);
+    desired_quaternion = temp_segment_path.poses.at(1).pose.orientation;
     velocity_.twist.linear.x = 0;
     velocity_.twist.linear.y = 0;
     velocity_.twist.linear.z = 0;
@@ -273,12 +274,20 @@ double UALCommunication::publishYawControl()
     return velocity_.twist.angular.z;
 }
 
+double UALCommunication::checkYaw()
+{
+    double desired_yaw = tf::getYaw(temp_segment_path.poses.at(1).pose.orientation);
+    double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
+    velocity_.twist.angular.z = calculateYawRate(current_yaw, desired_yaw);
+    return velocity_.twist.angular.z;
+}
 void UALCommunication::runFlightPlan_segments()
 {
     switch(comms_state)
     {
         case init_segment:
-            if(prepare_yaw())                               switchState(execute_yaw);
+            if(prepare_yaw())            desired_quaternion = temp_segment_path.poses.at(1).pose.orientation;
+            if(prepare_position())                          switchState(execute_position);
             else                                            switchState(wait_for_flight);
             break;
         case execute_yaw:
@@ -367,10 +376,13 @@ void UALCommunication::followFlightPlan()
     path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
     if (!end_path_) {
         if (!on_path_) {
+            geometry_msgs::PoseStamped temp_target;
+            temp_target = target_path_.poses.at(0);
+            temp_target.pose.orientation = desired_quaternion;
             if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
-                pub_set_pose_.publish(target_path_.poses.at(0));
-            } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
-                pub_set_pose_.publish(target_path_.poses.front());
+                pub_set_pose_.publish(temp_target);
+            } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_ && std::abs(checkYaw()) < 0.01) {
+                pub_set_pose_.publish(temp_target);
                 on_path_ = true;
             }
         } else {
