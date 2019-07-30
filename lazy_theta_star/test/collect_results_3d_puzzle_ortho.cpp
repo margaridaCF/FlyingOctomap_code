@@ -165,11 +165,11 @@ namespace LazyThetaStarOctree{
 	void collectData_differentMargins_newHeuristic(octomap::OcTree & octree, std::list<octomath::Vector3>  points, std::string dataset_name)
 	{
 
-	    double max_time_secs = 30;
+	    double max_time_secs = 60;
 
 	    collectDate(octree, max_time_secs, 3.9, dataset_name+"_twoThirdsValid", points);
-	    // collectDate(octree, max_time_secs, 5, dataset_name+"_newHeuristic", points);
-	    // collectDate(octree, max_time_secs, 5.4, dataset_name+"_newHeuristic", points);
+	    collectDate(octree, max_time_secs, 5, dataset_name+"_twoThirdsValid", points);
+	    collectDate(octree, max_time_secs, 5.4, dataset_name+"_twoThirdsValid", points);
 	}
 
 	TEST(LazyThetaStarMeasurements, 3dPuzzle)
