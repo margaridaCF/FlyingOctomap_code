@@ -165,11 +165,11 @@ namespace LazyThetaStarOctree{
 	void collectData_differentMargins_newHeuristic(octomap::OcTree & octree, std::list<octomath::Vector3>  points, std::string dataset_name)
 	{
 
-	    double max_time_secs = 6;
+	    double max_time_secs = 60;
 
 	    collectDate(octree, max_time_secs, 3.9, dataset_name+"_twoThirdsValid", points);
-	    // collectDate(octree, max_time_secs, 5, dataset_name+"_twoThirdsValid", points);
-	    // collectDate(octree, max_time_secs, 5.4, dataset_name+"_twoThirdsValid", points);
+	    collectDate(octree, max_time_secs, 5, dataset_name+"_twoThirdsValid", points);
+	    collectDate(octree, max_time_secs, 5.4, dataset_name+"_twoThirdsValid", points);
 	}
 
 	TEST(LazyThetaStarMeasurements, 3dPuzzle)
@@ -177,41 +177,41 @@ namespace LazyThetaStarOctree{
 	  	std::list<octomath::Vector3> points = {
 		  		/*A = */octomath::Vector3 (0.28, 13.3, 90),
 		  		/*B = */octomath::Vector3 (-21.6, 20.3, 63),
-		  		// /*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
-		  		// /*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
-		  		// /*E = */octomath::Vector3 (41.4, 22.4, 32),
-		  		// /*F = */octomath::Vector3 (21.6, 23.5, 12.5),
-	  			// octomath::Vector3 (0.0, -5.0, 10),
-	  			// octomath::Vector3 (-5.0, 0.0, 40),
-	  			// octomath::Vector3 (-20, 12.5, 40.0),
-	  			// octomath::Vector3 (0, 32, 40.0),
-	  			// octomath::Vector3 (0, 32, 15.0),
-	  			// octomath::Vector3 (30, 47, 15.0),
-	  			// octomath::Vector3 (30, 47, 50.0),
-	  			// octomath::Vector3 (48, 4, 50.0),
-	  			// octomath::Vector3 (48, 4, 20.0),
-	  			// octomath::Vector3 (31, 2, 20.0),
-	  			// octomath::Vector3 (31, 2, 45.0),
-	  			// octomath::Vector3 (16, 37, 45.0),
-	  			// octomath::Vector3 (16, 37, 10.0),
-	  			// octomath::Vector3 (-3, 31, 77.0),
-	  			// octomath::Vector3 (-7, 13, 26),
-	  			// octomath::Vector3 (10, 17, 26),
-	  			// octomath::Vector3 (10, 17, 46),
-	  			// octomath::Vector3 (14, 0, 46),
-	  			// octomath::Vector3 (14, 0, 26),
-	  			// octomath::Vector3 (-10, 18, 63),
-	  			// octomath::Vector3 (6, -6, 63),
-	  			// octomath::Vector3 (5, 32, 63),
-	  			// octomath::Vector3 (27, 30, 63),
-	  			// octomath::Vector3 (37, 9, 63),
-	  			// octomath::Vector3 (-2.8, 0.7, 10),
-	  			// octomath::Vector3 (-2.8, 0.7, 15),
-	  			// octomath::Vector3 (-2.2, 9.7, 20),
-	  			// octomath::Vector3 (-3, 6.7, 20),
-	  			// octomath::Vector3 (8.7, 22.7, 20),
-	  			// octomath::Vector3 (5.46, 25.9, 15),
-	  			// octomath::Vector3 (7, 21.7, 20),
+		  		/*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
+		  		/*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
+		  		/*E = */octomath::Vector3 (41.4, 22.4, 32),
+		  		/*F = */octomath::Vector3 (21.6, 23.5, 12.5),
+	  			octomath::Vector3 (0.0, -5.0, 10),
+	  			octomath::Vector3 (-5.0, 0.0, 40),
+	  			octomath::Vector3 (-20, 12.5, 40.0),
+	  			octomath::Vector3 (0, 32, 40.0),
+	  			octomath::Vector3 (0, 32, 15.0),
+	  			octomath::Vector3 (30, 47, 15.0),
+	  			octomath::Vector3 (30, 47, 50.0),
+	  			octomath::Vector3 (48, 4, 50.0),
+	  			octomath::Vector3 (48, 4, 20.0),
+	  			octomath::Vector3 (31, 2, 20.0),
+	  			octomath::Vector3 (31, 2, 45.0),
+	  			octomath::Vector3 (16, 37, 45.0),
+	  			octomath::Vector3 (16, 37, 10.0),
+	  			octomath::Vector3 (-3, 31, 77.0),
+	  			octomath::Vector3 (-7, 13, 26),
+	  			octomath::Vector3 (10, 17, 26),
+	  			octomath::Vector3 (10, 17, 46),
+	  			octomath::Vector3 (14, 0, 46),
+	  			octomath::Vector3 (14, 0, 26),
+	  			octomath::Vector3 (-10, 18, 63),
+	  			octomath::Vector3 (6, -6, 63),
+	  			octomath::Vector3 (5, 32, 63),
+	  			octomath::Vector3 (27, 30, 63),
+	  			octomath::Vector3 (37, 9, 63),
+	  			octomath::Vector3 (-2.8, 0.7, 10),
+	  			octomath::Vector3 (-2.8, 0.7, 15),
+	  			octomath::Vector3 (-2.2, 9.7, 20),
+	  			octomath::Vector3 (-3, 6.7, 20),
+	  			octomath::Vector3 (8.7, 22.7, 20),
+	  			octomath::Vector3 (5.46, 25.9, 15),
+	  			octomath::Vector3 (7, 21.7, 20),
 			};
 		std::ofstream csv_file;
 		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
