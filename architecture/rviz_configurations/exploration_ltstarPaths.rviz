@@ -10,6 +10,7 @@ Panels:
         - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
         - /State Manager1/Namespaces1
+        - /Goal State Manager1
         - /Goal State Manager1/Namespaces1
       Splitter Ratio: 0.584474862
     Tree Height: 590
@@ -216,13 +217,25 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /goal_sm
       Name: Goal State Manager
       Namespaces:
-        {}
+        oppair_end: true
+        oppair_end_outside: false
+        oppair_path: true
+        oppair_start: true
+        oppair_start_outside: false
+        safetyzone_flybyEnd: true
+        safetyzone_flybyStart: true
+        start_safetyZone: true
+        straight_line: false
+        uav_position: true
+        under_unknown_point: true
+        unknown: true
+        unknown_point: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -312,25 +325,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 21.2451077
+      Distance: 33.7347527
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 2.72471666
-        Y: -0.656688213
-        Z: -2.85537314
+        X: -7.56491089
+        Y: -8.33124065
+        Z: 6.45388317
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.56979632
+      Pitch: 0.484796911
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.56318688
+      Yaw: 1.11818719
     Saved: ~
 Window Geometry:
   Displays:

@@ -45,7 +45,6 @@
 
 namespace state_manager_node
 {
-    // std::string folder_name = "/ros_ws/src/data";
     std::stringstream aux_envvar_home (std::getenv("HOME"));
     std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 
@@ -54,11 +53,8 @@ namespace state_manager_node
     ros::Publisher ltstar_request_pub;
     ros::Publisher marker_pub;
     ros::Publisher flight_plan_pub;
-    ros::ServiceClient target_position_client;
-    ros::ServiceClient is_explored_client;
     ros::ServiceClient ltstar_status_cliente;
-    ros::ServiceClient current_position_client;
-    ros::ServiceClient ask_for_goal_client, declare_unobservable_client;
+    ros::ServiceClient ask_for_goal_client;
 
     ros::Timer timer;
     std::chrono::high_resolution_clock::time_point start;
@@ -107,37 +103,6 @@ namespace state_manager_node
         return std::make_pair (timeline_millis, operation_millis);
     }
 
-    bool getUavPositionServiceCall(geometry_msgs::Point& current_position)
-    {
-        architecture_msgs::PositionMiddleMan srv;
-        if(current_position_client.call(srv))
-        {
-            current_position = srv.response.current_position;
-            return true;
-        }
-        else
-        {
-            ROS_WARN("[State manager] Current position middle man node not accepting requests.");
-            return false;
-        }
-    }
-
-    bool askPositionServiceCall(geometry_msgs::Pose& pose)
-    {
-        architecture_msgs::PositionRequest position_request_srv;
-        position_request_srv.request.waypoint_sequence_id = state_data.ltstar_request_id;
-        position_request_srv.request.pose = pose;
-        ROS_INFO_STREAM("[State] askPositionServiceCall " << pose);
-        if(target_position_client.call(position_request_srv))
-        {
-            return position_request_srv.response.is_going_to_position;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     void askForObstacleAvoidingPath(geometry_msgs::Point start)
     {
         lazy_theta_star_msgs::LTStarRequest request;
@@ -169,21 +134,6 @@ namespace state_manager_node
         else 
         { 
             ROS_WARN("[State manager] Goal SM node not accepting next goal requests."); 
-            return false; 
-        } 
-    } 
-
-    bool askIsExploredServiceCall(geometry_msgs::Point candidate) 
-    { 
-        frontiers_msgs::CheckIsExplored is_explored_msg; 
-        is_explored_msg.request.candidate = candidate; 
-        if(is_explored_client.call(is_explored_msg)) 
-        { 
-            return is_explored_msg.response.is_explored; 
-        } 
-        else 
-        { 
-            ROS_WARN("[State manager] Frontier node not accepting is explored requests."); 
             return false; 
         } 
     } 
@@ -339,12 +289,12 @@ namespace state_manager_node
                 {
                     if((bool)srv.response.is_accepting_requests)
                     {
-                        geometry_msgs::Point current_position;
-                        if(getUavPositionServiceCall(current_position))
-                        {
+                        // geometry_msgs::Point current_position;
+                        // if(getUavPositionServiceCall(current_position))
+                        // {
                             askForObstacleAvoidingPath(state_data.last_flyby_start);
                             state_data.exploration_state.switchState(exploration_sm::waiting_path_response);
-                        }
+                        // }
                     }
                 }
                 else
@@ -421,11 +371,7 @@ int main(int argc, char **argv)
     state_manager_node::init_param_variables(nh);
     // Service client
     state_manager_node::ltstar_status_cliente      = nh.serviceClient<lazy_theta_star_msgs::LTStarNodeStatus>   ("ltstar_status");
-    state_manager_node::is_explored_client         = nh.serviceClient<frontiers_msgs::CheckIsExplored>          ("is_explored");
-    state_manager_node::current_position_client    = nh.serviceClient<architecture_msgs::PositionMiddleMan>     ("get_current_position");
-    state_manager_node::target_position_client     = nh.serviceClient<architecture_msgs::PositionRequest>       ("target_position");
     state_manager_node::ask_for_goal_client        = nh.serviceClient<architecture_msgs::FindNextGoal>          ("find_next_goal");
-    state_manager_node::declare_unobservable_client= nh.serviceClient<architecture_msgs::DeclareUnobservable>   ("declare_unobservable");
     // Topic subscribers 
     ros::Subscriber ltstar_reply_sub = nh.subscribe<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 5, state_manager_node::ltstar_cb);
     ros::Subscriber flighPlan_notifications_sub = nh.subscribe<std_msgs::Empty>("/uav_" + std::to_string(state_manager_node::uav_id_) + "/flight_plan_notifications", 5, state_manager_node::flighPlan_cb);
@@ -456,7 +402,7 @@ int main(int argc, char **argv)
     state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
     state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
     #endif
-    state_manager_node::timer = nh.createTimer(ros::Duration(0.1), state_manager_node::main_loop);
+    state_manager_node::timer = nh.createTimer(ros::Duration(30), state_manager_node::main_loop);
     ros::spin();
     return 0;
 }
