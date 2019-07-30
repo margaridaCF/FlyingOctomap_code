@@ -66,16 +66,16 @@ void UALCommunication::switchState(comms_state_t new_comms_state)
     switch(comms_state)
     {
         case wait_for_flight:
-            ROS_INFO("[UAL COMMS] wait_for_flight");
+            ROS_WARN("[UAL COMMS] wait_for_flight");
             break;
         case init_segment:
-            ROS_INFO("[UAL COMMS] init_segment");
+            ROS_WARN("[UAL COMMS] init_segment");
             break;
         case execute_yaw:
-            ROS_INFO("[UAL COMMS] execute_yaw");
+            ROS_WARN("[UAL COMMS] execute_yaw");
             break;
         case execute_position:
-            ROS_INFO("[UAL COMMS] execute_position");
+            ROS_WARN("[UAL COMMS] execute_position");
             break;
     }
 }
