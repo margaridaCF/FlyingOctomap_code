@@ -207,7 +207,7 @@ namespace LazyThetaStarOctree{
 	float ThetaStarNode::calculateH_ () const
 	{
 		// This strage way of organising the code is to use the emplace to insert in map
-		return calculateH (distanceFromInitialPoint, lineDistanceToFinalPoint) - cell_size*2/3;
+		return distanceFromInitialPoint + std::max(0.0, lineDistanceToFinalPoint-cell_size);	
 	}
 }
 
