@@ -191,7 +191,7 @@ bool UALCommunication::prepare()
     // Flags
     on_path_ = false;
     end_path_ = false;
-    double look_ahead = 1.0;
+    double look_ahead = 0.8;
     double cruising_speed = 1.0;
     target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
     // ROS_ERROR_STREAM("init_path_" );
@@ -220,7 +220,7 @@ bool UALCommunication::prepare_position()
     // Flags
     on_path_ = false;
     end_path_ = false;
-    double look_ahead = 1.0;
+    double look_ahead = 0.8;
     double cruising_speed = 1.0;
     target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
     return true;
