@@ -225,37 +225,37 @@ namespace LazyThetaStarOctree{
 	}
 
 
-	// TEST(LazyThetaStarMeasurements, Experiemental)
-	// {
-	//   	std::list<octomath::Vector3> points = {
-	// 		octomath::Vector3 (6.22, -7.23, 7),
-	// 		octomath::Vector3 (0.69, -11.2, 7),
-	// 		octomath::Vector3 (-23.5, -28.4, 3),
-	// 		octomath::Vector3 (-15.7, -5.08, 5),
-	// 		octomath::Vector3 (-8.34, -10.9, 7),
-	// 		octomath::Vector3 (-5.35, -14, 7),
-	// 		octomath::Vector3 (-3.9, -14.76, 7),
-	// 		octomath::Vector3 (4.12, -2.21, 7),
-	// 		octomath::Vector3 (7.49, -6.98, 7),
-	// 		octomath::Vector3 (11.3, -6.71, 7),
-	// 		octomath::Vector3 (16.8, -4.22, 5),
-	// 		octomath::Vector3 (13.9, -18.2, 3),
-	// 		};
-	// 	std::ofstream csv_file;
-	// 	csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
-	// 	csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
-	// 	csv_file.close();
+	TEST(LazyThetaStarMeasurements, Experiemental)
+	{
+	  	std::list<octomath::Vector3> points = {
+			octomath::Vector3 (6.22, -7.23, 7),
+			octomath::Vector3 (0.69, -11.2, 7),
+			octomath::Vector3 (-23.5, -28.4, 3),
+			octomath::Vector3 (-15.7, -5.08, 5),
+			octomath::Vector3 (-8.34, -10.9, 7),
+			octomath::Vector3 (-5.35, -14, 7),
+			octomath::Vector3 (-3.9, -14.76, 7),
+			octomath::Vector3 (4.12, -2.21, 7),
+			octomath::Vector3 (7.49, -6.98, 7),
+			octomath::Vector3 (11.3, -6.71, 7),
+			octomath::Vector3 (16.8, -4.22, 5),
+			octomath::Vector3 (13.9, -18.2, 3),
+			};
+		std::ofstream csv_file;
+		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+		csv_file.close();
 
-	//     octomap::OcTree octree ("data/20180821_1207_5647_filtered.bt");
-	//     collectData_differentMargins(octree, points, "20180821_1207_5647_filtered_experimental_ortho");
+	    octomap::OcTree octree ("data/20180821_1207_5647_filtered.bt");
+	    collectData_differentMargins(octree, points, "20180821_1207_5647_filtered_experimental_ortho");
 
-	//     octomap::OcTree octree_2 ("data/20180821_1110_42936_raw.bt");
-	//     collectData_differentMargins(octree_2, points, "20180821_1110_42936_raw_experimental_ortho");
+	    octomap::OcTree octree_2 ("data/20180821_1110_42936_raw.bt");
+	    collectData_differentMargins(octree_2, points, "20180821_1110_42936_raw_experimental_ortho");
 
-	//     octomap::OcTree octree_4 ("data/20180821_1110_42712_raw.bt");
-	//     collectData_differentMargins(octree_4, points, "20180821_1110_42712_raw_experimental_ortho");
+	    octomap::OcTree octree_4 ("data/20180821_1110_42712_raw.bt");
+	    collectData_differentMargins(octree_4, points, "20180821_1110_42712_raw_experimental_ortho");
 
-	// }
+	}
 	
 	
 }
