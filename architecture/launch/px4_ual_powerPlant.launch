@@ -59,7 +59,7 @@
                 <param name="save_test_data" value="$(arg save_test_data)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="initial_maneuver" value="corridor_path"/>
-                <param name="reach_tolerance" value="0.2"/>
+                <param name="reach_tolerance" value="0.6"/>
                 <param name="generator_mode" value="0"/>
                 <param name="take_off_height" value="5"/>
                 <param name="pkg_name" value="architecture"/>
