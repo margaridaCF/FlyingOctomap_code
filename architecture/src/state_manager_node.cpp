@@ -261,24 +261,22 @@ namespace state_manager_node
             case exploration_sm::exploration_start:
             {
                 #ifdef SAVE_LOG
-                    log_file << "[State manager][Exploration] exploration_start" << std::endl;
+                    log_file << "[State manager][Exploration] exploration_start. Asked for next goal" << std::endl;
                 #endif
 
-                while(!askForGoalServiceCall()){}
-                #ifdef SAVE_LOG
-                    log_file << "[State manager][Exploration] asked for next goal " << std::endl;
-                #endif
-
-                if(!state_data.next_goal_msg.success)
+                if( askForGoalServiceCall() )
                 {
-                    ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
-                    log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
-                    is_successfull_exploration = true;
-                    state_data.exploration_state.switchState(exploration_sm::finished_exploring);
-                }
-                else
-                {
-                    state_data.exploration_state.switchState(exploration_sm::generating_path);
+                    if(!state_data.next_goal_msg.success)
+                    {
+                        ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
+                        log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
+                        is_successfull_exploration = true;
+                        state_data.exploration_state.switchState(exploration_sm::finished_exploring);
+                    }
+                    else
+                    {
+                        state_data.exploration_state.switchState(exploration_sm::generating_path);
+                    }
                 }
                 break;
             }
@@ -289,12 +287,8 @@ namespace state_manager_node
                 {
                     if((bool)srv.response.is_accepting_requests)
                     {
-                        // geometry_msgs::Point current_position;
-                        // if(getUavPositionServiceCall(current_position))
-                        // {
-                            askForObstacleAvoidingPath(state_data.last_flyby_start);
-                            state_data.exploration_state.switchState(exploration_sm::waiting_path_response);
-                        // }
+                        askForObstacleAvoidingPath(state_data.last_flyby_start);
+                        state_data.exploration_state.switchState(exploration_sm::waiting_path_response);
                     }
                 }
                 else
@@ -321,9 +315,6 @@ namespace state_manager_node
     {
         if( state_data.exploration_state.getState() != exploration_sm::finished_exploring) 
         {
-            visualization_msgs::MarkerArray marker_array;
-            rviz_interface::publish_geofence(geofence_min, geofence_max, marker_array);
-            marker_pub.publish(marker_array);
             update_state(geofence_min, geofence_max);
         }
         else
@@ -402,7 +393,10 @@ int main(int argc, char **argv)
     state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
     state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
     #endif
-    state_manager_node::timer = nh.createTimer(ros::Duration(30), state_manager_node::main_loop);
+    visualization_msgs::MarkerArray marker_array;
+    rviz_interface::publish_geofence(state_manager_node::geofence_min, state_manager_node::geofence_max, marker_array);
+    state_manager_node::marker_pub.publish(marker_array);
+    state_manager_node::timer = nh.createTimer(ros::Duration(60), state_manager_node::main_loop);
     ros::spin();
     return 0;
 }
