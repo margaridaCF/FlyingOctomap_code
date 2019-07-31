@@ -384,6 +384,8 @@ void UALCommunication::followFlightPlan()
             } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_ && std::abs(checkYaw()) < 0.01) {
                 pub_set_pose_.publish(temp_target);
                 on_path_ = true;
+            } else {
+                pub_set_pose_.publish(temp_target);
             }
         } else {
             if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
