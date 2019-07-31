@@ -396,7 +396,7 @@ int main(int argc, char **argv)
     visualization_msgs::MarkerArray marker_array;
     rviz_interface::publish_geofence(state_manager_node::geofence_min, state_manager_node::geofence_max, marker_array);
     state_manager_node::marker_pub.publish(marker_array);
-    state_manager_node::timer = nh.createTimer(ros::Duration(60), state_manager_node::main_loop);
+    state_manager_node::timer = nh.createTimer(ros::Duration(30), state_manager_node::main_loop);
     ros::spin();
     return 0;
 }
