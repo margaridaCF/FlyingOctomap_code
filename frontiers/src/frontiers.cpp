@@ -171,7 +171,6 @@ namespace Frontiers{
         double resolution = octree.getResolution();
         octomath::Vector3  max = octomath::Vector3(request.max.x-resolution, request.max.y-resolution, request.max.z-resolution);
         octomath::Vector3  min = octomath::Vector3(request.min.x+resolution, request.min.y+resolution, request.min.z+resolution);
-        octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
 
         int i;
 
@@ -186,7 +185,7 @@ namespace Frontiers{
             return octomap::OcTree::leaf_bbx_iterator();
         }
         octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-        n_id = 100;
+        // n_id = 100;
         searchFrontier(octree, it, request, reply, marker_pub, publish);
         return it;
     }

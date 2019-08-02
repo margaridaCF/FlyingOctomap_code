@@ -21,19 +21,19 @@
     <arg name="verbose" default="false"/>
     <arg name="paused" default="false"/>
 
-    <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
+    <rosparam file="$(find architecture)/cfg/realUav_params.yaml" command="load" />
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/realUAV.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find lazy_theta_star)/launch/debug_experimental_tests.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
-    <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find frontiers)/test/data/circle_1m.bt">    
-        <param name="frame_id" type="str" value="/map" />
+    <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find lazy_theta_star)/test/data/experimentalDataset.bt">    
+        <param name="frame_id" type="str" value="/world" />
+        <param name="publish_free_space" value="true"/>
     </node>
-    <!-- ########################################################################## --> 
-  <!-- Frontiers --> 
-  <node pkg="frontiers" type="frontiers_async_node" name="frontiers_debug" output="screen"/>
-  <!-- ########################################################################## -->
-    <!-- Architecture nodes -->
+    <!-- #######################    TF    ############################# -->  
+    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 10" />
+    <!-- ####################### Frontiers ####################### -->
+    <node pkg="frontiers" type="frontiers_async_node" name="frontiers_debug" output="screen"/>
 
 </launch>
 

@@ -201,7 +201,7 @@ int main(int argc, char **argv)
 	ros::ServiceServer is_explored_service     = nh.advertiseService("is_explored",     frontiers_async_node::check_unknown);
 	ros::ServiceServer find_frontiers_service  = nh.advertiseService("find_frontiers",  frontiers_async_node::find_frontiers);
 	ros::Subscriber octomap_sub   = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, frontiers_async_node::octomap_callback);
-	frontiers_async_node::marker_pub    = nh.advertise<visualization_msgs::MarkerArray>("frontiers/known_space", 1);
+	frontiers_async_node::marker_pub    = nh.advertise<visualization_msgs::MarkerArray>("frontiers", 1);
 	frontiers_async_node::last_request_id = 0;
 
 	frontiers_async_node::new_octree = false;
