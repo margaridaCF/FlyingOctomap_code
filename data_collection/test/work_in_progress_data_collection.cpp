@@ -1,7 +1,6 @@
-#include <gtest/gtest.h>
 #include <collect_data.h>
 
-namespace Frontiers_test
+namespace collect_data
 {
 	
 
@@ -17,9 +16,12 @@ namespace Frontiers_test
 		find_frontiers_msg.request.max.y = 2;
 		find_frontiers_msg.request.max.z = 2;
 		find_frontiers_msg.request.frontier_amount = 1;
+		find_frontiers_msg.request.new_request = true;
+		find_frontiers_msg.request.current_position.x = 0;
+		find_frontiers_msg.request.current_position.y = 0;
+		find_frontiers_msg.request.current_position.z = 1;
 		Frontiers::processFrontiersRequest(octree, find_frontiers_msg.request, find_frontiers_msg.response, marker_pub, false);
-		// checkFrontiers(octree, find_frontiers_msg.request, find_frontiers_msg.response);
-		
+		checkFrontiers(octree, find_frontiers_msg.request, find_frontiers_msg.response);
 	}
 
 }
