@@ -73,11 +73,11 @@ namespace Frontiers{
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
         
         #ifdef BASELINE 
-        frontiers_msgs::VoxelMsg current_position_voxel_msg;
-        current_position_voxel_msg.xyz_m.x = current_position.x();
-        current_position_voxel_msg.xyz_m.y = current_position.y();
-        current_position_voxel_msg.xyz_m.z = current_position.z();
-        OrderedNeighbors allNeighbors (current_position_voxel_msg);
+            frontiers_msgs::VoxelMsg current_position_voxel_msg;
+            current_position_voxel_msg.xyz_m.x = current_position.x();
+            current_position_voxel_msg.xyz_m.y = current_position.y();
+            current_position_voxel_msg.xyz_m.z = current_position.z();
+            OrderedNeighbors allNeighbors (current_position_voxel_msg);
         #endif
         octomath::Vector3 grid_coordinates_curr, grid_coordinates_toTest;
         Voxel currentVoxel;
@@ -123,6 +123,12 @@ namespace Frontiers{
                     State n_state = getState(*n_coordinates, octree);
                     if(n_state == unknown)
                     {
+                        bool unknown_neighbor_is_below = n_coordinates->z() <  coord.z();
+                        if (unknown_neighbor_is_below)
+                        {
+                            // this is not enough to select because you cannot sample it from above
+                            continue;
+                        }
                         #ifdef RUNNING_ROS
                             paintState(n_state, *n_coordinates, marker_array, n_id);
                         #endif
