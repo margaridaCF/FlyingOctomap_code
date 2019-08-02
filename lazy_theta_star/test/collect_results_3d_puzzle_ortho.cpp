@@ -247,13 +247,13 @@ namespace LazyThetaStarOctree{
 		csv_file.close();
 
 	    octomap::OcTree octree ("data/20180821_1207_5647_filtered.bt");
-	    collectData_differentMargins(octree, points, "20180821_1207_5647_filtered_experimental_ortho");
+	    collectData_differentMargins_newHeuristic(octree, points, "20180821_1207_5647_filtered_experimental_ortho");
 
 	    octomap::OcTree octree_2 ("data/20180821_1110_42936_raw.bt");
-	    collectData_differentMargins(octree_2, points, "20180821_1110_42936_raw_experimental_ortho");
+	    collectData_differentMargins_newHeuristic(octree_2, points, "20180821_1110_42936_raw_experimental_ortho");
 
 	    octomap::OcTree octree_4 ("data/20180821_1110_42712_raw.bt");
-	    collectData_differentMargins(octree_4, points, "20180821_1110_42712_raw_experimental_ortho");
+	    collectData_differentMargins_newHeuristic(octree_4, points, "20180821_1110_42712_raw_experimental_ortho");
 
 	}
 	
