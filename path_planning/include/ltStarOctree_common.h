@@ -22,7 +22,8 @@ namespace LazyThetaStarOctree{
 	int obstacle_hit_count;
 
 
-	std::string folder_name = "/ros_ws/src/data";
+	std::stringstream aux_envvar_home (std::getenv("HOME"));
+    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 	// std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data";
 
 	struct VectorComparatorOrder // for map
