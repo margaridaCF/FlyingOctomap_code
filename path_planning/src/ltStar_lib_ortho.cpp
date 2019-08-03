@@ -894,26 +894,31 @@ namespace LazyThetaStarOctree{
 		generated_path_distance_ss << "             total = " << distance_total << "\n";
 		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
 
-		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), PublishingInput( publish_input.marker_pub, true), false);
-		qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
+		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), PublishingInput( publish_input.marker_pub, false));
+		// qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
 
 
 		std::ofstream csv_file;
-		csv_file.open (folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		std::stringstream csv_stream, csv_stream_name;
+		csv_stream_name << folder_name << "/current/lazyThetaStar_computation_time.csv";
+		ROS_WARN_STREAM("[ltStar] inside " << csv_stream_name.str());
+		csv_file.open (csv_stream_name.str(), std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
-		csv_file << millis.count();
-		csv_file << "," << straigh_line_distance;
-		csv_file << "," << distance_total;
-		csv_file << "," << has_flight_corridor_free;
-		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
-		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
-		csv_file << "," << request.safety_margin;
-		csv_file << "," << request.max_time_secs ;
-		csv_file << "," << statistical_data.iterations_used ;
-		csv_file << "," << obstacle_hit_count ;
-		csv_file << "," << obstacle_avoidance_calls ;
-		csv_file << "," << publish_input.dataset_name << std::endl;
+		csv_stream << (resulting_path.size()>0);
+		csv_stream << "," << millis.count();
+		csv_stream << "," << straigh_line_distance;
+		csv_stream << "," << distance_total;
+		csv_stream << "," << !has_flight_corridor_free;
+		csv_stream << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
+		csv_stream << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
+		csv_stream << "," << request.safety_margin;
+		csv_stream << "," << request.max_time_secs ;
+		csv_stream << "," << statistical_data.iterations_used ;
+		csv_stream << "," << obstacle_hit_count ;
+		csv_stream << "," << obstacle_avoidance_calls ;
+		csv_stream << "," << publish_input.dataset_name << std::endl;
+		csv_file << csv_stream.str();
 		csv_file.close();
 #endif
 		// ROS_WARN_STREAM("[LTStar] Path from " << disc_initial << " to " << disc_final << ". Outcome with " << resulting_path.size() << " waypoints.");
