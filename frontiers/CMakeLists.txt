@@ -68,11 +68,11 @@ if(CATKIN_ENABLE_TESTING)
 #     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
 #   target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
 
-  #VOLUME
-  catkin_add_gtest(volume_tests 
-    test/volume_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(volume_tests ${catkin_LIBRARIES} )
+#   #VOLUME
+#   catkin_add_gtest(volume_tests 
+#     test/volume_tests.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(volume_tests ${catkin_LIBRARIES} )
 
 endif()
 
