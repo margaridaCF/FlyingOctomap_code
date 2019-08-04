@@ -20,8 +20,16 @@ namespace collect_data
 		find_frontiers_msg.request.current_position.x = 0;
 		find_frontiers_msg.request.current_position.y = 0;
 		find_frontiers_msg.request.current_position.z = 1;
+		std::srand(std::time(0));
+		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 		Frontiers::processFrontiersRequest(octree, find_frontiers_msg.request, find_frontiers_msg.response, marker_pub, false);
+		std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+
 		checkFrontiers(octree, find_frontiers_msg.request, find_frontiers_msg.response);
+
+		#ifdef SAVE_CSV
+		
+#endif
 	}
 
 }

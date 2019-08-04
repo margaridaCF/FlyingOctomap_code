@@ -33,6 +33,7 @@
   <!-- Examples: -->
   <!-- Use depend as a shortcut for packages that are both build and exec dependencies -->
     <depend>roscpp</depend>
+    <depend>rostest</depend>
     <depend>lazy_theta_star</depend>
     <depend>lazy_theta_star_msgs</depend>
     <depend>frontiers</depend>

@@ -27,7 +27,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # add_library
 # target_link_libraries(my_lib ${catkin_LIBRARIES}) to link your new library against any catkin libraries you have build depended on in your package.xml
 # does some bookkeeping so that your library target can be implicitly used later
-cs_add_library(data_collect src/collect_data.cpp)
+# cs_add_library(data_collect src/collect_data.cpp)
 # cs_add_targets_to_package(frontiers_msgs)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
@@ -49,10 +49,14 @@ if(CATKIN_ENABLE_TESTING)
   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
 #   Data Collection @ work in progress ##
-  catkin_add_gtest(workInProgress_dataCollection 
-    test/work_in_progress_data_collection.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(workInProgress_dataCollection ${catkin_LIBRARIES} data_collect )
+#   catkin_add_gtest(workInProgress_dataCollection 
+#     test/work_in_progress_data_collection.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(workInProgress_dataCollection ${catkin_LIBRARIES} data_collect )
+
+  catkin_add_gtest(goal-test integration_tests/lazy_theta_star_integration.test test/goal_test.cpp)
+  target_link_libraries(goal-test  ${catkin_LIBRARIES})
+
 
 
 #   #COLLECT

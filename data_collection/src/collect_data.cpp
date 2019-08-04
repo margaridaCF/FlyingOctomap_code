@@ -17,23 +17,33 @@ namespace collect_data
 			return true;
 		}
 	}
-	void checkFrontiers(octomap::OcTree& octree, frontiers_msgs::FindFrontiers::Request  &request,
-        frontiers_msgs::FindFrontiers::Response &reply)
+
+	void writeCSVFile(std::chrono::system_clock::time_point &start_time, std::chrono::system_clock::time_point &end_time, frontiers_msgs::FindFrontiers::Request  &request, frontiers_msgs::FindFrontiers::Response &reply)
 	{
-		// Data
-		ASSERT_LE(reply.frontiers_found, static_cast<int16_t>(request.frontier_amount) );
-		for (int i = 0; i < 1; ++i)
-		{
-			// ROS_INFO_STREAM("[" << i << "]");
-			octomath::Vector3 candidate (reply.frontiers[i].xyz_m.x, reply.frontiers[i].xyz_m.y, reply.frontiers[i].xyz_m.z) ;
-			ASSERT_TRUE(isUnknown(octree, candidate));
-	        bool is_frontier = false;
-			ASSERT_LE(reply.frontiers[i].xyz_m.x, request.max.x+octree.getResolution());
-			ASSERT_LE(reply.frontiers[i].xyz_m.y, request.max.y+octree.getResolution());
-			ASSERT_LE(reply.frontiers[i].xyz_m.z, request.max.z+octree.getResolution());
-			ASSERT_GE(reply.frontiers[i].xyz_m.x, request.min.x-octree.getResolution());
-			ASSERT_GE(reply.frontiers[i].xyz_m.y, request.min.y-octree.getResolution());
-			ASSERT_GE(reply.frontiers[i].xyz_m.z, request.min.z-octree.getResolution());
-		}
+
+		std::ofstream csv_file;
+		csv_file.open (LazyThetaStarOctree::folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		csv_file << "success,computation_time_millis,request_frontier_amount,frontier_amount,dataset_name" << std::endl;
+		csv_file.open (folder_name + "/current/exploration_measurements.csv", std::ofstream::app);
+		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
+		csv_file << (resulting_path.size()>0);
+		csv_file << "," << reply.frontiers.size() > 0;
+		csv_file << "," << millis.count();
+		csv_file << "," << request.frontier_amount;
+		csv_file << "," << reply.frontiers.size();
+		// csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
+		csv_file << "," << publish_input.dataset_name << std::endl;
+		csv_file.close();
+	}
+
+	void emulateGoal()
+	{
+		// load octree
+        rviz_interface::PublishingInput pi(marker_pub, false);
+	    geometry_msgs::Point geofence_min , geofence_max ;
+        double sensing_distance, distance_inFront, distance_behind, circle_divisions, ltstar_safety_margin;
+    	goal_state_machine::GoalStateMachine goal_state_machine (find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance);
+
 	}
 }
