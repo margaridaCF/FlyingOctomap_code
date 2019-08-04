@@ -175,12 +175,12 @@ namespace LazyThetaStarOctree{
 	TEST(LazyThetaStarMeasurements, 3dPuzzle)
 	{
 	  	std::list<octomath::Vector3> points = {
-		  		/*A = */octomath::Vector3 (0.28, 13.3, 90),
-		  		/*B = */octomath::Vector3 (-21.6, 20.3, 63),
-		  		/*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
-		  		/*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
-		  		/*E = */octomath::Vector3 (41.4, 22.4, 32),
-		  		/*F = */octomath::Vector3 (21.6, 23.5, 12.5),
+		  		// /*A = */octomath::Vector3 (0.28, 13.3, 90),
+		  		// /*B = */octomath::Vector3 (-21.6, 20.3, 63),
+		  		// /*C = */octomath::Vector3 (-34.9, 20.2, 32.0),
+		  		// /*D = */octomath::Vector3 (-20.4, 12.4, 11.5),
+		  		// /*E = */octomath::Vector3 (41.4, 22.4, 32),
+		  		// /*F = */octomath::Vector3 (21.6, 23.5, 12.5),
 	  			octomath::Vector3 (0.0, -5.0, 10),
 	  			octomath::Vector3 (-5.0, 0.0, 40),
 	  			octomath::Vector3 (-20, 12.5, 40.0),
