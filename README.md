@@ -54,7 +54,8 @@ This package was developed using px4's sitl inside a docker container. The instr
 The funtion that implements Lazy Theta Star is lazyThetaStar_, inside path_planning/ltStar_lib.cpp
 
 The package has been introduced at Roscon 2018! 
-A link to the video of the talk will appear here as soon as it is available.
+
+[![RosCon 2018 presentation video](https://img.youtube.com/vi/UbR8OUqfwe0/0.jpg)](https://www.youtube.com/watch?v=UbR8OUqfwe0)
 
 ## Integrate kinematic constraints
 
