@@ -901,7 +901,6 @@ namespace LazyThetaStarOctree{
 		std::ofstream csv_file;
 		std::stringstream csv_stream, csv_stream_name;
 		csv_stream_name << folder_name << "/current/lazyThetaStar_computation_time.csv";
-		ROS_WARN_STREAM("[ltStar] inside " << csv_stream_name.str());
 		csv_file.open (csv_stream_name.str(), std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
