@@ -105,20 +105,32 @@ namespace state_manager_node
 
     void askForObstacleAvoidingPath(geometry_msgs::Point start)
     {
-        lazy_theta_star_msgs::LTStarRequest request;
-        state_data.ltstar_request_id++;
-        request.request_id = state_data.ltstar_request_id;
-        request.header.frame_id = "world";
-        request.start = start;
-        request.goal  = state_data.next_goal_msg.start_flyby;
-        request.max_time_secs = max_time_secs;
-        request.safety_margin = ltstar_safety_margin;
-        #ifdef SAVE_LOG
-        log_file << "[State manager] Requesting path " << request << std::endl;
-        #endif
-        ROS_INFO_STREAM ("[State manager] Requesting path from " << request.start << " to " << request.goal);
-        ltstar_request_pub.publish(request);
-        state_data.ltstar_request = request;
+        lazy_theta_star_msgs::LTStarNodeStatus srv;
+        if(ltstar_status_cliente.call(srv))
+        {
+            if((bool)srv.response.is_accepting_requests)
+            {
+                lazy_theta_star_msgs::LTStarRequest request;
+                state_data.ltstar_request_id++;
+                request.request_id = state_data.ltstar_request_id;
+                request.header.frame_id = "world";
+                request.start = start;
+                request.goal  = state_data.next_goal_msg.start_flyby;
+                request.max_time_secs = max_time_secs;
+                request.safety_margin = ltstar_safety_margin;
+                #ifdef SAVE_LOG
+                log_file << "[State manager] Requesting path " << request << std::endl;
+                #endif
+                ROS_INFO_STREAM ("[State manager] Requesting path from " << request.start << " to " << request.goal);
+                ltstar_request_pub.publish(request);
+                state_data.ltstar_request = request;
+                state_data.exploration_state.switchState(exploration_sm::waiting_path_response);
+            }
+        }
+        else
+        {
+            ROS_WARN("[State manager] Lazy Theta Star node not accepting requests.");
+        }
     }
 
     bool askForGoalServiceCall() 
@@ -161,6 +173,28 @@ namespace state_manager_node
         return flight_plan_request;
     }
 
+    void findTarget()
+    {
+        #ifdef SAVE_LOG
+            log_file << "[State manager][Exploration] exploration_start. Asked for next goal." << std::endl;
+        #endif
+
+        while(!askForGoalServiceCall()){}
+
+        if(!state_data.next_goal_msg.success)
+        {
+            ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
+            log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
+            is_successfull_exploration = true;
+            state_data.exploration_state.switchState(exploration_sm::finished_exploring);
+        }
+        else
+        {
+            state_data.exploration_state.switchState(exploration_sm::generating_path);
+            askForObstacleAvoidingPath(state_data.last_flyby_start);
+        }
+    }
+
     void ltstar_cb(const lazy_theta_star_msgs::LTStarReply::ConstPtr& msg)
     {
         if(state_data.exploration_state.getState() != exploration_sm::waiting_path_response)
@@ -181,6 +215,7 @@ namespace state_manager_node
             {
                 state_data.ltstar_reply = *msg;
                 nav_msgs::Path flight_plan_request = generateFlightPlanRequest();
+                state_data.new_map = true;
                 state_data.exploration_state.switchState(exploration_sm::visit_waypoints);
                 flight_plan_pub.publish(flight_plan_request);
                 #ifdef SAVE_LOG
@@ -192,6 +227,8 @@ namespace state_manager_node
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
                 state_data.exploration_state.switchState(exploration_sm::exploration_start);
+                findTarget();
+
             }
             #ifdef SAVE_CSV
                 std::pair <double, double> millis_count = calculateTime(); 
@@ -207,6 +244,7 @@ namespace state_manager_node
     void flighPlan_cb(const std_msgs::Empty::ConstPtr& msg)
     {
         state_data.exploration_state.switchState(exploration_sm::exploration_start);
+        findTarget();
     }
 
     void init_state_variables(state_manager_node::StateData& state_data, ros::NodeHandle& nh)
@@ -246,68 +284,6 @@ namespace state_manager_node
         nh.getParam("oppairs/distance_inFront", distance_inFront);
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
-    }
-
-    void update_state(octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max)
-    {
-        #ifdef SAVE_CSV
-        std::chrono::high_resolution_clock::time_point end_millis;
-        std::chrono::duration<double> time_span;
-        std::chrono::milliseconds millis;
-        // double initial_maneuver_millis, frontier_gen_millis, visit_waypoints_millis, goalSM_millis, ltstar_millis, flyby_millis;
-        #endif
-        switch(state_data.exploration_state.getState())
-        {
-            case exploration_sm::exploration_start:
-            {
-                #ifdef SAVE_LOG
-                    log_file << "[State manager][Exploration] exploration_start. Asked for next goal." << std::endl;
-                #endif
-
-                while(!askForGoalServiceCall()){}
-
-                if(!state_data.next_goal_msg.success)
-                {
-                    ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
-                    log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
-                    is_successfull_exploration = true;
-                    state_data.exploration_state.switchState(exploration_sm::finished_exploring);
-                }
-                else
-                {
-                    state_data.exploration_state.switchState(exploration_sm::generating_path);
-                }
-                break;
-            }
-            case exploration_sm::generating_path:
-            {
-                lazy_theta_star_msgs::LTStarNodeStatus srv;
-                if(ltstar_status_cliente.call(srv))
-                {
-                    if((bool)srv.response.is_accepting_requests)
-                    {
-                        askForObstacleAvoidingPath(state_data.last_flyby_start);
-                        state_data.exploration_state.switchState(exploration_sm::waiting_path_response);
-                    }
-                }
-                else
-                {
-                    ROS_WARN("[State manager] Lazy Theta Star node not accepting requests.");
-                }
-                break;
-            }
-            case exploration_sm::waiting_path_response:{break;}
-            case exploration_sm::visit_waypoints:
-            {
-                state_data.new_map = true;
-                break;
-            }
-            default:
-            {
-                ROS_ERROR_STREAM("[State manager] Something went very wrong. State is unknown "<< state_data.exploration_state.getState());
-                break;
-            }
-        }
     }
 
     void main_loop(const ros::TimerEvent&)
@@ -395,7 +371,7 @@ int main(int argc, char **argv)
     visualization_msgs::MarkerArray marker_array;
     rviz_interface::publish_geofence(state_manager_node::geofence_min, state_manager_node::geofence_max, marker_array);
     state_manager_node::marker_pub.publish(marker_array);
-    state_manager_node::timer = nh.createTimer(ros::Duration(30), state_manager_node::main_loop);
+    // state_manager_node::timer = nh.createTimer(ros::Duration(30), state_manager_node::main_loop);
     ros::spin();
     return 0;
 }
