@@ -12,6 +12,7 @@
 namespace LazyThetaStarOctree
 {
     ros::Publisher ltstar_request_pub;
+    ros::Timer timer;
 
     class MyTestSuite : public ::testing::Test {
        public:
@@ -39,6 +40,16 @@ namespace LazyThetaStarOctree
     };
 
 
+    void ltstar_cb(const lazy_theta_star_msgs::LTStarReply::ConstPtr& msg)
+    {
+        ROS_INFO_STREAM("Got path " << *msg);
+        ros::shutdown();
+    }
+
+    void main_loop(const ros::TimerEvent&)
+    {
+        ROS_INFO_STREAM("Waiting");
+    }
 
 
     void askForObstacleAvoidingPath(geometry_msgs::Point start, geometry_msgs::Point goal, int max_time_secs, double ltstar_safety_margin)
@@ -80,10 +91,15 @@ int main(int argc, char** argv) {
 
 
     LazyThetaStarOctree::ltstar_request_pub = nh.advertise<lazy_theta_star_msgs::LTStarRequest>("ltstar_request", 10);
+    ros::Subscriber ltstar_reply_sub = nh.subscribe<lazy_theta_star_msgs::LTStarReply>("ltstar_reply", 5, LazyThetaStarOctree::ltstar_cb);
 
     testing::InitGoogleTest(&argc, argv);
 
-    std::thread t([] {while(ros::ok()) ros::spin(); });
+    std::thread t([] { LazyThetaStarOctree::timer = nh.createTimer(ros::Duration(0.5), LazyThetaStarOctree::main_loop); ros::spin(); });
+
+
+       
+        ros::spin();
 
     auto res = RUN_ALL_TESTS();
 
