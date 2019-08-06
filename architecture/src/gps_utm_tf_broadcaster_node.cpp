@@ -32,3 +32,4 @@ int main(int argc, char** argv){
         ROS_ERROR("[tf_broadcaster] Gazebo not accepting get_link_state requests.");
     }
   }
+}
