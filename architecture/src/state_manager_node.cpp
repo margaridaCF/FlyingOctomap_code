@@ -86,7 +86,6 @@ namespace state_manager_node
         lazy_theta_star_msgs::LTStarRequest ltstar_request;
         lazy_theta_star_msgs::LTStarReply ltstar_reply;
         exploration_sm::ExplorationStateMachine exploration_state;
-        geometry_msgs::Point last_flyby_start;
     };  
     state_manager_node::StateData state_data;
 
@@ -114,7 +113,7 @@ namespace state_manager_node
                 state_data.ltstar_request_id++;
                 request.request_id = state_data.ltstar_request_id;
                 request.header.frame_id = "world";
-                request.start = state_data.last_flyby_start;
+                request.start = state_data.ltstar_reply.waypoints[(state_data.ltstar_reply.waypoints.size()-1)].position;
                 request.goal  = state_data.next_goal_msg.start_flyby;
                 request.max_time_secs = max_time_secs;
                 request.safety_margin = ltstar_safety_margin;
@@ -139,7 +138,6 @@ namespace state_manager_node
         find_next_goal.request.new_map = state_data.new_map;
         if(ask_for_goal_client.call(find_next_goal)) 
         { 
-            state_data.last_flyby_start = state_data.next_goal_msg.start_flyby;
             state_data.next_goal_msg = find_next_goal.response;
             state_data.new_map = false;
             return true;
@@ -228,6 +226,9 @@ namespace state_manager_node
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
                 state_data.exploration_state.switchState(exploration_sm::exploration_start);
+                #ifdef SAVE_LOG
+                    log_file << "[State manager] Path reply failed!" << std::endl;
+                #endif
                 findTarget();
 
             }
@@ -253,9 +254,14 @@ namespace state_manager_node
         state_data.new_map = true;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
-        state_data.next_goal_msg.start_flyby.x = 0;
-        state_data.next_goal_msg.start_flyby.y = -6;
-        state_data.next_goal_msg.start_flyby.z = 3;
+        geometry_msgs::Point start_position;
+        start_position.x = 0;
+        start_position.y = -6;
+        start_position.z = 3;
+        geometry_msgs::Pose start_pose;
+        start_pose.position = start_position;
+        std::vector<geometry_msgs::Pose> initial (1, start_pose);
+        state_data.ltstar_reply.waypoints = initial;
     }
 
     void init_param_variables(ros::NodeHandle& nh)
