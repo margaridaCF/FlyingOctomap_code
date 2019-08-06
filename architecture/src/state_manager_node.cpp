@@ -261,22 +261,21 @@ namespace state_manager_node
             case exploration_sm::exploration_start:
             {
                 #ifdef SAVE_LOG
-                    log_file << "[State manager][Exploration] exploration_start. Asked for next goal" << std::endl;
+                    log_file << "[State manager][Exploration] exploration_start. Asked for next goal." << std::endl;
                 #endif
 
-                if( askForGoalServiceCall() )
+                while(!askForGoalServiceCall()){}
+
+                if(!state_data.next_goal_msg.success)
                 {
-                    if(!state_data.next_goal_msg.success)
-                    {
-                        ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
-                        log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
-                        is_successfull_exploration = true;
-                        state_data.exploration_state.switchState(exploration_sm::finished_exploring);
-                    }
-                    else
-                    {
-                        state_data.exploration_state.switchState(exploration_sm::generating_path);
-                    }
+                    ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
+                    log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
+                    is_successfull_exploration = true;
+                    state_data.exploration_state.switchState(exploration_sm::finished_exploring);
+                }
+                else
+                {
+                    state_data.exploration_state.switchState(exploration_sm::generating_path);
                 }
                 break;
             }
