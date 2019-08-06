@@ -132,8 +132,17 @@ namespace state_manager_node
         }
     }
 
+    void publishGeofence()
+    {
+        visualization_msgs::MarkerArray marker_array;
+        rviz_interface::publish_geofence(geofence_min, geofence_max, marker_array);
+        marker_pub.publish(marker_array);
+    }
+
+
     bool askForGoalServiceCall() 
     { 
+        publishGeofence();
         architecture_msgs::FindNextGoal find_next_goal;
         find_next_goal.request.new_map = state_data.new_map;
         if(ask_for_goal_client.call(find_next_goal)) 
@@ -343,9 +352,6 @@ int main(int argc, char **argv)
     state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
     state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
     #endif
-    visualization_msgs::MarkerArray marker_array;
-    rviz_interface::publish_geofence(state_manager_node::geofence_min, state_manager_node::geofence_max, marker_array);
-    state_manager_node::marker_pub.publish(marker_array);
     // state_manager_node::timer = nh.createTimer(ros::Duration(30), state_manager_node::main_loop);
     ros::spin();
     return 0;
