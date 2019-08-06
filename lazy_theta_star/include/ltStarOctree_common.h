@@ -25,7 +25,8 @@ namespace LazyThetaStarOctree{
 	// path to log folder
 	// Keep in mind that a folder is created for each run. And a symbolic link to it that is used everywhere
 	// std::string folder_name = "/ros_ws/src/data";
-	std::string folder_name = "/home/mfaria/Flying_Octomap_code/src/data/current";
+	std::stringstream aux_envvar_home (std::getenv("HOME"));
+    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 	// std::string folder_name;
 
 	struct VectorComparatorOrder // for map
@@ -207,7 +208,8 @@ namespace LazyThetaStarOctree{
 	float ThetaStarNode::calculateH_ () const
 	{
 		// This strage way of organising the code is to use the emplace to insert in map
-		return calculateH (distanceFromInitialPoint, lineDistanceToFinalPoint) - cell_size*2/3;
+		// return std::max(0.0, (distanceFromInitialPoint + lineDistanceToFinalPoint) - cell_size*2/3);	
+		return std::max(0.0, (distanceFromInitialPoint + lineDistanceToFinalPoint) - cell_size);	
 	}
 }
 
