@@ -3,8 +3,8 @@
 #include <std_srvs/Empty.h>
 #include <orthogonal_planes.h>
 
-// #define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
-#define RUNNING_ROS 1 	// enable to publish markers on rViz
+#define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
+// #define RUNNING_ROS 1 	// enable to publish markers on rViz
 
 
 namespace std
@@ -238,7 +238,7 @@ namespace LazyThetaStarOctree{
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
 				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
-				publish_input.marker_pub.publish(marker_array);
+				// publish_input.marker_pub.publish(marker_array);
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin)) == false) 
@@ -246,7 +246,7 @@ namespace LazyThetaStarOctree{
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
     			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
 				obstacle_hit_count++;
-				publish_input.marker_pub.publish(marker_array);
+				// publish_input.marker_pub.publish(marker_array);
 				return CellStatus::kOccupied; 
 			}   
 			else
@@ -255,7 +255,7 @@ namespace LazyThetaStarOctree{
 				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
 			}
 		}
-		publish_input.marker_pub.publish(marker_array);
+		// publish_input.marker_pub.publish(marker_array);
 		return CellStatus::kFree; 
 	}
 
@@ -732,7 +732,7 @@ namespace LazyThetaStarOctree{
 			{
 				if (!setVertex(input.octree, s, closed, open, neighbors, input.margin, publish_input, sidelength_lookup_table))
 				{
-					input.octree.writeBinaryConst(folder_name + "/octree_noPath1s.bt");
+					// input.octree.writeBinaryConst(folder_name + "/octree_noPath1s.bt");
 					log_file << "[ERROR] no neighbor of " << *s << " had line of sight. Start " << input.start << " goal " << input.goal << std::endl;
 					ROS_ERROR_STREAM ("[LTStar] no neighbor of " << *s << " had line of sight. Start " << input.start << " goal " << input.goal);
 				}
@@ -812,10 +812,10 @@ namespace LazyThetaStarOctree{
 		{
 			ROS_WARN_STREAM("No solution found. Giving empty path.");
 			log_file <<  "[ltStar] All nodes were analyzed but the final node center " << disc_final_cell_center << " was never reached with " << resolution/2 << " tolerance. Start " << input.start << ", end " << input.goal << std::endl;
-			std::stringstream ss;
-			ss << folder_name << "/" << input.start.x() << "_" << input.start.y() << "_" << input.start.z() << "_" 
-				<<  input.goal.x() << "_" << input.goal.y() << "_" << input.goal.z() << "__noPath.bt";
-			input.octree.writeBinaryConst(ss.str());
+			// std::stringstream ss;
+			// ss << folder_name << "/" << input.start.x() << "_" << input.start.y() << "_" << input.start.z() << "_" 
+			// 	<<  input.goal.x() << "_" << input.goal.y() << "_" << input.goal.z() << "__noPath.bt";
+			// input.octree.writeBinaryConst(ss.str());
 		}
 		else
 		{ 
@@ -941,27 +941,32 @@ namespace LazyThetaStarOctree{
 		generated_path_distance_ss << "             total = " << distance_total << "\n";
 		double straigh_line_distance = weightedDistance(disc_initial, disc_final);
 
-		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), rviz_interface::PublishingInput( publish_input.marker_pub, true), false);
+
+		bool has_flight_corridor_free = is_flight_corridor_free( InputData(octree, disc_initial, disc_final, request.safety_margin), rviz_interface::PublishingInput( publish_input.marker_pub, false));
 		// qualityCheck(octree, disc_initial, disc_final, straigh_line_distance, distance_total, has_flight_corridor_free, resulting_path, generated_path_distance_ss);
 
 
 		std::ofstream csv_file;
-		csv_file.open (folder_name + "/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		std::stringstream csv_stream, csv_stream_name;
+		csv_stream_name << folder_name << "/current/lazyThetaStar_computation_time.csv";
+		ROS_WARN_STREAM("[ltStar] inside " << csv_stream_name.str());
+		csv_file.open (csv_stream_name.str(), std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
-		csv_file << (resulting_path.size()>0);
-		csv_file << "," << millis.count();
-		csv_file << "," << straigh_line_distance;
-		csv_file << "," << distance_total;
-		csv_file << "," << !has_flight_corridor_free;
-		csv_file << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
-		csv_file << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
-		csv_file << "," << request.safety_margin;
-		csv_file << "," << request.max_time_secs ;
-		csv_file << "," << statistical_data.iterations_used ;
-		csv_file << "," << obstacle_hit_count ;
-		csv_file << "," << obstacle_avoidance_calls ;
-		csv_file << "," << publish_input.dataset_name << std::endl;
+		csv_stream << (resulting_path.size()>0);
+		csv_stream << "," << millis.count();
+		csv_stream << "," << straigh_line_distance;
+		csv_stream << "," << distance_total;
+		csv_stream << "," << !has_flight_corridor_free;
+		csv_stream << ",(" <<  std::setprecision(2) << disc_initial.x() << "_"  << disc_initial.y() << "_"  << disc_initial.z() << ")";
+		csv_stream << ",(" <<  std::setprecision(2) << disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ")";
+		csv_stream << "," << request.safety_margin;
+		csv_stream << "," << request.max_time_secs ;
+		csv_stream << "," << statistical_data.iterations_used ;
+		csv_stream << "," << obstacle_hit_count ;
+		csv_stream << "," << obstacle_avoidance_calls ;
+		csv_stream << "," << publish_input.dataset_name << std::endl;
+		csv_file << csv_stream.str();
 		csv_file.close();
 #endif
 #ifdef RUNNING_ROS
@@ -982,7 +987,7 @@ namespace LazyThetaStarOctree{
 			to_log_file_ss <<  std::setprecision(2) << " from  " << "(" << disc_initial.x() << ", " << disc_initial.y() <<  ", " << disc_initial.z() << ")" ;
 			to_log_file_ss <<  std::setprecision(2) << " to " << "(" << disc_final.x() <<  ", " << disc_final.y() <<  ", " << disc_final.z() << ")" << std::endl;
 			std::ofstream log_file;
-    		log_file.open(folder_name + "/current/lazyThetaStar.log", std::ios_base::app);
+    		log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
     		log_file << to_log_file_ss.str();
 	    	log_file.close();
 		}

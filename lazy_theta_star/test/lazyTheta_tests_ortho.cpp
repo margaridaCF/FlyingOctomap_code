@@ -30,7 +30,7 @@ namespace LazyThetaStarOctree{
 		ResultSet statistical_data;
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
 		InputData input( octree, disc_initial, disc_final, safety_margin);
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, true), max_time_secs, true);
+		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(input, statistical_data, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, false), max_time_secs, true);
 		// NO PATH
 		ASSERT_NE(resulting_path.size(), 0);
 		// CANONICAL: straight line, no issues
@@ -72,7 +72,7 @@ namespace LazyThetaStarOctree{
 		ros::Publisher marker_pub;
 		ResultSet statistical_data;
 		double sidelength_lookup_table  [octree.getTreeDepth()];
-		rviz_interface::PublishingInput publish_input( marker_pub, true);
+		rviz_interface::PublishingInput publish_input( marker_pub, false);
 		InputData input( octree, disc_initial, disc_final, safety_margin);
 	   	LazyThetaStarOctree::fillLookupTable( octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		generateOffsets(octree.getResolution(), safety_margin, dephtZero, semiSphereOut );
