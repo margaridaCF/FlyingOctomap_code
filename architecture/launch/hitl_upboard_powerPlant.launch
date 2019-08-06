@@ -2,24 +2,7 @@
 
     <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
     
-    <!-- #######################  Hokuyo  ############################# -->
-    <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
-        <rosparam command="load" file="$(find architecture)/cfg/powerPlant_params.yaml" />
-        <param name="target_frame" value="base_link" />
-        <remap from="cloud_filtered" to="free_cloud" />
-        <remap from="scan" to="hokuyo_laser_scan" />
-    </node>
-    <!-- #######################  Octomap  ######################################## -->
-    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
-        <param name="frame_id" type="string" value="map" />
-        <remap from="cloud_in" to="/free_cloud" />
-        <param name="latch" value="false" />
-        <param name="publish_free_space" value="true"/>
-        <param name="sensor_model/max_range" value="30"/>
-        <param name="sensor_model/hit" value="0.74"/>
-        <param name="sensor_model/miss" value="0.48464"/>
-        <param name="resolution" value="0.5" />
-    </node>
+    
     <!-- #######################  Architecture nodes  ############################# -->
     <node name="lazy_theta_star" type="ltStar_async_node" pkg="lazy_theta_star" output="screen" />
     <node name="goal_finder" type="goal_sm_node" pkg="architecture" output="screen" />
