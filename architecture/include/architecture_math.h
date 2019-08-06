@@ -4,6 +4,8 @@
 #include <octomap/math/Vector3.h>
 #include <geometry_msgs/Point.h>
 #include <ros/ros.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 # define M_PI       3.14159265358979323846  /* pi */
 
@@ -53,7 +55,7 @@ namespace architecture_math
         	result =  -(M_PI*2 - result);
         }
 
-        // ROS_INFO_STREAM( "[State manager] buildTargetPose from (" << start.x() << ", " << start.y() << ")  to  (" << end.x() << ", " << end.y() << ")  yaw = " << result );
+        // ROS_ERROR_STREAM( "[State manager] buildTargetPose from (" << start.x() << ", " << start.y() << ")  to  (" << end.x() << ", " << end.y() << ")  yaw = " << result );
 		return result ;
 	}
 

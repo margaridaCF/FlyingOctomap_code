@@ -1,10 +1,12 @@
+
+
+
 distance_switch_wp_control: 3
 px4_loiter_radius: 2
 px4/flight_speed: 3
 px4/yaw_rate: 100
 # offboard_enabled: true
 
-do_initial_maneuver: true
 
 odometry_error: 0.1
 

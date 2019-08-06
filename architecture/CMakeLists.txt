@@ -28,6 +28,8 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # target_link_libraries(my_lib ${catkin_LIBRARIES}) to link your new library against any catkin libraries you have build depended on in your package.xml
 # does some bookkeeping so that your library target can be implicitly used later
 cs_add_library(goal_state_lib src/goal_state_machine.cpp)
+cs_add_library(exploration_state_lib src/exploration_state_machine.cpp)
+cs_add_library(ual_flightPlan_comms src/ual_flightPlan_comms.cpp)
 # cs_add_targets_to_package(frontiers_msgs)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.
@@ -38,7 +40,7 @@ cs_add_executable(ual_server src/ual_server.cpp)
 target_link_libraries(ual_server)
 
 cs_add_executable(state_manager_node src/state_manager_node.cpp)
-target_link_libraries(state_manager_node goal_state_lib)
+target_link_libraries(state_manager_node  exploration_state_lib goal_state_lib )
 
 cs_add_executable(goal_sm_node src/goal_sm_node.cpp)
 target_link_libraries(goal_sm_node goal_state_lib)
@@ -51,6 +53,9 @@ target_link_libraries(current_position_provider_node)
 
 cs_add_executable(gps_utm_tf_broadcaster_node src/gps_utm_tf_broadcaster_node.cpp)
 target_link_libraries(gps_utm_tf_broadcaster_node )
+
+cs_add_executable(ual_communication_node src/ual_communication_node.cpp)
+target_link_libraries(ual_communication_node ual_flightPlan_comms)
 
 cs_install()
 # cs_install_scripts(scripts/my_script.py)
@@ -65,11 +70,11 @@ cs_export()
 if(CATKIN_ENABLE_TESTING)
 #   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
-  # #WIP
-  # catkin_add_gtest(work_in_progress_architecture_tests 
-  #   test/work_in_progress_architecture_tests.cpp
-  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} goal_state_lib)
+  #WIP
+  catkin_add_gtest(work_in_progress_architecture_tests 
+    test/work_in_progress_architecture_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(work_in_progress_architecture_tests ${catkin_LIBRARIES} )
 
   #MATH
   catkin_add_gtest(architecture_tests 

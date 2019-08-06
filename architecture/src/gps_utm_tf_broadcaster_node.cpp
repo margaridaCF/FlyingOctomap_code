@@ -4,7 +4,6 @@
 #include <nav_msgs/Odometry.h>
 #include <gazebo_msgs/GetLinkState.h>
 
-
 int main(int argc, char** argv){
   ros::init(argc, argv, "tf_broadcaster");
   ros::NodeHandle nh;
@@ -16,7 +15,7 @@ int main(int argc, char** argv){
   while (ros::ok())
   {
     gazebo_msgs::GetLinkState srv;
-    srv.request.link_name = "base_link";
+    srv.request.link_name = "iris_hokuyo_1::base_link";
     srv.request.reference_frame = "map";
 
     if(get_transform.call(srv))
@@ -26,12 +25,11 @@ int main(int argc, char** argv){
       transform.setOrigin( tf::Vector3(srv.response.link_state.pose.position.x, srv.response.link_state.pose.position.y, srv.response.link_state.pose.position.z) );
       tf::Quaternion q (srv.response.link_state.pose.orientation.x, srv.response.link_state.pose.orientation.y, srv.response.link_state.pose.orientation.z, srv.response.link_state.pose.orientation.w);
       transform.setRotation(q);
-      br.sendTransform(tf::StampedTransform(transform, timestamp, "map", "base_link"));
+      br.sendTransform(tf::StampedTransform(transform, timestamp, srv.request.reference_frame, "base_link"));
     }
     else
     {
         ROS_ERROR("[tf_broadcaster] Gazebo not accepting get_link_state requests.");
     }
   }
-  return 0;
-};
+}
