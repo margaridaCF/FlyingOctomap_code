@@ -103,7 +103,7 @@ namespace state_manager_node
         return std::make_pair (timeline_millis, operation_millis);
     }
 
-    void askForObstacleAvoidingPath(geometry_msgs::Point start)
+    void askForObstacleAvoidingPath()
     {
         lazy_theta_star_msgs::LTStarNodeStatus srv;
         if(ltstar_status_cliente.call(srv))
@@ -114,7 +114,7 @@ namespace state_manager_node
                 state_data.ltstar_request_id++;
                 request.request_id = state_data.ltstar_request_id;
                 request.header.frame_id = "world";
-                request.start = start;
+                request.start = state_data.last_flyby_start;
                 request.goal  = state_data.next_goal_msg.start_flyby;
                 request.max_time_secs = max_time_secs;
                 request.safety_margin = ltstar_safety_margin;
@@ -139,6 +139,7 @@ namespace state_manager_node
         find_next_goal.request.new_map = state_data.new_map;
         if(ask_for_goal_client.call(find_next_goal)) 
         { 
+            state_data.last_flyby_start = state_data.next_goal_msg.start_flyby;
             state_data.next_goal_msg = find_next_goal.response;
             state_data.new_map = false;
             return true;
@@ -191,7 +192,7 @@ namespace state_manager_node
         else
         {
             state_data.exploration_state.switchState(exploration_sm::generating_path);
-            askForObstacleAvoidingPath(state_data.last_flyby_start);
+            askForObstacleAvoidingPath();
         }
     }
 
@@ -252,9 +253,9 @@ namespace state_manager_node
         state_data.new_map = true;
         state_data.ltstar_request_id = 0;
         state_data.frontier_request_count = 0;
-        state_data.last_flyby_start.x = 0;
-        state_data.last_flyby_start.y = -6;
-        state_data.last_flyby_start.z = 3;
+        state_data.next_goal_msg.start_flyby.x = 0;
+        state_data.next_goal_msg.start_flyby.y = -6;
+        state_data.next_goal_msg.start_flyby.z = 3;
     }
 
     void init_param_variables(ros::NodeHandle& nh)
@@ -284,38 +285,6 @@ namespace state_manager_node
         nh.getParam("oppairs/distance_inFront", distance_inFront);
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
-    }
-
-    void main_loop(const ros::TimerEvent&)
-    {
-        if( state_data.exploration_state.getState() != exploration_sm::finished_exploring) 
-        {
-            update_state(geofence_min, geofence_max);
-        }
-        else
-        {
-            timer.stop();
-            #ifdef SAVE_CSV
-            // TIME
-            std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-            std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
-            // VOLUME
-            double x = geofence_max.x() - geofence_min.x();
-            double y = geofence_max.y() - geofence_min.y();
-            double z = geofence_max.z() - geofence_min.z();
-            double volume_meters = x * y * z;
-            // WRITE
-            csv_file.open (folder_name+"/exploration_time.csv", std::ofstream::app);
-            csv_file << millis.count() << "," << volume_meters << "," << is_successfull_exploration << std::endl; 
-            csv_file.close();
-            csv_file_success.close();
-            #endif
-
-            #ifdef SAVE_LOG
-            state_manager_node::log_file.close();
-            #endif
-        }
     }
 }
 
