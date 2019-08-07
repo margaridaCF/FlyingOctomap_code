@@ -19,7 +19,7 @@ namespace goal_state_machine
     #endif
 
     GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(false)
 	{
 
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
@@ -58,6 +58,7 @@ namespace goal_state_machine
 
 	void GoalStateMachine::NewMap()
 	{
+		global = false;
 		new_map = true;
 		frontier_srv.response.success = false;
 	}
@@ -260,19 +261,96 @@ namespace goal_state_machine
 		}
 		Eigen::Vector3d start(start_p.x, start_p.y, start_p.z);
 		Eigen::Vector3d end(end_p.x, end_p.y, end_p.z);
+		
 		Eigen::Vector3d direction = end - start;
-		direction.normalize();
-		Eigen::Vector3d ortho = Eigen::Vector3d::UnitZ().cross(direction);
-		Eigen::Vector3d a = start + (ortho * range);
-		Eigen::Vector3d b = a + direction;
-		Eigen::Vector3d c = start - (ortho * range);
-		Eigen::Vector3d d = c + direction;
+        if(direction.norm() <= 0.01)
+        {
+                ROS_ERROR_STREAM("Still have to do this!");
+        }
+        Eigen::Vector3d ortho = Eigen::Vector3d::UnitZ().cross(direction);
+        ortho.normalize();
+        Eigen::Vector3d a = start + (ortho * range);
+        Eigen::Vector3d b = a + direction;
+        Eigen::Vector3d c = start - (ortho * range);
+        Eigen::Vector3d d = c + direction;
+
+
+        // Geofence
+        // Min
+        frontier_srv.request.min.x = std::min({a.x(), b.x(), c.x(), d.x()});
+        frontier_srv.request.min.y = std::min({a.y(), b.y(), c.y(), d.y()});
+        frontier_srv.request.min.z = std::min({start.z(), end.z()});
+        // Max
+        frontier_srv.request.max.x = std::max({a.x(), b.x(), c.x(), d.x()});
+        frontier_srv.request.max.y = std::max({a.y(), b.y(), c.y(), d.y()});
+        frontier_srv.request.max.z = frontier_srv.request.min.z+ std::abs(start.z() - end.z()) + range;
+
+
+        if(pi.publish)
+        {
+	        octomath::Vector3 a_o(a.x(), a.y(), a.z());
+	        octomath::Vector3 b_o(b.x(), b.y(), b.z());
+	        octomath::Vector3 c_o(c.x(), c.y(), c.z());
+	        octomath::Vector3 d_o(d.x(), d.y(), d.z());
+	        visualization_msgs::MarkerArray marker_array;
+	        visualization_msgs::Marker marker;
+	        octomath::Vector3 start_o(start.x(), start.y(), start.z());
+	        rviz_interface::build_waypoint(start_o, 0.1, 0,   10, marker, 5);
+	        marker.ns = "start";
+	        marker_array.markers.push_back( marker );
+	        octomath::Vector3 end_o(end.x(), end.y(), end.z());
+	        rviz_interface::build_waypoint(end_o, 0.1, 0,   11, marker, 5);
+	        marker.ns = "end";
+	        marker_array.markers.push_back( marker );
+
+	        rviz_interface::build_waypoint(a_o, 0.5, 0,   1, marker, 1);
+	        marker.ns = "a";
+	        marker_array.markers.push_back( marker );
+	        rviz_interface::build_waypoint(b_o, 0.5, 250, 2, marker, 1);
+	        marker.ns = "b";
+	        marker_array.markers.push_back( marker );
+	        rviz_interface::build_waypoint(c_o, 0.5, 0  , 3, marker, 9);
+	        marker.ns = "c";
+	        marker_array.markers.push_back( marker );
+	        rviz_interface::build_waypoint(d_o, 0.5, 250, 4, marker, 9);
+	        marker.ns = "d";
+	        marker_array.markers.push_back( marker );
+	        rviz_interface::build_arrow_type(start_o, end_o, marker_array, 20, true);
+	        octomath::Vector3 end_ortho(start_o.x()+ortho.x(), start_o.y()+ortho.y(), start_o.z()+ortho.z());
+	        rviz_interface::build_arrow_type(start_o, end_ortho, marker_array, 21, false);
+	        // ROS_INFO_STREAM("");
+	        // ROS_INFO_STREAM("Start = (" << start.x() << ", " << start.y() << ", " << start.z() << ")");
+	        // ROS_INFO_STREAM("End = (" << end.x() << ", " << end.y() << ", " << end.z() << ")");
+	        // ROS_INFO_STREAM("End Ortho = (" << end_ortho.x() << ", " << end_ortho.y() << ", " << end_ortho.z() << ")");
+	        
+	        // ROS_INFO_STREAM("a = (" << a.x() << ", " << a.y() << ", " << a.z() << ")");
+	        // ROS_INFO_STREAM("b = (" << b.x() << ", " << b.y() << ", " << b.z() << ")");
+
+	        // ROS_INFO_STREAM("c = (" << c.x() << ", " << c.y() << ", " << c.z() << ")");
+	        // ROS_INFO_STREAM("d = (" << d.x() << ", " << d.y() << ", " << d.z() << ")");
+
+	        // ROS_INFO_STREAM("Direction = (" << direction.x() << ", " << direction.y() << ", " << direction.z() << ")");
+	        // ROS_INFO_STREAM("Ortho = (" << ortho.x() << ", " << ortho.y() << ", " << ortho.z() << ")");
+	        // ROS_INFO_STREAM("Request " << frontier_srv.request);
+	        octomath::Vector3 min(frontier_srv.request.min.x, frontier_srv.request.min.y, frontier_srv.request.min.z);
+	        octomath::Vector3 max(frontier_srv.request.max.x, frontier_srv.request.max.y, frontier_srv.request.max.z);
+	        rviz_interface::publish_geofence (min, max, marker_array);
+
+	        pi.marker_pub.publish(marker_array);
+        }
 	}
 
 	bool GoalStateMachine::findFrontiers_CallService(Eigen::Vector3d& uav_position)
 	{
-		frontier_srv.request.min = geofence_min;
-		frontier_srv.request.max = geofence_max;
+		if (global)
+		{
+			frontier_srv.request.min = geofence_min;
+			frontier_srv.request.max = geofence_max;
+		}
+		else
+		{
+			fillLocalGeofence();
+		}
 		frontier_srv.request.current_position.x = uav_position.x();
 		frontier_srv.request.current_position.y = uav_position.y();
 		frontier_srv.request.current_position.z = uav_position.z();

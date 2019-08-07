@@ -79,6 +79,7 @@ namespace goal_state_machine
 	    bool 								has_more_goals, resetOPPair_flag;
 	    bool								is_oppairs_side;
 	    bool								new_map;
+	    bool								global;
     	double 								path_safety_margin;
     	double 								sensing_distance;
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
