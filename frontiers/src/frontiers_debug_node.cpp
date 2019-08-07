@@ -5,6 +5,7 @@
 #include <visualization_msgs/Marker.h>
 #include <frontiers_msgs/LocalGeofenceRequest.h>
 #include <Eigen/Dense>
+#include <frontiers_msgs/FindFrontiers.h>
 
 namespace frontiers_debug_node
 {
@@ -59,7 +60,7 @@ namespace frontiers_debug_node
                 Eigen::Vector3d b = a + direction;
                 Eigen::Vector3d c = start - (ortho * range);
                 Eigen::Vector3d d = c + direction;
-                
+
                 octomath::Vector3 a_o(a.x(), a.y(), a.z());
                 octomath::Vector3 b_o(b.x(), b.y(), b.z());
                 octomath::Vector3 c_o(c.x(), c.y(), c.z());
@@ -91,7 +92,6 @@ namespace frontiers_debug_node
                 octomath::Vector3 end_ortho(start_o.x()+ortho.x(), start_o.y()+ortho.y(), start_o.z()+ortho.z());
                 rviz_interface::build_arrow_type(start_o, end_ortho, marker_array, 21, false);
                 
-                marker_pub.publish(marker_array);
 
                 ROS_INFO_STREAM("");
                 ROS_INFO_STREAM("Start = (" << start.x() << ", " << start.y() << ", " << start.z() << ")");
@@ -107,7 +107,23 @@ namespace frontiers_debug_node
                 ROS_INFO_STREAM("Direction = (" << direction.x() << ", " << direction.y() << ", " << direction.z() << ")");
                 ROS_INFO_STREAM("Ortho = (" << ortho.x() << ", " << ortho.y() << ", " << ortho.z() << ")");
 
+                // Geofence
+                frontiers_msgs::FindFrontiers           frontier_srv;
+                // Min
+                frontier_srv.request.min.x = std::min({a.x(), b.x(), c.x(), d.x()});
+                frontier_srv.request.min.y = std::min({a.y(), b.y(), c.y(), d.y()});
+                frontier_srv.request.min.z = std::min({start.z(), end.z()});
+                // Max
+                frontier_srv.request.max.x = std::max({a.x(), b.x(), c.x(), d.x()});
+                frontier_srv.request.max.y = std::max({a.y(), b.y(), c.y(), d.y()});
+                frontier_srv.request.max.z = frontier_srv.request.min.z+ std::abs(start.z() - end.z()) + range;
+                ROS_INFO_STREAM("Request " << frontier_srv.request);
 
+                octomath::Vector3 min(frontier_srv.request.min.x, frontier_srv.request.min.y, frontier_srv.request.min.z);
+                octomath::Vector3 max(frontier_srv.request.max.x, frontier_srv.request.max.y, frontier_srv.request.max.z);
+                rviz_interface::publish_geofence (min, max, marker_array);
+
+                marker_pub.publish(marker_array);
         }
 
         void localFence_callback (const frontiers_msgs::LocalGeofenceRequest::ConstPtr& request)
