@@ -86,6 +86,7 @@ namespace goal_state_machine
 	    int 								frontier_index;
         int 								oppair_id;
         int 								frontier_request_count;
+        int 								range;
 		std::ofstream log_file;
 
 
@@ -99,7 +100,7 @@ namespace goal_state_machine
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
 		bool IsObservable(Eigen::Vector3d const& viewpoint);
 		bool checkFligthCorridor(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
-
+		bool fillLocalGeofence();
 
 	    
 	    
@@ -107,7 +108,7 @@ namespace goal_state_machine
     	octomap::OcTree* octree;
 		geometry_msgs::Point get_current_frontier() ;
 		void get_current_frontier(Eigen::Vector3d& frontier) ;
-		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance);
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range);
 		~GoalStateMachine()
 		{
 			log_file.close();

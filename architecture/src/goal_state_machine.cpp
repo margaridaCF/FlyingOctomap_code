@@ -18,9 +18,10 @@ namespace goal_state_machine
     std::ofstream csv_file;
     #endif
 
-    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true)
+    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range)
 	{
+
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
 
@@ -244,6 +245,28 @@ namespace goal_state_machine
 		oppairs_under.NewFrontier(new_frontier_under, uav_position, pi);
 	    rviz_interface::build_sphere_basic(curr_frontier_geom, marker_array, "under_unknown_point", 0.5, 0.5, 1);
 	    pi.marker_pub.publish(marker_array);
+	}
+
+	bool GoalStateMachine::fillLocalGeofence()
+	{
+		geometry_msgs::Point start_p, end_p;
+		if( !getFlybyStart(start_p) )
+		{
+			return false;
+		}
+		if( !getFlybyEnd(end_p) )
+		{
+			return false;
+		}
+		Eigen::Vector3d start(start_p.x, start_p.y, start_p.z);
+		Eigen::Vector3d end(end_p.x, end_p.y, end_p.z);
+		Eigen::Vector3d direction = end - start;
+		direction.normalize();
+		Eigen::Vector3d ortho = Eigen::Vector3d::UnitZ().cross(direction);
+		Eigen::Vector3d a = start + (ortho * range);
+		Eigen::Vector3d b = a + direction;
+		Eigen::Vector3d c = start - (ortho * range);
+		Eigen::Vector3d d = c + direction;
 	}
 
 	bool GoalStateMachine::findFrontiers_CallService(Eigen::Vector3d& uav_position)

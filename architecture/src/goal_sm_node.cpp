@@ -143,11 +143,13 @@ namespace goal_sm_node
 
         nh.getParam("path/safety_margin", ltstar_safety_margin);
 
+        int range;
+        nh.getParam("/octomap_builder/sensor_model/max_range", range);
 
         ros::ServiceClient check_visibility_client;
     	ros::ServiceClient check_flightCorridor_client;// = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
         rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
-    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance);
+    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance, range);
 
 
     }
