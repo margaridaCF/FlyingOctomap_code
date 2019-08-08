@@ -19,7 +19,7 @@ namespace goal_state_machine
     #endif
 
     GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(false)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true)
 	{
 
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
@@ -58,7 +58,7 @@ namespace goal_state_machine
 
 	void GoalStateMachine::NewMap()
 	{
-		global = false;
+		if(!first_request) global = false;
 		new_map = true;
 		frontier_srv.response.success = false;
 	}
@@ -288,36 +288,36 @@ namespace goal_state_machine
 
         if(pi.publish)
         {
-	        octomath::Vector3 a_o(a.x(), a.y(), a.z());
-	        octomath::Vector3 b_o(b.x(), b.y(), b.z());
-	        octomath::Vector3 c_o(c.x(), c.y(), c.z());
-	        octomath::Vector3 d_o(d.x(), d.y(), d.z());
 	        visualization_msgs::MarkerArray marker_array;
-	        visualization_msgs::Marker marker;
-	        octomath::Vector3 start_o(start.x(), start.y(), start.z());
-	        rviz_interface::build_waypoint(start_o, 0.1, 0,   10, marker, 5);
-	        marker.ns = "start";
-	        marker_array.markers.push_back( marker );
-	        octomath::Vector3 end_o(end.x(), end.y(), end.z());
-	        rviz_interface::build_waypoint(end_o, 0.1, 0,   11, marker, 5);
-	        marker.ns = "end";
-	        marker_array.markers.push_back( marker );
+	        // octomath::Vector3 a_o(a.x(), a.y(), a.z());
+	        // octomath::Vector3 b_o(b.x(), b.y(), b.z());
+	        // octomath::Vector3 c_o(c.x(), c.y(), c.z());
+	        // octomath::Vector3 d_o(d.x(), d.y(), d.z());
+	        // visualization_msgs::Marker marker;
+	        // octomath::Vector3 start_o(start.x(), start.y(), start.z());
+	        // rviz_interface::build_waypoint(start_o, 0.1, 0,   10, marker, 5);
+	        // marker.ns = "start";
+	        // marker_array.markers.push_back( marker );
+	        // octomath::Vector3 end_o(end.x(), end.y(), end.z());
+	        // rviz_interface::build_waypoint(end_o, 0.1, 0,   11, marker, 5);
+	        // marker.ns = "end";
+	        // marker_array.markers.push_back( marker );
 
-	        rviz_interface::build_waypoint(a_o, 0.5, 0,   1, marker, 1);
-	        marker.ns = "a";
-	        marker_array.markers.push_back( marker );
-	        rviz_interface::build_waypoint(b_o, 0.5, 250, 2, marker, 1);
-	        marker.ns = "b";
-	        marker_array.markers.push_back( marker );
-	        rviz_interface::build_waypoint(c_o, 0.5, 0  , 3, marker, 9);
-	        marker.ns = "c";
-	        marker_array.markers.push_back( marker );
-	        rviz_interface::build_waypoint(d_o, 0.5, 250, 4, marker, 9);
-	        marker.ns = "d";
-	        marker_array.markers.push_back( marker );
-	        rviz_interface::build_arrow_type(start_o, end_o, marker_array, 20, true);
-	        octomath::Vector3 end_ortho(start_o.x()+ortho.x(), start_o.y()+ortho.y(), start_o.z()+ortho.z());
-	        rviz_interface::build_arrow_type(start_o, end_ortho, marker_array, 21, false);
+	        // rviz_interface::build_waypoint(a_o, 0.5, 0,   1, marker, 1);
+	        // marker.ns = "a";
+	        // marker_array.markers.push_back( marker );
+	        // rviz_interface::build_waypoint(b_o, 0.5, 250, 2, marker, 1);
+	        // marker.ns = "b";
+	        // marker_array.markers.push_back( marker );
+	        // rviz_interface::build_waypoint(c_o, 0.5, 0  , 3, marker, 9);
+	        // marker.ns = "c";
+	        // marker_array.markers.push_back( marker );
+	        // rviz_interface::build_waypoint(d_o, 0.5, 250, 4, marker, 9);
+	        // marker.ns = "d";
+	        // marker_array.markers.push_back( marker );
+	        // rviz_interface::build_arrow_type(start_o, end_o, marker_array, 20, true);
+	        // octomath::Vector3 end_ortho(start_o.x()+ortho.x(), start_o.y()+ortho.y(), start_o.z()+ortho.z());
+	        // rviz_interface::build_arrow_type(start_o, end_ortho, marker_array, 21, false);
 	        // ROS_INFO_STREAM("");
 	        // ROS_INFO_STREAM("Start = (" << start.x() << ", " << start.y() << ", " << start.z() << ")");
 	        // ROS_INFO_STREAM("End = (" << end.x() << ", " << end.y() << ", " << end.z() << ")");
@@ -342,6 +342,7 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::findFrontiers_CallService(Eigen::Vector3d& uav_position)
 	{
+		first_request = false;
 		if (global)
 		{
 			frontier_srv.request.min = geofence_min;

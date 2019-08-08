@@ -80,6 +80,7 @@ namespace goal_state_machine
 	    bool								is_oppairs_side;
 	    bool								new_map;
 	    bool								global;
+	    bool								first_request;
     	double 								path_safety_margin;
     	double 								sensing_distance;
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
