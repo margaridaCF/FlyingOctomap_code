@@ -47,8 +47,9 @@ namespace frontiers_debug_node
         marker_pub.publish(marker_array);
 	}
 
-        bool fillLocalGeofence(Eigen::Vector3d start, Eigen::Vector3d end, int range)
+        bool fillLocalGeofence(Eigen::Vector3d start, Eigen::Vector3d end, int range, double flyby_length, double local_fence_side)
         {
+                double extension = local_fence_side - flyby_length;
                 geometry_msgs::Point geofence_max, geofence_min;
                 geofence_min.x = 0;
                 geofence_min.y = 0;
@@ -66,10 +67,12 @@ namespace frontiers_debug_node
                 }
                 Eigen::Vector3d ortho = Eigen::Vector3d::UnitZ().cross(direction);
                 ortho.normalize();
-                Eigen::Vector3d a = start + (ortho * range);
-                Eigen::Vector3d b = a + direction;
-                Eigen::Vector3d c = start - (ortho * range);
-                Eigen::Vector3d d = c + direction;
+                direction.normalize();
+                Eigen::Vector3d e = start - (direction * extension/2); 
+                Eigen::Vector3d a = e + (ortho * range);
+                Eigen::Vector3d b = a + (direction * local_fence_side);
+                Eigen::Vector3d c = e - (ortho * range);
+                Eigen::Vector3d d = c + (direction * local_fence_side);
 
 
                 // Geofence
@@ -84,6 +87,7 @@ namespace frontiers_debug_node
 
 
                 octomath::Vector3 a_o(a.x(), a.y(), a.z());
+                octomath::Vector3 e_o(e.x(), e.y(), e.z());
                 octomath::Vector3 b_o(b.x(), b.y(), b.z());
                 octomath::Vector3 c_o(c.x(), c.y(), c.z());
                 octomath::Vector3 d_o(d.x(), d.y(), d.z());
@@ -98,6 +102,9 @@ namespace frontiers_debug_node
                 marker.ns = "end";
                 marker_array.markers.push_back( marker );
 
+                rviz_interface::build_waypoint(e_o, 0.5, 0,   1, marker, 1);
+                marker.ns = "e";
+                marker_array.markers.push_back( marker );
                 rviz_interface::build_waypoint(a_o, 0.5, 0,   1, marker, 1);
                 marker.ns = "a";
                 marker_array.markers.push_back( marker );
@@ -154,7 +161,7 @@ namespace frontiers_debug_node
 
                 Eigen::Vector3d start(request->start.x, request->start.y, request->start.z);
                 Eigen::Vector3d end(request->end.x, request->end.y, request->end.z);
-                fillLocalGeofence(start, end, request->range);
+                fillLocalGeofence(start, end, request->range, request->flyby_length, request->local_fence_side);
         }
 }
 

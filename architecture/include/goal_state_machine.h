@@ -83,6 +83,8 @@ namespace goal_state_machine
 	    bool								first_request;
     	double 								path_safety_margin;
     	double 								sensing_distance;
+    	double 								local_fence_side;
+    	double 								flyby_length;
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
         unobservable_pair_set	 			unobservable_set; 
 	    int 								frontier_index;
@@ -111,7 +113,7 @@ namespace goal_state_machine
     	octomap::OcTree* octree;
 		geometry_msgs::Point get_current_frontier() ;
 		void get_current_frontier(Eigen::Vector3d& frontier) ;
-		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range);
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side);
 		~GoalStateMachine()
 		{
 			log_file.close();
