@@ -30,7 +30,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Hokuyo
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -200,13 +200,13 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /state_manager_viz
@@ -220,6 +220,7 @@ Visualization Manager:
       Marker Topic: /goal_sm
       Name: Goal State Manager
       Namespaces:
+        geofence: true
         oppair_end: true
         oppair_end_outside: false
         oppair_path: true

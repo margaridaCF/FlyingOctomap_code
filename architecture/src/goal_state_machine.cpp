@@ -250,22 +250,13 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::fillLocalGeofence()
 	{
-		geometry_msgs::Point start_p, end_p;
-		if( !getFlybyStart(start_p) )
-		{
-			return false;
-		}
-		if( !getFlybyEnd(end_p) )
-		{
-			return false;
-		}
-		Eigen::Vector3d start(start_p.x, start_p.y, start_p.z);
-		Eigen::Vector3d end(end_p.x, end_p.y, end_p.z);
+		Eigen::Vector3d start(success_flyby_start.x, success_flyby_start.y, success_flyby_start.z);
+		Eigen::Vector3d end(success_flyby_end.x, success_flyby_end.y, success_flyby_end.z);
 		
 		Eigen::Vector3d direction = end - start;
         if(direction.norm() <= 0.01)
         {
-                ROS_ERROR_STREAM("Still have to do this!");
+                ROS_ERROR_STREAM("Still have to do this! start " << success_flyby_start << "; end " << success_flyby_end);
         }
         Eigen::Vector3d ortho = Eigen::Vector3d::UnitZ().cross(direction);
         ortho.normalize();
@@ -273,18 +264,15 @@ namespace goal_state_machine
         Eigen::Vector3d b = a + direction;
         Eigen::Vector3d c = start - (ortho * range);
         Eigen::Vector3d d = c + direction;
-
-
         // Geofence
         // Min
-        frontier_srv.request.min.x = std::min({a.x(), b.x(), c.x(), d.x()});
-        frontier_srv.request.min.y = std::min({a.y(), b.y(), c.y(), d.y()});
-        frontier_srv.request.min.z = std::min({start.z(), end.z()});
+        frontier_srv.request.min.x = std::max(std::min({a.x(), b.x(), c.x(), d.x()}), geofence_min.x);
+        frontier_srv.request.min.y = std::max(std::min({a.y(), b.y(), c.y(), d.y()}), geofence_min.y);
+        frontier_srv.request.min.z = std::max(std::min({start.z(), end.z()}), geofence_min.z);
         // Max
-        frontier_srv.request.max.x = std::max({a.x(), b.x(), c.x(), d.x()});
-        frontier_srv.request.max.y = std::max({a.y(), b.y(), c.y(), d.y()});
-        frontier_srv.request.max.z = frontier_srv.request.min.z+ std::abs(start.z() - end.z()) + range;
-
+        frontier_srv.request.max.x = std::min(std::max({a.x(), b.x(), c.x(), d.x()}), geofence_max.x);
+        frontier_srv.request.max.y = std::min(std::max({a.y(), b.y(), c.y(), d.y()}), geofence_max.y);
+        frontier_srv.request.max.z = std::min(frontier_srv.request.min.z+ std::abs(start.z() - end.z()) + range, geofence_max.z);
 
         if(pi.publish)
         {
@@ -388,6 +376,15 @@ namespace goal_state_machine
         return false;
 	}
 
+	void GoalStateMachine::saveSuccesfulFlyby()
+	{
+		if( getFlybyStart(success_flyby_start) )
+		{
+			getFlybyEnd(success_flyby_end);
+		}
+		else ROS_ERROR("[goal sm] There was no flyby available");
+	}
+
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
 	{	
 		#ifdef SAVE_CSV
@@ -418,6 +415,7 @@ namespace goal_state_machine
 						#ifdef SAVE_CSV
 						csv_file << total_millis << ",,1" << std::endl;
 						#endif
+						saveSuccesfulFlyby();
 						return true;
 					}		
 					existsNextOPPair = oppairs_side.Next();
@@ -442,6 +440,7 @@ namespace goal_state_machine
 						#ifdef SAVE_CSV
 						csv_file << total_millis << ",,2" << std::endl;
 						#endif
+						saveSuccesfulFlyby();
 						return true;
 					}
 					existsNextOPPair = oppairs_under.Next();	 

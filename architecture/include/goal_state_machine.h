@@ -74,7 +74,7 @@ namespace goal_state_machine
 	{
 	    rviz_interface::PublishingInput 	pi;
 		frontiers_msgs::FindFrontiers 		frontier_srv;
-	    geometry_msgs::Point 				geofence_min, geofence_max;
+	    geometry_msgs::Point 				geofence_min, geofence_max, success_flyby_start, success_flyby_end;
 	    ros::ServiceClient &				find_frontiers_client;
 	    bool 								has_more_goals, resetOPPair_flag;
 	    bool								is_oppairs_side;
@@ -103,6 +103,7 @@ namespace goal_state_machine
 		bool IsObservable(Eigen::Vector3d const& viewpoint);
 		bool checkFligthCorridor(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
 		bool fillLocalGeofence();
+		void saveSuccesfulFlyby();
 
 	    
 	    
