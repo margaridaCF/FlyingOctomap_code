@@ -64,6 +64,18 @@ namespace rviz_interface
         build_cube_wire(marker, geofence_min, geofence_max);
         marker_array.markers.push_back(marker);
     } 
+
+    void build_geofence (octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, visualization_msgs::Marker & marker, int id, std::string ns, double red, double green, double blue)
+    { 
+        // Set the frame ID and timestamp.  See the TF tutorials for information on these. 
+        marker.lifetime = ros::Duration(); 
+        build_cube_wire(marker, geofence_min, geofence_max);
+        marker.color.r = red; 
+        marker.color.g = green; 
+        marker.color.b = blue; 
+        marker.ns = ns;
+        marker.id = id;
+    } 
     void publish_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, visualization_msgs::MarkerArray marker_array, int id) 
     { 
         visualization_msgs::Marker marker;
