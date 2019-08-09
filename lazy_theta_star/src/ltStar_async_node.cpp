@@ -154,7 +154,7 @@ namespace LazyThetaStarOctree
 		}
 		ltstar_reply_pub.publish(reply);
 
-		publishResultingPath(reply, 9);
+		// publishResultingPath(reply, 9);
 	}
 
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
