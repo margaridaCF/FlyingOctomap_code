@@ -1,6 +1,5 @@
 
 
-
 distance_switch_wp_control: 3
 px4_loiter_radius: 2
 px4/flight_speed: 3
@@ -26,6 +25,7 @@ path/max_time_secs: 30
 path/max_cycles_waited_for_path: 50
 path/safety_margin: 5
 
+local_fence_side: 10
 # == Observation Point Pairs ==
 oppairs/distance_inFront: 2
 oppairs/distance_behind: 2

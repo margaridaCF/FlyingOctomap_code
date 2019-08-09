@@ -28,6 +28,8 @@ namespace goal_state_machine
         frontier_srv.response.success = false;
         frontier_request_count = 0;
 
+		flyby_length = distance_inFront + distance_behind;
+
 		double distance_from_unknown_under = 1;
 		double distance_behind_under, distance_inFront_under;
 		double sensor_shape_offset = sensing_distance / std::tan(0.872665);
@@ -42,7 +44,6 @@ namespace goal_state_machine
 		{
 			distance_inFront_under = diference; 	
 		}
-		flyby_length = distance_inFront + distance_behind;
 
 		oppairs_under = observation_lib::OPPairs(circle_divisions/2, distance_from_unknown_under, distance_inFront_under, distance_behind_under, observation_lib::translate);
 
@@ -310,10 +311,13 @@ namespace goal_state_machine
 	        // octomath::Vector3 end_ortho(start_o.x()+ortho.x(), start_o.y()+ortho.y(), start_o.z()+ortho.z());
 	        // rviz_interface::build_arrow_type(start_o, end_ortho, marker_array, 21, false);
 	        // ROS_INFO_STREAM("");
+	        // ROS_INFO_STREAM("Extension = " << extension );
 	        // ROS_INFO_STREAM("Start = (" << start.x() << ", " << start.y() << ", " << start.z() << ")");
 	        // ROS_INFO_STREAM("End = (" << end.x() << ", " << end.y() << ", " << end.z() << ")");
 	        // ROS_INFO_STREAM("End Ortho = (" << end_ortho.x() << ", " << end_ortho.y() << ", " << end_ortho.z() << ")");
 	        
+	        // ROS_INFO_STREAM("e = (" << e.x() << ", " << e.y() << ", " << e.z() << ")");
+
 	        // ROS_INFO_STREAM("a = (" << a.x() << ", " << a.y() << ", " << a.z() << ")");
 	        // ROS_INFO_STREAM("b = (" << b.x() << ", " << b.y() << ", " << b.z() << ")");
 
@@ -325,13 +329,15 @@ namespace goal_state_machine
 	        // ROS_INFO_STREAM("Request " << frontier_srv.request);
 	        octomath::Vector3 min(frontier_srv.request.min.x, frontier_srv.request.min.y, frontier_srv.request.min.z);
 	        octomath::Vector3 max(frontier_srv.request.max.x, frontier_srv.request.max.y, frontier_srv.request.max.z);
+	        // ROS_INFO_STREAM("Min = (" << frontier_srv.request.min.x << ", " << frontier_srv.request.min.y << ", " << frontier_srv.request.min.z << ")");
+	        // ROS_INFO_STREAM("Max = (" << frontier_srv.request.max.x << ", " << frontier_srv.request.max.y << ", " << frontier_srv.request.max.z<< ")");
 	        rviz_interface::publish_geofence (min, max, marker_array);
 
 	        pi.marker_pub.publish(marker_array);
         }
 	}
 
-	bool GoalStateMachine::findFrontiers_CallService(Eigen::Vector3d& uav_position)
+	bool GoalStateMachine::findFrontiersAllMap(Eigen::Vector3d& uav_position)
 	{
 		first_request = false;
 		if (global)
@@ -343,10 +349,35 @@ namespace goal_state_machine
 		{
 			fillLocalGeofence();
 		}
+		frontier_srv.request.frontier_amount = 20;
+		bool found_frontiers = findFrontiers_CallService(uav_position);
+		if (found_frontiers)
+		{
+	        // ROS_INFO_STREAM("[Goal SM] Request " << frontier_srv.request);
+	        if(global)
+        		ROS_INFO_STREAM("[Goal SM] The global search still found a frontier.");
+        	else
+        		ROS_INFO_STREAM("[Goal SM] Just the local search was was enough to find a frontier");
+			return true;
+		} 
+		// If it was a local search, there is still global search;
+		if(!global)
+		{
+			global = true;
+			return findFrontiersAllMap(uav_position);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	bool GoalStateMachine::findFrontiers_CallService(Eigen::Vector3d& uav_position)
+	{
+		
 		frontier_srv.request.current_position.x = uav_position.x();
 		frontier_srv.request.current_position.y = uav_position.y();
 		frontier_srv.request.current_position.z = uav_position.z();
-		frontier_srv.request.frontier_amount = 20;
 		frontier_srv.request.request_id = frontier_request_count;
 		frontier_srv.request.new_request = new_map;
 
@@ -370,6 +401,14 @@ namespace goal_state_machine
         		new_map = false;
 				resetOPPair(uav_position);
 				return true;
+            }
+            else
+            {
+            	// ROS_INFO_STREAM("[Goal SM] The frontier node identified no further frontiers.");
+            	if(global)
+            		ROS_INFO_STREAM("[Goal SM] The search was conducted within the global geofence identified no further frontiers.");
+            	// else
+            	// 	ROS_INFO_STREAM("[Goal SM] The search was local, maybe there are frontiers still!");
             }
         } 
         else
@@ -456,7 +495,7 @@ namespace goal_state_machine
 			frontier_index++;
 			if(!hasNextFrontier())
 			{
-				has_more_goals = findFrontiers_CallService(uav_position);
+				has_more_goals = findFrontiersAllMap(uav_position);
 			}
 		}
 		#ifdef SAVE_CSV

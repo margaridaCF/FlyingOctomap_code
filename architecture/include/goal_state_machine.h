@@ -106,6 +106,7 @@ namespace goal_state_machine
 		bool checkFligthCorridor(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
 		bool fillLocalGeofence();
 		void saveSuccesfulFlyby();
+		bool findFrontiers_CallService(Eigen::Vector3d& uav_position);
 
 	    
 	    
@@ -118,7 +119,7 @@ namespace goal_state_machine
 		{
 			log_file.close();
 		}
-		bool findFrontiers_CallService(Eigen::Vector3d& uav_position);
+		bool findFrontiersAllMap(Eigen::Vector3d& uav_position);
 		void NewMap();
 		bool NextGoal(Eigen::Vector3d& uav_position);
 		void DeclareUnobservable();
