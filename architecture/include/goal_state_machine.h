@@ -74,18 +74,23 @@ namespace goal_state_machine
 	{
 	    rviz_interface::PublishingInput 	pi;
 		frontiers_msgs::FindFrontiers 		frontier_srv;
-	    geometry_msgs::Point 				geofence_min, geofence_max;
+	    geometry_msgs::Point 				geofence_min, geofence_max, success_flyby_start, success_flyby_end;
 	    ros::ServiceClient &				find_frontiers_client;
 	    bool 								has_more_goals, resetOPPair_flag;
 	    bool								is_oppairs_side;
 	    bool								new_map;
+	    bool								global;
+	    bool								first_request;
     	double 								path_safety_margin;
     	double 								sensing_distance;
+    	double 								local_fence_side;
+    	double 								flyby_length;
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
         unobservable_pair_set	 			unobservable_set; 
 	    int 								frontier_index;
         int 								oppair_id;
         int 								frontier_request_count;
+        int 								range;
 		std::ofstream log_file;
 
 
@@ -99,7 +104,9 @@ namespace goal_state_machine
 		bool pointToNextGoal(Eigen::Vector3d& uav_position);
 		bool IsObservable(Eigen::Vector3d const& viewpoint);
 		bool checkFligthCorridor(double flight_corridor_width, Eigen::Vector3d& start, Eigen::Vector3d& end, ros::Publisher const& marker_pub);
-
+		bool fillLocalGeofence();
+		void saveSuccesfulFlyby();
+		bool findFrontiers_CallService(Eigen::Vector3d& uav_position);
 
 	    
 	    
@@ -107,12 +114,12 @@ namespace goal_state_machine
     	octomap::OcTree* octree;
 		geometry_msgs::Point get_current_frontier() ;
 		void get_current_frontier(Eigen::Vector3d& frontier) ;
-		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance);
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side);
 		~GoalStateMachine()
 		{
 			log_file.close();
 		}
-		bool findFrontiers_CallService(Eigen::Vector3d& uav_position);
+		bool findFrontiersAllMap(Eigen::Vector3d& uav_position);
 		void NewMap();
 		bool NextGoal(Eigen::Vector3d& uav_position);
 		void DeclareUnobservable();

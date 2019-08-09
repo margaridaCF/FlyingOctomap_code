@@ -45,10 +45,22 @@ namespace LazyThetaStarOctree
 		{
 			octomath::Vector3 candidate (reply.waypoints[i].position.x, reply.waypoints[i].position.y, reply.waypoints[i].position.z);
 			std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors;
-	        octomap::OcTreeKey key = octree->coordToKey(candidate);
-	        double depth = getNodeDepth_Octomap(key, *octree);
-	        double side_length = findSideLenght(octree->getTreeDepth(), depth, sidelength_lookup_table);
-	        octomath::Vector3 cell_center = octree->keyToCoord(key, depth);
+			octomath::Vector3 cell_center;
+			double side_length;
+			try
+			{
+		        octomap::OcTreeKey key = octree->coordToKey(candidate);
+		        double depth = getNodeDepth_Octomap(key, *octree);
+		        side_length = findSideLenght(octree->getTreeDepth(), depth, sidelength_lookup_table);
+		        cell_center = octree->keyToCoord(key, depth);
+		    }
+		    catch(const std::out_of_range& oor)
+		    {
+		    	// This occurs when the start and end coordinates are the actual waypoints
+		    	cell_center = candidate;
+		    	side_length = octree->getResolution();
+		    }
+
 	        if( cell_center.distance(candidate) < 0.001 )
 	        {
 		        rviz_interface::build_waypoint(candidate, side_length, (0.3*i)/reply.waypoint_amount, i+series, marker_temp, series);

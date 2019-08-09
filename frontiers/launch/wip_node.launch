@@ -23,7 +23,7 @@
 
     <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/Tools/realUAV.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find frontiers)/launch/debug_frontiers.rviz" />
     <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 10" />
 
     <!-- #######################  Octomap  ######################################## -->
@@ -32,7 +32,7 @@
     </node>
     <!-- ########################################################################## --> 
   <!-- Frontiers --> 
-  <node pkg="frontiers" type="frontiers_async_node" name="frontiers_debug" output="screen"/>
+  <node pkg="frontiers" type="frontiers_debug_node" name="frontiers_debug" output="screen"/>
   <!-- ########################################################################## -->
     <!-- Architecture nodes -->
 

@@ -899,6 +899,22 @@ namespace LazyThetaStarOctree{
 	    log_file.close();
 	}
 
+	bool avoidWaypoint(octomap::OcTree const& octree, lazy_theta_star_msgs::LTStarReply & reply, double safety_margin, int index, rviz_interface::PublishingInput const& publish_input)
+	{
+		octomath::Vector3 start (reply.waypoints[index-1].position.x, reply.waypoints[index-1].position.y, reply.waypoints[index-1].position.z); 
+		octomath::Vector3 end (reply.waypoints[index+1].position.x, reply.waypoints[index+1].position.y, reply.waypoints[index+1].position.z); 
+		InputData input (octree, start, end, safety_margin);
+		if( is_flight_corridor_free(input, publish_input) )
+		{
+			reply.waypoints.erase(reply.waypoints.begin() + index);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 	bool processLTStarRequest(octomap::OcTree & octree, lazy_theta_star_msgs::LTStarRequest const& request, lazy_theta_star_msgs::LTStarReply & reply, const double sidelength_lookup_table[], rviz_interface::PublishingInput const& publish_input)
 	{
 
@@ -949,7 +965,6 @@ namespace LazyThetaStarOctree{
 		std::ofstream csv_file;
 		std::stringstream csv_stream, csv_stream_name;
 		csv_stream_name << folder_name << "/current/lazyThetaStar_computation_time.csv";
-		ROS_WARN_STREAM("[ltStar] inside " << csv_stream_name.str());
 		csv_file.open (csv_stream_name.str(), std::ofstream::app);
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 		std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
@@ -1003,6 +1018,10 @@ namespace LazyThetaStarOctree{
 	            waypoint.orientation = tf::createQuaternionMsgFromYaw(0);
 	            reply.waypoints.push_back(waypoint);
 			}
+			avoidWaypoint(octree, reply, request.safety_margin, 1, publish_input);
+			avoidWaypoint(octree, reply, request.safety_margin, reply.waypoints.size()-2, publish_input);
+
+
 			reply.success = true;
 		}
 		reply.waypoint_amount = resulting_path.size();

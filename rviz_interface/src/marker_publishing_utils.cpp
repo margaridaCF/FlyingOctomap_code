@@ -64,6 +64,18 @@ namespace rviz_interface
         build_cube_wire(marker, geofence_min, geofence_max);
         marker_array.markers.push_back(marker);
     } 
+
+    void build_geofence (octomath::Vector3 const& geofence_min, octomath::Vector3 const& geofence_max, visualization_msgs::Marker & marker, int id, std::string ns, double red, double green, double blue)
+    { 
+        // Set the frame ID and timestamp.  See the TF tutorials for information on these. 
+        marker.lifetime = ros::Duration(); 
+        build_cube_wire(marker, geofence_min, geofence_max);
+        marker.color.r = red; 
+        marker.color.g = green; 
+        marker.color.b = blue; 
+        marker.ns = ns;
+        marker.id = id;
+    } 
     void publish_safety_margin(geometry_msgs::Point const& frontier, double safety_margin, visualization_msgs::MarkerArray marker_array, int id) 
     { 
         visualization_msgs::Marker marker;
@@ -833,19 +845,21 @@ namespace rviz_interface
         marker.header.frame_id = "/map";
         marker.header.stamp = ros::Time::now();
         marker.id = 500 + id;
-        marker.ns = "corridor_";
+        std::stringstream namespace_str;
+        namespace_str << "corridor_" << id;
+        marker.ns = namespace_str.str();
         marker.type = shape;
-        geometry_msgs::Point goal_point;
-        goal_point.x = goal.x();
-        goal_point.y = goal.y();
-        goal_point.z = goal.z();
-        marker.points.push_back(goal_point);
         marker.action = visualization_msgs::Marker::ADD;
         geometry_msgs::Point start_point;
         start_point.x = start.x();
         start_point.y = start.y();
         start_point.z = start.z();
         marker.points.push_back(start_point);
+        geometry_msgs::Point goal_point;
+        goal_point.x = goal.x();
+        goal_point.y = goal.y();
+        goal_point.z = goal.z();
+        marker.points.push_back(goal_point);
         marker.pose.orientation.w = 1.0;
         marker.scale.x = 0.02;
         marker.scale.y = 0.06;

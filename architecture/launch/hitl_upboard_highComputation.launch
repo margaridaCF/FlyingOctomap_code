@@ -20,6 +20,7 @@
    
     <node name="tf_broadcast" type="gps_utm_tf_broadcaster_node" pkg="architecture" output="screen" />
     <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture" output="screen" />
+    <!-- <node name="middle_man_current_position" type="fake_position_provider_node" pkg="architecture" output="screen" /> -->
     
 
     <!-- #######################  Hokuyo  ############################# -->

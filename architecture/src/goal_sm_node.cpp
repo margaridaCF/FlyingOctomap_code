@@ -75,7 +75,7 @@ namespace goal_sm_node
             goal_state_machine->NewMap();
             updateOctree();
             goal_state_machine->octree = octree_inUse;
-            goal_state_machine->findFrontiers_CallService(current_position_e);
+            goal_state_machine->findFrontiersAllMap(current_position_e);
         }
         res.success = goal_state_machine->NextGoal(current_position_e);
 
@@ -135,19 +135,21 @@ namespace goal_sm_node
         nh.getParam("geofence_max/z", geofence_max.z);
 
         // Goal state machine
-        double sensing_distance, distance_inFront, distance_behind, circle_divisions, ltstar_safety_margin;
+        double sensing_distance, distance_inFront, distance_behind, circle_divisions, ltstar_safety_margin, local_fence_side;
         nh.getParam("oppairs/sensing_distance", sensing_distance);
         nh.getParam("oppairs/distance_inFront", distance_inFront);
         nh.getParam("oppairs/distance_behind",  distance_behind);
         nh.getParam("oppairs/circle_divisions",  circle_divisions);
-
+        nh.getParam("local_fence_side", local_fence_side);
         nh.getParam("path/safety_margin", ltstar_safety_margin);
 
+        int range;
+        nh.getParam("/octomap_builder/sensor_model/max_range", range);
 
         ros::ServiceClient check_visibility_client;
     	ros::ServiceClient check_flightCorridor_client;// = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
         rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
-    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance);
+    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance, range-10, local_fence_side);
 
 
     }
