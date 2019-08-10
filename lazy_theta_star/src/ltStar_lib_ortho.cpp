@@ -4,7 +4,7 @@
 #include <orthogonal_planes.h>
 
 #define SAVE_CSV 1 			// save measurements of lazyThetaStar into csv file
-// #define RUNNING_ROS 1 	// enable to publish markers on rViz
+#define RUNNING_ROS 1 	// enable to publish markers on rViz
 
 
 namespace std
@@ -237,16 +237,22 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
-				if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
-				// publish_input.marker_pub.publish(marker_array);
+				if(publish_input.publish) 
+				{
+					rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+					publish_input.marker_pub.publish(marker_array);
+				}
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin)) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+    			if(publish_input.publish) 
+				{
+					rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+					publish_input.marker_pub.publish(marker_array);
+				}
 				obstacle_hit_count++;
-				// publish_input.marker_pub.publish(marker_array);
 				return CellStatus::kOccupied; 
 			}   
 			else
@@ -255,7 +261,7 @@ namespace LazyThetaStarOctree{
 				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
 			}
 		}
-		// publish_input.marker_pub.publish(marker_array);
+		if(publish_input.publish) publish_input.marker_pub.publish(marker_array);
 		return CellStatus::kFree; 
 	}
 
@@ -710,12 +716,12 @@ namespace LazyThetaStarOctree{
 						int id =  s_id*1000 + n_id;
 						if( ! is_flight_corridor_free( InputData(input.octree, *(s->coordinates), *n_coordinates, input.margin ), publish_input) )
 						{
-		    				// rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
+		    				rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
 							
 						}
 						else
 						{
-		    				// rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
+		    				rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, id, cell_size);
 						}
 						n_id++;
 					}
@@ -812,7 +818,7 @@ namespace LazyThetaStarOctree{
 		if(!solution_found)
 		{
 			ROS_WARN_STREAM("No solution found. Giving empty path.");
-			log_file <<  "[ltStar] All nodes were analyzed but the final node center " << disc_final_cell_center << " was never reached with " << resolution/2 << " tolerance. Start " << input.start << ", end " << input.goal << std::endl;
+			log_file <<  "[ltStar] All nodes were analyzed but the final node center " << *disc_final_cell_center << " was never reached with " << resolution/2 << " tolerance. Start " << input.start << ", end " << input.goal << std::endl;
 			// std::stringstream ss;
 			// ss << folder_name << "/" << input.start.x() << "_" << input.start.y() << "_" << input.start.z() << "_" 
 			// 	<<  input.goal.x() << "_" << input.goal.y() << "_" << input.goal.z() << "__noPath.bt";

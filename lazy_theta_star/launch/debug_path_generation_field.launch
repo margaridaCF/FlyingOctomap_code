@@ -26,7 +26,7 @@
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find lazy_theta_star)/launch/debug_experimental_tests.rviz" />
 
     <!-- #######################  Octomap  ######################################## -->
-    <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find lazy_theta_star)/test/data/not_visible.bt">    
+    <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find lazy_theta_star)/test/data/octree_noPath_(3.4_-1.7_24)_(-4.6_-14_22).bt">    
         <param name="frame_id" type="str" value="/world" />
         <param name="publish_free_space" value="true"/>
     </node>
