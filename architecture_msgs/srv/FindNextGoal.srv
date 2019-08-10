@@ -4,3 +4,4 @@ geometry_msgs/Point start_flyby
 geometry_msgs/Point end_flyby
 geometry_msgs/Point unknown
 bool success
+bool global

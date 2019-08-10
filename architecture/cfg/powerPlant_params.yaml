@@ -21,15 +21,14 @@ geofence_max/y: 20
 geofence_min/z: 4
 geofence_max/z: 35
 
-path/max_time_secs: 30
-path/max_cycles_waited_for_path: 50
+path/max_time_secs: 60
 path/safety_margin: 5
 
 local_fence_side: 10
 # == Observation Point Pairs ==
 oppairs/distance_inFront: 2
 oppairs/distance_behind: 2
-oppairs/circle_divisions: 4
+oppairs/circle_divisions: 6
 oppairs/sensing_distance: 4
 
 current_position_topic: "/uav_1/mavros/local_position/pose"

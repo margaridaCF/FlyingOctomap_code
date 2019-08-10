@@ -125,6 +125,10 @@ namespace goal_state_machine
 		void DeclareUnobservable();
 		bool IsObservable(Eigen::Vector3d const& unobservable, Eigen::Vector3d const& viewpoint);
 		void publishGoalToRviz(geometry_msgs::Point current_position);
+		bool isGlobal()
+		{
+			return global;
+		}
 		int getUnobservableSetSize()
 		{
 			return unobservable_set.size();
