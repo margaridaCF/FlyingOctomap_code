@@ -254,11 +254,11 @@ namespace LazyThetaStarOctree{
                 else 
                 {
                     // it is not, search failed
-                    //ROS_WARN_STREAM("Failed to find depth ");
-      //               std::ostringstream oss_filename;
-      //               oss_filename << "/ros_ws/src/data/current/failed_to_find_depth__getNodeDepth_Octomap__" 
-      //                   << key[0] << "_" << key[1] << "_" << key[2] << ".bt";
-      //               octree.writeBinaryConst(oss_filename.str());
+                    ROS_WARN_STREAM("Failed to find depth ");
+                    std::ostringstream oss_filename;
+                    oss_filename << "/ros_ws/src/data/current/failed_to_find_depth__getNodeDepth_Octomap__" 
+                        << key[0] << "_" << key[1] << "_" << key[2] << ".bt";
+                    octree.writeBinaryConst(oss_filename.str());
 		            std::ostringstream oss;
                     oss << "Failed to find depth, for key " << key[0] << " " << key[1] << " " << key[2] << " stopped at " << depth << ", tree depth is " << octree.getTreeDepth() << ". @getNodeDepth_Octomap";  
                     throw std::out_of_range(oss.str());
