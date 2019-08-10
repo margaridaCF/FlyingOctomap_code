@@ -409,7 +409,7 @@ namespace LazyThetaStarOctree{
 	{
 		bool success = true;
 		std::ofstream pathWaypoints;
-        pathWaypoints.open (folder_name + "/final_path.txt", std::ofstream::out | std::ofstream::app);
+        pathWaypoints.open (folder_name + "/current/final_path.txt", std::ofstream::out | std::ofstream::app);
 		std::shared_ptr<ThetaStarNode> current = std::make_shared<ThetaStarNode>(end);
 		std::shared_ptr<ThetaStarNode> parentAdd;
 		int safety_count = 0;
@@ -995,7 +995,7 @@ namespace LazyThetaStarOctree{
 		{
 			reply.success = false;
 			// std::stringstream octomap_name_stream;
-			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
+			octomap_name_stream << std::setprecision(2) << folder_name << "/current/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
 			octree.writeBinary(octomap_name_stream.str());
 			std::stringstream to_log_file_ss;
 			to_log_file_ss << "!!! No path !!!   " ;
@@ -1003,7 +1003,7 @@ namespace LazyThetaStarOctree{
 			to_log_file_ss <<  std::setprecision(2) << " from  " << "(" << disc_initial.x() << ", " << disc_initial.y() <<  ", " << disc_initial.z() << ")" ;
 			to_log_file_ss <<  std::setprecision(2) << " to " << "(" << disc_final.x() <<  ", " << disc_final.y() <<  ", " << disc_final.z() << ")" << std::endl;
 			std::ofstream log_file;
-    		log_file.open(folder_name + "/lazyThetaStar.log", std::ios_base::app);
+    		log_file.open(folder_name + "/current/lazyThetaStar.log", std::ios_base::app);
     		log_file << to_log_file_ss.str();
 	    	log_file.close();
 		}

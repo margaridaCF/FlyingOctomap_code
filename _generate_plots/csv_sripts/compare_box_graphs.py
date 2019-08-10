@@ -139,7 +139,7 @@ volume_data = {}
 ram_data = {}
 max_time = 0
 for file in os.walk('./../data').next()[1]:
-	frontier_filename = "./../data/"+str(file)+"/frontiers_computation_time.csv"
+	frontier_filename = "./../data/"+str(file)+"/current/frontiers_computation_time.csv"
 	frontier_computation_time_data[file] = extract_frontier_data( frontier_filename )
 	lazyThetaStar_filename = "./../data/"+str(file)+"/lazyThetaStar_computation_time.csv"
 	lazyThetaStar_computation_data[file] = extract_lazy_theta_star_data( lazyThetaStar_filename )

@@ -178,7 +178,7 @@ namespace state_manager_node
         flight_plan_request.poses.push_back(pose_s);
 
         std::ofstream pathWaypoints;
-        pathWaypoints.open (folder_name + "/final_path_state_manager.txt", std::ofstream::out | std::ofstream::app);
+        pathWaypoints.open (folder_name + "/current/final_path_state_manager.txt", std::ofstream::out | std::ofstream::app);
         for (std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan_request.poses.begin(); i != flight_plan_request.poses.end(); ++i)
         {
             pathWaypoints << std::setprecision(5) << i->pose.position.x << ", " << i->pose.position.y << ", " << i->pose.position.z << std::endl;

@@ -134,7 +134,7 @@ namespace frontiers_async_node
 
 			#ifdef SAVE_CSV
 			// Frontier computation time
-			log.open (folder_name +"/frontiers_computation_time.csv", std::ofstream::app);
+			log.open (folder_name +"/current/frontiers_computation_time.csv", std::ofstream::app);
 			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 			std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 #ifdef SAVE_CSV
     	std::stringstream aux_envvar_home (std::getenv("HOME"));
 		frontiers_async_node::folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/frontiers_computation_time.csv", std::ofstream::app);
+		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/current/frontiers_computation_time.csv", std::ofstream::app);
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
 		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/current/volume_explored.csv", std::ofstream::app);
