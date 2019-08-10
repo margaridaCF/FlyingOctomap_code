@@ -382,6 +382,7 @@ namespace LazyThetaStarOctree{
 				oss << "s node " << *(s->coordinates) << " has no line of sight with the current parent " << *(s->parentNode->coordinates) << "(path 2)  and node of the neighbors are visible either (path 1). ";
 				log_file << oss.str() << std::endl;
 				oss << "No path 1 was found, adding to closed a bad node  ";
+				octree.writeBinaryConst(folder_name + "/out_of_range_.bt");
 				throw std::out_of_range( oss.str() );
 				// log_file << "No path 1 was found, adding to closed a bad node for " << *(s->coordinates) << std::endl;
 				return false;
@@ -995,7 +996,7 @@ namespace LazyThetaStarOctree{
 			reply.success = false;
 			// std::stringstream octomap_name_stream;
 			octomap_name_stream << std::setprecision(2) << folder_name << "/octree_noPath_(" << disc_initial.x() << "_" << disc_initial.y() << "_"  << disc_initial.z() << ")_("<< disc_final.x() << "_"  << disc_final.y() << "_"  << disc_final.z() << ").bt";
-			// octree.writeBinary(octomap_name_stream.str());
+			octree.writeBinary(octomap_name_stream.str());
 			std::stringstream to_log_file_ss;
 			to_log_file_ss << "!!! No path !!!   " ;
 			to_log_file_ss << "Straight line length " << weightedDistance(disc_initial, disc_final);
