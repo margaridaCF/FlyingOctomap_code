@@ -22,7 +22,7 @@ namespace goal_sm_node
     octomap::OcTree* octree_inUse;
     std::atomic<bool> delete_octree_in_use;
     std::atomic<bool> discard_octree;
-    bool octomap_init;
+    bool lookup_table_init;
 
     std::shared_ptr<goal_state_machine::GoalStateMachine> goal_state_machine;
     ros::ServiceClient find_frontiers_client,  current_position_client, declare_unobservable_service;
@@ -109,7 +109,11 @@ namespace goal_sm_node
         }
         discard_octree = true;
         octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
-        octomap_init = true;
+        if(lookup_table_init)
+        {
+            goal_state_machine->initLookupTable(octree->getResolution(), octree->getTreeDepth());
+            lookup_table_init = false;
+        }
     }
 
 	bool declare_unobservable(architecture_msgs::DeclareUnobservable::Request  &req,
@@ -124,6 +128,7 @@ namespace goal_sm_node
         delete_octree_in_use = false;
         discard_octree = true;
         count  = 0;
+        lookup_table_init = true;
 
 		// Geofence
 	    geometry_msgs::Point geofence_min , geofence_max ;

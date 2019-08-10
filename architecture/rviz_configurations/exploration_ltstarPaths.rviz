@@ -9,6 +9,7 @@ Panels:
         - /Frontiers1/Namespaces1
         - /Lazy Theta Star1/Namespaces1
         - /State Manager1/Namespaces1
+        - /Goal State Manager1
         - /Goal State Manager1/Namespaces1
       Splitter Ratio: 0.584474862
     Tree Height: 590
@@ -203,8 +204,18 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
+        corridor_free: false
+        corridor_occupied: false
+        goal: true
+        goal_safetyZone: true
         lazy_theta_star_path: true
         lazy_theta_star_waypoint: true
+        rejected_neighors: false
+        s: false
+        start: true
+        start_safetyZone: true
+        straight_line: true
+        usable_neighors: false
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -220,6 +231,8 @@ Visualization Manager:
       Marker Topic: /goal_sm
       Name: Goal State Manager
       Namespaces:
+        corridor_free: false
+        corridor_occupied: false
         geofence: true
         oppair_end: true
         oppair_end_outside: false

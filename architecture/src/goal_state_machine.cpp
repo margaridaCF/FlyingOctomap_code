@@ -87,6 +87,7 @@ namespace goal_state_machine
 		return LazyThetaStarOctree::is_flight_corridor_free(input, rviz_interface::PublishingInput( marker_pub, false));
 	}
 
+
 	bool GoalStateMachine::IsOPPairValid() 
     {
 		geometry_msgs::Point start, end;
@@ -427,6 +428,47 @@ namespace goal_state_machine
 		else ROS_ERROR("[goal sm] There was no flyby available");
 	}
 
+	void GoalStateMachine::initLookupTable(double resolution, int tree_depth)
+	{
+    	LazyThetaStarOctree::fillLookupTable(resolution, tree_depth, sidelength_lookup_table); 
+	}
+
+
+    bool GoalStateMachine::IsOPStartReachable()
+    {
+		octomath::Vector3 cell_center_coordinates_start (getCurrentOPPairs().get_current_start().x(), getCurrentOPPairs().get_current_start().y(), getCurrentOPPairs().get_current_start().z());
+
+    	double cell_size_start = -1;
+		LazyThetaStarOctree::updateToCellCenterAndFindSize(cell_center_coordinates_start, *octree, cell_size_start, sidelength_lookup_table);
+
+		LazyThetaStarOctree::unordered_set_pointers neighbors;
+		LazyThetaStarOctree::generateNeighbors_filter_pointers(neighbors, cell_center_coordinates_start, cell_size_start, octree->getResolution(), *octree);
+		int n_id = 1500;
+		for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
+		{
+			octomap::OcTreeKey key = octree->coordToKey(*n_coordinates);
+		    int depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, *octree);
+		    double cell_size = LazyThetaStarOctree::findSideLenght(octree->getTreeDepth(), depth, sidelength_lookup_table);
+
+			geometry_msgs::Point neighbor_v;
+			neighbor_v.x = n_coordinates->x();
+			neighbor_v.y = n_coordinates->y();
+			neighbor_v.z = n_coordinates->z();
+			if( ! LazyThetaStarOctree::is_flight_corridor_free( LazyThetaStarOctree::InputData(*octree, cell_center_coordinates_start, *n_coordinates, path_safety_margin ), pi) )
+			{
+				// rviz_interface::publish_rejected_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, n_id, cell_size);
+				
+			}
+			else
+			{
+				// rviz_interface::publish_visible_neighbor(neighbor_v, publish_input.marker_pub, marker_array_single_loop, n_id, cell_size);
+				return true;
+			}
+			n_id++;
+		}
+		return false;
+    }
+
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
 	{	
 		#ifdef SAVE_CSV
@@ -451,7 +493,7 @@ namespace goal_state_machine
 				#endif
 				while(existsNextOPPair)
 				{
-					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() )
+					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
 						has_more_goals = true;
 						#ifdef SAVE_CSV
@@ -476,7 +518,7 @@ namespace goal_state_machine
 				#endif
 				while(existsNextOPPair)
 				{
-					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() )
+					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
 						has_more_goals = true;
 						#ifdef SAVE_CSV
