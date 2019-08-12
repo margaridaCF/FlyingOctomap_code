@@ -28,13 +28,20 @@ catkin_simple(ALL_DEPS_REQUIRED)
 ########### 
 ## Build ##
 ###########
-cs_add_library(ltStar_lib src/ltStar_lib.cpp)
+# cs_add_library(ltStar_lib src/ltStar_lib.cpp)
+cs_add_library(ltStar_lib_ortho src/ltStar_lib_ortho.cpp)
+
+cs_add_executable(save_octomap_node src/save_octomap_node.cpp )
+# target_link_libraries(save_octomap_node  ${catkin_LIBRARIES} ltStar_lib )
 
 cs_add_executable(ltStar_async_node src/ltStar_async_node.cpp )
-target_link_libraries(ltStar_async_node  ${catkin_LIBRARIES} ltStar_lib)
+target_link_libraries(ltStar_async_node  ${catkin_LIBRARIES} ltStar_lib_ortho )
 
-cs_add_executable(ltStar_debug_node src/ltStar_debug_node.cpp )
-target_link_libraries(ltStar_debug_node  ${catkin_LIBRARIES} ltStar_lib)
+# cs_add_executable(ltStar_async_node_sparse src/ltStar_async_node_sparse.cpp )
+# target_link_libraries(ltStar_async_node_sparse  ${catkin_LIBRARIES} ltStar_lib )
+
+# cs_add_executable(ltStar_command_path_node src/ltStar_command_path_node.cpp )
+# target_link_libraries(ltStar_command_path_node  ${catkin_LIBRARIES} ltStar_lib )
 
 cs_install()
 
@@ -62,36 +69,78 @@ if (CATKIN_ENABLE_TESTING)
   # catkin_add_gtest(collectResults 
   #   test/collect_results.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(collectResults ${catkin_LIBRARIES} )
-
-  # # ## Octree @ work in progress ##
-  # catkin_add_gtest(workInProgress 
-  #   test/work_in_progress_test.cpp
+  # target_link_libraries(collectResults ${catkin_LIBRARIES} ltStar_lib)
+  # catkin_add_gtest(collectResults_ortho 
+  #   test/collect_results_ortho.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib )
-
-  # ## Octree @ depth and size ##depthSizeTest
-  # catkin_add_gtest(depthSizeTest 
-  #   test/depth_voxelSide_tests.cpp
+  # target_link_libraries(collectResults_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+  
+  # catkin_add_gtest(collectResults_obstacleAvoidance_ortho 
+  #   test/collect_results_obstacleAvoidance_ortho.cpp
   #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  # target_link_libraries(depthSizeTest ${catkin_LIBRARIES} ltStar_lib)
+  # target_link_libraries(collectResults_obstacleAvoidance_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+
+  # catkin_add_gtest(collectResults_obstacleAvoidance
+  #   test/collect_results_obstacleAvoidance.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collectResults_obstacleAvoidance ${catkin_LIBRARIES} ltStar_lib)
+
+  # # Octree @ work in progress ##
+#   catkin_add_gtest(workInProgress 
+#     test/work_in_progress_test.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(workInProgress ${catkin_LIBRARIES} ltStar_lib_ortho)
+
+#   # Octree @ visibility ##
+#   catkin_add_gtest(visibilityTests 
+#     test/visibility_test.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(visibilityTests ${catkin_LIBRARIES} ltStar_lib_ortho)
+
+#   ## Lazy Theta Star @ orthogonal planes ##
+#   catkin_add_gtest(orthogonalPlanesTests 
+#     test/orthogonal_planes_tests.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(orthogonalPlanesTests ${catkin_LIBRARIES} ltStar_lib_ortho)
+
+#   ## Octree @ depth and size ##
+#   catkin_add_gtest(depthSizeTest 
+#     test/depth_voxelSide_tests.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(depthSizeTest ${catkin_LIBRARIES} ltStar_lib_ortho)
 
 
-  ## Lazy Theta Star @ open ##
-  catkin_add_gtest(openTests 
-    test/open_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(openTests ${catkin_LIBRARIES} ltStar_lib)
+#   ## Lazy Theta Star @ open ##
+#   catkin_add_gtest(openTests 
+#     test/open_tests.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(openTests ${catkin_LIBRARIES} )
 
-  # # Lazy Theta Star ##
-  catkin_add_gtest(ltstarTests 
-    test/lazyTheta_tests.cpp
+#   catkin_add_gtest(ltstarOrthoTests 
+#     test/lazyTheta_tests_ortho.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(ltstarOrthoTests ${catkin_LIBRARIES} ltStar_lib_ortho)
+
+
+  ## Lazy Theta Star @ Collect measurements for 3d puzzle ## 
+  catkin_add_gtest(collect_results_3d_puzzle_ortho 
+    test/collect_results_3d_puzzle_ortho.cpp
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(ltstarTests ${catkin_LIBRARIES} ltStar_lib)
-  catkin_add_gtest(ltstarTestsFixture 
-    test/lazyTheta_tests_Fixture.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(ltstarTestsFixture ${catkin_LIBRARIES} ltStar_lib)
+  target_link_libraries(collect_results_3d_puzzle_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
+#   catkin_add_gtest(collect_results_3d_puzzle_sparse 
+#     test/collect_results_3d_puzzle_sparse.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(collect_results_3d_puzzle_sparse ${catkin_LIBRARIES} ltStar_lib)
+
+  # ## Lazy Theta Star @ Collect measurements for experimental snapshots ## 
+  # catkin_add_gtest(collect_results_experimental_sparse 
+  #   test/collect_results_experimental_sparse.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collect_results_experimental_sparse ${catkin_LIBRARIES} ltStar_lib)
+  # catkin_add_gtest(collect_results_experimental_ortho
+  #   test/collect_results_experimental_ortho.cpp
+  #   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  # target_link_libraries(collect_results_experimental_ortho ${catkin_LIBRARIES} ltStar_lib_ortho)
 
 endif()
 

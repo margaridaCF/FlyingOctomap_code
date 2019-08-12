@@ -1,0 +1,47 @@
+<launch>
+
+
+    <!-- <node pkg="rosbag" type="play" name="rosbag_playback" output="screen" 
+       args="-clock /media/mfaria/Ganesha/20171219_backup_home_catec/Margarida/20180705_karting_experiments/experimental_data/20180821_1110_manyRuns_karting_filterTfScanPose.bag "/> -->
+   
+    <rosparam file="$(find architecture)/cfg/sim_sitl_collectData.yaml" command="load" />
+    <!-- <rosparam file="$(find architecture)/cfg/bag_hitl_params.yaml" command="load" /> -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
+
+    <!-- #######################  Octomap  ######################################## -->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+        <param name="frame_id" type="string"    value="map" />   
+        <remap from="cloud_in" to="/free_cloud" />
+        <param name="latch"                     value="false" />
+        <param name="publish_free_space"        value="true"/>
+        <param name="sensor_model/max_range"    value="15"/>
+        
+        <param name="sensor_model/hit"          value="0.74"/>
+        <param name="sensor_model/miss"         value="0.48464"/>
+        
+        <param name="resolution"                value="0.5" />
+    </node>
+    <!-- #######################  Architecture nodes  ############################# -->
+    <!-- <node name="mav_comms"          type="mav_comms_node"       pkg="architecture"  output="screen" /> -->
+    <!-- <node name="command_ltStar"     type="ltStar_command_path_node"   pkg="lazy_theta_star"  output="screen" /> -->
+   <!--  <node name="lazy_theta_star"    type="ltStar_async_node"    pkg="lazy_theta_star" output="screen" />
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture"  output="screen" /> -->
+
+
+    <!-- #######################    TF    ############################# -->    
+    <!-- <node pkg="tf" type="static_transform_publisher" name="local_position_to_hokuyo" args="0.21 0 -0.22 0 -0.872665 3.14159 base_link laser 100" />
+    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 100" /> -->
+
+
+    <!-- #######################  Hokuyo  ############################# -->
+    <!-- <node name="hokuyo"         pkg="urg_node"      type="urg_node" output="screen" >
+        <param name="ip_address" value="192.168.0.10"/>
+    </node> -->
+    <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
+        <rosparam command="load" file="$(find architecture)/cfg/sim_sitl_collectData.yaml" />
+        <param name="target_frame"   value="base_link" />
+        <param name="scan_topic"     value="hokuyo_laser_scan" />
+        <remap from="cloud_filtered" to="free_cloud" />
+    </node>
+</launch>
+

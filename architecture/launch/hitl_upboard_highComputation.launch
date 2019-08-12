@@ -1,0 +1,44 @@
+<launch>
+
+    
+    <arg name="multi" default="false"/>
+    <arg name="ns_prefix" default="uav_"/>
+    <arg name="mode" default="sitl"/>
+    <arg name="pose_frame_id" default=""/>
+    <!-- To publish ual/pose in other frame than local, e.g. map -->
+    <arg name="ual_server" default="on"/>
+    <arg name="ual_pub_rate" default="30.0"/>
+    <arg name="mavros_offboard_rate" default="30.0"/>
+    <arg name="save_test_data" default="false"/>
+    <arg name="pub_rate" default="50.0"/>
+    <arg name="robot_model" default="iris_hokuyo"/>
+    <arg name="save_experiment_data" default="false"/>
+    <arg name="trajectory" default="false"/>
+
+
+    <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
+   
+    <node name="tf_broadcast" type="gps_utm_tf_broadcaster_node" pkg="architecture" output="screen" />
+    <node name="middle_man_current_position" type="current_position_provider_node" pkg="architecture" output="screen" />
+    <!-- <node name="middle_man_current_position" type="fake_position_provider_node" pkg="architecture" output="screen" /> -->
+    
+
+    <!-- #######################  Hokuyo  ############################# -->
+    <node name="laser_filter" type="scan_to_cloud_filter_chain" pkg="laser_filters">
+        <rosparam command="load" file="$(find architecture)/cfg/powerPlant_params.yaml" />
+        <param name="target_frame" value="base_link" />
+        <remap from="cloud_filtered" to="free_cloud" />
+        <remap from="scan" to="hokuyo_laser_scan" />
+    </node>
+    <!-- #######################  Octomap  ######################################## -->
+    <node pkg="octomap_server" type="octomap_server_node" name="octomap_builder" output="screen">
+        <param name="frame_id" type="string" value="map" />
+        <remap from="cloud_in" to="/free_cloud" />
+        <param name="latch" value="false" />
+        <param name="publish_free_space" value="true"/>
+        <param name="sensor_model/max_range" value="30"/>
+        <param name="sensor_model/hit" value="0.74"/>
+        <param name="sensor_model/miss" value="0.48464"/>
+        <param name="resolution" value="0.5" />
+    </node>    
+</launch>

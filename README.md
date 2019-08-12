@@ -8,7 +8,7 @@ Developed by M. Faria, in the context of MarineUAS program, Innovative Training 
 
 # lazy_theta_star package
 Generating paths in large, outdoor, 3D scenarios, online is crucial to autonomous vehicles in various environments like air or underwater. Deterministic algorithms can give more guarantees on the action taken in a given situation, a feature highly important in standardization and verification.
-The path_planning package offers the implementation of Lazy Theta \*, extended for 3D and implemented over octomap. This combination addresses all of the mentioned concerns.
+The lazy_theta_star package offers the implementation of Lazy Theta \*, extended for 3D and implemented over octomap. This combination addresses all of the mentioned concerns.
 
 A video with path examples can be seen in https://youtu.be/EMfS2lRTAZY
 
@@ -29,12 +29,12 @@ In the talk includes a quick outline of the algorithm, the paths it yields, how 
 	- (-10.3054; -18.2637; 2.34813)_(-8.5; 6.5; 3.5)_badNodeAdded.bt - http://margaridacf.weebly.com/uploads/4/9/7/5/4975687/run_2.bt
 	- (-11.2177; -18.2778; 2.39616)_(-8.5; 6.5; 3.5)_throughWall.bt - http://margaridacf.weebly.com/uploads/4/9/7/5/4975687/_-11.2177__-18.2778__2.39616___-8.5__6.5__3.5__throughwall.bt
 	- run_2.bt - http://margaridacf.weebly.com/uploads/4/9/7/5/4975687/run_2.bt
-	- offShoreOil_1m.bt https://github.com/margaridaCF/FlyingOctomap/blob/master/path_planning/test/data/offShoreOil_1m.bt
+	- offShoreOil_1m.bt https://github.com/margaridaCF/FlyingOctomap/blob/master/lazy_theta_star/test/data/offShoreOil_1m.bt
 
 ## How to use ltStar_async_node:
 
 - The ltStar_async_node.cpp encapsulates the calling of the API.
-- path_planning package contains the source code. The path_planning_msgs contains the messages and services used with the ltStar_asyncply node.
+- lazy_theta_star package contains the source code. The lazy_theta_star_msgs contains the messages and services used with the ltStar_asyncply node.
 - This node expects an LTStarRequest message and replies with an LTStarReply message. This asynchronous mode of communication frees the calling node for other processing. The LTStarNodeStatus service replies successfully when the node is ready to receive requested (the octomap messages are being received).
 - Request message:       
 int16 request_id - identifier to later coordinate with the reply       
@@ -51,7 +51,7 @@ geometry_msgs/Point[] waypoints - the coordinates (in local octomap frame) of ea
 
 This package was developed using px4's sitl inside a docker container. The instructions can be found on _generate_plots packages, jupyter notebook Paper B - SITL. In try 9.
 
-The funtion that implements Lazy Theta Star is lazyThetaStar_, inside path_planning/ltStar_lib.cpp
+The funtion that implements Lazy Theta Star is lazyThetaStar_, inside lazy_theta_star/ltStar_lib.cpp
 
 The package has been introduced at Roscon 2018! 
 

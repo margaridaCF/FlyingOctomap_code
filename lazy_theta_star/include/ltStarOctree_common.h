@@ -18,7 +18,16 @@
 
 #include <resultSet.h>
 
+
 namespace LazyThetaStarOctree{
+	int obstacle_hit_count;
+
+	// path to log folder
+	// Keep in mind that a folder is created for each run. And a symbolic link to it that is used everywhere
+	// std::string folder_name = "/ros_ws/src/data";
+	std::stringstream aux_envvar_home (std::getenv("HOME"));
+    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+	// std::string folder_name;
 
 	struct VectorComparatorOrder // for map
 	{ 
@@ -68,6 +77,16 @@ namespace LazyThetaStarOctree{
 	};
 
 
+    bool equal (const octomath::Vector3 & a, const octomath::Vector3 & b, 
+		const double theta = 0.00000000000000000001)
+	{
+
+		bool is_x_equal = std::abs(a.x() - b.x()) < theta;
+		bool is_y_equal = std::abs(a.y() - b.y()) < theta;
+		bool is_z_equal = std::abs(a.z() - b.z()) < theta;
+
+		return is_x_equal && is_y_equal && is_z_equal;
+	}
 
     void writeToFileWaypoint(octomath::Vector3 waypoint, double size, std::string path)
     {
@@ -189,7 +208,8 @@ namespace LazyThetaStarOctree{
 	float ThetaStarNode::calculateH_ () const
 	{
 		// This strage way of organising the code is to use the emplace to insert in map
-		return calculateH (distanceFromInitialPoint, lineDistanceToFinalPoint);
+		// return std::max(0.0, (distanceFromInitialPoint + lineDistanceToFinalPoint) - cell_size*2/3);	
+		return std::max(0.0, (distanceFromInitialPoint + lineDistanceToFinalPoint) - cell_size);	
 	}
 }
 

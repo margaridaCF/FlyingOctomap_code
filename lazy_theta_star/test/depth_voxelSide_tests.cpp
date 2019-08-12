@@ -1,4 +1,4 @@
-#include <ltStar_temp.h>
+#include <ltStar_lib_ortho.h>
 #include <voxel.h>
 #include <octomap/OcTreeNode.h>
 #include <gtest/gtest.h>
@@ -201,17 +201,12 @@ namespace LazyThetaStarOctree{
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
 		assess_depthGenerationAccuracy(octree);
 	}
-	
-	// TEST(DepthSizeTest, FindPointInfoTest)
-	// {
-	// 	octomap::OcTree octree ("data/offShoreOil_1m.bt");
-	// 	octomath::Vector3 target (-5.400001, -2.600000, 0.600000);
-	// 	lookForPointCenters(octree, target);
-	// }
 
 	TEST(DepthSizeTest, DepthSizeTest)
 	{
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
         octomath::Vector3 point_in_voxel (-5.400001, -2.600000, 0.600000);
         octomath::Vector3 correct_voxel_center (-5.2, -2.8, 0.4);
         double correct_size = 0.8;
@@ -235,7 +230,7 @@ namespace LazyThetaStarOctree{
         int found_depth_search = search(octree, key);
         EXPECT_EQ(found_depth_search, correct_depth);
 
-        double found_length = findSideLenght(octree, found_depth_search); 
+        double found_length = findSideLenght(octree.getTreeDepth(), found_depth_search, sidelength_lookup_table); 
         EXPECT_EQ(found_length, correct_size);
         // get center coord of cell center at depth
         octomath::Vector3 cell_center = octree.keyToCoord(key, found_depth_search);
@@ -254,49 +249,11 @@ namespace LazyThetaStarOctree{
         ASSERT_EQ(correct_depth, found_depth_search);
 	}
 
-
-	TEST(DepthSizeTest, hasLineOfSightTest)
-	{
-		// ARRANGE
-		octomap::OcTree octree ("data/offShoreOil_1m.bt");
-		octomath::Vector3 start = octomath::Vector3(-5.500001, -3.1, 0.5);
-		octomath::Vector3 end = octomath::Vector3(-5.4, -2.6, 0.6);
-		bool is_obstacle = false;
-		// ACT
-		// ROS_WARN_STREAM("The conversion being tested:");
-		bool has_line_of_sight = hasLineOfSight(octree, start, end);
-		// ASSERT
-		// castRay & search
-		octomath::Vector3 return_value;
-		// ROS_WARN_STREAM("Figuring out the expected value castRay & search ");
-		octomath::Vector3 direction = end - start;
-		bool occupied_cell_was_hit = octree.castRay(start, direction, return_value, false, direction.norm());
-		if(occupied_cell_was_hit)
-		{
-			octomap::OcTreeNode* search_result = octree.search(return_value);
-			if (search_result == NULL)
-			{
-				// ROS_WARN_STREAM("This is unknown space");
-			}
-			else
-			{
-				// ROS_WARN_STREAM("This is known obstacle space. ");
-				is_obstacle = true;
-				// EXPECT_FALSE(has_line_of_sight);
-			}
-		}
-		else
-		{
-			// ROS_WARN_STREAM("This is free space");
-		}
-		ASSERT_FALSE(is_obstacle);
-		ASSERT_TRUE(has_line_of_sight);
-	}
-
-
 	TEST(DepthSizeTest, KeyTest)
 	{
 		octomap::OcTree octree ("data/offShoreOil_1m.bt");
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
 		octomath::Vector3 origin (-5.4, -2.6, 0.6);
 		std::shared_ptr<octomath::Vector3> a = std::make_shared<octomath::Vector3>(origin);
 		std::shared_ptr<octomath::Vector3> b = std::make_shared<octomath::Vector3>(origin);
@@ -305,63 +262,12 @@ namespace LazyThetaStarOctree{
 		octomath::Vector3 cell_center = octree.keyToCoord(key, 14);
 
 		double side_length_m = -1;
-		octomap::OcTreeKey key_m = updatePointerToCellCenterAndFindSize(b, octree, side_length_m);
+		octomap::OcTreeKey key_m = updatePointerToCellCenterAndFindSize(b, octree, side_length_m, sidelength_lookup_table);
 
         ASSERT_EQ(key, key_m);
         ASSERT_EQ(cell_center, *b);
         // ROS_WARN_STREAM("Center of " << origin << " is " << *b); //Center of (-5.4 -2.6 0.6) is (-5.2 -2.8 0.4)
-
 	}
-
-	TEST(DepthSizeTest, ReverseNormalizedLineOfSight)
-	{
-		ros::Publisher marker_pub;
-		double cell_size = 0;
-		double safety_margin = 0;
-	    octomath::Vector3 p1(0.7, 3.1, 1.3); 
-	    octomath::Vector3 p2(0.7, 2.9, 1.3); 
-	    std::shared_ptr<octomath::Vector3> p1_ptr = std::make_shared<octomath::Vector3>(p1);
-	    std::shared_ptr<octomath::Vector3> p2_ptr = std::make_shared<octomath::Vector3>(p2);
-		octomap::OcTree octree ("data/run_2.bt");
-		bool line_of_sight_A = normalizeToVisibleEndCenter(octree, p1_ptr, p2_ptr, cell_size, safety_margin, marker_pub);
-		bool line_of_sight_B = normalizeToVisibleEndCenter(octree, p2_ptr, p1_ptr, cell_size, safety_margin, marker_pub);
-		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
-	}
-
-	
-	TEST(WorkInProgressTest, ReverseLineOfSight)
-	{
-	    octomath::Vector3 p1(0.7, 3.1, 1.3); 
-	    octomath::Vector3 p2(0.7, 2.9, 1.3); 
-		octomap::OcTree octree ("data/run_2.bt");
-
-		auto res_node = octree.search(p1);
-		// if(res_node == NULL)
-		// {
-		// 	ROS_WARN_STREAM("[1] The coordinates " << p1 << " do not correspond to a node in this octree  ==> this neighbor is unknown");
-		// }
-		// else
-		// {
-			ASSERT_FALSE(octree.isNodeOccupied(res_node));
-		// }
-		res_node = octree.search(p2);
-		// if(res_node == NULL)
-		// {
-		// 	ROS_WARN_STREAM("[1] The coordinates " << p2 << " do not correspond to a node in this octree  ==> this neighbor is unknown");
-		// }
-		// else
-		// {
-			ASSERT_TRUE(octree.isNodeOccupied(res_node));
-		// }
-
-
-		bool line_of_sight_A = hasLineOfSight(octree, p1, p2);
-		bool line_of_sight_B = hasLineOfSight(octree, p2, p1);
-		ASSERT_FALSE(line_of_sight_B);
-		ASSERT_FALSE(line_of_sight_A);
-		ASSERT_EQ(line_of_sight_B, line_of_sight_A);
-	}
-   
 }
 
 int main(int argc, char **argv){

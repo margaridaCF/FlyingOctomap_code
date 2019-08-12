@@ -1,0 +1,111 @@
+<!-- 
+The MIT License (MIT)
+Copyright (c) 2016 GRVC University of Seville
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+-->
+<launch>
+    <!-- Arguments -->
+    <arg name="ns_prefix" default="uav_"/>
+    <arg name="robot_model" default="iris_hokuyo"/>
+    <arg name="pub_rate" default="50.0"/>
+    <arg name="debug" default="false"/>
+    <arg name="save_test_data" default="false"/>
+    <arg name="save_experiment_data" default="false"/>
+    <arg name="trajectory" default="false"/>
+    <arg name="reach_tolerance" default="0.5"/>
+    <arg name="path" default="cubic"/>
+    <arg name="generator_mode" default="0"/>
+    <arg name="pkg_name" default="upat_follower"/>
+    <arg name="use_class" default="true" unless="$(arg debug)"/>
+    <arg name="use_class" default="false" if="$(arg debug)"/>
+    <arg name="multi" default="true" unless="$(arg debug)"/>
+    <arg name="multi" default="false" if="$(arg debug)"/>
+
+
+    <arg name="mode" default="sitl"/>
+    <arg name="pose_frame_id" default=""/>
+    <arg name="ual_server" default="on"/>
+    <arg name="ual_pub_rate" default="30.0"/>
+    <arg name="mavros_offboard_rate" default="30.0"/>
+
+
+
+    <!-- Visualization -->
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/debug.rviz" required="true" if="$(arg debug)"/>
+
+    <!-- UAL Server -->
+    <!-- #########################  Robot  ######################################### -->
+    <param name="robot_description" command="$(eval 'xacro --inorder ' + find('robots_description') + '/models/iris_hokuyo/model.xacro')"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="tf_uav1_baselink" args="0 0 0 0 0 0 1 uav_1 base_link" /> -->
+
+    <group if="$(eval mode=='sitl')">
+        <!-- Launch Gazebo simulation -->
+        <rosparam param="/use_sim_time">true</rosparam>
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
+        <!-- <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find architecture)/worlds/power_plant/power_plant.world"> -->
+        </node>
+    </group>
+    
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
+        <arg name="id" value="1"/>
+        <arg name="material" value="Blue"/>
+        <arg name="mode" value="$(arg mode)"/>
+        <arg name="x" value="0"/>
+        <arg name="y" value="0"/>
+        <arg name="z" value="0"/>
+        <arg name="yaw" value="0"/>
+        <arg name="robot_model" value="iris_hokuyo"/>
+    </include>
+
+    <!-- Launch UAL server for uav id=1 -->
+    <node pkg="uav_abstraction_layer" type="server" name="ual" ns="$(arg ns_prefix)1" output="screen">
+        <param name="uav_id" value="1"/>
+        <param name="pose_frame_id" value="$(arg pose_frame_id)"/>
+        <param name="ual_server" value="$(arg ual_server)"/>
+        <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
+        <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
+        <param name="home_pose_parent_frame" value="map"/>
+        <!-- Define home pose relative to global map frame -->
+        <rosparam param="home_pose">[0, 5, 0]</rosparam>  
+    </node>
+
+
+    <!-- UAV Path Manager nodes -->
+    <group ns="upat_follower">
+        <group ns="$(arg ns_prefix)1">
+            <!-- <node pkg="architecture" type="ual_communication_node" name="ual_communication" output="screen" required="true">
+                <param name="uav_id" value="1"/>
+                <param name="save_test_data" value="$(arg save_test_data)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="path" value="$(arg path)"/>
+                <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
+                <param name="generator_mode" value="$(arg generator_mode)"/>
+            </node> -->
+            <node pkg="architecture" type="ual_communication_node" name="ual_communication" output="screen" required="true">
+                <param name="uav_id" value="1"/>
+                <param name="save_test_data" value="$(arg save_test_data)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="initial_maneuver" value="corridor_path"/>
+                <param name="reach_tolerance" value="0.1"/>
+                <param name="generator_mode" value="0"/>
+                <param name="take_off_height" value="5"/>
+                <param name="pkg_name" value="architecture"/>
+            </node>
+            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
+                <param name="uav_id" value="1"/>
+                <param name="robot_model" value="$(arg robot_model)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="save_experiment_data" value="$(arg save_experiment_data)"/>
+                <param name="trajectory" value="$(arg trajectory)"/>
+            </node>
+        </group>
+    </group>
+
+</launch>

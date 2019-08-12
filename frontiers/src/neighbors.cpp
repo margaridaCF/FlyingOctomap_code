@@ -1,28 +1,43 @@
 #include <neighbors.h>
 
 namespace LazyThetaStarOctree{
-	bool addIfUnique(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, float x, float y, float z )
+	bool addIfUnique(unordered_set_pointers & neighbors, float x, float y, float z )
 	{
+        octomath::Vector3 toInsert (x, y, z);
+        addIfUnique (neighbors, toInsert);
+	}
+
+    bool addIfUnique(unordered_set_pointers & neighbors, octomath::Vector3 & toInsert )
+    {
         // This is the creation point for neighbors
         // Raw pointers were chosen because they go out of scope since (for the Lazy Theta Star)
         // objects are produce inside finding neighbors methods and later processed in another method
-        // octomath::Vector3* toInsert = new octomath::Vector3(x, y, z);
-        std::shared_ptr<octomath::Vector3> toInsert = std::make_shared<octomath::Vector3> (octomath::Vector3 (x, y, z));
-        if(!neighbors.insert(toInsert).second)
+        std::shared_ptr<octomath::Vector3> toInsert_ptr = std::make_shared<octomath::Vector3> (toInsert);
+        if(!neighbors.insert(toInsert_ptr).second)
         {
             ROS_ERROR_STREAM("Could not insert coordinates of neighbor, this should not happen - contact maintainer. @AddIfUnique"); 
         }
-	}
+    }
 
-	// TODO reduce neighbor number by finding cell center and removing duplicates
-	void generateNeighbors_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
-		octomath::Vector3 const& center_coords, 
-		float node_size, float resolution, bool is3d/* = true*/, bool debug_on/* = false*/)
-	{
-		int neighbor_sequence_cell_count = node_size / resolution;
+    bool addIfUniqueValue(unordered_set_pointers & neighbors, octomath::Vector3 & toInsert )
+    {
+        // This is the creation point for neighbors
+        // Raw pointers were chosen because they go out of scope since (for the Lazy Theta Star)
+        // objects are produce inside finding neighbors methods and later processed in another method
+        std::shared_ptr<octomath::Vector3> toInsert_ptr = std::make_shared<octomath::Vector3> (toInsert);
+        neighbors.insert(toInsert_ptr);
+    }
+
+    void generateNeighbors_pointers(unordered_set_pointers & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution, bool debug_on/* = false*/)
+    {
+        // mem_alloc_nanosecs = 0;
+        // auto start = std::chrono::high_resolution_clock::now();
+        int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         
         int i;
-        // int neighbor_index = 0;
+        // int neighbor_count = 0;
         float extra = resolution / 2.f;     
 
         float x_start  = center_coords.x() - frontier_offset + extra;
@@ -38,42 +53,37 @@ namespace LazyThetaStarOctree{
         float up_z     = center_coords.z() + frontier_offset + extra; 
         float down_z   = center_coords.z() - frontier_offset - extra;
 
-		
-		// 2d - 3d
-        int neighbor_sequence_cell_count_j = neighbor_sequence_cell_count;
-        if(!is3d)
-        {
-        	neighbor_sequence_cell_count_j = 1;
-        	z_start = center_coords.z();
-        }
-
-
         // optimized
         octomath::Vector3* toInsert;
         bool isInserted;
         for(int i = 0; i < neighbor_sequence_cell_count; i++)
         {
-        	// int j = 0;
-            for(int j = 0; j < neighbor_sequence_cell_count_j; j++)
+            // int j = 0;
+            for(int j = 0; j < neighbor_sequence_cell_count; j++)
             {
                 // Left Right
-                addIfUnique(neighbors, left_x,  					y_start + (i * resolution),  z_start + (j * resolution));
-                addIfUnique(neighbors, right_x, 					y_start + (i * resolution),  z_start + (j * resolution));
+                addIfUnique(neighbors, left_x,                      y_start + (i * resolution),  z_start + (j * resolution));
+                addIfUnique(neighbors, right_x,                     y_start + (i * resolution),  z_start + (j * resolution));
 
                 // Front Back
-                addIfUnique(neighbors, x_start + (i * resolution), 	front_y, 					 z_start + (j * resolution));
-                addIfUnique(neighbors, x_start + (i * resolution), 	back_y, 					 z_start + (j * resolution));
+                addIfUnique(neighbors, x_start + (i * resolution),  front_y,                     z_start + (j * resolution));
+                addIfUnique(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution));
 
-                if(is3d) {
-                	// Up Down
-                    addIfUnique(neighbors, x_start + (i * resolution),	y_start + (j * resolution),  up_z);
-                    addIfUnique(neighbors, x_start + (i * resolution), 	y_start + (j * resolution),  down_z);
-                }
+                // Up Down
+                addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
+                addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
 
-                // neighbor_index++;
+                // neighbor_count++;
             }
         }
-	}
+        // auto finish = std::chrono::high_resolution_clock::now();
+        // auto time_span = finish - start;
+        // int total_nanosecs = std::chrono::duration_cast<std::chrono::nanoseconds>(time_span).count();
+
+        // ROS_WARN_STREAM("Total time " << total_nanosecs << " nanoseconds.");
+        // double percent = (mem_alloc_nanosecs * 100 / total_nanosecs);
+        // ROS_WARN_STREAM("mem_alloc took " << mem_alloc_nanosecs << " - " << percent << "%");
+    }
 
     double distanceCalculate(double x1, double y1, double x2, double y2)
     {
@@ -87,16 +97,9 @@ namespace LazyThetaStarOctree{
         return dist;
     }
 
-    bool isInsideBlindR(double n_x, double n_y, double c_x, double c_y, double blind_perimeter)
-    {
-        double distance = distanceCalculate(n_x, n_y, c_x, c_y);
-        // ROS_WARN_STREAM("[neighbors] (" << n_x << ", " << n_y << ") - distance " << distance << " < " << blind_perimeter << " (blind_perimeter)");
-        return distance < blind_perimeter;
-    }
-
-    void generateNeighbors_frontiers_pointers(std::unordered_set<std::shared_ptr<octomath::Vector3>> & neighbors, 
+    void generateNeighbors_frontiers_pointers(unordered_set_pointers & neighbors, 
         octomath::Vector3 const& center_coords, 
-        float node_size, float resolution, double sensor_angle_rad, bool is3d/* = true*/, bool debug_on/* = false*/)
+        float node_size, float resolution, bool debug_on/* = false*/)
     {
         int neighbor_sequence_cell_count = node_size / resolution;
         float frontier_offset = (node_size/2.f);         
@@ -116,25 +119,13 @@ namespace LazyThetaStarOctree{
         float up_z     = center_coords.z() + frontier_offset + extra; 
         float down_z   = center_coords.z() - frontier_offset - extra;
 
-        
-        // 2d - 3d
-        int neighbor_sequence_cell_count_j = neighbor_sequence_cell_count;
-        if(!is3d)
-        {
-            neighbor_sequence_cell_count_j = 1;
-            z_start = center_coords.z();
-        }
-
-
-        double blind_perimeter = (frontier_offset + extra) / std::tan(sensor_angle_rad);
-
         // optimized
         octomath::Vector3* toInsert;
         bool isInserted;
         for(int i = 0; i < neighbor_sequence_cell_count; i++)
         {
             // int j = 0;
-            for(int j = 0; j < neighbor_sequence_cell_count_j; j++)
+            for(int j = 0; j < neighbor_sequence_cell_count; j++)
             {
                 // Left Right
                 addIfUnique(neighbors, left_x,                      y_start + (i * resolution),  z_start + (j * resolution));
@@ -144,23 +135,80 @@ namespace LazyThetaStarOctree{
                 addIfUnique(neighbors, x_start + (i * resolution),  front_y,                     z_start + (j * resolution));
                 addIfUnique(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution));
 
-                if(is3d) {
-                    // No neighbors in blind spot
-                    double n_x = x_start + (i * resolution);
-                    double n_y = y_start + (j * resolution);
+                // No neighbors in blind spot
+                double n_x = x_start + (i * resolution);
+                double n_y = y_start + (j * resolution);
 
-                    if(!isInsideBlindR(n_x, n_y, center_coords.x(), center_coords.y(), blind_perimeter))
-                    {
-                        // Up Down
-                        addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
-                        addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
-                    }
-                }
+                addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z);
+                // addIfUnique(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z);
             }
         }
     }
 
+    bool addSparseNeighbor(unordered_set_pointers & neighbors, double x, double y, double z, octomap::OcTree const& octree)
+    {
+        octomath::Vector3 toAdd (x, y, z);
+        auto res_node = octree.search(x, y, z);
+        if(res_node) // Non zero is true
+        {
+            try
+            {
+                toAdd = getCellCenter(toAdd, octree);
+            }
+            catch (const std::out_of_range& oor) {
+                ROS_ERROR_STREAM("addSparseNeighbor out_of_range");
+            }
+            addIfUniqueValue(neighbors, toAdd);
+        }
+    }
 
+
+    // The method only generates known neighbours. It was developed for the Lazy Theta Star path finding algorithm that is interested in identifieng new potential waypoints, as it only travels in known space the unknown is discarded. 
+    void generateNeighbors_filter_pointers(unordered_set_pointers & neighbors, 
+        octomath::Vector3 const& center_coords, 
+        float node_size, float resolution, octomap::OcTree const& octree, bool debug_on)
+    {
+        int neighbor_sequence_cell_count = node_size / resolution;
+        float frontier_offset = (node_size/2.f);         
+        int i;
+        float extra = resolution / 2.f;     
+
+        float x_start  = center_coords.x() - frontier_offset + extra;
+        float y_start  = center_coords.y() - frontier_offset + extra;     
+        float z_start  = center_coords.z() - frontier_offset + extra;                      
+        // Left right
+        float right_x = center_coords.x() + frontier_offset + extra; 
+        float left_x  = center_coords.x() - frontier_offset - extra; 
+        // Front back
+        float front_y  = center_coords.y() + frontier_offset + extra; 
+        float back_y   = center_coords.y() - frontier_offset - extra; 
+        // Up down      
+        float up_z     = center_coords.z() + frontier_offset + extra; 
+        float down_z   = center_coords.z() - frontier_offset - extra;
+
+        octomath::Vector3 toInsert;
+        bool isInserted;
+        for(int i = 0; i < neighbor_sequence_cell_count; i++)
+        {
+            // int j = 0;
+            for(int j = 0; j < neighbor_sequence_cell_count; j++)
+            {
+                // Left Right
+                addSparseNeighbor(neighbors, left_x,                      y_start + (i * resolution),  z_start + (j * resolution), octree);
+                addSparseNeighbor(neighbors, right_x,                     y_start + (i * resolution),  z_start + (j * resolution), octree);
+
+                // Front Back
+                addSparseNeighbor(neighbors, x_start + (i * resolution),  front_y,                     z_start + (j * resolution), octree);
+                addSparseNeighbor(neighbors, x_start + (i * resolution),  back_y,                      z_start + (j * resolution), octree);
+
+                // Up Down
+                addSparseNeighbor(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  up_z, octree);
+                addSparseNeighbor(neighbors, x_start + (i * resolution),  y_start + (j * resolution),  down_z, octree);
+            }
+        }
+    }
+
+    
     // Other way to find the depth based on the search code of the octree
     int getNodeDepth_Octomap (const octomap::OcTreeKey& key, 
     	octomap::OcTree const& octree)  
@@ -206,8 +254,15 @@ namespace LazyThetaStarOctree{
                 else 
                 {
                     // it is not, search failed
-                    //ROS_WARN_STREAM("Failed to find depth ");
-                    std::ostringstream oss;
+                    ROS_WARN_STREAM("Failed to find depth ");
+                    std::ostringstream oss_filename;
+
+                    std::stringstream aux_envvar_home (std::getenv("HOME"));
+                    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+                    oss_filename << folder_name << "/current/failed_to_find_depth__getNodeDepth_Octomap__" 
+                        << key[0] << "_" << key[1] << "_" << key[2] << ".bt";
+                    octree.writeBinaryConst(oss_filename.str());
+		            std::ostringstream oss;
                     oss << "Failed to find depth, for key " << key[0] << " " << key[1] << " " << key[2] << " stopped at " << depth << ", tree depth is " << octree.getTreeDepth() << ". @getNodeDepth_Octomap";  
                     throw std::out_of_range(oss.str());
                     return -2;
@@ -224,20 +279,22 @@ namespace LazyThetaStarOctree{
 		octomap::OcTreeKey key = octree.coordToKey(point_coordinates);
 		// find depth of cell
         // ROS_WARN_STREAM("Calling getNodeDepth from 141 for point coordinates " << point_coordinates);
-		double depth = getNodeDepth_Octomap(key, octree);
+
+        double depth = getNodeDepth_Octomap(key, octree);  
 		// get center coord of cell center at depth
 		return octree.keyToCoord(key, depth);
 	}
 
-    double findSideLenght(octomap::OcTree const& octree, const int depth)
+    double findSideLenght(int octreeLevelCount, const int depth, double const* lookup_table)
     {
-        int level_count = octree.getTreeDepth() - depth;
-        double side_length = octree.getResolution();
-        for(int i = 0; i < level_count; i++)
-        {
-            side_length = side_length + side_length;
-        }
-        return side_length;
+        int level_count = octreeLevelCount - depth;
+        // double side_length = octree.getResolution();
+        // for(int i = 0; i < level_count; i++)
+        // {
+        //     side_length = side_length + side_length;
+        // }
+        // return side_length;
+        return lookup_table[level_count];
     }
 
     /**
@@ -251,7 +308,7 @@ namespace LazyThetaStarOctree{
      *
      * @return     true if the coordinates correspond to the cell center, false otherise
      */
-    octomap::OcTreeKey updatePointerToCellCenterAndFindSize(std::shared_ptr<octomath::Vector3> & coordinates, octomap::OcTree const& octree, double& side_length)
+    octomap::OcTreeKey updatePointerToCellCenterAndFindSize(std::shared_ptr<octomath::Vector3> & coordinates, octomap::OcTree const& octree, double& side_length, double const* lookup_table)
     {
         // convert to key
         octomap::OcTreeKey key = octree.coordToKey(*coordinates);
@@ -259,7 +316,7 @@ namespace LazyThetaStarOctree{
         // ROS_WARN_STREAM("Calling getNodeDepth from 173");
 
         int depth = getNodeDepth_Octomap(key, octree);
-        side_length = findSideLenght(octree, depth);
+        side_length = findSideLenght(octree.getTreeDepth(), depth, lookup_table);
         // get center coord of cell center at depth
         // std::cout << std::setprecision(10) << "Depth method: " << depth << std::endl;
         octomath::Vector3 cell_center = octree.keyToCoord(key, depth);
@@ -277,23 +334,33 @@ namespace LazyThetaStarOctree{
      *
      * @return     true if the coordinates correspond to the cell center, false otherise
      */
-    void updateToCellCenterAndFindSize(octomath::Vector3 & coordinates, octomap::OcTree const& octree, double& side_length)
+    void updateToCellCenterAndFindSize(octomath::Vector3 & coordinates, octomap::OcTree const& octree, double& side_length, double const* lookup_table)
     {
         // convert to key
         octomap::OcTreeKey key = octree.coordToKey(coordinates);
         // ROS_WARN_STREAM("Calling getNodeDepth from 199 with key " << key[0] << " " << key[1] << " " << key[2]);
         // find depth of cell
         double depth = getNodeDepth_Octomap(key, octree);
-        side_length = findSideLenght(octree, depth);
+        side_length = findSideLenght(octree.getTreeDepth(), depth, lookup_table);
         // get center coord of cell center at depth
         octomath::Vector3 cell_center = octree.keyToCoord(key, depth);
         coordinates = cell_center;
     }
 
+    void fillLookupTable(double resolution, int tree_depth, double lookup_table_ptr[])
+    {
+        double side_length = resolution;
+        lookup_table_ptr[0] = side_length;
+        for(int i = 1; i < tree_depth; i++)
+        {
+            side_length = side_length + side_length;
+            lookup_table_ptr[i] = side_length;
+        }
+    }
 
 	void findDifferentSizeCells_ptr_3D(octomap::OcTree const& octree)
 	{
-		std::unordered_set<std::shared_ptr<octomath::Vector3>> neighbors_us;
+		unordered_set_pointers neighbors_us;
 		float resolution = octree.getResolution();
 		float node_size; 
     	octomath::Vector3 center_coords;

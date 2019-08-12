@@ -1,106 +1,292 @@
 #include <gtest/gtest.h>
-#include <ltStar_temp.h>
+#include <ltStar_lib_ortho.h>
 
 namespace LazyThetaStarOctree
-{
-	timespec diff(timespec start, timespec end)
+{	
+    bool equal (const geometry_msgs::Point & a, const geometry_msgs::Point & b, 
+		const double theta = 0.00000000000000000001)
+ 	{
+ 
+		bool is_x_equal = std::abs(a.x - b.x) < theta;
+		bool is_y_equal = std::abs(a.y - b.y) < theta;
+		bool is_z_equal = std::abs(a.z - b.z) < theta;
+ 
+		return is_x_equal && is_y_equal && is_z_equal;
+ 	}
+
+    void testResults(lazy_theta_star_msgs::LTStarRequest request, octomap::OcTree & octree, std::string dataset_name)
     {
-        timespec temp;
-        if ((end.tv_nsec-start.tv_nsec)<0) {
-            temp.tv_sec = end.tv_sec-start.tv_sec-1;
-            // temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
-        } else {
-            temp.tv_sec = end.tv_sec-start.tv_sec;
-            temp.tv_nsec = end.tv_nsec-start.tv_nsec;
-        }
-        return temp;
+		ros::Publisher marker_pub;
+		lazy_theta_star_msgs::LTStarReply reply;
+		double sidelength_lookup_table  [octree.getTreeDepth()];
+	   	LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table); 
+
+
+
+	   
+		bool is_start_clear = LazyThetaStarOctree::is_flight_corridor_free(LazyThetaStarOctree::InputData(octree, octomath::Vector3(request.start.x, request.start.y, request.start.z), octomath::Vector3(request.start.x, request.start.y, request.start.z+0.6), request.safety_margin), PublishingInput(marker_pub, false));
+	   	ASSERT_TRUE(is_start_clear);
+
+
+		bool is_goal_clear = LazyThetaStarOctree::is_flight_corridor_free(LazyThetaStarOctree::InputData(octree, octomath::Vector3(request.goal.x, request.goal.y, request.goal.z), octomath::Vector3(request.goal.x, request.goal.y, request.goal.z+0.6), request.safety_margin), PublishingInput(marker_pub, false));
+	   	ASSERT_TRUE(is_goal_clear);
+
+		bool success = true;
+		processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, dataset_name)  );
+		int waypoint_amount = reply.waypoint_amount;
+		auto waypoints = reply.waypoints;
+		ASSERT_EQ(reply.success, success);
+		for (int i = 0; i < 1; ++i)
+		{
+			processLTStarRequest(octree, request, reply, sidelength_lookup_table, PublishingInput(marker_pub, true, dataset_name)  );
+			ASSERT_EQ(reply.success, success);
+			EXPECT_EQ(reply.waypoint_amount, waypoint_amount);
+			EXPECT_EQ(0, ThetaStarNode::OustandingObjects());
+			for (int i = 0; i < waypoint_amount; ++i)
+			{
+				EXPECT_TRUE( equal(waypoints[i].position, reply.waypoints[i].position) );
+			}
+		}
     }
 
-    void extractResults (octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, std::string dataset_name, int max_search_iterations = 500)
-    {
-    	octomath::Vector3 direction =  disc_final-disc_initial;
-		octomath::Vector3 return_value;
-
-		bool occupied_cell_was_hit = octree.castRay(disc_final, direction, return_value, false, direction.norm());
-		if(!occupied_cell_was_hit)
-		{
-			octomap::OcTreeNode* search_result = octree.search(return_value);
-			if (search_result == NULL)
-			{
-				ASSERT_TRUE (false) << "Goal is in unknown space";
-			}
-			else
-			{
-				ROS_WARN_STREAM("This is known obstacle space. ");
-			}
-		}
-		else
-		{
-			ROS_WARN_STREAM("This is free space");
-		}
-
-		
-		ResultSet statistical_data;
-		timespec time1, time2;
-    	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
-		std::list<octomath::Vector3> resulting_path = lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, max_search_iterations);
-		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
-    	double total_nSecs_overall = diff(time1,time2).tv_nsec;
-    	std::ofstream waypoints_file;
-    	waypoints_file.open("/home/mfaria/Margarida/20170802_lazyThetaStar/experimental data/euroc_compare/newImplementation.log", std::ios_base::app);
-    	waypoints_file << " ===== " << dataset_name << " ===== " << std::endl;
-		waypoints_file << " iterations used: " << statistical_data.iterations_used  << "; Took " << total_nSecs_overall << " nano seconds." << std::endl;
-		for (octomath::Vector3 waypoint : resulting_path)
-		{
-			waypoints_file << waypoint << std::endl;
-		}
-		waypoints_file << std::endl;
-		ASSERT_GT(resulting_path.size(), 0);
-    }
-
-// 1490700010.397750750   Local:  Calculating path from (0, 0, 0) to 2.6, -2.3, 0.4)  iterations used: 27; Took 1565925 nano seconds.
-	/*TEST(LazyThetaStarTests, run1_1490700010)
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_1)
 	{
-		std::string dataset_name = "Euroc Run 1 @ 1490700010";
-		octomap::OcTree octree ("data/run_1_1490700010.bt");
-		octomath::Vector3 disc_initial(0, 0, 0);
-		octomath::Vector3 disc_final  (2.6, -2.3, 0.4);
-		int max_search_iterations = 27;
-		extractResults(octree, disc_initial, disc_final, dataset_name);
-	}*/
-
-// 1490700011.624896175   Global: Calculating path from (2.2, 4.8, 1.2) to -2.5, -0.5, 2.2)  iterations used: 43270; Took 4 seconds.
-	/*TEST(LazyThetaStarTests, run1_1490700011)
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -3.9;
+		request.start.y = -14.76;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw" );
+	}
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_2)
 	{
-		std::string dataset_name = "Euroc Run 1 @ 1490700011";
-		octomap::OcTree octree ("data/run_1_1490700011.bt");
-		octomath::Vector3 disc_initial( 2.2, 4.8, 1.2);
-		octomath::Vector3 disc_final  (-2.5, -0.5, 2.2);
-		int max_search_iterations = 43270;
-		extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
-	}*/
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 7.49;
+		request.start.y = -6.98;
+		request.start.z = 7;
+		request.goal.x = -3.9;
+		request.goal.y = -14.76;
+		request.goal.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw" );
+	}
 
-
-// 1490700086.444189348   Global: Calculating path from (-2.6, -3.9, 3.2) to 2.2, 4.9, 1.5)  iterations used: 54; Took 42690669 nano seconds.
-	/*TEST(LazyThetaStarTests, run1_1490700086)
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_3)
 	{
-		std::string dataset_name = "Euroc Run 1 @ 1490700086";
-		octomap::OcTree octree ("data/run_1_1490700086.bt");
-		octomath::Vector3 disc_initial(-2.6, -3.9, 3.2);
-		octomath::Vector3 disc_final  ( 2.2, 4.9, 1.5);
-		int max_search_iterations = 1000;
-		extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
-	}*/
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -3.9;
+		request.start.y = -14.76;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 3;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw" );
+	}
 
-// (-2.75488459312, -3.89351167009, 3.24224048416) to (2.20000004768, 4.90000009537, 1.5)
-	TEST(LazyThetaStarTests, run1_1490700080)
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_4)
 	{
-		std::string dataset_name = "Euroc Run 2 @ final map";
-		octomap::OcTree octree ("data/run_2.bt");
-		octomath::Vector3 disc_initial(2, 6, 1.5);
-		octomath::Vector3 disc_final  (-1, 2.5, 1.5);
-		int max_search_iterations = 1000;
-		extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 7.49;
+		request.start.y = -6.98;
+		request.start.z = 3;
+		request.goal.x = -3.9;
+		request.goal.y = -14.76;
+		request.goal.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw" );
+	}
+
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_far)
+	{
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x =  -15.7;
+		request.start.y = -5.08;
+		request.start.z = 5;
+		request.goal.x = 13.9;
+		request.goal.y = -18.2;
+		request.goal.z = 3;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw_far" );
+	}
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_far_back)
+	{
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.goal.x =  -15.7;
+		request.goal.y = -5.08;
+		request.goal.z = 5;
+		request.start.x = 13.9;
+		request.start.y = -18.2;
+		request.start.z = 3;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw_far_back" );
+	}
+
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_far_straight)
+	{
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x =  16.8;
+		request.start.y = -4.22;
+		request.start.z = 5;
+		request.goal.x = -23.5;
+		request.goal.y = -28.4;
+		request.goal.z = 3;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw_straight_far" );
+	}
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42712_raw_far_straight_back)
+	{
+		octomap::OcTree octree ("data/20180821_1110_42712_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.goal.x =  16.8;
+		request.goal.y = -4.22;
+		request.goal.z = 5;
+		request.start.x = -23.5;
+		request.start.y = -28.4;
+		request.start.z = 3;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42712_raw_far_straight_back" );
+	}
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42936_raw_1)
+	{
+		octomap::OcTree octree ("data/20180821_1110_42936_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -3.9;
+		request.start.y = -14.76;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42936_raw" );
+	}
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_42936_raw_2)
+	{
+		octomap::OcTree octree ("data/20180821_1110_42936_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 7.49;
+		request.start.y = -6.98;
+		request.start.z = 7;
+		request.goal.x = -3.9;
+		request.goal.y = -14.76;
+		request.goal.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_42936_raw" );
+	}
+
+
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_43042_raw_1)
+	{
+		octomap::OcTree octree ("data/20180821_1110_43042_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -3.9;
+		request.start.y = -14.76;
+		request.start.z = 7;
+		request.goal.x = 7.49;
+		request.goal.y = -6.98;
+		request.goal.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_43042_raw" );
+	}
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1110_43042_raw_2)
+	{
+		octomap::OcTree octree ("data/20180821_1110_43042_raw.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = 7.49;
+		request.start.y = -6.98;
+		request.start.z = 7;
+		request.goal.x = -3.9;
+		request.goal.y = -14.76;
+		request.goal.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1110_43042_raw" );
+	}
+
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1207_5647_filtered)
+	{
+		octomap::OcTree octree ("data/20180821_1207_5647_filtered.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.start.x = -5.35;
+		request.start.y = -14;
+		request.start.z = 7;
+		request.goal.x = 4.12;
+		request.goal.y = -2.21;
+		request.goal.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1207_5647_filtered_approxGoal" );
+	}
+
+    TEST(LazyThetaStarTests, LazyThetaStar_20180821_1207_5647_filtered_back)
+	{
+		octomap::OcTree octree ("data/20180821_1207_5647_filtered.bt");
+		lazy_theta_star_msgs::LTStarRequest request;
+		request.header.seq = 2;
+		request.request_id = 3;
+		request.goal.x = -5.35;
+		request.goal.y = -14;
+		request.goal.z = 7;
+		request.start.x = 4.12;
+		request.start.y = -2.21;
+		request.start.z = 7;
+		request.max_time_secs = 120;
+		request.safety_margin = 5;
+		testResults(request, octree, "20180821_1207_5647_filtered_approxGoal_back" );
 	}
 }
 

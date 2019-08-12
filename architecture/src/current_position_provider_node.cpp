@@ -1,7 +1,13 @@
 #include <ros/ros.h>
+#include <chrono>
+
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
 #include <architecture_msgs/PositionMiddleMan.h>
+
+#include <marker_publishing_utils.h>
+#include <visualization_msgs/Marker.h>
+
 
 namespace current_position_provider_node
 {
@@ -19,7 +25,7 @@ namespace current_position_provider_node
 		}
 		else
 		{
-			// ROS_ERROR_STREAM("[Position Middle Man] No position received, please try later.");
+			ROS_ERROR_STREAM("[Position Middle Man] No position received, please try later.");
 			return false;
 		}
 	}
@@ -43,6 +49,5 @@ int main(int argc, char **argv)
 	
 	ros::ServiceServer service = nh.advertiseService("get_current_position", current_position_provider_node::get_current_position);
 	ros::Subscriber ground_truth_sub = nh.subscribe<geometry_msgs::PoseStamped>(current_position_topic, 1, current_position_provider_node::ground_truth_cb);
-	
 	ros::spin();
 }

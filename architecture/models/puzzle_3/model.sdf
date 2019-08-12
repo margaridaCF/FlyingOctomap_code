@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="puzzle_world">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 0.01 0 0 0</pose>
+      <collision name="wall1">
+        <geometry>
+          <mesh>
+            <uri>model://puzzle_3/meshes/PUZZLE2.stl</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual1">
+        <geometry>
+          <mesh>
+            <uri>model://puzzle_3/meshes/PUZZLE2.stl</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <!--
+    <link name="door1">
+      <pose>8 -42.5 0 0 0 0</pose>
+      <collision>
+      </collision>
+    </link>
+-->
+  </model>
+</sdf>

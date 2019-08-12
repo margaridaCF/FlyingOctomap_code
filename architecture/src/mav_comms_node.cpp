@@ -12,6 +12,7 @@
 
 namespace mav_comms
 {
+    bool offboard_enabled;
     ros::Duration exploration_maneuver_phases_duration_secs;
 	mavros_msgs::State current_state;
 	// ros::Publisher setpoint_raw_pub;
@@ -19,9 +20,9 @@ namespace mav_comms
     ros::ServiceServer yaw_spin_service;
     ros::ServiceServer target_position_service;
     enum movement_state_t {position, stop, yaw_spin};
-    enum yaw_spin_maneuver_state_t {front_facing = 0, half_moon = 180, full_moon = 360};
+    enum yaw_spin_maneuver_state_t {front_facing = 0, yaw_1 = 120, yaw_2 = 240, yaw_3 = 360};
     struct Position { movement_state_t movement_state; int waypoint_sequence;
-        double x; double y; double z; 
+        geometry_msgs::Pose pose; 
         yaw_spin_maneuver_state_t yaw_spin_state; 
         ros::Time yaw_spin_last_sent;};
     // mavros_msgs::PositionTarget stop_position;
@@ -44,9 +45,7 @@ namespace mav_comms
     bool yaw_spin_cb(architecture_msgs::YawSpin::Request  &req, 
         architecture_msgs::YawSpin::Response &res)
     {
-        position_state.x = req.position.x;
-        position_state.y = req.position.y;
-        position_state.z = req.position.z;
+        position_state.pose.position = req.position;
         position_state.movement_state = yaw_spin;
         // ROS_INFO_STREAM("[mav_comms] Receiving yaw spin request " << req);
         return true;
@@ -70,15 +69,16 @@ namespace mav_comms
 	bool target_position_cb(architecture_msgs::PositionRequest::Request  &req, 
         architecture_msgs::PositionRequest::Response &res)
 	{
+        ROS_WARN_STREAM("[mav_comms] target_position_cb");
 		if(position_state.movement_state != position) 
         { 
-            ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.position  
+            ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.pose  
                 << ", wrong movement state"); 
             res.is_going_to_position = false;
         } 
         else if( req.waypoint_sequence_id < position_state.waypoint_sequence) 
 		{
-			ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.position 
+			ROS_WARN_STREAM("[mav_comms] Rejecting position " << req.pose 
 				<< ", wrong movement state or request is from aborted waypoint sequence (id "
 				<< req.waypoint_sequence_id << ")");
             res.is_going_to_position = false;
@@ -87,9 +87,7 @@ namespace mav_comms
 		{
 			position_state.movement_state = position;
 			position_state.waypoint_sequence = req.waypoint_sequence_id;
-			position_state.x = req.position.x;
-			position_state.y = req.position.y;
-			position_state.z = req.position.z;
+			position_state.pose = req.pose;
             res.is_going_to_position = true;
 		}
         return true;
@@ -100,16 +98,13 @@ namespace mav_comms
         position_state.movement_state = position;
         position_state.yaw_spin_state = front_facing;
 
-        position_state.x = 0;
-        position_state.y = 0;
-        position_state.z = 1;
-
-        // stop_position.type_mask = 0b0000101111000111;
-        // stop_position.header.seq = 1;
-
         int temp;
         nh.getParam("exploration_maneuver_phases_duration_secs", temp);
         exploration_maneuver_phases_duration_secs = ros::Duration(temp);
+
+        offboard_enabled = false;
+        nh.getParam("offboard_enabled", offboard_enabled);
+        ROS_WARN_STREAM("[mav_comms] offboard_enabled" << offboard_enabled);
     }
 
     void send_msg_to_px4()
@@ -119,10 +114,7 @@ namespace mav_comms
             case movement_state_t::position:
             {
                 geometry_msgs::PoseStamped point_to_pub;
-                point_to_pub.pose.position.x = position_state.x;
-                point_to_pub.pose.position.y = position_state.y;
-                point_to_pub.pose.position.z = position_state.z;
-                point_to_pub.pose.orientation = tf::createQuaternionMsgFromYaw(front_facing * 0.0174532925);
+                point_to_pub.pose = position_state.pose;
                 local_pos_pub.publish(point_to_pub);
                 // ROS_INFO_STREAM("[mav_comms] Sending position " << point_to_pub.pose.position);
                 break;
@@ -137,40 +129,46 @@ namespace mav_comms
             case movement_state_t::yaw_spin:
             {
                 geometry_msgs::PoseStamped point_to_pub;
-                point_to_pub.pose.position.x = position_state.x;
-                point_to_pub.pose.position.y = position_state.y;
-                point_to_pub.pose.position.z = position_state.z;
+                point_to_pub.pose = position_state.pose;
                 ros::Duration time_lapse = ros::Time::now() - position_state.yaw_spin_last_sent;
                 switch(position_state.yaw_spin_state)
                 {
                     case front_facing:
                     {
-                        // ROS_INFO_STREAM("[mav_comms]        front_facing");
                         position_state.yaw_spin_last_sent = ros::Time::now();
-                        position_state.yaw_spin_state = half_moon;
-                        // ROS_INFO_STREAM("[mav_comms]        half_moon");
+                        position_state.yaw_spin_state = yaw_1;
+                        ROS_WARN_STREAM("[mav_comms] yaw_1");
                         break;
                     }
-                    case half_moon:
+                    case yaw_1:
                     {
-                        // ROS_INFO_STREAM("[mav_comms]        @ half_moon for " << time_lapse);
                         if(time_lapse > exploration_maneuver_phases_duration_secs)
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
-                            position_state.yaw_spin_state = full_moon;
-                            // ROS_INFO_STREAM("[mav_comms]        full_moon");
+                            position_state.yaw_spin_state = yaw_2;
+                            ROS_WARN_STREAM("[mav_comms] yaw_2");
                         }
                         break;
                     }
-                    case full_moon:
+                    case yaw_2:
                     {
-                        // ROS_INFO_STREAM("[mav_comms]        @ full_moon for " << time_lapse);
+                        if(time_lapse > exploration_maneuver_phases_duration_secs)
+                        {
+                            position_state.yaw_spin_last_sent = ros::Time::now();
+                            position_state.yaw_spin_state = yaw_3;
+                            ROS_WARN_STREAM("[mav_comms] yaw_3");
+
+                        }
+                        break;
+                    }
+                    case yaw_3:
+                    {
                         if(time_lapse > exploration_maneuver_phases_duration_secs)
                         {
                             position_state.yaw_spin_last_sent = ros::Time::now();
                             position_state.yaw_spin_state = front_facing;
                             position_state.movement_state = position;
-                            // ROS_INFO_STREAM("[mav_comms] position");
+                            ROS_WARN_STREAM("[mav_comms] front_facing");
                         }
                         break;
                     }
@@ -201,37 +199,54 @@ int main(int argc, char **argv)
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
     mav_comms::param_set_client = nh.serviceClient<mavros_msgs::ParamSet>("mavros/param/set");
 
+
     mav_comms::state_variables_init(nh);
     //the setpoint publishing rate MUST be faster than 2Hz
-    ros::Rate rate(100);
+    ros::Rate rate(10);
     // === FCU CONNECTION ===
     while(ros::ok() && mav_comms::current_state.connected) {
         ros::spinOnce();
         rate.sleep();
     }
     // === px4 PARAM ===
-    double flight_speed = 3;
-    nh.getParam("px4/flight_speed", flight_speed);
-    while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
-    ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
-    double MPC_ACC_HOR = 2; // minimum 1
-    while(!mav_comms::set_mavros_param("MPC_ACC_HOR", MPC_ACC_HOR)) { }
-    ROS_INFO_STREAM("[mav_comms] Acceleration set to " << MPC_ACC_HOR << " m/s (MPC_ACC_HOR)"); 
-    // NAV_ACC_RAD - Acceptance Radius
-    double NAV_ACC_RAD = 2; // minimum 0.01
-    while(!mav_comms::set_mavros_param("NAV_ACC_RAD", NAV_ACC_RAD)) { }
-    ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << NAV_ACC_RAD << " m (NAV_ACC_RAD)"); 
-    // MPC_CRUISE_90 - Cruise speed when angle prev-current/current-next setpoint is 90 degrees.
-    double MPC_CRUISE_90 = 1;   // minimum 1
-    while(!mav_comms::set_mavros_param("MPC_CRUISE_90", MPC_CRUISE_90)) { }
-    ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << MPC_CRUISE_90 << " m/s (MPC_CRUISE_90)");
+    // param set MPC_XY_VEL_MAX 2.00
+    // param set MPC_Z_VEL_MAX_DN 2.00
+    // param set MPC_Z_VEL_MAX_UP 2.00
+    
+    // double flight_speed = 3;
+    // nh.getParam("px4/flight_speed", flight_speed);
+    // while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
+    // ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
+    // while(!mav_comms::set_mavros_param("MPC_XY_CRUISE", flight_speed)) { }
+    // ROS_INFO_STREAM("[mav_comms] Velocity set to " << flight_speed << " m/s (MPC_XY_CRUISE)");
+    // while(!mav_comms::set_mavros_param("MPC_Z_VEL_MAX_DN", flight_speed)) { }
+    // ROS_INFO_STREAM("[mav_comms] MPC_Z_VEL_MAX_DN set to " << flight_speed);
+    // while(!mav_comms::set_mavros_param("MPC_Z_VEL_MAX_UP", flight_speed)) { }
+    // ROS_INFO_STREAM("[mav_comms] MPC_Z_VEL_MAX_UP set to " << flight_speed);
+
+    // double MPC_ACC_HOR = 2; // minimum 1
+    // while(!mav_comms::set_mavros_param("MPC_ACC_HOR", MPC_ACC_HOR)) { }
+    // ROS_INFO_STREAM("[mav_comms] Acceleration set to " << MPC_ACC_HOR << " m/s (MPC_ACC_HOR)"); 
+    // // NAV_ACC_RAD - Acceptance Radius
+    // double NAV_ACC_RAD = 2; // minimum 0.01
+    // while(!mav_comms::set_mavros_param("NAV_ACC_RAD", NAV_ACC_RAD)) { }
+    // ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << NAV_ACC_RAD << " m (NAV_ACC_RAD)"); 
+    // // MPC_CRUISE_90 - Cruise speed when angle prev-current/current-next setpoint is 90 degrees.
+    // double MPC_CRUISE_90 = 1;   // minimum 1
+    // while(!mav_comms::set_mavros_param("MPC_CRUISE_90", MPC_CRUISE_90)) { }
+    // ROS_INFO_STREAM("[mav_comms] Acceptance Radius set to " << MPC_CRUISE_90 << " m/s (MPC_CRUISE_90)");
 
 
-    double const offboard_mode_timeout_sec = 20;
-    while(!mav_comms::set_mavros_param("COM_OF_LOSS_T", offboard_mode_timeout_sec)) { }
-    ROS_INFO_STREAM("[mav_comms] Timeout from OFFBOARD mode set to " << offboard_mode_timeout_sec << " sec (COM_OF_LOSS_T)");
-    while(!mav_comms::set_mavros_param("COM_RC_IN_MODE", 1)) { }
-    ROS_INFO_STREAM("[mav_comms] COM_RC_IN_MODE set to " << 1);
+    // double const offboard_mode_timeout_sec = 20;
+    // while(!mav_comms::set_mavros_param("COM_OF_LOSS_T", offboard_mode_timeout_sec)) { }
+    // ROS_INFO_STREAM("[mav_comms] Timeout from OFFBOARD mode set to " << offboard_mode_timeout_sec << " sec (COM_OF_LOSS_T)");
+    // while(!mav_comms::set_mavros_param("COM_RC_IN_MODE", 1)) { }
+    // ROS_INFO_STREAM("[mav_comms] COM_RC_IN_MODE set to " << 1);
+
+
+
+    // while(!mav_comms::set_mavros_param("MPC_XY_P", 0.5)) { }
+    // ROS_INFO_STREAM("[mav_comms] MPC_XY_P set to " << 0.5);
 
 
     // === SET POSITIONS ===
@@ -255,37 +270,41 @@ int main(int argc, char **argv)
     while(ros::ok()) 
     {// Position is always sent regardeless of the state to keep vehicle in offboard mode
         mav_comms::send_msg_to_px4();
-        if( mav_comms::current_state.mode != "OFFBOARD") 
+
+        if(mav_comms::offboard_enabled)
         {
-            if(offboard_on)
+            if( mav_comms::current_state.mode != "OFFBOARD") 
             {
-                ROS_INFO_STREAM("[mav_comms] mode " <<  mav_comms::current_state.mode);
-            }
-            offboard_on = false;
-            set_mode_client.call(offb_set_mode);
-        } 
-        else 
-        {
-            if(!offboard_on)
-            {
-                ROS_INFO("[mav_comms] mode OFFBOARD");
-                offboard_on = true;
-            }
-            if( !mav_comms::current_state.armed) 
-            {
-                if(armed)
+                if(offboard_on)
                 {
-                    ROS_INFO("[mav_comms] Vehicle DISarmed");
+                    ROS_INFO_STREAM("[mav_comms] mode " <<  mav_comms::current_state.mode);
                 }
-                armed = false;
-                arming_client.call(arm_cmd);
+                offboard_on = false;
+                set_mode_client.call(offb_set_mode);
             } 
-            else
+            else 
             {
-                if(!armed)
+                if(!offboard_on)
                 {
-                    ROS_INFO("[mav_comms] Vehicle ARMED");
-                    armed = true;
+                    ROS_INFO("[mav_comms] mode OFFBOARD");
+                    offboard_on = true;
+                }
+                if( !mav_comms::current_state.armed) 
+                {
+                    if(armed)
+                    {
+                        ROS_INFO("[mav_comms] Vehicle DISarmed");
+                    }
+                    armed = false;
+                    arming_client.call(arm_cmd);
+                } 
+                else
+                {
+                    if(!armed)
+                    {
+                        ROS_INFO("[mav_comms] Vehicle ARMED");
+                        armed = true;
+                    }
                 }
             }
         }

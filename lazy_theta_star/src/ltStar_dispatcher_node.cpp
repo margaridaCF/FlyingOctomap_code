@@ -37,7 +37,7 @@ namespace LazyThetaStarOctree{
     return marker;
   }
 
-  std::list<octomath::Vector3> LazyThetaStarDispatcher::extractResults (octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, std::string dataset_name, int max_search_iterations = 500)
+  std::list<octomath::Vector3> LazyThetaStarDispatcher::extractResults (octomap::OcTree octree, octomath::Vector3 disc_initial, octomath::Vector3 disc_final, std::string dataset_name, int max_time_secs = 500)
   {
     octomath::Vector3 direction =  disc_final-disc_initial;
     octomath::Vector3 return_value;
@@ -113,7 +113,7 @@ namespace LazyThetaStarOctree{
     ResultSet statistical_data;
     // timespec time1, time2;
     // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
-    return lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, max_search_iterations);
+    return lazyThetaStar_(octree, disc_initial, disc_final, statistical_data, max_time_secs);
     // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
     // double total_nSecs_overall = diff(time1,time2).tv_nsec;
   }
@@ -167,8 +167,8 @@ namespace LazyThetaStarOctree{
     ROS_INFO_STREAM(disc_final);
     marker_pub_.publish( marker );
 
-    int max_search_iterations = 16000;
-    std::list<octomath::Vector3> resulting_path = extractResults(octree, disc_initial, disc_final, dataset_name, max_search_iterations);
+    int max_time_secs = 16000;
+    std::list<octomath::Vector3> resulting_path = extractResults(octree, disc_initial, disc_final, dataset_name, max_time_secs);
     std::ofstream waypoints_file;
     waypoints_file.open("/waypoints.txt", std::ios_base::app);
     waypoints_file << " ===== " << dataset_name << " ===== " << std::endl;

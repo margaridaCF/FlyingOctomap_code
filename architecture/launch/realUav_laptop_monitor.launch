@@ -1,0 +1,13 @@
+<launch>
+
+	<!-- #######################  Architecture nodes  ############################# -->
+	<!-- csv_exploration -->
+
+    <!-- #######################   Rviz   ############################# -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/realUAV.rviz" />
+
+
+    <!-- #######################    Log   ############################# -->
+    <node pkg="rosbag" type="record" name="rosbag_record_all" args="record -O $(env HOME)/openTheHatch/bags/record_all.bag /tf /scan /mavros/global_position/local /mavros/global_position/global /occupied_cells_vis_array /free_cells_vis_array /ltstar_path /frontiers_reply /frontiers_request /ltstar_request /ltstar_reply /mavros/setpoint_position/local /position_log /mavros/local_position/pose /octomap_binary"/>
+</launch>
+

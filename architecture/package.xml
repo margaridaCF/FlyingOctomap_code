@@ -1,19 +1,20 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>architecture</name>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <description>A package for putting the architecture together</description>
 
   <maintainer email="MargaridaCostaFaria@gmail.com">Margarida Faria</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>catkin_simple</build_depend> 
+  <build_depend>catkin_simple</build_depend>
   <test_depend>gtest</test_depend>
   <depend>roscpp</depend>
   <depend>mavros_msgs</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>gazebo_msgs</depend>
   <depend>octomap_msgs</depend>
   <!-- <run_depend>boost</run_depend> -->
   <depend>architecture_msgs</depend>
@@ -21,8 +22,11 @@
   <depend>lazy_theta_star_msgs</depend>
   <depend>frontiers</depend>
   <depend>frontiers_msgs</depend>
-  <depend>laser_free_to_cloud</depend>
   <depend>rviz_interface</depend>
   <depend>tf</depend>
+  <depend>laser_filters</depend>
+  <depend>observation_maneuver</depend>
+  <depend>uav_abstraction_layer</depend>
+  <depend>upat_follower</depend>
 
 </package>

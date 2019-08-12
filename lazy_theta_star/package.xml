@@ -17,6 +17,9 @@
   <depend>lazy_theta_star_msgs</depend>
   <depend>frontiers</depend>
   <depend>rviz_interface</depend>
+  <depend>architecture_msgs</depend>
+  <depend>tf</depend>
+  <build_depend>eigen_catkin</build_depend>
 
   <!-- <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend> -->

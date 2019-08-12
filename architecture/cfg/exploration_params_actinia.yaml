@@ -1,0 +1,23 @@
+exploration_maneuver_duration_secs: 11
+exploration_maneuver_phases_duration_secs: 5
+px4_loiter_radius: 0.5
+px4/flight_speed: 3
+laser_range: 9.5
+laser_angle: 0.872665
+
+odometry_error: 0
+
+frontier/safety_margin: 3
+
+geofence_min/x: -55
+geofence_min/y: -55
+geofence_min/z: 1
+geofence_max/x: 50
+geofence_max/y: 50
+geofence_max/z: 50
+
+path/max_time_secs: 180
+path/max_cycles_waited_for_path: 50
+path/safety_margin: 2
+
+current_position_topic: "/ground_truth_to_tf/pose"

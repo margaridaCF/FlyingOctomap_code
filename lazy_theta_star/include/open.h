@@ -144,7 +144,7 @@ public:
 
 	void printNodes(std::string title = "") const
 	{
-		std::cout << title << "\n - Nodes " << std::endl;
+		std::cout << title << "\n == Open ==" << std::endl;
 		// for(auto n : nodes)
 		// {
 		// 	std::cout << *(n.second->coordinates) << std::endl;
@@ -164,7 +164,7 @@ public:
 
 	void printNodes(std::string title, std::ofstream & oss) const
 	{
-		oss << title << "\n - Nodes " << std::endl;
+		oss << title << "\n == Open ==" << std::endl;
 		for(auto list_pair : heuristics)
 		{
 			oss << list_pair.first << " ==> ";

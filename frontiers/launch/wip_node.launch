@@ -1,0 +1,41 @@
+<launch>
+
+   <!-- Posix SITL environment launch script -->
+    <arg name="x" default="0"/>
+    <arg name="y" default="0"/>
+    <arg name="z" default="0"/>
+    <arg name="R" default="0"/>
+    <arg name="P" default="0"/>
+    <arg name="Y" default="0"/>
+    <arg name="est" default="lpe"/>
+    <arg name="vehicle" default="iris"/>
+    <arg name="world" default="$(find architecture)/worlds/force_waypoint_sequence.world"/>
+    <!-- <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/> -->
+    <!-- <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/> -->
+
+    <arg name="headless" default="false"/>
+    <arg name="gui" default="true"/>
+    <arg name="ns" default="/"/>
+
+    <arg name="debug" default="false"/>
+    <arg name="verbose" default="false"/>
+    <arg name="paused" default="false"/>
+
+    <rosparam file="$(find architecture)/cfg/exploration_params.yaml" command="load" />
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find frontiers)/launch/debug_frontiers.rviz" />
+    <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 1 world map 10" />
+
+    <!-- #######################  Octomap  ######################################## -->
+    <node name="octomap_global_planner_server" pkg="octomap_server" type="octomap_server_node" respawn="true" clear_params="true" output="screen" args="$(find frontiers)/test/data/circle_1m.bt">    
+        <param name="frame_id" type="str" value="/map" />
+    </node>
+    <!-- ########################################################################## --> 
+  <!-- Frontiers --> 
+  <node pkg="frontiers" type="frontiers_debug_node" name="frontiers_debug" output="screen"/>
+  <!-- ########################################################################## -->
+    <!-- Architecture nodes -->
+
+</launch>
+
+<!-- vim: set et ft=xml fenc=utf-8 ff=unix sts=0 sw=4 ts=4 : -->

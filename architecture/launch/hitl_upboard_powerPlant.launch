@@ -1,0 +1,11 @@
+<launch>
+
+    <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
+    
+    
+    <!-- #######################  Architecture nodes  ############################# -->
+    <node name="lazy_theta_star" type="ltStar_async_node" pkg="lazy_theta_star" output="screen" />
+    <node name="goal_finder" type="goal_sm_node" pkg="architecture" output="screen" />
+    <node name="state_manager" type="state_manager_node" pkg="architecture" output="screen" />
+    <node name="frontier_finder" type="frontiers_async_node" pkg="frontiers" output="screen" />
+</launch>

@@ -5,9 +5,14 @@
 #include <octomap_msgs/conversions.h>
 #include <frontiers_msgs/FrontierNodeStatus.h>
 #include <frontiers_msgs/CheckIsFrontier.h>
+#include <frontiers_msgs/CheckIsExplored.h>
 #include <visualization_msgs/MarkerArray.h>
 
+#include <atomic>
+
 #include <geometry_msgs/Point.h>
+#include <frontiers_common.h>
+#include <volume.h>
 // RAM
 #include "sys/types.h"
 #include "sys/sysinfo.h"
@@ -17,17 +22,21 @@
 namespace frontiers_async_node
 {
 	octomap::OcTree* octree;
+	octomap::OcTree* octree_inUse;
+	std::atomic<bool> is_octree_inUse;
+	std::atomic<bool> new_octree;
+
 	ros::Publisher local_pos_pub;
 	ros::Publisher marker_pub;
 	std::string folder_name;
-	double sensor_angle;
-#ifdef SAVE_CSV
+	int last_request_id;
+	octomap::OcTree::leaf_bbx_iterator iterator;
+	#ifdef SAVE_CSV
 	struct sysinfo memInfo;
 	std::ofstream log;
 	std::ofstream volume_explored;
 	std::chrono::high_resolution_clock::time_point start_exploration;
-	// std::chrono::hours; 
-#endif
+	#endif
 		
 	bool octomap_init;
 
@@ -61,23 +70,71 @@ namespace frontiers_async_node
 		frontiers_msgs::CheckIsFrontier::Response &res)
 	{
 		octomath::Vector3 candidate(req.candidate.x, req.candidate.y, req.candidate.z);
-		res.is_frontier = Frontiers::isFrontier(*octree, candidate, sensor_angle);
-		return true;
+		try
+		{
+			res.is_frontier = Frontiers::isFrontier(*octree, candidate);
+			return true;
+		}
+		catch(const std::out_of_range& oor)
+		{
+			ROS_ERROR_STREAM("[Frontiers] Candidate " << req.candidate << " is in unknown space.");
+		}
 	}
 
-	void frontier_callback(const frontiers_msgs::FrontierRequest::ConstPtr& frontier_request)
+	bool check_unknown(frontiers_msgs::CheckIsExplored::Request  &req,
+		frontiers_msgs::CheckIsExplored::Response &res)
 	{
-		frontiers_msgs::FrontierReply reply;
+		octomath::Vector3 candidate(req.candidate.x, req.candidate.y, req.candidate.z);
+		try
+		{ 
+			res.is_explored = Frontiers:: isExplored(candidate, *octree); 
+			return true;
+		}
+		catch(const std::out_of_range& oor)
+		{
+			ROS_ERROR_STREAM("[Frontiers] [check_unknown] Candidate " << req.candidate << " std::out_of_range& oor.");
+			return true;
+		}
+	}
+
+	bool find_frontiers(frontiers_msgs::FindFrontiers::Request  &req,
+		frontiers_msgs::FindFrontiers::Response &reply)
+	{
 		if(octomap_init)
 		{
-#ifdef SAVE_CSV
+			#ifdef SAVE_CSV
 			std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-#endif
-			Frontiers::processFrontiersRequest(*octree, *frontier_request, reply, marker_pub);
+			#endif
+			if (req.new_request)
+			{
+				if (new_octree){
+					delete octree_inUse;
+					is_octree_inUse = true;
+					octree_inUse = octree;
+					new_octree = false;
+				}
+				iterator = Frontiers::processFrontiersRequest(*octree_inUse, req, reply, marker_pub);
+				last_request_id = req.request_number;
+			}
+			else
+			{
+				octree->writeBinary(folder_name + "/current/octree_requestNumberOutOfSync.bt"); 
+				if(last_request_id != req.request_id)
+				{
+					ROS_ERROR_STREAM("[Frontiers] Request number out of sync. Asked to continue search but current request number is " << last_request_id << " while in request message the id is " << req.request_id);
+					reply.success=false;
+					reply.frontiers_found = 0;
+				}
+				else
+				{
+					// ROS_INFO_STREAM("[Frontiers] Old map");
+					Frontiers::searchFrontier(*octree_inUse, iterator, req, reply, marker_pub, true);
+				}
+			}
 
-#ifdef SAVE_CSV
+			#ifdef SAVE_CSV
 			// Frontier computation time
-			log.open (folder_name +"/frontiers_computation_time.csv", std::ofstream::app);
+			log.open (folder_name +"/current/frontiers_computation_time.csv", std::ofstream::app);
 			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
 			std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
@@ -85,34 +142,38 @@ namespace frontiers_async_node
 			log << millis.count() << ", " << seconds.count() << "\n";
 			log.close();
 			// Explored volume
-			volume_explored.open (folder_name + "/volume_explored.csv", std::ofstream::app);
+			volume_explored.open (folder_name + "/current/volume_explored.csv", std::ofstream::app);
 			std::chrono::duration<double> ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start_exploration);
 			std::chrono::milliseconds ellapsed_time_millis = std::chrono::duration_cast<std::chrono::milliseconds>(ellapsed_time);
 			double resolution = octree->getResolution();
-	        octomath::Vector3  max = octomath::Vector3(frontier_request->max.x-resolution, frontier_request->max.y-resolution, frontier_request->max.z-resolution);
-	        octomath::Vector3  min = octomath::Vector3(frontier_request->min.x+resolution, frontier_request->min.y+resolution, frontier_request->min.z+resolution);
-			double explored_volume_meters = calculate_volume_explored(min, max);
-			volume_explored << ellapsed_time_millis.count() << ", " << explored_volume_meters << std::endl;
+	        octomath::Vector3  max = octomath::Vector3(req.max.x-resolution, req.max.y-resolution, req.max.z-resolution);
+	        octomath::Vector3  min = octomath::Vector3(req.min.x+resolution, req.min.y+resolution, req.min.z+resolution);
+			double explored_volume_meters = volume::calculateVolume(*octree, min, max);
+			volume_explored << ellapsed_time_millis.count() / 1000  << ", " << explored_volume_meters << std::endl;
 			volume_explored.close();
-#endif
+			#endif
 
-			if(reply.frontiers_found == 0)
+			if(reply.frontiers_found == 0 && reply.success)
 	        {
-	            ROS_INFO_STREAM("[Frontiers] No frontiers could be found. Writing tree to file. Request was " << *frontier_request);
-	            octree->writeBinary(folder_name + "/octree_noFrontiers.bt"); 
+	            ROS_INFO_STREAM("[Frontiers] No frontiers could be found. Writing tree to file. Request was " << req);
+	            octree->writeBinary(folder_name + "/current/octree_noFrontiers.bt"); 
 	        }
 		}
 		else
 		{
 			reply.success=false;
-			reply.request_id = frontier_request->header.seq;
 			reply.frontiers_found = 0;
 		}
-		local_pos_pub.publish(reply);
+		return true;
 	}
 
 	void octomap_callback(const octomap_msgs::Octomap::ConstPtr& octomapBinary){
-		delete octree;
+		if (!is_octree_inUse)
+		{
+			delete octree;
+		}
+		is_octree_inUse = false;
+		new_octree = true;
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
 		octomap_init = true;
 	}
@@ -121,12 +182,13 @@ namespace frontiers_async_node
 int main(int argc, char **argv)
 {
 #ifdef SAVE_CSV
-		frontiers_async_node::folder_name = "/ros_ws/src/data/current";
-		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/frontiers_computation_time.csv", std::ofstream::app);
+    	std::stringstream aux_envvar_home (std::getenv("HOME"));
+		frontiers_async_node::folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/current/frontiers_computation_time.csv", std::ofstream::app);
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
-		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/volume_explored.csv", std::ofstream::app);
-		frontiers_async_node::volume_explored << "time ellapsed millis,volume,RAM\n";
+		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/current/volume_explored.csv", std::ofstream::app);
+		frontiers_async_node::volume_explored << "time ellapsed minutes,volume\n";
 		frontiers_async_node::volume_explored.close();
 		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
 #endif
@@ -134,13 +196,16 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "frontier_node_async");
 	ros::NodeHandle nh;
 
-    nh.getParam("laser_angle", frontiers_async_node::sensor_angle);
 	ros::ServiceServer frontier_status_service = nh.advertiseService("frontier_status", frontiers_async_node::check_status);
-	ros::ServiceServer is_frontier_service = nh.advertiseService("is_frontier", frontiers_async_node::check_frontier);
-	ros::Subscriber octomap_sub = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, frontiers_async_node::octomap_callback);
-	ros::Subscriber frontiers_sub = nh.subscribe<frontiers_msgs::FrontierRequest>("frontiers_request", 10, frontiers_async_node::frontier_callback);
-	frontiers_async_node::local_pos_pub = nh.advertise<frontiers_msgs::FrontierReply>("frontiers_reply", 10);
-	frontiers_async_node::marker_pub = nh.advertise<visualization_msgs::MarkerArray>("frontiers/known_space", 1);
+	ros::ServiceServer is_frontier_service     = nh.advertiseService("is_frontier",     frontiers_async_node::check_frontier);
+	ros::ServiceServer is_explored_service     = nh.advertiseService("is_explored",     frontiers_async_node::check_unknown);
+	ros::ServiceServer find_frontiers_service  = nh.advertiseService("find_frontiers",  frontiers_async_node::find_frontiers);
+	ros::Subscriber octomap_sub   = nh.subscribe<octomap_msgs::Octomap>("/octomap_binary", 10, frontiers_async_node::octomap_callback);
+	frontiers_async_node::marker_pub    = nh.advertise<visualization_msgs::MarkerArray>("frontiers/known_space", 1);
+	frontiers_async_node::last_request_id = 0;
+
+	frontiers_async_node::new_octree = false;
+	frontiers_async_node::is_octree_inUse = false;
 
 	ros::spin();
 }
