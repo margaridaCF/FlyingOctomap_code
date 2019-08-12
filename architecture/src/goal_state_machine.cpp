@@ -19,7 +19,7 @@ namespace goal_state_machine
     #endif
 
     GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true), local_fence_side(local_fence_side)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
@@ -352,6 +352,7 @@ namespace goal_state_machine
 		}
 		frontier_srv.request.frontier_amount = 20;
 		bool found_frontiers = findFrontiers_CallService(uav_position);
+		first_global_request = false;
 		if (found_frontiers)
 		{
 	        // ROS_INFO_STREAM("[Goal SM] Request " << frontier_srv.request);
@@ -365,6 +366,7 @@ namespace goal_state_machine
 		if(!global)
 		{
 			global = true;
+			first_global_request = true;
 			return findFrontiersAllMap(uav_position);
 		}
 		else
@@ -380,7 +382,7 @@ namespace goal_state_machine
 		frontier_srv.request.current_position.y = uav_position.y();
 		frontier_srv.request.current_position.z = uav_position.z();
 		frontier_srv.request.request_id = frontier_request_count;
-		frontier_srv.request.new_request = new_map;
+		frontier_srv.request.new_request = new_map || first_global_request;
 
 		#ifdef SAVE_CSV
 		auto start_millis         = std::chrono::high_resolution_clock::now();
@@ -407,7 +409,10 @@ namespace goal_state_machine
             {
             	// ROS_INFO_STREAM("[Goal SM] The frontier node identified no further frontiers.");
             	if(global)
+            	{
+            		resetOPPair(uav_position);
             		ROS_INFO_STREAM("[Goal SM] The search was conducted within the global geofence identified no further frontiers.");
+            	}
             	// else
             	// 	ROS_INFO_STREAM("[Goal SM] The search was local, maybe there are frontiers still!");
             }

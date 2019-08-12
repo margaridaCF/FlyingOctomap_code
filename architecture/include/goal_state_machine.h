@@ -81,6 +81,7 @@ namespace goal_state_machine
 	    bool								new_map;
 	    bool								global;
 	    bool								first_request;
+	    bool								first_global_request;
     	double 								path_safety_margin;
     	double 								sensing_distance;
     	double 								local_fence_side;

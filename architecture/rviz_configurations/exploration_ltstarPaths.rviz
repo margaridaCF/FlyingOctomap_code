@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /Frontiers1/Namespaces1
+        - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
         - /State Manager1/Namespaces1
         - /Goal State Manager1
@@ -211,7 +212,7 @@ Visualization Manager:
         lazy_theta_star_path: true
         lazy_theta_star_waypoint: true
         rejected_neighors: false
-        s: false
+        s: true
         start: true
         start_safetyZone: true
         straight_line: true
@@ -232,7 +233,7 @@ Visualization Manager:
       Name: Goal State Manager
       Namespaces:
         corridor_free: false
-        corridor_occupied: false
+        corridor_occupied: true
         geofence: true
         oppair_end: true
         oppair_end_outside: false
@@ -243,8 +244,8 @@ Visualization Manager:
         safetyzone_flybyStart: false
         start_safetyZone: false
         straight_line: false
-        uav_position: false
-        under_unknown_point: false
+        uav_position: true
+        under_unknown_point: true
         unknown: true
         unknown_point: true
       Queue Size: 100
@@ -338,25 +339,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 84.8277969
+      Distance: 49.5418777
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -30.1340599
-        Y: -19.2710762
-        Z: -2.52119303
+        X: -10.3540258
+        Y: -21.2017078
+        Z: 13.9841738
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.414796948
+      Pitch: 0.714797139
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.358181089
+      Yaw: 2.00313044
     Saved: ~
 Window Geometry:
   Displays:
