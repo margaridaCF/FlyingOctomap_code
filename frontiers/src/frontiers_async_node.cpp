@@ -36,6 +36,7 @@ namespace frontiers_async_node
 	std::ofstream log;
 	std::ofstream volume_explored;
 	std::chrono::high_resolution_clock::time_point start_exploration;
+    octomath::Vector3 geofence_min , geofence_max ;
 	#endif
 		
 	bool octomap_init;
@@ -148,8 +149,8 @@ namespace frontiers_async_node
 			double resolution = octree->getResolution();
 	        octomath::Vector3  max = octomath::Vector3(req.max.x-resolution, req.max.y-resolution, req.max.z-resolution);
 	        octomath::Vector3  min = octomath::Vector3(req.min.x+resolution, req.min.y+resolution, req.min.z+resolution);
-			double explored_volume_meters = volume::calculateVolume(*octree, min, max);
-			volume_explored << ellapsed_time_millis.count() / 1000  << ", " << explored_volume_meters << std::endl;
+			double explored_volume_meters = volume::calculateVolume(*octree, geofence_min, geofence_max);
+			volume_explored << ellapsed_time_millis.count()  << ", " << explored_volume_meters << std::endl;
 			volume_explored.close();
 			#endif
 
@@ -181,6 +182,8 @@ namespace frontiers_async_node
 
 int main(int argc, char **argv)
 {
+	ros::init(argc, argv, "frontier_node_async");
+	ros::NodeHandle nh;
 #ifdef SAVE_CSV
     	std::stringstream aux_envvar_home (std::getenv("HOME"));
 		frontiers_async_node::folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
@@ -188,13 +191,21 @@ int main(int argc, char **argv)
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
 		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/current/volume_explored.csv", std::ofstream::app);
-		frontiers_async_node::volume_explored << "time ellapsed minutes,volume\n";
+		frontiers_async_node::volume_explored << "time ellapsed millis,volume\n";
 		frontiers_async_node::volume_explored.close();
 		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
+		// Geofence
+	    float x, y, z;
+	    nh.getParam("geofence_min/x", x);
+	    nh.getParam("geofence_min/y", y);
+	    nh.getParam("geofence_min/z", z);
+	    frontiers_async_node::geofence_min = octomath::Vector3 (x, y, z);
+	    nh.getParam("geofence_max/x", x);
+	    nh.getParam("geofence_max/y", y);
+	    nh.getParam("geofence_max/z", z);
+	    frontiers_async_node::geofence_max = octomath::Vector3 (x, y, z);
 #endif
 
-	ros::init(argc, argv, "frontier_node_async");
-	ros::NodeHandle nh;
 
 	ros::ServiceServer frontier_status_service = nh.advertiseService("frontier_status", frontiers_async_node::check_status);
 	ros::ServiceServer is_frontier_service     = nh.advertiseService("is_frontier",     frontiers_async_node::check_frontier);
