@@ -31,23 +31,34 @@ namespace frontiers_async_node
 	std::string folder_name;
 	int last_request_id;
 	octomap::OcTree::leaf_bbx_iterator iterator;
+	bool octomap_init;
 	#ifdef SAVE_CSV
+	bool first_call;
 	struct sysinfo memInfo;
-	std::ofstream log;
-	std::ofstream volume_explored;
+	std::ofstream csv_file;
 	std::chrono::high_resolution_clock::time_point start_exploration;
     octomath::Vector3 geofence_min , geofence_max ;
 	#endif
 		
-	bool octomap_init;
 
+	void openCsvFile()
+	{
+		std::stringstream aux_envvar_home (std::getenv("HOME"));
+		folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+		csv_file.open (frontiers_async_node::folder_name + "/current/frontiers.csv", std::ofstream::app);
+		csv_file << "time ellapsed millis,free,occupied,frontier_search_time\n";
+		csv_file.close();
+		ROS_WARN_STREAM("[Frontiers] Writting header for " << frontiers_async_node::folder_name << "/current/frontiers.csv");
+		start_exploration = std::chrono::high_resolution_clock::now();
+
+	}
 	double calculate_volume_explored(octomath::Vector3 const& min, octomath::Vector3 const& max)
 	{
         int frontiers_count = 0;
 		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
         if(!octree->coordToKeyChecked(min, bbxMinKey) || !octree->coordToKeyChecked(max, bbxMaxKey))
         {
-            ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
+            ROS_ERROR_STREAM("[Frontiers] Problems with calculate_volume_explored");
         	return 0;
         }
 		octomap::OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbxMinKey,bbxMaxKey);
@@ -104,6 +115,11 @@ namespace frontiers_async_node
 		if(octomap_init)
 		{
 			#ifdef SAVE_CSV
+			if(first_call)
+			{
+				openCsvFile();
+				first_call = false;
+			}
 			std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 			#endif
 			if (req.new_request)
@@ -119,9 +135,9 @@ namespace frontiers_async_node
 			}
 			else
 			{
-				octree->writeBinary(folder_name + "/current/octree_requestNumberOutOfSync.bt"); 
 				if(last_request_id != req.request_id)
 				{
+					octree->writeBinary(folder_name + "/current/octree_requestNumberOutOfSync.bt"); 
 					ROS_ERROR_STREAM("[Frontiers] Request number out of sync. Asked to continue search but current request number is " << last_request_id << " while in request message the id is " << req.request_id);
 					reply.success=false;
 					reply.frontiers_found = 0;
@@ -134,24 +150,20 @@ namespace frontiers_async_node
 			}
 
 			#ifdef SAVE_CSV
+			csv_file.open (folder_name + "/current/frontiers.csv", std::ofstream::app);
 			// Frontier computation time
-			log.open (folder_name +"/current/frontiers_computation_time.csv", std::ofstream::app);
 			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-			std::chrono::milliseconds millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span);
-			std::chrono::seconds seconds = std::chrono::duration_cast<std::chrono::seconds>(time_span);
-			log << millis.count() << ", " << seconds.count() << "\n";
-			log.close();
+			std::chrono::duration<double> ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+			std::chrono::seconds seconds = std::chrono::duration_cast<std::chrono::seconds>(ellapsed_time);
 			// Explored volume
-			volume_explored.open (folder_name + "/current/volume_explored.csv", std::ofstream::app);
-			std::chrono::duration<double> ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start_exploration);
+			ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start_exploration);
 			std::chrono::milliseconds ellapsed_time_millis = std::chrono::duration_cast<std::chrono::milliseconds>(ellapsed_time);
 			double resolution = octree->getResolution();
 	        octomath::Vector3  max = octomath::Vector3(req.max.x-resolution, req.max.y-resolution, req.max.z-resolution);
 	        octomath::Vector3  min = octomath::Vector3(req.min.x+resolution, req.min.y+resolution, req.min.z+resolution);
 			std::pair<double, double> explored_volume_meters = volume::calculateVolume(*octree, geofence_min, geofence_max);
-			volume_explored << ellapsed_time_millis.count()  << ", " << explored_volume_meters.first << ", " << explored_volume_meters.second << std::endl;
-			volume_explored.close();
+			csv_file << ellapsed_time_millis.count()  << ", " << explored_volume_meters.first << ", " << explored_volume_meters.second << ", " << seconds.count() << std::endl;
+			csv_file.close();
 			#endif
 
 			if(reply.frontiers_found == 0 && reply.success)
@@ -178,6 +190,7 @@ namespace frontiers_async_node
 		octree = (octomap::OcTree*)octomap_msgs::binaryMsgToMap(*octomapBinary);
 		octomap_init = true;
 	}
+
 }
 
 int main(int argc, char **argv)
@@ -185,15 +198,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "frontier_node_async");
 	ros::NodeHandle nh;
 #ifdef SAVE_CSV
-    	std::stringstream aux_envvar_home (std::getenv("HOME"));
-		frontiers_async_node::folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-		frontiers_async_node::log.open (frontiers_async_node::folder_name + "/current/frontiers_computation_time.csv", std::ofstream::app);
-		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
-		frontiers_async_node::log.close();
-		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/current/volume_explored.csv", std::ofstream::app);
-		frontiers_async_node::volume_explored << "time ellapsed millis,free,occupied\n";
-		frontiers_async_node::volume_explored.close();
-		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
+		frontiers_async_node::first_call = true;
 		// Geofence
 	    float x, y, z;
 	    nh.getParam("geofence_min/x", x);

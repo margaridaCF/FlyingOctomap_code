@@ -14,9 +14,6 @@
 namespace goal_state_machine
 {
     std::ofstream log_file;
-    #ifdef SAVE_CSV
-    std::ofstream csv_file;
-    #endif
 
     GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side)
 		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true)
@@ -49,11 +46,6 @@ namespace goal_state_machine
 
 		std::stringstream aux_envvar_home (std::getenv("HOME"));
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-		// log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
-		#ifdef SAVE_CSV
-		csv_file.open (folder_name+"/current/goal_state_machine.csv", std::ofstream::app);
-		csv_file << "flyby,frontiers" << std::endl;
-        #endif
 		log_file.open (folder_name+"/current/goal_sm.log", std::ofstream::app);
 	}
 
@@ -383,18 +375,7 @@ namespace goal_state_machine
 		frontier_srv.request.current_position.z = uav_position.z();
 		frontier_srv.request.request_id = frontier_request_count;
 		frontier_srv.request.new_request = new_map || first_global_request;
-
-		#ifdef SAVE_CSV
-		auto start_millis         = std::chrono::high_resolution_clock::now();
-		#endif
 		bool call = find_frontiers_client.call(frontier_srv);
-		#ifdef SAVE_CSV
-		auto end_millis         = std::chrono::high_resolution_clock::now();
-		auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - start_millis);
-        double frontiers_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-        csv_file << "," << frontiers_millis << std::endl;
-		#endif
-
 		if(call) 
         { 
         	has_more_goals = frontier_srv.response.success;
@@ -501,9 +482,6 @@ namespace goal_state_machine
 					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
 						has_more_goals = true;
-						#ifdef SAVE_CSV
-						csv_file << total_millis << ",,1" << std::endl;
-						#endif
 						saveSuccesfulFlyby();
 						return true;
 					}		
@@ -526,9 +504,6 @@ namespace goal_state_machine
 					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
 						has_more_goals = true;
-						#ifdef SAVE_CSV
-						csv_file << total_millis << ",,2" << std::endl;
-						#endif
 						saveSuccesfulFlyby();
 						return true;
 					}
@@ -545,9 +520,6 @@ namespace goal_state_machine
 				has_more_goals = findFrontiersAllMap(uav_position);
 			}
 		}
-		#ifdef SAVE_CSV
-		csv_file << total_millis << ",,3" << std::endl;
-		#endif
 		return has_more_goals;
 	}
 

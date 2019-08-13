@@ -28,9 +28,19 @@ namespace LazyThetaStarOctree
 	double sidelength_lookup_table  [16]; 
 	ros::Publisher ltstar_reply_pub;
 	ros::Publisher marker_pub;
-		
+	bool first_call;
 	bool octomap_init;
 	bool publish_free_corridor_arrows;
+
+
+	void writeCsvHeader()
+	{
+		ROS_WARN_STREAM("[ltstar] Saving to " << LazyThetaStarOctree::folder_name << "/current/lazyThetaStar_computation_time.csv");
+		std::ofstream csv_file;
+		csv_file.open (LazyThetaStarOctree::folder_name+"/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
+		csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
+		csv_file.close();
+	}
 
 	bool check_status(lazy_theta_star_msgs::LTStarNodeStatus::Request  &req,
         lazy_theta_star_msgs::LTStarNodeStatus::Response &res)
@@ -117,6 +127,14 @@ namespace LazyThetaStarOctree
 		reply.success = false;
 		if(octomap_init)
 		{
+
+			#ifdef SAVE_CSV
+			if(first_call)
+			{
+				writeCsvHeader();
+				first_call = false;
+			}
+			#endif
 			// std::stringstream ss;
 			// ss << folder_name << "/(" << path_request->start.x << "; " << path_request->start.y << "; " << path_request->start.z << ")_(" 
 			// 	<<  path_request->goal.x << "; " << path_request->goal.y << "; " << path_request->goal.z << ").bt";
@@ -197,13 +215,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef SAVE_CSV
-	ROS_WARN_STREAM("[ltstar] Saving to " << LazyThetaStarOctree::folder_name << "/current/lazyThetaStar_computation_time.csv");
-
-	std::ofstream csv_file;
-	csv_file.open (LazyThetaStarOctree::folder_name+"/current/lazyThetaStar_computation_time.csv", std::ofstream::app);
-	csv_file << "success,computation_time_millis,path_lenght_straight_line_meters,path_lenght_total_meters,has_obstacle,start,goal,safety_margin_meters,max_search_duration_seconds,iteration_count,obstacle_hit_count,total_obstacle_checks,dataset_name" << std::endl;
-
-	csv_file.close();
+	LazyThetaStarOctree::first_call = true;
 #endif
 	LazyThetaStarOctree::publish_free_corridor_arrows = true;
 	ros::init(argc, argv, "ltstar_async_node");

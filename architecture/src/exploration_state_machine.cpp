@@ -17,7 +17,7 @@ namespace exploration_sm
 	{
 	    std::stringstream aux_envvar_home (std::getenv("HOME"));
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data/current";
-    	csv_file.open (folder_name+"/execution_time.csv", std::ofstream::app);
+    	csv_file.open (folder_name+"/state_machine_execution_times.csv", std::ofstream::app);
     	csv_file << "timeline,initial_maneuver_millis,frontier_gen_millis,visit_waypoints_millis,goalSM_millis,ltstar_millis,flyby_millis" << std::endl;
 	    operation_start = std::chrono::high_resolution_clock::now();
 	    timeline_start = std::chrono::high_resolution_clock::now();

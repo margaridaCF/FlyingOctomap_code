@@ -72,18 +72,18 @@ UALCommunication::~UALCommunication() {
 void UALCommunication::switchState(comms_state_t new_comms_state)
 {
     comms_state = new_comms_state;
-    switch(comms_state)
-    {
-        case wait_for_flight:
-            ROS_WARN("[UAL COMMS] wait_for_flight");
-            break;
-        case init_segment:
-            ROS_WARN("[UAL COMMS] init_segment");
-            break;
-        case execute_position:
-            ROS_WARN("[UAL COMMS] execute_position");
-            break;
-    }
+    // switch(comms_state)
+    // {
+    //     case wait_for_flight:
+    //         ROS_INFO("[UAL COMMS] wait_for_flight");
+    //         break;
+    //     case init_segment:
+    //         ROS_INFO("[UAL COMMS] init_segment");
+    //         break;
+    //     case execute_position:
+    //         ROS_INFO("[UAL COMMS] execute_position");
+    //         break;
+    // }
 }
 
 nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) 
@@ -151,7 +151,7 @@ bool generateYaw(nav_msgs::Path & path)
 
 double calculatePathLength(nav_msgs::Path & flight_plan, geometry_msgs::PoseStamped & ual_pose_)
 {
-    ROS_WARN_STREAM("[UAL COMMS] Calculating path length of "  << flight_plan );
+    // ROS_WARN_STREAM("[UAL COMMS] Calculating path length of "  << flight_plan );
     std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan.poses.begin();
     Eigen::Vector3d start (ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     double distance = 0;
@@ -161,7 +161,7 @@ double calculatePathLength(nav_msgs::Path & flight_plan, geometry_msgs::PoseStam
         Eigen::Vector3d end (i->pose.position.x, i->pose.position.y, i->pose.position.z);
         double norm = (start - end).norm();
         distance += norm;
-        ROS_WARN_STREAM("[UAL COMMS] From (" << start.x() << "," << start.y() << " ," << start.z() << " ) to (" << end.x() << "," << end.y() << " ," << end.z() << ") the distance is " << norm << ". Total distance " << distance);
+        // ROS_WARN_STREAM("[UAL COMMS] From (" << start.x() << "," << start.y() << " ," << start.z() << " ) to (" << end.x() << "," << end.y() << " ," << end.z() << ") the distance is " << norm << ". Total distance " << distance);
         // ++i;
         start = end;
     }

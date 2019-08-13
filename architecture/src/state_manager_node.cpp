@@ -61,7 +61,7 @@ namespace state_manager_node
     bool is_successfull_exploration = false;
     std::ofstream log_file;
     #ifdef SAVE_CSV
-    std::ofstream csv_file, csv_file_success;
+    std::ofstream csv_file;
     std::chrono::high_resolution_clock::time_point operation_start, timeline_start;
     #endif
 
@@ -176,15 +176,6 @@ namespace state_manager_node
         }
         pose_s.pose.position = state_data.next_goal_msg.end_flyby;
         flight_plan_request.poses.push_back(pose_s);
-
-        std::ofstream pathWaypoints;
-        pathWaypoints.open (folder_name + "/current/final_path_state_manager.txt", std::ofstream::out | std::ofstream::app);
-        for (std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan_request.poses.begin(); i != flight_plan_request.poses.end(); ++i)
-        {
-            pathWaypoints << std::setprecision(5) << i->pose.position.x << ", " << i->pose.position.y << ", " << i->pose.position.z << std::endl;
-            
-        }
-        pathWaypoints.close();
         return flight_plan_request;
     }
 
@@ -248,14 +239,6 @@ namespace state_manager_node
                 findTarget();
 
             }
-            #ifdef SAVE_CSV
-                std::pair <double, double> millis_count = calculateTime(); 
-                operation_start = std::chrono::high_resolution_clock::now();
-                int success = 2;
-                if (msg->success) success = 1;
-                else success = 0;
-                csv_file_success << millis_count.first << "," << success << "," << std::endl;
-            #endif
         }
     }
 
@@ -346,11 +329,8 @@ int main(int argc, char **argv)
     geofence_max_point.z = state_manager_node::geofence_max.z();
 
     #ifdef SAVE_CSV
-    state_manager_node::csv_file_success.open (state_manager_node::folder_name+"/current/success_rate.csv", std::ofstream::app);
-    state_manager_node::csv_file_success << "timeline,path_planner,sampling" << std::endl;
     state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
     state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
-
     #endif
     // state_manager_node::timer = nh.createTimer(ros::Duration(30), state_manager_node::main_loop);
     ros::spin();
