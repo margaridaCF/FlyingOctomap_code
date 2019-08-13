@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /Frontiers1/Namespaces1
-        - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
         - /State Manager1/Namespaces1
         - /Goal State Manager1
@@ -233,7 +232,7 @@ Visualization Manager:
       Name: Goal State Manager
       Namespaces:
         corridor_free: false
-        corridor_occupied: true
+        corridor_occupied: false
         geofence: true
         oppair_end: true
         oppair_end_outside: false
@@ -339,25 +338,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 49.5418777
+      Distance: 58.6423416
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -10.3540258
-        Y: -21.2017078
-        Z: 13.9841738
+        X: 1.63586843
+        Y: -8.24709797
+        Z: 6.21945667
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.714797139
+      Pitch: 0.524797201
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.00313044
+      Yaw: 3.08313251
     Saved: ~
 Window Geometry:
   Displays:

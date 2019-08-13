@@ -278,6 +278,9 @@ namespace state_manager_node
         start_pose.position = start_position;
         std::vector<geometry_msgs::Pose> initial (1, start_pose);
         state_data.ltstar_reply.waypoints = initial;
+        #ifdef SAVE_CSV
+        state_data.exploration_state.openCSV();
+        #endif
     }
 
     void init_param_variables(ros::NodeHandle& nh)
@@ -358,6 +361,7 @@ int main(int argc, char **argv)
     state_manager_node::csv_file_success << "timeline,path_planner,sampling" << std::endl;
     state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
     state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
+
     #endif
     // state_manager_node::timer = nh.createTimer(ros::Duration(30), state_manager_node::main_loop);
     ros::spin();

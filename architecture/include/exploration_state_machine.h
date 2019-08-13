@@ -15,9 +15,13 @@ namespace exploration_sm
 	{
 	public:
 		ExplorationStateMachine();
-		~ExplorationStateMachine(){}
+		~ExplorationStateMachine()
+		{
+			csv_file.close();
+		}
 		exploration_state_t getState();
 	    void switchState(exploration_state_t new_state);
+		void openCSV();
 		
 	private:
     	
