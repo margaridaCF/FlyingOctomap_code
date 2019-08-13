@@ -51,28 +51,6 @@
         <!-- Define home pose relative to global map frame -->
         <rosparam param="home_pose">[0, 0, 0]</rosparam>  
     </node>
-    <!-- ######################### UAV Path Manager nodes ######################### -->
-    <group ns="upat_follower">
-        <group ns="$(arg ns_prefix)1">
-            <node pkg="architecture" type="ual_communication_node" name="ual_communication" output="screen" required="true">
-                <param name="uav_id" value="1"/>
-                <param name="save_test_data" value="$(arg save_test_data)"/>
-                <param name="pub_rate" value="$(arg pub_rate)"/>
-                <param name="initial_maneuver" value="corridor_path"/>
-                <param name="reach_tolerance" value="0.6"/>
-                <param name="generator_mode" value="0"/>
-                <param name="take_off_height" value="5"/>
-                <param name="pkg_name" value="architecture"/>
-            </node>
-            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
-                <param name="uav_id" value="1"/>
-                <param name="robot_model" value="$(arg robot_model)"/>
-                <param name="pub_rate" value="$(arg pub_rate)"/>
-                <param name="save_experiment_data" value="$(arg save_experiment_data)"/>
-                <param name="trajectory" value="$(arg trajectory)"/>
-            </node>
-        </group>
-    </group>
     
 
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find architecture)/rviz_configurations/exploration_ltstarPaths.rviz" />
