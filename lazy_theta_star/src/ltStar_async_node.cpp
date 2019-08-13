@@ -147,7 +147,7 @@ namespace LazyThetaStarOctree
 			else
 			{
 				LazyThetaStarOctree::generateOffsets(octree->getResolution(), path_request->safety_margin, dephtZero, semiSphereOut );
-				LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, true) );
+				LazyThetaStarOctree::processLTStarRequest(*octree, *path_request, reply, sidelength_lookup_table, rviz_interface::PublishingInput( marker_pub, true, "factory_05res_30range_hitl") );
 				if(reply.waypoint_amount == 1)
 				{
 					ROS_ERROR_STREAM("[LTStar] The resulting path has only one waypoint. Request: " << *path_request);
