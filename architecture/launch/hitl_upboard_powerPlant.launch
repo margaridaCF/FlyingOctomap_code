@@ -1,4 +1,10 @@
 <launch>
+    <arg name="ns_prefix" default="uav_"/>
+    <arg name="save_test_data" default="false"/>
+    <arg name="pub_rate" default="50.0"/>
+    <arg name="robot_model" default="iris_hokuyo"/>
+    <arg name="save_experiment_data" default="false"/>
+    <arg name="trajectory" default="false"/>
 
     <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
     

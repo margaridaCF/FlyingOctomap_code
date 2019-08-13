@@ -9,11 +9,8 @@
     <arg name="ual_server" default="on"/>
     <arg name="ual_pub_rate" default="30.0"/>
     <arg name="mavros_offboard_rate" default="30.0"/>
-    <arg name="save_test_data" default="false"/>
     <arg name="pub_rate" default="50.0"/>
     <arg name="robot_model" default="iris_hokuyo"/>
-    <arg name="save_experiment_data" default="false"/>
-    <arg name="trajectory" default="false"/>
 
 
     <rosparam file="$(find architecture)/cfg/powerPlant_params.yaml" command="load" />
