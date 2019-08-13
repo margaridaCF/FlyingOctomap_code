@@ -197,7 +197,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef SAVE_CSV
-	ROS_WARN_STREAM("[main] Saving to " << LazyThetaStarOctree::folder_name << "/current/lazyThetaStar_computation_time.csv");
+	ROS_WARN_STREAM("[ltstar] Saving to " << LazyThetaStarOctree::folder_name << "/current/lazyThetaStar_computation_time.csv");
 
 	std::ofstream csv_file;
 	csv_file.open (LazyThetaStarOctree::folder_name+"/current/lazyThetaStar_computation_time.csv", std::ofstream::app);

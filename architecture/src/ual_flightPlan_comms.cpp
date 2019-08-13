@@ -18,8 +18,15 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #include <ual_flightPlan_comms.h>
+#include <utility>   
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <chrono>
+#include <boost/filesystem.hpp>
 
 namespace flight_plan_comms {
+#define SAVE_CSV 1
 
 UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
@@ -38,10 +45,11 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     flight_plan.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
     current_target = 1;
     switchState(init_segment);
+    #ifdef SAVE_CSV 
+        openCSV();
+        writePathLength();
+    #endif
     // =======================
-
-
-
 
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
@@ -58,6 +66,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     }
 
 UALCommunication::~UALCommunication() {
+    csv_file.close();
 }
 
 void UALCommunication::switchState(comms_state_t new_comms_state)
@@ -140,10 +149,57 @@ bool generateYaw(nav_msgs::Path & path)
     return true;
 }
 
+double calculatePathLength(nav_msgs::Path flight_plan)
+{
+    ROS_WARN_STREAM("[UAL COMMS] Calculating path length of "  << flight_plan );
+    std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan.poses.begin();
+    Eigen::Vector3d start (i->pose.position.x, i->pose.position.y, i->pose.position.z);
+    ++i;
+    double distance = 0;
+    while (i != flight_plan.poses.end())
+    {
+        Eigen::Vector3d end (i->pose.position.x, i->pose.position.y, i->pose.position.z);
+        double norm = (start - end).norm();
+        distance += norm;
+        ROS_WARN_STREAM("[UAL COMMS] From (" << start.x() << "," << start.y() << " ," << start.z() << " ) to (" << end.x() << "," << end.y() << " ," << end.z() << ") the distance is " << norm << ". Total distance " << distance);
+        ++i;
+    }
+    return distance;
+}
+
+void UALCommunication::openCSV()
+{
+    // Also creates the folder for the run and the sym link to it
+    std::stringstream aux_envvar_home (std::getenv("HOME"));
+    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
+    auto timestamp_chrono = std::chrono::high_resolution_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
+    std::stringstream folder_name_stream;
+    folder_name_stream << folder_name+"/" << (std::put_time(std::localtime(&now_c), "%F %T") );
+    std::string sym_link_name = folder_name+"/current";
+    boost::filesystem::create_directories(folder_name_stream.str());
+    boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
+    std::string file_name = folder_name_stream.str() + "/path_length.csv";
+    csv_file.open (file_name, std::ofstream::app);
+    csv_file << "timeline,path_length" << std::endl;
+    timeline_start = std::chrono::high_resolution_clock::now();
+    ROS_WARN_STREAM("[ualComms] Saving to " << file_name );
+}
+
+void UALCommunication::writePathLength()
+{
+    auto end_millis         = std::chrono::high_resolution_clock::now();
+    auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - timeline_start);
+    double timeline_millis  = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
+    csv_file << timeline_millis <<  "," << calculatePathLength(flight_plan) << std::endl;
+}
+
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
     flight_plan = *_flight_plan;
     flight_plan.header.frame_id = "uav_" + std::to_string(uav_id_) + "_home";
     current_target = 1;
+    writePathLength();
+
     switchState(init_segment);
 }
 
@@ -237,7 +293,6 @@ double calculateYawRate(double current_yaw, double desired_yaw)
     yaw_rate = std::max(yaw_rate, -0.5);
     // ROS_WARN_STREAM("[UAL COMMS] returning " << yaw_rate);
     return yaw_rate;
-
 }
 
 double UALCommunication::checkYaw()

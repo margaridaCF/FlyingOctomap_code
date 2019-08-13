@@ -315,17 +315,6 @@ namespace state_manager_node
 
 int main(int argc, char **argv)
 {
-    auto timestamp_chrono = std::chrono::high_resolution_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
-    // std::string timestamp (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::stringstream folder_name_stream;
-    folder_name_stream << state_manager_node::folder_name+"/" << (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::string sym_link_name = state_manager_node::folder_name+"/current";
-
-    boost::filesystem::create_directories(folder_name_stream.str());
-    boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
-
-
     ros::init(argc, argv, "state_manager");
     ros::NodeHandle nh;
     state_manager_node::init_param_variables(nh);
