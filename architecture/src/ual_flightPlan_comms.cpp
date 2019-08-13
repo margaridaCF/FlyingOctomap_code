@@ -149,20 +149,21 @@ bool generateYaw(nav_msgs::Path & path)
     return true;
 }
 
-double calculatePathLength(nav_msgs::Path flight_plan)
+double calculatePathLength(nav_msgs::Path & flight_plan, geometry_msgs::PoseStamped & ual_pose_)
 {
     ROS_WARN_STREAM("[UAL COMMS] Calculating path length of "  << flight_plan );
     std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan.poses.begin();
-    Eigen::Vector3d start (i->pose.position.x, i->pose.position.y, i->pose.position.z);
-    ++i;
+    Eigen::Vector3d start (ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     double distance = 0;
-    while (i != flight_plan.poses.end())
+    for (std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan.poses.begin(); i != flight_plan.poses.end(); ++i)
+    // while (i != flight_plan.poses.end())
     {
         Eigen::Vector3d end (i->pose.position.x, i->pose.position.y, i->pose.position.z);
         double norm = (start - end).norm();
         distance += norm;
         ROS_WARN_STREAM("[UAL COMMS] From (" << start.x() << "," << start.y() << " ," << start.z() << " ) to (" << end.x() << "," << end.y() << " ," << end.z() << ") the distance is " << norm << ". Total distance " << distance);
-        ++i;
+        // ++i;
+        start = end;
     }
     return distance;
 }
@@ -191,7 +192,7 @@ void UALCommunication::writePathLength()
     auto end_millis         = std::chrono::high_resolution_clock::now();
     auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - timeline_start);
     double timeline_millis  = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-    csv_file << timeline_millis <<  "," << calculatePathLength(flight_plan) << std::endl;
+    csv_file << timeline_millis <<  "," << calculatePathLength(flight_plan, ual_pose_) << std::endl;
 }
 
 void UALCommunication::flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan) {
