@@ -4,6 +4,7 @@
 #include <octomap/math/Vector3.h>
 #include <octomap/OcTree.h>
 #include <ros/ros.h>
+#include <frontiers.h>
 
 namespace volume
 {
@@ -101,7 +102,7 @@ namespace volume
 		
 	}
 
-	double calculateVolume(octomap::OcTree const& octree, octomath::Vector3 const& min, octomath::Vector3 const& max)
+	std::pair<double, double> calculateVolume(octomap::OcTree const& octree, octomath::Vector3 const& min, octomath::Vector3 const& max)
 	{
 		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
         if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
@@ -109,13 +110,24 @@ namespace volume
             ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
         }
 		octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-		double volume = 0;
+		double free = 0;
+		double occupied = 0;
+		double volume_d;
 		while(it != octree.end_leafs_bbx())
 		{
-			volume += volumeInsideGeofence (min, max, it);
+			volume_d = volumeInsideGeofence (min, max, it);
+			if(Frontiers::isOccupied(it.getCoordinate(), octree))
+			{
+				occupied += volume_d;
+			}
+			else
+			{
+				free += volume_d;
+			}
 			it++;
 		}
-		return volume;
+		std::pair<double, double> volume_pair = std::make_pair (free, occupied);
+		return volume_pair;
 	}
 }
 

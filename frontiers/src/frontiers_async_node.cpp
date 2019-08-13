@@ -149,8 +149,8 @@ namespace frontiers_async_node
 			double resolution = octree->getResolution();
 	        octomath::Vector3  max = octomath::Vector3(req.max.x-resolution, req.max.y-resolution, req.max.z-resolution);
 	        octomath::Vector3  min = octomath::Vector3(req.min.x+resolution, req.min.y+resolution, req.min.z+resolution);
-			double explored_volume_meters = volume::calculateVolume(*octree, geofence_min, geofence_max);
-			volume_explored << ellapsed_time_millis.count()  << ", " << explored_volume_meters << std::endl;
+			std::pair<double, double> explored_volume_meters = volume::calculateVolume(*octree, geofence_min, geofence_max);
+			volume_explored << ellapsed_time_millis.count()  << ", " << explored_volume_meters.first << ", " << explored_volume_meters.second << std::endl;
 			volume_explored.close();
 			#endif
 
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 		frontiers_async_node::log << "computation_time_millis, computation_time_secs \n";
 		frontiers_async_node::log.close();
 		frontiers_async_node::volume_explored.open (frontiers_async_node::folder_name + "/current/volume_explored.csv", std::ofstream::app);
-		frontiers_async_node::volume_explored << "time ellapsed millis,volume\n";
+		frontiers_async_node::volume_explored << "time ellapsed millis,free,occupied\n";
 		frontiers_async_node::volume_explored.close();
 		frontiers_async_node::start_exploration = std::chrono::high_resolution_clock::now();
 		// Geofence
