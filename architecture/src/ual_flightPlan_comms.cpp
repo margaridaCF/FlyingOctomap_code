@@ -346,35 +346,21 @@ namespace flight_plan_comms {
     void UALCommunication::followFlightPlan()
     {
         Eigen::Vector3f current_p, path0_p, path_end_p;
-        try
-        {
             current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
             path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
             path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
-        }
-        catch (const std::out_of_range& oor)
-        {
-            log_file << "out_of_range at followFlightPlan @ init " << oor.what() << std::endl;
-        }
         if (!end_path_) {
             if (!on_path_) {
-                try
-                {
-                    geometry_msgs::PoseStamped temp_target;
-                    temp_target = target_path_.poses.at(0);
-                    temp_target.pose.orientation = desired_quaternion;
-                    if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
-                        pub_set_pose_.publish(temp_target);
-                    } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_ && std::abs(checkYaw()) < 0.01) {
-                        pub_set_pose_.publish(temp_target);
-                        on_path_ = true;
-                    } else {
-                        pub_set_pose_.publish(temp_target);
-                    }
-                }
-                catch (const std::out_of_range& oor)
-                {
-                    log_file << "out_of_range at followFlightPlan @ 1 " << oor.what() << std::endl;
+                geometry_msgs::PoseStamped temp_target;
+                temp_target = target_path_.poses.at(0);
+                temp_target.pose.orientation = desired_quaternion;
+                if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
+                    pub_set_pose_.publish(temp_target);
+                } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_ && std::abs(checkYaw()) < 0.01) {
+                    pub_set_pose_.publish(temp_target);
+                    on_path_ = true;
+                } else {
+                    pub_set_pose_.publish(temp_target);
                 }
             } else {
                 if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
@@ -382,43 +368,12 @@ namespace flight_plan_comms {
                     on_path_ = false;
                     end_path_ = true;
                 } else {
-
-                    try
-                    {
-                        follower_.updatePose(ual_pose_);
-                    }
-                    catch (const std::out_of_range& oor)
-                    {
-                        log_file << "out_of_range at followFlightPlan @ 2 " << oor.what() << std::endl;
-                    }
-
-                    try
-                    {
-                        double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
-                    }
-                    catch (const std::out_of_range& oor)
-                    {
-                        log_file << "out_of_range at followFlightPlan @ 3 " << oor.what() << std::endl;
-                        log_file << "ual_pose_ " << ual_pose_ << std::endl;
-                    }
-                    try
-                    {
-                        velocity_ = follower_.getVelocity();
-                    }
-                    catch (const std::out_of_range& oor)
-                    {
-                        log_file << "out_of_range at followFlightPlan @ 4 " << oor.what() << std::endl;
-                    }
-                    try
-                    {
-                        pub_set_velocity_.publish(velocity_);
-                        current_path_.header.frame_id = ual_pose_.header.frame_id;
-                        current_path_.poses.push_back(ual_pose_);
-                    }
-                    catch (const std::out_of_range& oor)
-                    {
-                        log_file << "out_of_range at followFlightPlan @ 5 " << oor.what() << std::endl;
-                    }
+                    follower_.updatePose(ual_pose_);
+                    double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
+                    velocity_ = follower_.getVelocity();
+                    pub_set_velocity_.publish(velocity_);
+                    current_path_.header.frame_id = ual_pose_.header.frame_id;
+                    current_path_.poses.push_back(ual_pose_);
                 }
             }
         } else {
