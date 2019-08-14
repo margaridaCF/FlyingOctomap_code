@@ -414,6 +414,13 @@ namespace flight_plan_comms {
                     try
                     {
                         follower_.updatePose(ual_pose_);
+                    }
+                    catch (const std::out_of_range& oor)
+                    {
+                        log_file << "out_of_range at followFlightPlan @ 2 " << oor.what() << std::endl;
+                    }
+                    try
+                    {
                         double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
                         velocity_ = follower_.getVelocity();
                         pub_set_velocity_.publish(velocity_);
@@ -423,7 +430,7 @@ namespace flight_plan_comms {
                     }
                     catch (const std::out_of_range& oor)
                     {
-                        log_file << "out_of_range at followFlightPlan @ 2 " << oor.what() << std::endl;
+                        log_file << "out_of_range at followFlightPlan @ 3 " << oor.what() << std::endl;
                     }
                 }
             }
