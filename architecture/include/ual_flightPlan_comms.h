@@ -60,7 +60,7 @@ class UALCommunication {
     bool flag_hover_ = false;
 
    private:
-    std::ofstream csv_file;
+    std::ofstream csv_file, log_file;
     std::chrono::high_resolution_clock::time_point timeline_start;
     double vxy_ = 2.0;
     double vz_up_ = 3.0;
