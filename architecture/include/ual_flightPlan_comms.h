@@ -77,7 +77,6 @@ class UALCommunication {
     void followFlightPlan();
     void followFlightPlan_velocity();
     void runFlightPlan();
-    bool prepare();
     double publishYawControl();
     double checkYaw();
     void runFlightPlan_segments();

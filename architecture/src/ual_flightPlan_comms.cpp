@@ -233,35 +233,7 @@ namespace flight_plan_comms {
         pub_flight_plan_.publish(flight_plan);
     }
 
-    bool UALCommunication::prepare()
-    {
-        // Add current position to flight plan
-        std::vector<geometry_msgs::PoseStamped>::iterator it;
-        geometry_msgs::PoseStamped current_pose;
-        current_pose.pose.position = ual_pose_.pose.position;
-        it = init_path_.poses.begin();
-        it = init_path_.poses.insert ( it , current_pose );
-        // Initialize path
-        if( !generateYaw(init_path_) ) return false;
-        // Save data
-        if (save_test_) {
-            std::string pkg_name_path = ros::package::getPath(pkg_name_);
-            folder_data_name_ = pkg_name_path + "/tests/splines";
-        }
-
-        // Flags
-        on_path_ = false;
-        end_path_ = false;
-        double look_ahead = 0.8;
-        double cruising_speed = 1.0;
-        target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead, cruising_speed);
-        // ROS_ERROR_STREAM("init_path_" );
-        // for (std::vector<geometry_msgs::PoseStamped>::iterator i = init_path_.poses.begin(); i != init_path_.poses.end(); ++i)
-        // {
-        //     ROS_ERROR_STREAM(i->pose.position.x << "," << i->pose.position.y << "," << i->pose.position.z << "," << i->pose.orientation.x  << "," << i->pose.orientation.y  << "," << i->pose.orientation.z  << "," << i->pose.orientation.w );
-        // }
-        return true;
-    }
+    
 
     bool UALCommunication::prepare_yaw()
     {
