@@ -427,6 +427,7 @@ namespace flight_plan_comms {
                     catch (const std::out_of_range& oor)
                     {
                         log_file << "out_of_range at followFlightPlan @ 3 " << oor.what() << std::endl;
+                        log_file << "ual_pose_ " << ual_pose_ << std::endl;
                     }
                     try
                     {
