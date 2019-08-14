@@ -316,16 +316,16 @@ namespace flight_plan_comms {
         switch(comms_state)
         {
             case init_segment:
-                // try
-                // {
+                try
+                {
                     if(prepare_yaw())            desired_quaternion = temp_segment_path.poses.at(1).pose.orientation;
                     if(prepare_position())                          switchState(execute_position);
                     else                                            switchState(wait_for_flight);
-                // }
-                // catch (const std::out_of_range& oor)
-                // {
-                //     log_file << "out_of_range at init_segment " << oor.message << std::endl;
-                // }
+                }
+                catch (const std::out_of_range& oor)
+                {
+                    log_file << "out_of_range at init_segment " << oor.what() << std::endl;
+                }
                 break;
             case execute_position:
                     followFlightPlan();
@@ -374,20 +374,20 @@ namespace flight_plan_comms {
     void UALCommunication::followFlightPlan()
     {
         Eigen::Vector3f current_p, path0_p, path_end_p;
-        // try
-        // {
+        try
+        {
             current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
             path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
             path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
-        // }
-        // catch (const std::out_of_range& oor)
-        // {
-        //     log_file << "out_of_range at followFlightPlan @ init " << oor.message << std::endl;
-        // }
+        }
+        catch (const std::out_of_range& oor)
+        {
+            log_file << "out_of_range at followFlightPlan @ init " << oor.what() << std::endl;
+        }
         if (!end_path_) {
             if (!on_path_) {
-                // try
-                // {
+                try
+                {
                     geometry_msgs::PoseStamped temp_target;
                     temp_target = target_path_.poses.at(0);
                     temp_target.pose.orientation = desired_quaternion;
@@ -399,20 +399,20 @@ namespace flight_plan_comms {
                     } else {
                         pub_set_pose_.publish(temp_target);
                     }
-                // }
-                // catch (const std::out_of_range& oor)
-                // {
-                //     log_file << "out_of_range at followFlightPlan @ init " << oor.message << std::endl;
-                // }
+                }
+                catch (const std::out_of_range& oor)
+                {
+                    log_file << "out_of_range at followFlightPlan @ 1 " << oor.what() << std::endl;
+                }
             } else {
                 if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
                     pub_set_pose_.publish(target_path_.poses.back());
                     on_path_ = false;
                     end_path_ = true;
                 } else {
-                    
-                    // try
-                    // {
+
+                    try
+                    {
                         follower_.updatePose(ual_pose_);
                         double current_yaw = tf::getYaw(ual_pose_.pose.orientation);
                         velocity_ = follower_.getVelocity();
@@ -420,11 +420,11 @@ namespace flight_plan_comms {
                         current_path_.header.frame_id = ual_pose_.header.frame_id;
                         current_path_.poses.push_back(ual_pose_);
 
-                    // }
-                    // catch (const std::out_of_range& oor)
-                    // {
-                    //     log_file << "out_of_range at followFlightPlan @ init " << oor.message << std::endl;
-                    // }
+                    }
+                    catch (const std::out_of_range& oor)
+                    {
+                        log_file << "out_of_range at followFlightPlan @ 2 " << oor.what() << std::endl;
+                    }
                 }
             }
         } else {
