@@ -161,17 +161,11 @@ namespace goal_state_machine
 		octomath::Vector3 end  (unknown.x(), unknown.y(), unknown.z());
 		LazyThetaStarOctree::InputData input (*octree, start, end, 0);
 		bool has_visibility = hasLineOfSight_UnknownAsFree(input);
-		// if(!has_visibility)
-		// {
-			// ROS_INFO_STREAM("[Goal] There is an obstacle betweem the start of the flyby and the unknown point.");
-			// rviz_interface::publish_arrow_path_visibility(input.start, input.goal, pi.marker_pub, false, 58);
-			// geometry_msgs::Point current_position;
-			// current_position.x = 0;
-			// current_position.y = 0;
-			// current_position.z = 0;
-			// publishGoalToRviz(current_position);
-    		// ros::Duration(1).sleep();
-		// }
+		if(!has_visibility)
+		{
+			log_file << "[Goal] There is an obstacle betweem the start of the flyby and the unknown point." << std::endl;
+			rviz_interface::publish_arrow_path_visibility(input.start, input.goal, pi.marker_pub, false, 58);
+		}
         return has_visibility;
     }
 

@@ -99,6 +99,7 @@ namespace LazyThetaStarOctree
 		    	// This occurs when the start and end coordinates are the actual waypoints
 		    	cell_center = candidate;
 		    	side_length = octree->getResolution();
+		    	ROS_INFO_STREAM("[LtStar] The exception is expected. This occurs when the start and end coordinates are the actual waypoints. Everything is great!");
 		    }
 
 	        if( cell_center.distance(candidate) < 0.001 )
