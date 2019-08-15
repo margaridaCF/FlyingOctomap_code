@@ -16,7 +16,7 @@ namespace goal_state_machine
     std::ofstream log_file;
 
     GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true), global_search_it(0)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
@@ -333,10 +333,12 @@ namespace goal_state_machine
 		{
 			frontier_srv.request.min = geofence_min;
 			frontier_srv.request.max = geofence_max;
+			frontier_srv.request.global_search_it = global_search_it;
 		}
 		else
 		{
 			fillLocalGeofence();
+			frontier_srv.request.global_search_it = 0;
 		}
 		frontier_srv.request.frontier_amount = 20;
 		bool found_frontiers = findFrontiers_CallService(uav_position);
@@ -345,7 +347,10 @@ namespace goal_state_machine
 		{
 	        // ROS_INFO_STREAM("[Goal SM] Request " << frontier_srv.request);
 	        if(global)
+	        {
         		ROS_INFO_STREAM("[Goal SM] The global search still found a frontier.");
+        		global_search_it = frontier_srv.response.global_search_it;
+	        }
         	else
         		ROS_INFO_STREAM("[Goal SM] Just the local search was was enough to find a frontier");
 			return true;

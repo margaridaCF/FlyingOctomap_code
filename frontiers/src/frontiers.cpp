@@ -156,6 +156,7 @@ namespace Frontiers{
         #else
         reply.frontiers_found = frontiers_count;
         reply.success = frontiers_count > 0;
+        reply.global_search_it = it.getCounter();
         #endif
     }
 
@@ -171,7 +172,7 @@ namespace Frontiers{
 
         float z_max = max.z();
         float z_min = min.z();
-        Circulator it (octree, max, min, 0);
+        Circulator it (octree, max, min, request.global_search_it);
         n_id = 100;
         searchFrontier(octree, it, request, reply, marker_pub, publish);
         return it;

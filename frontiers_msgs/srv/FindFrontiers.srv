@@ -5,7 +5,9 @@ int8 frontier_amount
 uint32 request_number
 uint32 request_id
 bool new_request
+uint32 global_search_it
 ---
 bool success
 uint32 frontiers_found
+uint32 global_search_it
 frontiers_msgs/VoxelMsg[] frontiers

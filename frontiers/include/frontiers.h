@@ -19,6 +19,7 @@ namespace Frontiers{
 		bool isFinished();
 		octomath::Vector3 getCoordinate();
 		double getSize();
+		int getCounter();
 	};
 	
 	Circulator::Circulator()
@@ -46,6 +47,11 @@ namespace Frontiers{
 	    		starting_index = 0;
 	    	}
         }
+	}
+	
+	int Circulator::getCounter()
+	{
+		return count_from_beginning;
 	}
 
 	void Circulator::increment()
