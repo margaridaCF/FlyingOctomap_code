@@ -184,13 +184,13 @@ Visualization Manager:
       Use rainbow: true
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        {}
+        map: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /frontiers/known_space
@@ -204,18 +204,18 @@ Visualization Manager:
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        corridor_free: false
-        corridor_occupied: false
+        corridor_free: true
+        corridor_occupied: true
         goal: true
         goal_safetyZone: true
         lazy_theta_star_path: true
         lazy_theta_star_waypoint: true
-        rejected_neighors: false
+        rejected_neighors: true
         s: true
         start: true
         start_safetyZone: true
         straight_line: true
-        usable_neighors: false
+        usable_neighors: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -227,28 +227,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /goal_sm
       Name: Goal State Manager
       Namespaces:
-        corridor_free: false
-        corridor_occupied: false
-        geofence: true
-        oppair_end: true
-        oppair_end_outside: false
-        oppair_path: true
-        oppair_start: true
-        oppair_start_outside: false
-        safetyzone_flybyEnd: false
-        safetyzone_flybyStart: false
-        start_safetyZone: false
-        straight_line: false
-        uav_position: true
-        under_unknown_point: true
-        unknown: true
-        unknown_point: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -338,25 +323,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 58.6423416
+      Distance: 91.5279999
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.63586843
-        Y: -8.24709797
-        Z: 6.21945667
+        X: -19.4408722
+        Y: -6.59254169
+        Z: 17.3180256
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.524797201
+      Pitch: -0.0052031083
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.08313251
+      Yaw: 0.528136134
     Saved: ~
 Window Geometry:
   Displays:

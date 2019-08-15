@@ -130,7 +130,7 @@ namespace state_manager_node
                 ROS_INFO_STREAM ("[State manager] Requesting path from " << request.start << " to " << request.goal);
                 ltstar_request_pub.publish(request);
                 state_data.ltstar_request = request;
-                state_data.exploration_state.switchState(exploration_sm::waiting_path_response);
+                state_data.exploration_state.switchState(exploration_sm::waiting_path_response, false);
             }
         }
         else
@@ -192,11 +192,11 @@ namespace state_manager_node
             ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
             log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
             is_successfull_exploration = true;
-            state_data.exploration_state.switchState(exploration_sm::finished_exploring);
+            state_data.exploration_state.switchState(exploration_sm::finished_exploring, false);
         }
         else
         {
-            state_data.exploration_state.switchState(exploration_sm::generating_path);
+            state_data.exploration_state.switchState(exploration_sm::generating_path, state_data.next_goal_msg.global);
             askForObstacleAvoidingPath();
         }
     }
@@ -222,7 +222,7 @@ namespace state_manager_node
                 state_data.ltstar_reply = *msg;
                 nav_msgs::Path flight_plan_request = generateFlightPlanRequest();
                 state_data.new_map = true;
-                state_data.exploration_state.switchState(exploration_sm::visit_waypoints);
+                state_data.exploration_state.switchState(exploration_sm::visit_waypoints, false);
                 flight_plan_pub.publish(flight_plan_request);
                 #ifdef SAVE_LOG
                     log_file << "[State manager] Path reply " << *msg << std::endl;
@@ -232,7 +232,7 @@ namespace state_manager_node
             else
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
-                state_data.exploration_state.switchState(exploration_sm::exploration_start);
+                state_data.exploration_state.switchState(exploration_sm::exploration_start, false);
                 #ifdef SAVE_LOG
                     log_file << "[State manager] Path reply failed!" << std::endl;
                 #endif
@@ -244,7 +244,7 @@ namespace state_manager_node
 
     void flighPlan_cb(const std_msgs::Empty::ConstPtr& msg)
     {
-        state_data.exploration_state.switchState(exploration_sm::exploration_start);
+        state_data.exploration_state.switchState(exploration_sm::exploration_start, false);
         findTarget();
     }
 

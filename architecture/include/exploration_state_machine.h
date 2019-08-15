@@ -20,12 +20,13 @@ namespace exploration_sm
 			csv_file.close();
 		}
 		exploration_state_t getState();
-	    void switchState(exploration_state_t new_state);
+	    void switchState(exploration_state_t new_state,bool global);
 		void openCSV();
 		
 	private:
     	
     	exploration_state_t current_state;
+		void calculateAndSaveCsv(bool global);
 
         #ifdef SAVE_CSV
     		std::pair<double, double> calculateTime();
