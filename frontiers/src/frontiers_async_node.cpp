@@ -46,7 +46,7 @@ namespace frontiers_async_node
 		std::stringstream aux_envvar_home (std::getenv("HOME"));
 		folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 		csv_file.open (frontiers_async_node::folder_name + "/current/frontiers.csv", std::ofstream::app);
-		csv_file << "time ellapsed millis,free,occupied,frontier_search_time\n";
+		csv_file << "time_ellapsed_millis,free,occupied,frontier_search_time\n";
 		csv_file.close();
 		ROS_WARN_STREAM("[Frontiers] Writting header for " << frontiers_async_node::folder_name << "/current/frontiers.csv");
 		start_exploration = std::chrono::high_resolution_clock::now();
@@ -154,7 +154,7 @@ namespace frontiers_async_node
 			// Frontier computation time
 			std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-			std::chrono::seconds seconds = std::chrono::duration_cast<std::chrono::seconds>(ellapsed_time);
+			std::chrono::milliseconds seconds = std::chrono::duration_cast<std::chrono::milliseconds>(ellapsed_time);
 			// Explored volume
 			ellapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start_exploration);
 			std::chrono::milliseconds ellapsed_time_millis = std::chrono::duration_cast<std::chrono::milliseconds>(ellapsed_time);
