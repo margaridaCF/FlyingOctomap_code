@@ -67,7 +67,7 @@ namespace Frontiers{
         marker_array.markers.push_back(marker);
     }
 
-    void searchFrontier(octomap::OcTree const& octree, octomap::OcTree::leaf_bbx_iterator & it, frontiers_msgs::FindFrontiers::Request  &request,
+    void searchFrontier(octomap::OcTree const& octree, Circulator & it, frontiers_msgs::FindFrontiers::Request  &request,
         frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish)
     {
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
@@ -86,7 +86,7 @@ namespace Frontiers{
         visualization_msgs::MarkerArray marker_array;
         LazyThetaStarOctree::unordered_set_pointers analyzed;
 
-        if(it == octree.end_leafs_bbx())
+        if(it.isFinished())
         {
             ROS_ERROR_STREAM("[Frontier] End of iterator");
         }
@@ -96,7 +96,7 @@ namespace Frontiers{
             ROS_ERROR_STREAM("[Frontier] Already found " << frontiers_count << " frontiers out of " << request.frontier_amount);
 
         }
-        while( !(it == octree.end_leafs_bbx()) && frontiers_count < request.frontier_amount )
+        while( !(it.isFinished()) && frontiers_count < request.frontier_amount )
         {
             octomath::Vector3 coord = it.getCoordinate();
             currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
@@ -145,7 +145,7 @@ namespace Frontiers{
                     }
                 }
             }
-            it++;
+            it.increment();
         }
         #ifdef RUNNING_ROS
         marker_pub.publish(marker_array);
@@ -159,7 +159,7 @@ namespace Frontiers{
         #endif
     }
 
-    octomap::OcTree::leaf_bbx_iterator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FindFrontiers::Request  &request,
+    Circulator processFrontiersRequest(octomap::OcTree const& octree, frontiers_msgs::FindFrontiers::Request  &request,
         frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish )
     {
         double resolution = octree.getResolution();
@@ -171,15 +171,7 @@ namespace Frontiers{
 
         float z_max = max.z();
         float z_min = min.z();
-
-        octomap::OcTreeKey bbxMinKey, bbxMaxKey;
-        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
-        {
-            ROS_ERROR_STREAM("[Frontiers] Problems with the octree");
-            reply.success = false;
-            return octomap::OcTree::leaf_bbx_iterator();
-        }
-        octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
+        Circulator it (octree, max, min, 0);
         n_id = 100;
         searchFrontier(octree, it, request, reply, marker_pub, publish);
         return it;

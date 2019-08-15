@@ -30,7 +30,7 @@ namespace frontiers_async_node
 	ros::Publisher marker_pub;
 	std::string folder_name;
 	int last_request_id;
-	octomap::OcTree::leaf_bbx_iterator iterator;
+	Frontiers::Circulator iterator;
 	bool octomap_init;
 	#ifdef SAVE_CSV
 	bool first_call;
