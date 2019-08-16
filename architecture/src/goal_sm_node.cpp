@@ -83,7 +83,6 @@ namespace goal_sm_node
         {
             goal_state_machine->getFlybyStart(res.start_flyby);
             goal_state_machine->getFlybyEnd(res.end_flyby);
-            res.global = goal_state_machine->isGlobal();
             res.unknown = goal_state_machine->get_current_frontier();
             goal_state_machine->publishGoalToRviz(current_position);
             geometry_msgs::Point frontier_geom = goal_state_machine->get_current_frontier();
@@ -93,6 +92,7 @@ namespace goal_sm_node
         {
             log_file << "[Goal SM] No goal available " << std::endl;
         }
+        res.global = goal_state_machine->isGlobal();
         log_file.close();
 		return true;
 	}
