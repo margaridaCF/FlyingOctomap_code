@@ -122,7 +122,7 @@ namespace state_manager_node
                 }
                 else
                 {
-                    request.max_time_secs = max_time_secs/4;
+                    request.max_time_secs = max_time_secs/8;
                 }
                 #ifdef SAVE_LOG
                 log_file << "[State manager] Requesting path " << request << std::endl;

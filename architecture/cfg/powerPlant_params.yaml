@@ -21,7 +21,7 @@ geofence_max/y: 20
 geofence_min/z: 4
 geofence_max/z: 35
 
-path/max_time_secs: 120
+path/max_time_secs: 240
 path/safety_margin: 5
 
 local_fence_side: 10
