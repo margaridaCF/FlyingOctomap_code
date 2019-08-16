@@ -91,6 +91,11 @@ namespace goal_sm_node
         else
         {
             log_file << "[Goal SM] No goal available " << std::endl;
+
+
+            std::stringstream ss;
+            ss << folder_name << "/current/final_map.bt";
+            octree->writeBinary(ss.str());
         }
         res.global = goal_state_machine->isGlobal();
         log_file.close();
