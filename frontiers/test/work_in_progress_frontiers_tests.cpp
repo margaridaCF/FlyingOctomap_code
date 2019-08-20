@@ -107,141 +107,66 @@ namespace Frontiers_test
 				return volume;
 			}
 		}
-		return 0;
+		return 0;	
+	}
+
+	frontiers_msgs::FindFrontiers::Response getFrontiers(octomap::OcTree const& octree, frontiers_msgs::FindFrontiers::Request  &request, ros::Publisher const& marker_pub, Frontiers::search_function search)
+	{
+		octomath::Vector3 min (request.min.x, request.min.y, request.min.z);
+		octomath::Vector3 max (request.max.x, request.max.y, request.max.z);
+		frontiers_msgs::FindFrontiers::Response reply;
+		int start_it = 0;
+        Frontiers::Circulator it (octree, max, min, start_it);
+    	search(octree, it, request, reply, marker_pub, false);
+    	return reply;
+	}
+
+	bool compareVoxelMsg(frontiers_msgs::VoxelMsg & a, frontiers_msgs::VoxelMsg & b)
+	{
+		bool equal = (a.xyz_m.x == b.xyz_m.x);
+		equal = equal && (a.xyz_m.y == b.xyz_m.y);
+		equal = equal && (a.xyz_m.z == b.xyz_m.z);
+		equal = equal && (a.size == b.size);
+		return equal;
+	}
+
+	TEST(CirculatorTest, SearchFrontiers)
+	{
+		ros::Publisher marker_pub;
+		octomap::OcTree octree ("data/hilt_measurements.bt");
+		frontiers_msgs::FindFrontiers::Request  request;
+		request.min.x = -40;
+		request.max.x = 30;
 		
-	}
+		request.min.y = -18;
+		request.max.y = 20;
 
-	TEST(CirculatorTest, FullIteration)
-	{
-		octomap::OcTree octree ("data/experimentalDataset.bt");
-		octomath::Vector3 min (0, 0, 0);
-		octomath::Vector3 max (1, 1, 1);
+		request.min.z = 4;
+		request.max.z = 35;
+		request.frontier_amount = 1;
+		auto start = std::chrono::high_resolution_clock::now();
+		frontiers_msgs::FindFrontiers::Response reply_v1 = getFrontiers(octree, request, marker_pub, Frontiers::searchFrontier);
+		auto end = std::chrono::high_resolution_clock::now(); 
+		auto time_span = end - start;
+		ROS_INFO_STREAM("v1 took " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count());
 
-		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
-        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
-        {
-            ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
-        }
-		octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-		double count = 0;
-    	while(it != octree.end_leafs_bbx() )
+		start = std::chrono::high_resolution_clock::now();
+		frontiers_msgs::FindFrontiers::Response reply_v2 = getFrontiers(octree, request, marker_pub, Frontiers::searchFrontier_optimized);
+		end = std::chrono::high_resolution_clock::now(); 
+		time_span = end - start;
+		ROS_INFO_STREAM("v2 took " << std::chrono::duration_cast<std::chrono::microseconds>(time_span).count());
+
+		ASSERT_EQ(reply_v1.frontiers.size(), reply_v2.frontiers.size());
+		int index = 0;
+		while(index < reply_v1.frontiers.size())
 		{
-			count++;
-			it++;
+			ASSERT_TRUE(   compareVoxelMsg( reply_v1.frontiers[index], reply_v2.frontiers[index] )   );
+			index++;
 		}
-
-		Frontiers::Circulator cit (octree, max, min, 0);
-		double count_circulator = 0;
-		bool failed = false;
-		while(!cit.isFinished() && !failed )
-		{
-			count_circulator++;
-			cit.increment();
-			failed = (count_circulator > (count+10) );
-		}
-		ASSERT_TRUE(cit.isFinished());
-		ASSERT_FALSE(failed);
-		ASSERT_EQ(count, count_circulator);
 	}
 
 
-	TEST(CirculatorTest, FullIteration_FromOffset)
-	{
-		octomap::OcTree octree ("data/experimentalDataset.bt");
-		octomath::Vector3 min (0, 0, 0);
-		octomath::Vector3 max (1, 1, 1);
 
-		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
-        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
-        {
-            ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
-        }
-		octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-		double count = 0;
-    	while(it != octree.end_leafs_bbx() )
-		{
-			count++;
-			it++;
-		}
-
-		Frontiers::Circulator cit (octree, max, min, 2);
-		double count_circulator = 0;
-		bool failed = false;
-		while(!cit.isFinished() && !failed )
-		{
-			count_circulator++;
-			cit.increment();
-			failed = (count_circulator > (count+3) );
-		}
-		ASSERT_TRUE(cit.isFinished());
-		ASSERT_FALSE(failed);
-		ASSERT_EQ(count, count_circulator);
-	}
-
-	TEST(CirculatorTest, FullIteration_OffsetGreaterThanVoxelsCount)
-	{
-		octomap::OcTree octree ("data/experimentalDataset.bt");
-		octomath::Vector3 min (0, 0, 0);
-		octomath::Vector3 max (1, 1, 1);
-
-		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
-        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
-        {
-            ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
-        }
-		octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-		double count = 0;
-    	while(it != octree.end_leafs_bbx() )
-		{
-			count++;
-			it++;
-		}
-
-		Frontiers::Circulator cit (octree, max, min, 102);
-		double count_circulator = 0;
-		bool failed = false;
-		while(!cit.isFinished() && !failed )
-		{
-			count_circulator++;
-			cit.increment();
-			failed = (count_circulator > (count+3) );
-		}
-		ASSERT_TRUE(cit.isFinished());
-		ASSERT_FALSE(failed);
-		ASSERT_EQ(count, count_circulator);
-	}
-	TEST(CirculatorTest, FullIteration_OffsetGreaterThanVoxelsCount_Double)
-	{
-		octomap::OcTree octree ("data/experimentalDataset.bt");
-		octomath::Vector3 min (0, 0, 0);
-		octomath::Vector3 max (1, 1, 1);
-
-		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
-        if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
-        {
-            ROS_ERROR_STREAM("[Frontiers] Problems with write_volume_explored_to_csv");
-        }
-		octomap::OcTree::leaf_bbx_iterator it = octree.begin_leafs_bbx(bbxMinKey,bbxMaxKey);
-		double count = 0;
-    	while(it != octree.end_leafs_bbx() )
-		{
-			count++;
-			it++;
-		}
-
-		Frontiers::Circulator cit (octree, max, min, 300);
-		double count_circulator = 0;
-		bool failed = false;
-		while(!cit.isFinished() && !failed )
-		{
-			count_circulator++;
-			cit.increment();
-			failed = (count_circulator > (count+3) );
-		}
-		ASSERT_TRUE(cit.isFinished());
-		ASSERT_FALSE(failed);
-		ASSERT_EQ(count, count_circulator);
-	}
 }
 
 int main(int argc, char **argv){

@@ -110,16 +110,11 @@ namespace Frontiers{
                 LazyThetaStarOctree::generateNeighbors_frontiers_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution);
                 for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
                 {
+                    // Skip neighbours that have already been analyzed. The same neighbours shows up multiple times because the list contains the centers of the sparse voxels starting from the regular grid. 
                     auto out = analyzed.insert(std::make_shared<octomath::Vector3> (n_coordinates->x(), n_coordinates->y(), n_coordinates->z() )   );
-                    if(!out.second)
-                    {
-                        continue;
-                    }
-                    if(!isInsideGeofence(*n_coordinates, request.min, request.max))
-                    {
-                        // Octomap's bounding box is not accurate at all. The neighbors are outside the bounding box anyway, we just want to recover data from what is inside the bouding box. This is to enforce the geofence.
-                        continue;
-                    }   
+                    if(!out.second) continue;
+                    // Octomap's bounding box is not accurate at all. The neighbors are outside the bounding box anyway, we just want to recover data from what is inside the bouding box. This is to enforce the geofence.
+                    if(!isInsideGeofence(*n_coordinates, request.min, request.max))continue;   
                     State n_state = getState(*n_coordinates, octree);
                     if(n_state == unknown)
                     {
@@ -137,13 +132,92 @@ namespace Frontiers{
                         #else
                         reply.frontiers.push_back(voxel_msg);
                         frontiers_count++;
-                        if( frontiers_count == request.frontier_amount)
-                        {
-                            break;
-                        }
+                        if( frontiers_count == request.frontier_amount) break;
                         #endif
                     }
                 }
+            }
+            it.increment();
+        }
+        #ifdef RUNNING_ROS
+        marker_pub.publish(marker_array);
+        #endif
+
+        #ifdef BASELINE
+        allNeighbors.buildMessageList(request.frontier_amount, reply);
+        #else
+        reply.frontiers_found = frontiers_count;
+        reply.success = frontiers_count > 0;
+        reply.global_search_it = it.getCounter();
+        #endif
+    }
+
+    void searchFrontier_optimized(octomap::OcTree const& octree, Circulator & it, frontiers_msgs::FindFrontiers::Request  &request,
+        frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish)
+    {
+        octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
+        
+        #ifdef BASELINE 
+        frontiers_msgs::VoxelMsg current_position_voxel_msg;
+        current_position_voxel_msg.xyz_m.x = current_position.x();
+        current_position_voxel_msg.xyz_m.y = current_position.y();
+        current_position_voxel_msg.xyz_m.z = current_position.z();
+        OrderedNeighbors allNeighbors (current_position_voxel_msg);
+        #endif
+        octomath::Vector3 grid_coordinates_curr, grid_coordinates_toTest;
+        Voxel currentVoxel;
+        double resolution = octree.getResolution();
+        int frontiers_count = 0;
+        visualization_msgs::MarkerArray marker_array;
+        LazyThetaStarOctree::unordered_set_pointers analyzed;
+
+        if(it.isFinished()) ROS_ERROR_STREAM("[Frontier] End of iterator");
+        if(!(frontiers_count < request.frontier_amount ))
+        {
+            ROS_ERROR_STREAM("[Frontier] Already found " << frontiers_count << " frontiers out of " << request.frontier_amount);
+
+        }
+        while( !(it.isFinished()) && frontiers_count < request.frontier_amount )
+        {
+            octomath::Vector3 coord = it.getCoordinate();
+            currentVoxel = Voxel (coord.x(), coord.y(), coord.z(), it.getSize());
+            grid_coordinates_curr = octomath::Vector3(currentVoxel.x, currentVoxel.y, currentVoxel.z);
+
+            State curr_state = getState(grid_coordinates_curr, octree);
+
+            if( curr_state == free )
+            {
+                LazyThetaStarOctree::unordered_set_pointers neighbors;
+                LazyThetaStarOctree::generateNeighbors_frontiers_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution);
+                for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
+                {
+                    // Skip neighbours that have already been analyzed. The same neighbours shows up multiple times because the list contains the centers of the sparse voxels starting from the regular grid. 
+                    auto out = analyzed.insert(std::make_shared<octomath::Vector3> (n_coordinates->x(), n_coordinates->y(), n_coordinates->z() )   );
+                    if(!out.second) continue;
+                    // Octomap's bounding box is not accurate at all. The neighbors are outside the bounding box anyway, we just want to recover data from what is inside the bouding box. This is to enforce the geofence.
+                    if(!isInsideGeofence(*n_coordinates, request.min, request.max))continue;   
+                    State n_state = getState(*n_coordinates, octree);
+                    if(n_state == unknown)
+                    {
+                        #ifdef RUNNING_ROS
+                            paintState(n_state, *n_coordinates, marker_array, n_id);
+                        #endif
+                        n_id++;
+                        frontiers_msgs::VoxelMsg voxel_msg;
+                        voxel_msg.size = currentVoxel.size;
+                        voxel_msg.xyz_m.x = n_coordinates->x();
+                        voxel_msg.xyz_m.y = n_coordinates->y();
+                        voxel_msg.xyz_m.z = n_coordinates->z();
+                        #ifdef BASELINE 
+                        allNeighbors.insert(voxel_msg);
+                        #else
+                        reply.frontiers.push_back(voxel_msg);
+                        frontiers_count++;
+                        break;
+                        #endif
+                    }
+                }
+                if( frontiers_count == request.frontier_amount) break;
             }
             it.increment();
         }
@@ -178,7 +252,6 @@ namespace Frontiers{
         return it;
     }
     
-
     bool isOccupied(octomath::Vector3 const& grid_coordinates_toTest, octomap::OcTree const& octree)
     {
         octomap::OcTreeNode* result = octree.search(grid_coordinates_toTest.x(), grid_coordinates_toTest.y(), grid_coordinates_toTest.z());

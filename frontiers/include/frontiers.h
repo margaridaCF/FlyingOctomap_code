@@ -89,6 +89,10 @@ namespace Frontiers{
     bool isFrontier(octomap::OcTree& octree, octomath::Vector3 const&  candidate); 
     void searchFrontier(octomap::OcTree const& octree, Circulator & it, frontiers_msgs::FindFrontiers::Request  &request,
         frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish);
-   
+    void searchFrontier_optimized(octomap::OcTree const& octree, Circulator & it, frontiers_msgs::FindFrontiers::Request  &request,
+        frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish);
+
+    typedef void (*search_function)(octomap::OcTree const& octree, Circulator & it, frontiers_msgs::FindFrontiers::Request  &request, frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish);
+
 }
 #endif // FRONTIERS_H
