@@ -1,2 +1,4 @@
 geometry_msgs/Point xyz_m
 float64 size
+float64 occupied_neighborhood
+float64 distance

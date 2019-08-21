@@ -10,7 +10,7 @@ namespace Frontiers
 
 struct compare {
     bool operator() (const frontiers_msgs::VoxelMsg& lhs, const frontiers_msgs::VoxelMsg& rhs) const {
-        return lhs.size < rhs.size;
+        return (lhs.size + lhs.occupied_neighborhood) < (rhs.size + rhs.occupied_neighborhood);
     }
 };
 
@@ -29,7 +29,7 @@ public:
 
 	void insert(frontiers_msgs::VoxelMsg & new_neighbor)
 	{
-		new_neighbor.size = distance(new_neighbor, current_position);
+		new_neighbor.distance = distance(new_neighbor, current_position);
 		neighbors.insert(neighbors.begin(), new_neighbor);
 	}
 
@@ -43,7 +43,7 @@ public:
 		}
 	}
 
-	int buildMessageList(int frontier_amount, frontiers_msgs::FrontierReply & reply) const
+	int buildMessageList(int frontier_amount, frontiers_msgs::FindFrontiers::Response & reply) const
 	{
 		int frontier_counter = 0;
 		for (std::set <frontiers_msgs::VoxelMsg, compare>::iterator i = neighbors.begin(); 

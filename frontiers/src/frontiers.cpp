@@ -4,6 +4,7 @@
 
 // #define SAVE_LOG 1
 // #define RUNNING_ROS 1
+#define ORDER 1
 
 
 namespace Frontiers{
@@ -72,7 +73,7 @@ namespace Frontiers{
     {
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
         
-        #ifdef BASELINE 
+        #ifdef ORDER 
         frontiers_msgs::VoxelMsg current_position_voxel_msg;
         current_position_voxel_msg.xyz_m.x = current_position.x();
         current_position_voxel_msg.xyz_m.y = current_position.y();
@@ -108,6 +109,10 @@ namespace Frontiers{
             {
                 LazyThetaStarOctree::unordered_set_pointers neighbors;
                 LazyThetaStarOctree::generateNeighbors_frontiers_pointers(neighbors, grid_coordinates_curr, currentVoxel.size, resolution);
+                #ifdef ORDER 
+                std::list<frontiers_msgs::VoxelMsg> neighborhood;
+                double surface_neighborhood = 0;
+                #endif
                 for(std::shared_ptr<octomath::Vector3> n_coordinates : neighbors)
                 {
                     // Skip neighbours that have already been analyzed. The same neighbours shows up multiple times because the list contains the centers of the sparse voxels starting from the regular grid. 
@@ -127,15 +132,31 @@ namespace Frontiers{
                         voxel_msg.xyz_m.x = n_coordinates->x();
                         voxel_msg.xyz_m.y = n_coordinates->y();
                         voxel_msg.xyz_m.z = n_coordinates->z();
-                        #ifdef BASELINE 
-                        allNeighbors.insert(voxel_msg);
+                        frontiers_count++;
+                        #ifdef ORDER 
+                        neighborhood.insert(neighborhood.begin(),voxel_msg);
                         #else
                         reply.frontiers.push_back(voxel_msg);
-                        frontiers_count++;
                         if( frontiers_count == request.frontier_amount) break;
                         #endif
                     }
+                    #ifdef ORDER 
+                    else if(n_state == occupied)
+                    {
+                        surface_neighborhood += currentVoxel.size;
+                    }
+                    #endif
                 }
+                #ifdef ORDER 
+                for (std::list<frontiers_msgs::VoxelMsg>::iterator it_n = neighborhood.begin(); it_n != neighborhood.end(); ++it_n)
+                {
+                    frontiers_msgs::VoxelMsg voxel_msg;
+                    voxel_msg = *it_n;
+                    voxel_msg.occupied_neighborhood = surface_neighborhood;
+                    allNeighbors.insert(voxel_msg);
+                }
+                if( frontiers_count == request.frontier_amount) break;
+                #endif
             }
             it.increment();
         }
@@ -143,13 +164,13 @@ namespace Frontiers{
         marker_pub.publish(marker_array);
         #endif
 
-        #ifdef BASELINE
+        #ifdef ORDER
         allNeighbors.buildMessageList(request.frontier_amount, reply);
         #else
         reply.frontiers_found = frontiers_count;
+        #endif
         reply.success = frontiers_count > 0;
         reply.global_search_it = it.getCounter();
-        #endif
     }
 
     void searchFrontier_optimized(octomap::OcTree const& octree, Circulator & it, frontiers_msgs::FindFrontiers::Request  &request,
@@ -157,7 +178,7 @@ namespace Frontiers{
     {
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
         
-        #ifdef BASELINE 
+        #ifdef ORDER 
         frontiers_msgs::VoxelMsg current_position_voxel_msg;
         current_position_voxel_msg.xyz_m.x = current_position.x();
         current_position_voxel_msg.xyz_m.y = current_position.y();
@@ -208,7 +229,7 @@ namespace Frontiers{
                         voxel_msg.xyz_m.x = n_coordinates->x();
                         voxel_msg.xyz_m.y = n_coordinates->y();
                         voxel_msg.xyz_m.z = n_coordinates->z();
-                        #ifdef BASELINE 
+                        #ifdef ORDER 
                         allNeighbors.insert(voxel_msg);
                         #else
                         reply.frontiers.push_back(voxel_msg);
@@ -225,7 +246,7 @@ namespace Frontiers{
         marker_pub.publish(marker_array);
         #endif
 
-        #ifdef BASELINE
+        #ifdef ORDER
         allNeighbors.buildMessageList(request.frontier_amount, reply);
         #else
         reply.frontiers_found = frontiers_count;
