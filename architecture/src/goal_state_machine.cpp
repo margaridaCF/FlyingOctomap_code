@@ -44,9 +44,15 @@ namespace goal_state_machine
 
 		oppairs_under = observation_lib::OPPairs(circle_divisions/2, distance_from_unknown_under, distance_inFront_under, distance_behind_under, observation_lib::translate);
 
+	}
+
+	void GoalStateMachine::openCsv()
+	{
 		std::stringstream aux_envvar_home (std::getenv("HOME"));
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
-		log_file.open (folder_name+"/current/goal_sm.log", std::ofstream::app);
+		csv_file.open (folder_name+"/current/goal_sm.csv", std::ofstream::app);
+		ROS_INFO_STREAM("Goal CSV at " << folder_name <<"/current/goal_sm.csv" );
+		csv_file << "not_observable,not_visible,oppair_not_valid,start_not_reachable,outside_start,outside_end,obstacles_in_flight_corridor" << std::endl;
 	}
 
 	void GoalStateMachine::NewMap()
@@ -109,7 +115,8 @@ namespace goal_state_machine
     					oppair_id++;
 					}
 					#endif
-    				// ros::Duration(sleep_seconds).sleep();
+    				// ros::Duration(3).sleep();
+					csv_file << ",,1,,,,1" << std::endl;
 				}
 				return fc_free;
 	    	}
@@ -130,6 +137,7 @@ namespace goal_state_machine
     			pi.marker_pub.publish(pi.waypoint_array);
     			// ROS_INFO_STREAM("End outside geofence.");
     			// ros::Duration(sleep_seconds).sleep();
+				csv_file << ",,1,,1,," << std::endl;
     			return false;
 	    	}
     	}
@@ -150,6 +158,7 @@ namespace goal_state_machine
 			pi.marker_pub.publish(pi.waypoint_array);
 			// ROS_INFO_STREAM("Start outside geofence.");
 			// ros::Duration(s).sleep();
+			csv_file << ",,1,,1,," << std::endl;
 			return false;
     	}
     }
@@ -160,14 +169,17 @@ namespace goal_state_machine
         octomath::Vector3 start(start_e.x(), start_e.y(), start_e.z());
 		octomath::Vector3 end  (unknown.x(), unknown.y(), unknown.z());
 		LazyThetaStarOctree::InputData input (*octree, start, end, 0);
-		bool has_visibility_forwards = hasLineOfSight_UnknownAsFree(input);
-		bool has_visibility_backwards = hasLineOfSight_UnknownAsFree(LazyThetaStarOctree::InputData (*octree, end, start, 0));
+
+		bool has_visibility_forwards = LazyThetaStarOctree::hasLineOfSight_UnknownAsFree(input, pi);
+		bool has_visibility_backwards = LazyThetaStarOctree::hasLineOfSight_UnknownAsFree(LazyThetaStarOctree::InputData (*octree, end, start, 0), pi);
 		bool has_visibility = has_visibility_forwards && has_visibility_backwards;
-		// if(!has_visibility)
-		// {
-			log_file << "[Goal] There is an obstacle between the start of the flyby and the unknown point." << std::endl;
+		if(!has_visibility)
+		{
+			csv_file << ",1,,,,," << std::endl;
+			// log_file << "[Goal] There is an obstacle between the start of the flyby and the unknown point." << std::endl;
 			rviz_interface::publish_arrow_path_visibility(input.start, input.goal, pi.marker_pub, has_visibility, 58);
-		// }
+		}
+    	ros::Duration(3).sleep();
         return has_visibility;
     }
 
@@ -453,6 +465,7 @@ namespace goal_state_machine
 			}
 			n_id++;
 		}
+		csv_file << ",,,1,,," << std::endl;
 		return false;
     }
 
@@ -555,6 +568,7 @@ namespace goal_state_machine
 		if(!is_observable)
 		{
 			ROS_INFO_STREAM("[Goal] Unobservable point from this particular viewpoint");
+			csv_file << "1,,,,,," << std::endl;
 		}
 		return is_observable;
 	}

@@ -13,7 +13,6 @@ Panels:
         - /State Manager1/Namespaces1
         - /Goal State Manager1
         - /Goal State Manager1/Namespaces1
-        - /Flight Plan1
       Splitter Ratio: 0.584474862
     Tree Height: 921
   - Class: rviz/Selection
@@ -229,13 +228,13 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /goal_sm
       Name: Goal State Manager
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -263,7 +262,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 85; 0; 255
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -281,12 +280,12 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /upat_follower/visualization/uav_1/init_path
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -304,7 +303,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /uav_1/flight_plan
       Unreliable: false
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 127; 180; 169
