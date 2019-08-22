@@ -52,7 +52,7 @@ namespace goal_state_machine
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 		csv_file.open (folder_name+"/current/goal_sm.csv", std::ofstream::app);
 		ROS_INFO_STREAM("Goal CSV at " << folder_name <<"/current/goal_sm.csv" );
-		csv_file << "not_observable,not_visible,oppair_not_valid,start_not_reachable,outside_start,outside_end,obstacles_in_flight_corridor" << std::endl;
+		csv_file << "not_observable,not_visible,oppair_not_valid,start_not_reachable,outside_start,outside_end,obstacles_in_flight_corridor,is_oppairs_side" << std::endl;
 	}
 
 	void GoalStateMachine::NewMap()
@@ -116,7 +116,7 @@ namespace goal_state_machine
 					}
 					#endif
     				// ros::Duration(3).sleep();
-					csv_file << ",,1,,,,1" << std::endl;
+					csv_file << ",,1,,,,1," << is_oppairs_side << std::endl;
 				}
 				return fc_free;
 	    	}
@@ -137,8 +137,8 @@ namespace goal_state_machine
     			pi.marker_pub.publish(pi.waypoint_array);
     			// ROS_INFO_STREAM("End outside geofence.");
     			// ros::Duration(sleep_seconds).sleep();
-				csv_file << ",,1,,1,," << std::endl;
-    			return false;
+				csv_file << ",,1,,1,,," << std::endl;
+			    return false;
 	    	}
     	}
     	else
@@ -158,7 +158,7 @@ namespace goal_state_machine
 			pi.marker_pub.publish(pi.waypoint_array);
 			// ROS_INFO_STREAM("Start outside geofence.");
 			// ros::Duration(s).sleep();
-			csv_file << ",,1,,1,," << std::endl;
+			csv_file << ",,1,,1,,," << std::endl;
 			return false;
     	}
     }
@@ -175,11 +175,11 @@ namespace goal_state_machine
 		bool has_visibility = has_visibility_forwards && has_visibility_backwards;
 		if(!has_visibility)
 		{
-			csv_file << ",1,,,,," << std::endl;
+			csv_file << ",1,,,,,," << std::endl;
 			// log_file << "[Goal] There is an obstacle between the start of the flyby and the unknown point." << std::endl;
 			rviz_interface::publish_arrow_path_visibility(input.start, input.goal, pi.marker_pub, has_visibility, 58);
 		}
-    	ros::Duration(3).sleep();
+    	// ros::Duration(3).sleep();
         return has_visibility;
     }
 
@@ -465,64 +465,49 @@ namespace goal_state_machine
 			}
 			n_id++;
 		}
-		csv_file << ",,,1,,," << std::endl;
+		csv_file << ",,,1,,,," << std::endl;
 		return false;
     }
 
 	bool GoalStateMachine::pointToNextGoal(Eigen::Vector3d& uav_position)
 	{	
-		#ifdef SAVE_CSV
-        double total_millis = 0;
-		#endif
-
         Eigen::Vector3d unknown;
 		while(has_more_goals)
 		{
 			if(hasNextFrontier())
 			{
+				ROS_INFO_STREAM("1. Has next frontier");
 				get_current_frontier(unknown);
-				#ifdef SAVE_CSV
-		        std::chrono::high_resolution_clock::time_point start_millis = std::chrono::high_resolution_clock::now();
-				#endif
 				bool existsNextOPPair = oppairs_side.Next();
-				#ifdef SAVE_CSV
-					auto end_millis         = std::chrono::high_resolution_clock::now();
-					auto time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - start_millis);
-			        double flyby_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-			        total_millis += flyby_millis;
-				#endif
+				if(!existsNextOPPair) ROS_INFO_STREAM("No next oppair found");
 				while(existsNextOPPair)
 				{
+					ROS_INFO_STREAM("2. Has oppair");
 					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
+						ROS_INFO_STREAM("3. Can use oppair");
 						has_more_goals = true;
 						saveSuccesfulFlyby();
 						return true;
 					}		
 					existsNextOPPair = oppairs_side.Next();
 				}
+				ROS_INFO_STREAM("4. And next!");
 				is_oppairs_side = false;
-
-				#ifdef SAVE_CSV
-		        start_millis = std::chrono::high_resolution_clock::now();
-				#endif
-				existsNextOPPair = oppairs_under.Next(); 
-				#ifdef SAVE_CSV
-					end_millis         = std::chrono::high_resolution_clock::now();
-					time_span          = std::chrono::duration_cast<std::chrono::duration<double>>(end_millis - start_millis);
-			        flyby_millis = std::chrono::duration_cast<std::chrono::milliseconds>(time_span).count();
-			        total_millis += flyby_millis;
-				#endif
-				while(existsNextOPPair)
-				{
-					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
+				// if(oppairs_under.get_frontier().z() >= geofence_min.z)
+				// {
+					existsNextOPPair = oppairs_under.Next(); 
+					while(existsNextOPPair)
 					{
-						has_more_goals = true;
-						saveSuccesfulFlyby();
-						return true;
+						// if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
+						// {
+						// 	has_more_goals = true;
+						// 	saveSuccesfulFlyby();
+						// 	return true;
+						// }
+						existsNextOPPair = oppairs_under.Next();	 
 					}
-					existsNextOPPair = oppairs_under.Next();	 
-				}
+				// }
 			}
 			if(hasNextFrontier())
 			{
@@ -568,7 +553,7 @@ namespace goal_state_machine
 		if(!is_observable)
 		{
 			ROS_INFO_STREAM("[Goal] Unobservable point from this particular viewpoint");
-			csv_file << "1,,,,,," << std::endl;
+			csv_file << "1,,,,,,," << std::endl;
 		}
 		return is_observable;
 	}
