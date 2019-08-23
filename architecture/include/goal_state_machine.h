@@ -86,7 +86,7 @@ namespace goal_state_machine
     	double 								sensing_distance;
     	double 								local_fence_side;
     	double 								flyby_length;
-		double 								sidelength_lookup_table[];
+		double 								sidelength_lookup_table[16];
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
         unobservable_pair_set	 			unobservable_set; 
 	    int 								frontier_index;
