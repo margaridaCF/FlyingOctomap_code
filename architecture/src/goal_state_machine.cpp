@@ -476,23 +476,18 @@ namespace goal_state_machine
 		{
 			if(hasNextFrontier())
 			{
-				ROS_INFO_STREAM("1. Has next frontier");
 				get_current_frontier(unknown);
 				bool existsNextOPPair = oppairs_side.Next();
-				if(!existsNextOPPair) ROS_INFO_STREAM("No next oppair found");
 				while(existsNextOPPair)
 				{
-					ROS_INFO_STREAM("2. Has oppair");
 					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
-						ROS_INFO_STREAM("3. Can use oppair");
 						has_more_goals = true;
 						saveSuccesfulFlyby();
 						return true;
 					}		
 					existsNextOPPair = oppairs_side.Next();
 				}
-				ROS_INFO_STREAM("4. And next!");
 				is_oppairs_side = false;
 				// if(oppairs_under.get_frontier().z() >= geofence_min.z)
 				// {
