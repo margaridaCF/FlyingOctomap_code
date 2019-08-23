@@ -10,7 +10,7 @@ namespace Frontiers
 
 struct compare {
     bool operator() (const frontiers_msgs::VoxelMsg& lhs, const frontiers_msgs::VoxelMsg& rhs) const {
-        return (lhs.size + lhs.occupied_neighborhood) < (rhs.size + rhs.occupied_neighborhood);
+        return (lhs.distance) < (rhs.distance);
     }
 };
 

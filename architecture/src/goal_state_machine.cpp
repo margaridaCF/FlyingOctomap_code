@@ -352,7 +352,7 @@ namespace goal_state_machine
 			fillLocalGeofence();
 			frontier_srv.request.global_search_it = 0;
 		}
-		frontier_srv.request.frontier_amount = 20;
+		frontier_srv.request.frontier_amount = 35;
 		bool found_frontiers = findFrontiers_CallService(uav_position);
 		first_global_request = false;
 		if (found_frontiers)
