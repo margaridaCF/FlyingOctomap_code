@@ -92,7 +92,6 @@ namespace goal_state_machine
 	    int 								frontier_index;
         int 								oppair_id;
         int 								frontier_request_count;
-        int 								range;
         int 								global_search_it;
 		std::ofstream 						log_file, csv_file;
 
@@ -118,7 +117,7 @@ namespace goal_state_machine
     	void openCsv();
 		geometry_msgs::Point get_current_frontier() ;
 		void get_current_frontier(Eigen::Vector3d& frontier) ;
-		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side);
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, double local_fence_side);
 		~GoalStateMachine()
 		{
 			log_file.close();

@@ -15,8 +15,8 @@ namespace goal_state_machine
 {
     std::ofstream log_file;
 
-    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), range(range), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true), global_search_it(0)
+    GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, double local_fence_side)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true), global_search_it(0)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
@@ -264,6 +264,7 @@ namespace goal_state_machine
         ortho.normalize();
         direction.normalize();
         double extension  = local_fence_side - flyby_length;
+        double range = local_fence_side * 2;
         Eigen::Vector3d e = start - (direction * extension/2); 
         Eigen::Vector3d a = e + (ortho     * range);
         Eigen::Vector3d b = a + (direction * local_fence_side);
@@ -278,6 +279,10 @@ namespace goal_state_machine
         frontier_srv.request.max.x = std::min(std::max({a.x(), b.x(), c.x(), d.x()}), geofence_max.x);
         frontier_srv.request.max.y = std::min(std::max({a.y(), b.y(), c.y(), d.y()}), geofence_max.y);
         frontier_srv.request.max.z = std::min(frontier_srv.request.min.z+ std::abs(start.z() - end.z()) + range, geofence_max.z);
+        // Guarentee minimum dimensions 
+        frontier_srv.request.min.x = std::min( (frontier_srv.request.min.x ), (frontier_srv.request.max.x - local_fence_side) );
+        frontier_srv.request.min.y = std::min( (frontier_srv.request.min.y ), (frontier_srv.request.max.y - local_fence_side) );
+        frontier_srv.request.min.z = std::min( (frontier_srv.request.min.z ), (frontier_srv.request.max.z - local_fence_side) );
 
         if(pi.publish)
         {
