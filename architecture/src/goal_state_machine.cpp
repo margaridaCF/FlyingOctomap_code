@@ -371,6 +371,7 @@ namespace goal_state_machine
 		if(!global)
 		{
 			global = true;
+			ROS_INFO_STREAM("[Goal SM] Switch to global");
 			first_global_request = true;
 			return findFrontiersAllMap(uav_position);
 		}

@@ -101,6 +101,7 @@ namespace goal_sm_node
         }
         res.global = goal_state_machine->isGlobal();
         log_file.close();
+        ROS_ERROR("[Goal] Call finished.");
 		return true;
 	}
 
