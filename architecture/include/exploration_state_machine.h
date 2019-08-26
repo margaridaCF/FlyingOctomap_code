@@ -29,6 +29,7 @@ namespace exploration_sm
 		void calculateAndSaveCsv(bool global);
 
         #ifdef SAVE_CSV
+        	bool csv_open;
     		std::pair<double, double> calculateTime();
 		    std::ofstream csv_file, csv_file_success;
 		    std::chrono::high_resolution_clock::time_point operation_start, timeline_start;

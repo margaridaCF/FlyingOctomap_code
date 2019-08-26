@@ -244,6 +244,10 @@ namespace state_manager_node
 
     void flighPlan_cb(const std_msgs::Empty::ConstPtr& msg)
     {
+        
+        #ifdef SAVE_CSV
+        state_data.exploration_state.openCSV();
+        #endif
         state_data.exploration_state.switchState(exploration_sm::exploration_start, false);
         findTarget();
     }
@@ -261,9 +265,6 @@ namespace state_manager_node
         start_pose.position = start_position;
         std::vector<geometry_msgs::Pose> initial (1, start_pose);
         state_data.ltstar_reply.waypoints = initial;
-        #ifdef SAVE_CSV
-        state_data.exploration_state.openCSV();
-        #endif
     }
 
     void init_param_variables(ros::NodeHandle& nh)

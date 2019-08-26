@@ -51,7 +51,6 @@ namespace goal_state_machine
 		std::stringstream aux_envvar_home (std::getenv("HOME"));
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 		csv_file.open (folder_name+"/current/goal_sm.csv", std::ofstream::app);
-		ROS_INFO_STREAM("Goal CSV at " << folder_name <<"/current/goal_sm.csv" );
 		csv_file << "not_observable,not_visible,oppair_not_valid,start_not_reachable,outside_start,outside_end,obstacles_in_flight_corridor,is_oppairs_side" << std::endl;
 	}
 

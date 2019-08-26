@@ -4,6 +4,7 @@
 namespace exploration_sm
 {
 	ExplorationStateMachine::ExplorationStateMachine()
+		:csv_open(false)
 	{
 		switchState(visit_waypoints, false);
 	}
@@ -15,8 +16,11 @@ namespace exploration_sm
 
 	void ExplorationStateMachine::openCSV()
 	{
+		if(csv_open) return;
+		csv_open = true;
 	    std::stringstream aux_envvar_home (std::getenv("HOME"));
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data/current";
+	    ROS_INFO_STREAM("[State Manager] csv at " << folder_name << "/state_machine_execution_times.csv");
     	csv_file.open (folder_name+"/state_machine_execution_times.csv", std::ofstream::app);
     	csv_file << "timeline,visit_waypoints_millis,global_exploration_millis,local_exploration_millis,ltstar_millis" << std::endl;
 	    operation_start = std::chrono::high_resolution_clock::now();
