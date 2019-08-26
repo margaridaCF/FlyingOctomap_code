@@ -187,13 +187,13 @@ Visualization Manager:
       Use rainbow: true
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        map: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /frontiers/known_space
@@ -203,13 +203,13 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /state_manager_viz
@@ -224,8 +224,6 @@ Visualization Manager:
       Name: Goal State Manager
       Namespaces:
         corridor_free: false
-        corridor_occupied: false
-        geofence: true
         has_visibility: false
         no_visibility: false
         oppair_end: true
@@ -332,25 +330,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 36.5660133
+      Distance: 34.0079956
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -9.02372646
-        Y: -4.54749298
-        Z: 10.334075
+        X: -4.51199389
+        Y: -1.67803657
+        Z: 1.70697486
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.114798136
+      Pitch: 0.839798152
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.26899385
+      Yaw: 6.11899281
     Saved: ~
 Window Geometry:
   Displays:

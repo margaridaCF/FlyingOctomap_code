@@ -36,6 +36,7 @@ namespace observation_lib
 		bool Next();
 		Eigen::Vector3d get_current_start();
 		Eigen::Vector3d get_current_end();
+		Eigen::Vector3d get_frontier();
 
 
 

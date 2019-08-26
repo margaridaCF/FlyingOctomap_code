@@ -55,6 +55,11 @@ namespace observation_lib
 		return current.end;
 	}
 
+	Eigen::Vector3d OPPairs::get_frontier()
+	{
+		return frontier;
+	}
+
 	void generateCirclePoints(int point_number, Eigen::MatrixXd & point_matrix)
 	{
 		double interval_angle_rad = (2*pi)/point_number;
