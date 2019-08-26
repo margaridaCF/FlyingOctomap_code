@@ -495,20 +495,20 @@ namespace goal_state_machine
 					existsNextOPPair = oppairs_side.Next();
 				}
 				is_oppairs_side = false;
-				// if(oppairs_under.get_frontier().z() >= geofence_min.z)
-				// {
+				if(oppairs_under.get_frontier().z() >= geofence_min.z)
+				{
 					existsNextOPPair = oppairs_under.Next(); 
 					while(existsNextOPPair)
 					{
-						// if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
-						// {
-						// 	has_more_goals = true;
-						// 	saveSuccesfulFlyby();
-						// 	return true;
-						// }
+						if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
+						{
+							has_more_goals = true;
+							saveSuccesfulFlyby();
+							return true;
+						}
 						existsNextOPPair = oppairs_under.Next();	 
 					}
-				// }
+				}
 			}
 			if(hasNextFrontier())
 			{
