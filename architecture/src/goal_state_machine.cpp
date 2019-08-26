@@ -418,7 +418,7 @@ namespace goal_state_machine
         } 
         else
         {
-        	ROS_WARN("[Goal SM] Frontier node not accepting is frontier requests."); 
+        	ROS_ERROR("[Goal SM] The frontier node is not accepting frontier requests!"); 
         } 
         return false;
 	}
@@ -560,7 +560,11 @@ namespace goal_state_machine
 
 	void GoalStateMachine::publishGoalToRviz(geometry_msgs::Point current_position)
     {
-        geometry_msgs::Point frontier_geom = get_current_frontier();
+    	Eigen::Vector3d unknow_e = getCurrentOPPairs().get_frontier();
+        geometry_msgs::Point unknow_geom;
+        unknow_geom.x = unknow_e.x();
+        unknow_geom.y = unknow_e.y();
+        unknow_geom.z = unknow_e.z();
         geometry_msgs::Point start_geom;
         start_geom.x = current_position.x;
         start_geom.y = current_position.y;
@@ -570,7 +574,7 @@ namespace goal_state_machine
         geometry_msgs::Point oppair_end_geom;
         getFlybyEnd(oppair_end_geom);
         visualization_msgs::MarkerArray marker_array;
-        rviz_interface::build_stateManager(frontier_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array, path_safety_margin);
+        rviz_interface::build_stateManager(unknow_geom, oppair_start_geom, oppair_end_geom, start_geom, marker_array, path_safety_margin);
         pi.marker_pub.publish(marker_array);
     }
 

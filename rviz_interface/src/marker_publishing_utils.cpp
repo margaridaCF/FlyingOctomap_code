@@ -245,7 +245,7 @@ namespace rviz_interface
         build_sphere_basic(start, marker_array, ns, red, green, blue);
         publish_startSafetyZone(start, marker_array, diameter);
 
-        ns = "unknown";
+        ns = "frontier";
         red   = 0.68;
         green = 0.84;
         blue  = 0.91;
