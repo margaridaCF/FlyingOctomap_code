@@ -223,14 +223,14 @@ namespace rviz_interface
         double green = 0.68;
         double blue  = 0.2;
         build_sphere_basic(oppairEnd, marker_array, ns, red, green, blue);
-        build_safetyzone_flybyEnd(oppairEnd, marker_array, diameter);
+        // build_safetyzone_flybyEnd(oppairEnd, marker_array, diameter);
 
         ns = "oppair_start";
         red   = 1;
         green = 1;
         blue  = 0.2;
         build_sphere_basic(oppairStart, marker_array, ns, red, green, blue);
-        build_safetyzone_flybyStart(oppairStart, marker_array, diameter);
+        // build_safetyzone_flybyStart(oppairStart, marker_array, diameter);
 
         visualization_msgs::Marker marker;
         octomath::Vector3 start_v(oppairStart.x, oppairStart.y, oppairStart.z);
@@ -238,12 +238,12 @@ namespace rviz_interface
         build_arrow_path(start_v, goal_v, 100, marker, 9, "oppair_path" );
         marker_array.markers.push_back(marker);
 
-        ns = "uav_position";
-        red   = 1;
-        green = 1;
-        blue  = 0.75;
-        build_sphere_basic(start, marker_array, ns, red, green, blue);
-        publish_startSafetyZone(start, marker_array, diameter);
+        // ns = "uav_position";
+        // red   = 1;
+        // green = 1;
+        // blue  = 0.75;
+        // build_sphere_basic(start, marker_array, ns, red, green, blue);
+        // publish_startSafetyZone(start, marker_array, diameter);
 
         ns = "frontier";
         red   = 0.68;

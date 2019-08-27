@@ -130,7 +130,7 @@ namespace goal_state_machine
 				{
 					rviz_interface::publish_arrow_straight_line(start, end, pi.marker_pub, false, oppair_id);
 				}
-		    	rviz_interface::build_endOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
+		    	// rviz_interface::build_endOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
 				#endif
     			oppair_id++;
     			pi.marker_pub.publish(pi.waypoint_array);
@@ -147,7 +147,7 @@ namespace goal_state_machine
 			outsider.y = getCurrentOPPairs().get_current_start().y();
 			outsider.z = getCurrentOPPairs().get_current_start().z();
 			#ifdef RUNNING_ROS
-			rviz_interface::build_startOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
+			// rviz_interface::build_startOPP_outsideGeofence(outsider, pi.waypoint_array, oppair_id);
 			if(pi.publish)
 			{
 				rviz_interface::publish_arrow_straight_line(start, end, pi.marker_pub, false, oppair_id);
@@ -296,6 +296,14 @@ namespace goal_state_machine
         constraintToMinimumSizeAndBoundaries(frontier_srv.request.min.x, frontier_srv.request.max.x, geofence_min.x, geofence_max.x, local_fence_side);
         constraintToMinimumSizeAndBoundaries(frontier_srv.request.min.y, frontier_srv.request.max.y, geofence_min.y, geofence_max.y, local_fence_side);
         constraintToMinimumSizeAndBoundaries(frontier_srv.request.min.z, frontier_srv.request.max.z, geofence_min.z, geofence_max.z, local_fence_side);
+
+		visualization_msgs::Marker marker;
+		octomath::Vector3 geofence_min (frontier_srv.request.min.x, frontier_srv.request.min.y, frontier_srv.request.min.z);
+		octomath::Vector3 geofence_max (frontier_srv.request.max.x, frontier_srv.request.max.y, frontier_srv.request.max.z);
+    	rviz_interface::build_geofence (geofence_min, geofence_max, marker, 49, "local_fence", 1, 1, 1);
+    	visualization_msgs::MarkerArray marker_array;
+		marker_array.markers.push_back(marker);
+    	pi.marker_pub.publish(marker_array);
 	}
 
 	bool GoalStateMachine::findFrontiersAllMap(Eigen::Vector3d& uav_position)

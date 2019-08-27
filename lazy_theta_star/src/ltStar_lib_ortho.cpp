@@ -237,27 +237,27 @@ namespace LazyThetaStarOctree{
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << input.goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
 				obstacle_hit_count++;
-				if(publish_input.publish) 
-				{
-					rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
-					publish_input.marker_pub.publish(marker_array);
-				}
+				// if(publish_input.publish) 
+				// {
+				// 	rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+				// 	publish_input.marker_pub.publish(marker_array);
+				// }
 				return CellStatus::kOccupied; 
 			}   
 			else if(hasLineOfSight( InputData(input.octree, temp_goal, temp_start, input.margin)) == false) 
 			{ 
 				// ROS_ERROR_STREAM (  " Start " << input.start << " to " << temp_goal << "   Found obstacle from " << temp_start << " to " << temp_goal );
-    			if(publish_input.publish) 
-				{
-					rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
-					publish_input.marker_pub.publish(marker_array);
-				}
+    // 			if(publish_input.publish) 
+				// {
+				// 	rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, false, id_marker+i);
+				// 	publish_input.marker_pub.publish(marker_array);
+				// }
 				obstacle_hit_count++;
 				return CellStatus::kOccupied; 
 			}   
 			else
 			{
-    			if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, true, id_marker+i);
+    			// if(publish_input.publish) rviz_interface::publish_arrow_path_occupancyState(temp_start, temp_goal, marker_array, true, id_marker+i);
 				// ROS_INFO_STREAM (  " Start " << input.start << " to " << input.goal << "   Free from " << temp_start << " to " << temp_goal );
 			}
 		}

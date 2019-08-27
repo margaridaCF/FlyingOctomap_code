@@ -213,7 +213,7 @@ Visualization Manager:
         lazy_theta_star_path: true
         lazy_theta_star_waypoint: true
         rejected_neighors: false
-        s: true
+        s: false
         start: true
         start_safetyZone: false
         straight_line: true
@@ -236,13 +236,12 @@ Visualization Manager:
         corridor_free: false
         corridor_occupied: false
         frontier: true
-        geofence: true
         has_visibility: false
         no_visibility: false
-        oppair_end: false
+        oppair_end: true
         oppair_end_outside: false
         oppair_path: false
-        oppair_start: false
+        oppair_start: true
         oppair_start_outside: false
         safetyzone_flybyEnd: false
         safetyzone_flybyStart: false
@@ -250,14 +249,14 @@ Visualization Manager:
         straight_line: false
         uav_position: false
         under_unknown_point: false
-        unknown_point: false
+        unknown_point: true
       Queue Size: 100
       Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 255; 255
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -275,7 +274,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /upat_follower/visualization/uav_1/current_path
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -342,25 +341,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 37.9153214
+      Distance: 82.5466309
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.65558016
-        Y: -14.1047354
-        Z: 4.6121068
+        X: 7.02740717
+        Y: -9.00082302
+        Z: 0.727599859
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.0847980902
+      Pitch: 0.43979758
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.10317707
+      Yaw: 1.11136854
     Saved: ~
 Window Geometry:
   Displays:
