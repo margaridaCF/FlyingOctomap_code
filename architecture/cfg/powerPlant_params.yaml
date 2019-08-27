@@ -27,7 +27,7 @@ path/safety_margin: 5
 local_fence_side: 7
 # == Observation Point Pairs ==
 oppairs/distance_inFront: 3
-oppairs/distance_behind: 1
+oppairs/distance_behind: 2
 oppairs/circle_divisions: 6
 oppairs/sensing_distance: 5
 
