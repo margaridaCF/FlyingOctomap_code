@@ -1,5 +1,6 @@
 #include <neighbors.h>
 #include <gtest/gtest.h>
+#include <ordered_neighbors.h>
 
 namespace LazyThetaStarOctree{
 
@@ -926,6 +927,134 @@ namespace LazyThetaStarOctree{
 		ASSERT_EQ(LazyThetaStarOctree::findSideLenght(treeDepth, treeDepth, sidelength_lookup_table), resolution);
 		ASSERT_EQ(LazyThetaStarOctree::findSideLenght(treeDepth, treeDepth-1, sidelength_lookup_table), resolution*2);
 		ASSERT_EQ(LazyThetaStarOctree::findSideLenght(treeDepth, treeDepth-2, sidelength_lookup_table), resolution*2 + resolution*2);
+	}
+
+	
+	TEST(SetTest, compareInsertion_insertHighestValue)
+	{
+		frontiers_msgs::VoxelMsg voxel_msg;
+        voxel_msg.size = 1;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+        Frontiers::OrderedNeighbors list (voxel_msg);
+        voxel_msg.occupied_neighborhood=0;
+        voxel_msg.size = 1;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+		list.insert(voxel_msg);
+        ASSERT_EQ(list.size(), 1);
+        voxel_msg.size = 8;
+        voxel_msg.occupied_neighborhood=1;
+        voxel_msg.distance=34;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        ASSERT_EQ(list.size(), 1);
+	}
+
+	TEST(SetTest, compareInsertion_insertHighestValue_2)
+	{
+		frontiers_msgs::VoxelMsg voxel_msg;
+        voxel_msg.size = 1;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+        Frontiers::OrderedNeighbors list (voxel_msg);
+        voxel_msg.occupied_neighborhood=10;
+        voxel_msg.size = 1;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        // ASSERT_EQ(list.begin()->occupied_neighborhood, 10);
+        ASSERT_EQ(list.size(), 1);
+        voxel_msg.size = 8;
+        voxel_msg.occupied_neighborhood=1;
+        voxel_msg.distance=34;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        ASSERT_EQ(list.size(), 1);
+        // ASSERT_EQ(list.begin()->occupied_neighborhood, 10);
+	}
+
+	TEST(SetTest, compareInsertion_insertEqual)
+	{
+		frontiers_msgs::VoxelMsg voxel_msg;
+        voxel_msg.occupied_neighborhood=0;
+        voxel_msg.size = 1;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+        Frontiers::OrderedNeighbors list (voxel_msg);
+        voxel_msg.occupied_neighborhood=13;
+        voxel_msg.distance=34;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 20;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        ASSERT_EQ(list.size(), 1);
+        voxel_msg.occupied_neighborhood=13;
+        voxel_msg.distance=34;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 20;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        ASSERT_EQ(list.size(), 1);
+	}
+	TEST(SetTest, compareInsertion_insert)
+	{
+		frontiers_msgs::VoxelMsg voxel_msg;
+        voxel_msg.occupied_neighborhood=0;
+        voxel_msg.size = 1;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+        Frontiers::OrderedNeighbors list (voxel_msg);
+        voxel_msg.occupied_neighborhood=10;
+        voxel_msg.size = 1;
+        voxel_msg.xyz_m.x = 1;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        // ASSERT_EQ(list.begin()->occupied_neighborhood, 10);
+        ASSERT_EQ(list.size(), 1);
+        voxel_msg.size = 8;
+        voxel_msg.occupied_neighborhood=1;
+        voxel_msg.distance=34;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        ASSERT_EQ(list.size(), 2);
+        voxel_msg.size = 8;
+        voxel_msg.occupied_neighborhood=133;
+        voxel_msg.distance=34;
+        voxel_msg.xyz_m.x = 10;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        ASSERT_EQ(list.size(), 3);
+        voxel_msg.size = 8;
+        voxel_msg.occupied_neighborhood=13;
+        voxel_msg.distance=34;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 20;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        ASSERT_EQ(list.size(), 4);
+        voxel_msg.size = 8;
+        voxel_msg.occupied_neighborhood=13;
+        voxel_msg.distance=34;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 20;
+        voxel_msg.xyz_m.z = 0;
+		list.insert( voxel_msg);
+        ASSERT_EQ(list.size(), 4);
 	}
 }
 
