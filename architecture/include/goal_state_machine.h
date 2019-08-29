@@ -1,6 +1,7 @@
 #ifndef GOAL_STATE_MACHINE_H
 #define GOAL_STATE_MACHINE_H
 
+#include <ltStarOctree_common.h>
 #include <frontiers_msgs/FindFrontiers.h>
 #include <unordered_set>
 #include <architecture_math.h>
@@ -11,7 +12,6 @@
 #include <octomap/OcTree.h>
 
 #define SAVE_LOG 1
-
 namespace goal_state_machine
 {
 

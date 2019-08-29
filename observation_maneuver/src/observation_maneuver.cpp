@@ -28,7 +28,6 @@ namespace observation_lib
 		frontier = new_frontier;
 		index = 0;
 		motion_direction = frontier - uav_position;
-		// Next();
 	}
 
 	bool OPPairs::Next()

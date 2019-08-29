@@ -9,6 +9,7 @@
 #include <memory>
 #include <ros/ros.h>
 #include <cmath>
+#include <frontiers_msgs/VoxelMsg.h>
 
 namespace LazyThetaStarOctree{
 

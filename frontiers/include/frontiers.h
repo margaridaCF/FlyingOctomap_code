@@ -7,9 +7,9 @@ namespace Frontiers{
 
 	class Circulator
 	{
+		bool is_finished;
 		octomap::OcTree::leaf_bbx_iterator octree_it, octree_end, octree_begin;
 		int count_from_beginning, starting_index;
-		bool is_finished;
 	public:
 		Circulator();
 		Circulator(octomap::OcTree const& octree, octomath::Vector3  max, octomath::Vector3  min, int start);
@@ -56,15 +56,20 @@ namespace Frontiers{
 
 	void Circulator::increment()
 	{
+		// ROS_INFO_STREAM("[Circulator] count_from_beginning: " << count_from_beginning);
 		octree_it++;
 		count_from_beginning++;
 		if(octree_it == octree_end)
 		{
-			// ROS_INFO("Reached end of iterator");
+			ROS_INFO("Reached end of octomap iterator");
 			octree_it = octree_begin;
 			count_from_beginning = 0;
 		}
-		if(count_from_beginning == starting_index) is_finished = true;
+		if(count_from_beginning == starting_index) 
+		{
+			ROS_WARN_STREAM("[Circulator] Iterated the whole space. " );
+			is_finished = true;
+		}
 	}
 	bool Circulator::isFinished()
 	{

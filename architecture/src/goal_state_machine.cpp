@@ -13,7 +13,6 @@
 
 namespace goal_state_machine
 {
-    std::ofstream log_file;
 
     GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, double local_fence_side)
 		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true), global_search_it(0)
@@ -51,6 +50,7 @@ namespace goal_state_machine
 		std::stringstream aux_envvar_home (std::getenv("HOME"));
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 		csv_file.open (folder_name+"/current/goal_sm.csv", std::ofstream::app);
+		log_file.open (folder_name+"/current/goal_sm.log", std::ofstream::app);
 		csv_file << "not_observable,not_visible,oppair_not_valid,start_not_reachable,outside_start,outside_end,obstacles_in_flight_corridor,is_oppairs_side" << std::endl;
 	}
 
@@ -61,11 +61,16 @@ namespace goal_state_machine
 		frontier_srv.response.success = false;
 	}
 
-	bool hasLineOfSight_UnknownAsFree(LazyThetaStarOctree::InputData const& input)
+	bool hasLineOfSight_UnknownAsFree_(LazyThetaStarOctree::InputData const& input)
 	{
 		octomath::Vector3 dummy;
 		octomath::Vector3 direction = input.goal - input.start;
 		bool is_visible = !input.octree.castRay( input.start, direction, dummy, true, direction.norm());
+		// if(LazyThetaStarOctree::equal(input.start, dummy)) ROS_ERROR_STREAM ("Hits the start!");
+		// else{
+		// 	double distance = std::sqrt(   std::pow( (input.start.x() - dummy.x()), 2 ) + std::pow( (input.start.y() - dummy.y()), 2 ) + std::pow( (input.start.z() - dummy.z()), 2 )   );
+		// 	ROS_INFO_STREAM("[Goal SM] Obstacle is " << distance << "m from start" );
+		// } 
 		return is_visible;
 	}
 
@@ -222,8 +227,16 @@ namespace goal_state_machine
 
 	bool GoalStateMachine::hasNextFrontier() const
 	{
-		if(!frontier_srv.response.success) return false;
-		return frontier_index < frontier_srv.response.frontiers_found-1;
+		if(frontier_srv.response.frontiers.size() == 0) return false;
+		else if (frontier_index < frontier_srv.response.frontiers.size()-1)
+		{
+			return true;
+		}
+		else
+		{
+			ROS_INFO_STREAM("[Goal SM] hasNextFrontier Frontier index " << frontier_index << " < " << (frontier_srv.response.frontiers_found-1));
+			return false;
+		}
 	}
 
 	void GoalStateMachine::resetOPPair(Eigen::Vector3d& uav_position)
@@ -320,7 +333,7 @@ namespace goal_state_machine
 			fillLocalGeofence();
 			frontier_srv.request.global_search_it = 0;
 		}
-		frontier_srv.request.frontier_amount = 35;
+		frontier_srv.request.frontier_amount = 50;
 		bool found_frontiers = findFrontiers_CallService(uav_position);
 		first_global_request = false;
 		if (found_frontiers)
@@ -452,6 +465,7 @@ namespace goal_state_machine
 					if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 					{
 						has_more_goals = true;
+						ROS_INFO_STREAM("[Goal SM] Selected a voxel with occupied_neighborhood factor of " << frontier_srv.response.frontiers[frontier_index].occupied_neighborhood);
 						saveSuccesfulFlyby();
 						return true;
 					}		
@@ -466,6 +480,7 @@ namespace goal_state_machine
 						if( IsObservable(unknown) && IsVisible(unknown) && IsOPPairValid() && IsOPStartReachable() )
 						{
 							has_more_goals = true;
+							ROS_INFO_STREAM("[Goal SM] Selected a voxel with occupied_neighborhood factor of " << frontier_srv.response.frontiers[frontier_index].occupied_neighborhood);
 							saveSuccesfulFlyby();
 							return true;
 						}
@@ -473,13 +488,14 @@ namespace goal_state_machine
 					}
 				}
 			}
+			frontier_index++;
 			if(hasNextFrontier())
 			{
 				resetOPPair(uav_position);
 			}
-			frontier_index++;
-			if(!hasNextFrontier())
+			else
 			{
+				ROS_INFO_STREAM("[Frontier] Goal SM analyzed " << frontier_index << " out of " << frontier_srv.response.frontiers.size() << ". Going to request more.");
 				has_more_goals = findFrontiersAllMap(uav_position);
 			}
 		}

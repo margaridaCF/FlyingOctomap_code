@@ -70,6 +70,9 @@ namespace Frontiers{
     void searchFrontier(octomap::OcTree const& octree, Circulator & it, frontiers_msgs::FindFrontiers::Request  &request,
         frontiers_msgs::FindFrontiers::Response &reply, ros::Publisher const& marker_pub, bool publish)
     {
+        double sidelength_lookup_table [octree.getTreeDepth()];
+        LazyThetaStarOctree::fillLookupTable(octree.getResolution(), octree.getTreeDepth(), sidelength_lookup_table);
+
         octomath::Vector3 current_position (request.current_position.x, request.current_position.y, request.current_position.z);
         
         frontiers_msgs::VoxelMsg current_position_voxel_msg;
@@ -123,7 +126,6 @@ namespace Frontiers{
                         #endif
                         n_id++;
                         frontiers_msgs::VoxelMsg voxel_msg;
-                        voxel_msg.size = currentVoxel.size;
                         voxel_msg.xyz_m.x = n_coordinates->x();
                         voxel_msg.xyz_m.y = n_coordinates->y();
                         voxel_msg.xyz_m.z = n_coordinates->z();
@@ -132,7 +134,10 @@ namespace Frontiers{
                     }
                     else if(n_state == occupied)
                     {
-                        surface_neighborhood += currentVoxel.size;
+                        // ROS_INFO_STREAM("Occupied");
+                        octomap::OcTreeKey key = octree.coordToKey(*n_coordinates);
+                        double depth = LazyThetaStarOctree::getNodeDepth_Octomap(key, octree);
+                        surface_neighborhood += LazyThetaStarOctree::findSideLenght(octree.getTreeDepth(), depth, sidelength_lookup_table);
                     }
                 }
                 for (std::list<frontiers_msgs::VoxelMsg>::iterator it_n = neighborhood.begin(); it_n != neighborhood.end(); ++it_n)
@@ -142,7 +147,6 @@ namespace Frontiers{
                     voxel_msg.occupied_neighborhood = surface_neighborhood;
                     allNeighbors.insert(voxel_msg);
                 }
-                if( frontiers_count == request.frontier_amount) break;
             }
             it.increment();
         }
