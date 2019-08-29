@@ -51,7 +51,7 @@ namespace goal_state_machine
 	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 		csv_file.open (folder_name+"/current/goal_sm.csv", std::ofstream::app);
 		log_file.open (folder_name+"/current/goal_sm.log", std::ofstream::app);
-		csv_file << "not_observable,not_visible,oppair_not_valid,start_not_reachable,outside_start,outside_end,obstacles_in_flight_corridor,is_oppairs_side" << std::endl;
+		csv_file << "has_occupied_neighborhood,not_observable,not_visible,oppair_not_valid,start_not_reachable,outside_start,outside_end,obstacles_in_flight_corridor,is_oppairs_side" << std::endl;
 	}
 
 	void GoalStateMachine::NewMap()
@@ -120,7 +120,8 @@ namespace goal_state_machine
 					}
 					#endif
     				// ros::Duration(3).sleep();
-					csv_file << ",,1,,,,1," << is_oppairs_side << std::endl;
+					csv_file << (frontier_srv.response.frontiers[frontier_index].occupied_neighborhood > 0) << ",,1,,,,1," << is_oppairs_side << std::endl;
+
 				}
 				return fc_free;
 	    	}
@@ -141,7 +142,8 @@ namespace goal_state_machine
     			pi.marker_pub.publish(pi.waypoint_array);
     			// ROS_INFO_STREAM("End outside geofence.");
     			// ros::Duration(sleep_seconds).sleep();
-				csv_file << ",,1,,1,,," << std::endl;
+				csv_file << (frontier_srv.response.frontiers[frontier_index].occupied_neighborhood > 0) << ",,1,,1,,," << std::endl;
+
 			    return false;
 	    	}
     	}
@@ -162,7 +164,7 @@ namespace goal_state_machine
 			pi.marker_pub.publish(pi.waypoint_array);
 			// ROS_INFO_STREAM("Start outside geofence.");
 			// ros::Duration(s).sleep();
-			csv_file << ",,1,,1,,," << std::endl;
+			csv_file << (frontier_srv.response.frontiers[frontier_index].occupied_neighborhood > 0) << ",,1,,1,,," << std::endl;
 			return false;
     	}
     }
@@ -179,8 +181,8 @@ namespace goal_state_machine
 		bool has_visibility = has_visibility_forwards && has_visibility_backwards;
 		if(!has_visibility)
 		{
-			csv_file << ",1,,,,,," << std::endl;
 			// log_file << "[Goal] There is an obstacle between the start of the flyby and the unknown point." << std::endl;
+			csv_file << (frontier_srv.response.frontiers[frontier_index].occupied_neighborhood > 0) << ",1,,,,,," << std::endl;
 			rviz_interface::publish_arrow_path_visibility(input.start, input.goal, pi.marker_pub, has_visibility, 58);
 		}
     	// ros::Duration(3).sleep();
@@ -447,7 +449,7 @@ namespace goal_state_machine
 			}
 			n_id++;
 		}
-		csv_file << ",,,1,,,," << std::endl;
+		csv_file << (frontier_srv.response.frontiers[frontier_index].occupied_neighborhood > 0) << ",,,1,,,," << std::endl;
 		return false;
     }
 
@@ -533,7 +535,7 @@ namespace goal_state_machine
 		if(!is_observable)
 		{
 			ROS_INFO_STREAM("[Goal] Unobservable point from this particular viewpoint");
-			csv_file << "1,,,,,,," << std::endl;
+			csv_file << (frontier_srv.response.frontiers[frontier_index].occupied_neighborhood > 0) << "1,,,,,,," << std::endl;
 		}
 		return is_observable;
 	}
