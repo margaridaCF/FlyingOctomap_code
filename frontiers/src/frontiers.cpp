@@ -17,9 +17,9 @@ namespace Frontiers{
 
     bool isInsideGeofence(octomath::Vector3 const&  candidate, geometry_msgs::Point geofence_min, geometry_msgs::Point geofence_max)
     {
-        if(candidate.x() < geofence_min.x 
+        if(    candidate.x() < geofence_min.x 
             || candidate.y() < geofence_min.y 
-            || candidate.x() < geofence_min.y 
+            || candidate.z() < geofence_min.z 
             || candidate.x() > geofence_max.x 
             || candidate.y() > geofence_max.y  
             || candidate.z() > geofence_max.z)
