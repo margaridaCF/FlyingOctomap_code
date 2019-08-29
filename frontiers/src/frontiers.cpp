@@ -43,27 +43,37 @@ namespace Frontiers{
     }
 
 
-    void paintState(State state, octomath::Vector3 const& position, visualization_msgs::MarkerArray & marker_array, int id)
+    void paintState(State state, octomath::Vector3 const& position, visualization_msgs::MarkerArray & marker_array, int id, double size)
     {
         float red = 0.0f;
         float green = 0.0f;
         float blue = 0.0f;
         if(state == free)
         {
-            green = 1.0f;
             red = 1.0f;
          
         }
         else if( state == occupied)
         {
-            red = 1.0f;
+            green = 1.0f;
         }
         else if(state == unknown)
         {
             blue = 1.0f;
         }
         visualization_msgs::Marker marker;
-        rviz_interface::build_small_marker(position, marker, red, green, blue, "neighbor", id, 0.1);
+        rviz_interface::build_small_marker(position, marker, red, green, blue, "neighbor", id, size);
+        marker_array.markers.push_back(marker);
+    }
+
+
+    void paintRejection(std::string cause, octomath::Vector3 const& position, visualization_msgs::MarkerArray & marker_array, int id, double size)
+    {
+        float red = 0.0f;
+        float green = 0.0f;
+        float blue = 0.0f;
+        visualization_msgs::Marker marker;
+        rviz_interface::build_small_marker(position, marker, red, green, blue, cause, id, size);
         marker_array.markers.push_back(marker);
     }
 
