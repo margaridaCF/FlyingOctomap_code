@@ -12,7 +12,7 @@ odometry_error: 0.1
 # offboard_enabled: true
 frontier/safety_margin: 3
 
-geofence_min/x: -50
+geofence_min/x: -40
 geofence_max/x: 21
 
 geofence_min/y: -18
