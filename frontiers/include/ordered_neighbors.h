@@ -95,7 +95,7 @@ public:
 		}
 		while(neighbors.size() > 0)
 		{
-			reply.frontiers.push_back(popHighestValue());
+			reply.frontiers.push_back(popLowestValue());
 			frontier_counter++;
 		}
 		return frontier_counter;
@@ -142,6 +142,31 @@ private:
     }
 	
 
+
+    frontiers_msgs::VoxelMsg popLowestValue ()
+    {
+        frontiers_msgs::VoxelMsg top;
+        double min = neighbors.begin()->distance;
+        top = *(neighbors.begin());
+        // bool found = false;
+        for (unordered_set_voxel_msgs::iterator i = neighbors.begin(); i != neighbors.end(); ++i)
+        {
+            if(i->distance < min)
+            {
+                min = i->distance;
+                top = *i;
+                // found = true;
+            }
+        }
+        // if(!found) ROS_INFO_STREAM("Didn't find anything");
+        if(neighbors.erase(top) == 0)
+        {
+        	ROS_ERROR("Did not delete! ");
+            ros::Duration(10).sleep();
+        }
+        return top;
+    }
+	
 
 };
 
