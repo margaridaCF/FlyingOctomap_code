@@ -95,7 +95,7 @@ public:
 		}
 		while(neighbors.size() > 0)
 		{
-			reply.frontiers.push_back(popLowestValue());
+			reply.frontiers.push_back(popHighestOccupancyNeighbourhood());
 			frontier_counter++;
 		}
 		return frontier_counter;
@@ -118,7 +118,7 @@ private:
 	    return std::sqrt(x_diff * x_diff + y_diff * y_diff + z_diff * z_diff);
 	}
 
-    frontiers_msgs::VoxelMsg popHighestValue ()
+    frontiers_msgs::VoxelMsg popHighestOccupancyNeighbourhood ()
     {
         frontiers_msgs::VoxelMsg top;
         double max = -1;
@@ -143,7 +143,7 @@ private:
 	
 
 
-    frontiers_msgs::VoxelMsg popLowestValue ()
+    frontiers_msgs::VoxelMsg popLowestDistance ()
     {
         frontiers_msgs::VoxelMsg top;
         double min = neighbors.begin()->distance;
