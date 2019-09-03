@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF1/Frames1
+        - /Octomap1/Namespaces1
         - /Frontiers1/Namespaces1
         - /Lazy Theta Star1
         - /Lazy Theta Star1/Namespaces1
@@ -13,7 +14,7 @@ Panels:
         - /Goal State Manager1
         - /Goal State Manager1/Namespaces1
       Splitter Ratio: 0.584474862
-    Tree Height: 590
+    Tree Height: 921
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -185,36 +186,34 @@ Visualization Manager:
       Use rainbow: true
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /occupied_cells_vis_array
       Name: Octomap
       Namespaces:
-        {}
+        map: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /frontiers/known_space
       Name: Frontiers
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /ltstar_path
       Name: Lazy Theta Star
       Namespaces:
-        corridor_free: false
-        corridor_occupied: false
         goal: true
-        goal_safetyZone: true
-        lazy_theta_star_path: true
-        lazy_theta_star_waypoint: true
+        goal_safetyZone: false
+        lazy_theta_star_path: false
+        lazy_theta_star_waypoint: false
         rejected_neighors: false
-        s: true
+        s: false
         start: true
-        start_safetyZone: true
+        start_safetyZone: false
         straight_line: true
         usable_neighors: false
       Queue Size: 100
@@ -232,28 +231,21 @@ Visualization Manager:
       Marker Topic: /goal_sm
       Name: Goal State Manager
       Namespaces:
-        corridor_free: false
-        corridor_occupied: true
-        geofence: true
+        frontier: true
+        has_visibility: false
+        no_visibility: false
         oppair_end: true
-        oppair_end_outside: false
-        oppair_path: true
+        oppair_path: false
         oppair_start: true
-        oppair_start_outside: false
-        safetyzone_flybyEnd: false
-        safetyzone_flybyStart: false
-        start_safetyZone: false
         straight_line: false
-        uav_position: true
         under_unknown_point: true
-        unknown: true
         unknown_point: true
       Queue Size: 100
       Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
-      Color: 85; 255; 255
+      Color: 255; 255; 255
       Enabled: true
       Head Diameter: 0.300000012
       Head Length: 0.200000003
@@ -339,33 +331,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 49.5418777
+      Distance: 115.769531
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -10.3540258
-        Y: -21.2017078
-        Z: 13.9841738
+        X: -35.0282822
+        Y: -14.8310518
+        Z: 4.3393898
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.714797139
+      Pitch: 1.08979774
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.00313044
+      Yaw: 1.85450077
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1028
+  Height: 1056
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd0000000300000000000001c5000003befc0200000009fb0000001200530065006c0065006300740069006f006e0000000028000000960000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000043800000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007301000000280000028f000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0056006900650077007301000002bd00000129000000ad00ffffff000000010000010f0000036cfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a0000036c000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000003000007800000003efc0100000002fb0000000800540069006d00650000000000000007800000030000fffffffb0000000800540069006d0065010000000000000450000000000000000000000594000003be00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000300000000000001c5000003dafc0200000009fb0000001200530065006c0065006300740069006f006e0000000028000000960000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed0000039500000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000028000003da000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0056006900650077007300000002d000000132000000ad00ffffff000000010000010f0000036cfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a0000036c000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000003000007800000003efc0100000002fb0000000800540069006d00650000000000000007800000030000fffffffb0000000800540069006d00650100000000000004500000000000000000000005b5000003da00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -374,6 +366,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1887
-  X: 1563
+  Width: 1920
+  X: 1920
   Y: 24

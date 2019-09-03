@@ -28,7 +28,6 @@ namespace observation_lib
 		frontier = new_frontier;
 		index = 0;
 		motion_direction = frontier - uav_position;
-		// Next();
 	}
 
 	bool OPPairs::Next()
@@ -53,6 +52,11 @@ namespace observation_lib
 	Eigen::Vector3d OPPairs::get_current_end()
 	{
 		return current.end;
+	}
+
+	Eigen::Vector3d OPPairs::get_frontier()
+	{
+		return frontier;
 	}
 
 	void generateCirclePoints(int point_number, Eigen::MatrixXd & point_matrix)

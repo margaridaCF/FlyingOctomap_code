@@ -15,15 +15,21 @@ namespace exploration_sm
 	{
 	public:
 		ExplorationStateMachine();
-		~ExplorationStateMachine(){}
+		~ExplorationStateMachine()
+		{
+			csv_file.close();
+		}
 		exploration_state_t getState();
-	    void switchState(exploration_state_t new_state);
+	    void switchState(exploration_state_t new_state,bool global);
+		void openCSV();
 		
 	private:
     	
     	exploration_state_t current_state;
+		void calculateAndSaveCsv(bool global);
 
         #ifdef SAVE_CSV
+        	bool csv_open;
     		std::pair<double, double> calculateTime();
 		    std::ofstream csv_file, csv_file_success;
 		    std::chrono::high_resolution_clock::time_point operation_start, timeline_start;

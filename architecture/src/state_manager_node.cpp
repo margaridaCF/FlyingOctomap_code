@@ -61,7 +61,7 @@ namespace state_manager_node
     bool is_successfull_exploration = false;
     std::ofstream log_file;
     #ifdef SAVE_CSV
-    std::ofstream csv_file, csv_file_success;
+    std::ofstream csv_file;
     std::chrono::high_resolution_clock::time_point operation_start, timeline_start;
     #endif
 
@@ -130,7 +130,7 @@ namespace state_manager_node
                 ROS_INFO_STREAM ("[State manager] Requesting path from " << request.start << " to " << request.goal);
                 ltstar_request_pub.publish(request);
                 state_data.ltstar_request = request;
-                state_data.exploration_state.switchState(exploration_sm::waiting_path_response);
+                state_data.exploration_state.switchState(exploration_sm::waiting_path_response, false);
             }
         }
         else
@@ -176,15 +176,6 @@ namespace state_manager_node
         }
         pose_s.pose.position = state_data.next_goal_msg.end_flyby;
         flight_plan_request.poses.push_back(pose_s);
-
-        std::ofstream pathWaypoints;
-        pathWaypoints.open (folder_name + "/current/final_path_state_manager.txt", std::ofstream::out | std::ofstream::app);
-        for (std::vector<geometry_msgs::PoseStamped>::iterator i = flight_plan_request.poses.begin(); i != flight_plan_request.poses.end(); ++i)
-        {
-            pathWaypoints << std::setprecision(5) << i->pose.position.x << ", " << i->pose.position.y << ", " << i->pose.position.z << std::endl;
-            
-        }
-        pathWaypoints.close();
         return flight_plan_request;
     }
 
@@ -201,11 +192,11 @@ namespace state_manager_node
             ROS_INFO_STREAM("[State manager][Exploration] finished_exploring - no frontiers reported.");
             log_file << "[State manager][Exploration] finished_exploring - no frontiers reported." << std::endl;
             is_successfull_exploration = true;
-            state_data.exploration_state.switchState(exploration_sm::finished_exploring);
+            state_data.exploration_state.switchState(exploration_sm::finished_exploring, false);
         }
         else
         {
-            state_data.exploration_state.switchState(exploration_sm::generating_path);
+            state_data.exploration_state.switchState(exploration_sm::generating_path, state_data.next_goal_msg.global);
             askForObstacleAvoidingPath();
         }
     }
@@ -231,7 +222,7 @@ namespace state_manager_node
                 state_data.ltstar_reply = *msg;
                 nav_msgs::Path flight_plan_request = generateFlightPlanRequest();
                 state_data.new_map = true;
-                state_data.exploration_state.switchState(exploration_sm::visit_waypoints);
+                state_data.exploration_state.switchState(exploration_sm::visit_waypoints, false);
                 flight_plan_pub.publish(flight_plan_request);
                 #ifdef SAVE_LOG
                     log_file << "[State manager] Path reply " << *msg << std::endl;
@@ -241,27 +232,23 @@ namespace state_manager_node
             else
             {
                 ROS_WARN_STREAM (     "[State manager] Path reply failed!");
-                state_data.exploration_state.switchState(exploration_sm::exploration_start);
+                state_data.exploration_state.switchState(exploration_sm::exploration_start, false);
                 #ifdef SAVE_LOG
                     log_file << "[State manager] Path reply failed!" << std::endl;
                 #endif
                 findTarget();
 
             }
-            #ifdef SAVE_CSV
-                std::pair <double, double> millis_count = calculateTime(); 
-                operation_start = std::chrono::high_resolution_clock::now();
-                int success = 2;
-                if (msg->success) success = 1;
-                else success = 0;
-                csv_file_success << millis_count.first << "," << success << "," << std::endl;
-            #endif
         }
     }
 
     void flighPlan_cb(const std_msgs::Empty::ConstPtr& msg)
     {
-        state_data.exploration_state.switchState(exploration_sm::exploration_start);
+        
+        #ifdef SAVE_CSV
+        state_data.exploration_state.openCSV();
+        #endif
+        state_data.exploration_state.switchState(exploration_sm::exploration_start, false);
         findTarget();
     }
 
@@ -312,17 +299,6 @@ namespace state_manager_node
 
 int main(int argc, char **argv)
 {
-    auto timestamp_chrono = std::chrono::high_resolution_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(timestamp_chrono - std::chrono::hours(24));
-    // std::string timestamp (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::stringstream folder_name_stream;
-    folder_name_stream << state_manager_node::folder_name+"/" << (std::put_time(std::localtime(&now_c), "%F %T") );
-    std::string sym_link_name = state_manager_node::folder_name+"/current";
-
-    boost::filesystem::create_directories(folder_name_stream.str());
-    boost::filesystem::create_directory_symlink(folder_name_stream.str(), sym_link_name);
-
-
     ros::init(argc, argv, "state_manager");
     ros::NodeHandle nh;
     state_manager_node::init_param_variables(nh);
@@ -354,8 +330,6 @@ int main(int argc, char **argv)
     geofence_max_point.z = state_manager_node::geofence_max.z();
 
     #ifdef SAVE_CSV
-    state_manager_node::csv_file_success.open (state_manager_node::folder_name+"/current/success_rate.csv", std::ofstream::app);
-    state_manager_node::csv_file_success << "timeline,path_planner,sampling" << std::endl;
     state_manager_node::operation_start = std::chrono::high_resolution_clock::now();
     state_manager_node::timeline_start = std::chrono::high_resolution_clock::now();
     #endif

@@ -4,17 +4,9 @@
 namespace exploration_sm
 {
 	ExplorationStateMachine::ExplorationStateMachine()
+		:csv_open(false)
 	{
-	    std::stringstream aux_envvar_home (std::getenv("HOME"));
-	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data/current";
-		switchState(visit_waypoints);
-
-	    #ifdef SAVE_CSV
-	    	csv_file.open (folder_name+"/current/execution_time.csv", std::ofstream::app);
-	    	csv_file << "timeline,initial_maneuver_millis,frontier_gen_millis,visit_waypoints_millis,goalSM_millis,ltstar_millis,flyby_millis" << std::endl;
-		    operation_start = std::chrono::high_resolution_clock::now();
-		    timeline_start = std::chrono::high_resolution_clock::now();
-	    #endif
+		switchState(visit_waypoints, false);
 	}
 
 	exploration_state_t ExplorationStateMachine::getState()
@@ -22,22 +14,41 @@ namespace exploration_sm
 		return current_state;
 	}
 
-	void ExplorationStateMachine::switchState(exploration_state_t new_state)
+	void ExplorationStateMachine::openCSV()
 	{
-		#ifdef SAVE_CSV	
-        std::pair <double, double> millis_count = calculateTime(); 
+		if(csv_open) return;
+		csv_open = true;
+	    std::stringstream aux_envvar_home (std::getenv("HOME"));
+	    std::string folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data/current";
+	    ROS_INFO_STREAM("[State Manager] csv at " << folder_name << "/state_machine_execution_times.csv");
+    	csv_file.open (folder_name+"/state_machine_execution_times.csv", std::ofstream::app);
+    	csv_file << "timeline,visit_waypoints_millis,global_exploration_millis,local_exploration_millis,ltstar_millis" << std::endl;
+	    operation_start = std::chrono::high_resolution_clock::now();
+	    timeline_start = std::chrono::high_resolution_clock::now();
+	}
+	
+	void ExplorationStateMachine::calculateAndSaveCsv(bool global)
+	{
+		std::pair <double, double> millis_count = calculateTime(); 
 		switch(current_state)
 		{
 			case visit_waypoints:
-                csv_file << millis_count.first <<  ",,,"<<millis_count.second<<",,," << std::endl;
+                csv_file << millis_count.first <<  ","<<millis_count.second<<",,," << std::endl;
 				break;
 
 			case exploration_start:
-                csv_file << millis_count.first << ",,,,"<<millis_count.second<<",," << std::endl;
+				if(global)
+				{
+                	csv_file << millis_count.first << ",,"<<millis_count.second<<",," << std::endl;
+				}
+				else
+				{
+					csv_file << millis_count.first << ",,,"<<millis_count.second<<"," << std::endl;
+				}
 				break;
 
 			case waiting_path_response:
-                csv_file << millis_count.first <<  ",,,,,"<<millis_count.second<<"," << std::endl;
+                csv_file << millis_count.first <<  ",,,,"<<millis_count.second << std::endl;
 				break;
 
 			case finished_exploring:
@@ -45,6 +56,12 @@ namespace exploration_sm
 				break;
 		}
         operation_start = std::chrono::high_resolution_clock::now();
+	}
+
+	void ExplorationStateMachine::switchState(exploration_state_t new_state, bool global)
+	{
+		#ifdef SAVE_CSV	
+        calculateAndSaveCsv(global);
 	    #endif
 		current_state = new_state;
 		switch(current_state)

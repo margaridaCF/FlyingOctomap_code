@@ -52,11 +52,17 @@ cs_export()
 if(CATKIN_ENABLE_TESTING)
   get_filename_component(TEST_WITH_DATA_TEST_DIR "test/data" ABSOLUTE)
 
-#   Frontiers @ work in progress ##
-#   catkin_add_gtest(workInProgress_frontiers 
-#     test/work_in_progress_frontiers_tests.cpp
+## Frontiers @ work in progress ##
+  catkin_add_gtest(workInProgress_frontiers 
+    test/work_in_progress_frontiers_tests.cpp
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+  target_link_libraries(workInProgress_frontiers ${catkin_LIBRARIES} frontiers_lib neighbors  )
+
+#   ## Circulator ##
+#   catkin_add_gtest(circulator_tests 
+#     test/circulator_tests.cpp
 #     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-#   target_link_libraries(workInProgress_frontiers ${catkin_LIBRARIES} frontiers_lib neighbors  )
+#   target_link_libraries(circulator_tests ${catkin_LIBRARIES} frontiers_lib  )
 
 #   ## Octree @ neighbors ##
 #   catkin_add_gtest(neighborTests 
@@ -68,11 +74,11 @@ if(CATKIN_ENABLE_TESTING)
 #     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
 #   target_link_libraries(frontiers_tests ${catkin_LIBRARIES} frontiers_lib neighbors)
 
-  #VOLUME
-  catkin_add_gtest(volume_tests 
-    test/volume_tests.cpp
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-  target_link_libraries(volume_tests ${catkin_LIBRARIES} )
+#   ## VOLUME ##
+#   catkin_add_gtest(volume_tests 
+#     test/volume_tests.cpp
+#     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+#   target_link_libraries(volume_tests ${catkin_LIBRARIES} )
 
 endif()
 

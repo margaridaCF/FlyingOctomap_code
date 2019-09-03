@@ -69,6 +69,8 @@ namespace goal_sm_node
         log_file.open (folder_name+"/current/state_manager.log", std::ofstream::app);
         log_file<<std::endl<<" ===== [Goal SM] ===== "<<std::endl;
 
+        goal_state_machine->openCsv();
+
         if(req.new_map)
         {
             log_file<<"[Goal SM] New map. "<<std::endl;
@@ -83,7 +85,6 @@ namespace goal_sm_node
         {
             goal_state_machine->getFlybyStart(res.start_flyby);
             goal_state_machine->getFlybyEnd(res.end_flyby);
-            res.global = goal_state_machine->isGlobal();
             res.unknown = goal_state_machine->get_current_frontier();
             goal_state_machine->publishGoalToRviz(current_position);
             geometry_msgs::Point frontier_geom = goal_state_machine->get_current_frontier();
@@ -92,8 +93,15 @@ namespace goal_sm_node
         else
         {
             log_file << "[Goal SM] No goal available " << std::endl;
+
+
+            std::stringstream ss;
+            ss << folder_name << "/current/final_map.bt";
+            octree->writeBinary(ss.str());
         }
+        res.global = goal_state_machine->isGlobal();
         log_file.close();
+        ROS_ERROR("[Goal] Call finished.");
 		return true;
 	}
 
@@ -149,13 +157,9 @@ namespace goal_sm_node
         nh.getParam("local_fence_side", local_fence_side);
         nh.getParam("path/safety_margin", ltstar_safety_margin);
 
-        int range;
-        nh.getParam("/octomap_builder/sensor_model/max_range", range);
-
         ros::ServiceClient check_visibility_client;
-    	ros::ServiceClient check_flightCorridor_client;// = nh.serviceClient<lazy_theta_star_msgs::CheckFlightCorridor>("is_fligh_corridor_free");
-        rviz_interface::PublishingInput pi(marker_pub, true, "oppairs" );
-    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance, range-10, local_fence_side);
+        rviz_interface::PublishingInput pi(marker_pub, true, "goal_sm" );
+    	goal_state_machine = std::make_shared<goal_state_machine::GoalStateMachine>(find_frontiers_client, distance_inFront, distance_behind, circle_divisions, geofence_min, geofence_max, pi, ltstar_safety_margin, sensing_distance, local_fence_side);
 
 
     }

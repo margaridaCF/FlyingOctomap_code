@@ -1,6 +1,7 @@
 #ifndef GOAL_STATE_MACHINE_H
 #define GOAL_STATE_MACHINE_H
 
+#include <ltStarOctree_common.h>
 #include <frontiers_msgs/FindFrontiers.h>
 #include <unordered_set>
 #include <architecture_math.h>
@@ -11,7 +12,6 @@
 #include <octomap/OcTree.h>
 
 #define SAVE_LOG 1
-
 namespace goal_state_machine
 {
 
@@ -86,14 +86,14 @@ namespace goal_state_machine
     	double 								sensing_distance;
     	double 								local_fence_side;
     	double 								flyby_length;
-		double 								sidelength_lookup_table[];
+		double 								sidelength_lookup_table[16];
 	    observation_lib::OPPairs 			oppairs_side, oppairs_under;
         unobservable_pair_set	 			unobservable_set; 
 	    int 								frontier_index;
         int 								oppair_id;
         int 								frontier_request_count;
-        int 								range;
-		std::ofstream 						log_file;
+        int 								global_search_it;
+		std::ofstream 						log_file, csv_file;
 
 		observation_lib::OPPairs& getCurrentOPPairs();
 		bool is_flightCorridor_free(double flight_corridor_width) ;
@@ -114,12 +114,14 @@ namespace goal_state_machine
 	    
 	public:
     	octomap::OcTree* octree;
+    	void openCsv();
 		geometry_msgs::Point get_current_frontier() ;
 		void get_current_frontier(Eigen::Vector3d& frontier) ;
-		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, int range, double local_fence_side);
+		GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, double local_fence_side);
 		~GoalStateMachine()
 		{
 			log_file.close();
+			csv_file.close();
 		}
 		bool findFrontiersAllMap(Eigen::Vector3d& uav_position);
 		void NewMap();

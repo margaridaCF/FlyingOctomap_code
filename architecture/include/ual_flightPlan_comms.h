@@ -60,6 +60,8 @@ class UALCommunication {
     bool flag_hover_ = false;
 
    private:
+    std::ofstream csv_file, log_file;
+    std::chrono::high_resolution_clock::time_point timeline_start;
     double vxy_ = 2.0;
     double vz_up_ = 3.0;
     double vz_dn_ = 1.0;
@@ -70,10 +72,11 @@ class UALCommunication {
     void flightPlanCallback(const nav_msgs::Path::ConstPtr &_flight_plan);
 
     // Methods
+    void writePathLength();
+    void openCSV();
     void followFlightPlan();
     void followFlightPlan_velocity();
     void runFlightPlan();
-    bool prepare();
     double publishYawControl();
     double checkYaw();
     void runFlightPlan_segments();

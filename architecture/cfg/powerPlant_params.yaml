@@ -13,20 +13,20 @@ odometry_error: 0.1
 frontier/safety_margin: 3
 
 geofence_min/x: -40
-geofence_max/x: 30
+geofence_max/x: 21
 
 geofence_min/y: -18
-geofence_max/y: 20
+geofence_max/y: 22
 
 geofence_min/z: 4
 geofence_max/z: 35
 
-path/max_time_secs: 120
+path/max_time_secs: 240
 path/safety_margin: 5
 
-local_fence_side: 10
+local_fence_side: 7
 # == Observation Point Pairs ==
-oppairs/distance_inFront: 2
+oppairs/distance_inFront: 3
 oppairs/distance_behind: 2
 oppairs/circle_divisions: 6
 oppairs/sensing_distance: 5
