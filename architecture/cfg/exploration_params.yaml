@@ -10,11 +10,11 @@ odometry_error: 0
 
 frontier/safety_margin: 3
 
-geofence_min/x: -15
-geofence_max/x: 12
+geofence_min/x: -30
+geofence_max/x: 30
 
-geofence_min/y: -20
-geofence_max/y: 20
+geofence_min/y: -35
+geofence_max/y: 35
 
 geofence_min/z: 1
 geofence_max/z: 14
