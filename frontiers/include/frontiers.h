@@ -27,7 +27,7 @@ namespace Frontiers{
 	{}
 
 	Circulator::Circulator(octomap::OcTree const& octree, octomath::Vector3  max, octomath::Vector3  min, int start)
-	:count_from_beginning(0), is_finished(false), starting_index(0)
+	:count_from_beginning(start), is_finished(false), starting_index(0)
 	{
         octomap::OcTreeKey bbxMinKey, bbxMaxKey;
         if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
