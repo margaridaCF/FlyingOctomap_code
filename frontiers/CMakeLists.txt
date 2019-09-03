@@ -29,6 +29,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # does some bookkeeping so that your library target can be implicitly used later
 cs_add_library(neighbors src/neighbors.cpp)
 cs_add_library(frontiers_lib src/frontiers.cpp)
+target_link_libraries(frontiers_lib neighbors)
 # cs_add_targets_to_package(frontiers_msgs)
 
  # works just like cs_add_library, but it calls CMake's add_executable(...) instead.

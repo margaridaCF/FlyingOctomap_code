@@ -1,7 +1,7 @@
 #ifndef ORDERED_NEIGHBORS_H
 #define ORDERED_NEIGHBORS_H
 
-#include <frontiers_msgs/FrontierReply.h>
+#include <frontiers_msgs/FindFrontiers.h>
 #include <cmath>
 #include <set>
 
@@ -148,17 +148,14 @@ private:
         frontiers_msgs::VoxelMsg top;
         double min = neighbors.begin()->distance;
         top = *(neighbors.begin());
-        // bool found = false;
         for (unordered_set_voxel_msgs::iterator i = neighbors.begin(); i != neighbors.end(); ++i)
         {
             if(i->distance < min)
             {
                 min = i->distance;
                 top = *i;
-                // found = true;
             }
         }
-        // if(!found) ROS_INFO_STREAM("Didn't find anything");
         if(neighbors.erase(top) == 0)
         {
         	ROS_ERROR("Did not delete! ");
