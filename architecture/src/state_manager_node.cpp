@@ -86,6 +86,7 @@ namespace state_manager_node
         lazy_theta_star_msgs::LTStarRequest ltstar_request;
         lazy_theta_star_msgs::LTStarReply ltstar_reply;
         exploration_sm::ExplorationStateMachine exploration_state;
+        geometry_msgs::Point last_flyby;
     };  
     state_manager_node::StateData state_data;
 
@@ -113,7 +114,7 @@ namespace state_manager_node
                 state_data.ltstar_request_id++;
                 request.request_id = state_data.ltstar_request_id;
                 request.header.frame_id = "world";
-                request.start = state_data.ltstar_reply.waypoints[(state_data.ltstar_reply.waypoints.size()-1)].position;
+                request.start = state_data.last_flyby;
                 request.goal  = state_data.next_goal_msg.start_flyby;
                 request.safety_margin = ltstar_safety_margin;
                 if(state_data.next_goal_msg.global)
@@ -176,6 +177,7 @@ namespace state_manager_node
         }
         pose_s.pose.position = state_data.next_goal_msg.end_flyby;
         flight_plan_request.poses.push_back(pose_s);
+        state_data.last_flyby = state_data.next_goal_msg.end_flyby;
         return flight_plan_request;
     }
 
@@ -265,6 +267,7 @@ namespace state_manager_node
         start_pose.position = start_position;
         std::vector<geometry_msgs::Pose> initial (1, start_pose);
         state_data.ltstar_reply.waypoints = initial;
+        state_data.last_flyby = start_position;
     }
 
     void init_param_variables(ros::NodeHandle& nh)
