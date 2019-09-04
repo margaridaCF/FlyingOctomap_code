@@ -56,19 +56,22 @@ namespace Frontiers{
 
 	void Circulator::increment()
 	{
-		// ROS_INFO_STREAM("[Circulator] count_from_beginning: " << count_from_beginning);
-		octree_it++;
-		count_from_beginning++;
-		if(octree_it == octree_end)
+		for (int i = 0; i < 5; ++i)
 		{
-			ROS_INFO("Reached end of octomap iterator");
-			octree_it = octree_begin;
-			count_from_beginning = 0;
-		}
-		if(count_from_beginning == starting_index) 
-		{
-			ROS_WARN_STREAM("[Circulator] Iterated the whole space. " );
-			is_finished = true;
+			// ROS_INFO_STREAM("[Circulator] count_from_beginning: " << count_from_beginning);
+			octree_it++;
+			count_from_beginning++;
+			if(octree_it == octree_end)
+			{
+				ROS_INFO("Reached end of octomap iterator");
+				octree_it = octree_begin;
+				count_from_beginning = 0;
+			}
+			if(count_from_beginning == starting_index) 
+			{
+				ROS_WARN_STREAM("[Circulator] Iterated the whole space. " );
+				is_finished = true;
+			}
 		}
 	}
 	bool Circulator::isFinished()
