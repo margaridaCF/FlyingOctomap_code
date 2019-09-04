@@ -22,7 +22,7 @@ geofence_min/z: 4
 geofence_max/z: 35
 
 path/max_time_secs: 240
-path/safety_margin: 5
+path/safety_margin: 1.2
 
 local_fence_side: 7
 # == Observation Point Pairs ==
