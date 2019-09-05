@@ -5,6 +5,16 @@
 
 namespace Frontiers{
 
+
+	
+	double distance(const frontiers_msgs::VoxelMsg & a, const frontiers_msgs::VoxelMsg & b) 
+	{
+	    const double x_diff = a.xyz_m.x - b.xyz_m.x;
+	    const double y_diff = a.xyz_m.y - b.xyz_m.y;
+	    const double z_diff = a.xyz_m.z - b.xyz_m.z;
+	    return std::sqrt(x_diff * x_diff + y_diff * y_diff + z_diff * z_diff);
+	}
+
 	class Circulator
 	{
 		bool is_finished;

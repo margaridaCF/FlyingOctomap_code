@@ -139,8 +139,13 @@ namespace Frontiers{
                         voxel_msg.xyz_m.x = n_coordinates->x();
                         voxel_msg.xyz_m.y = n_coordinates->y();
                         voxel_msg.xyz_m.z = n_coordinates->z();
-                        frontiers_count++;
-                        neighborhood.insert(neighborhood.begin(),voxel_msg);
+
+                        if(distance(voxel_msg, current_position_voxel_msg) < 45)
+                        {
+                            frontiers_count++;
+                            neighborhood.insert(neighborhood.begin(),voxel_msg);
+                            ROS_ERROR_STREAM("[Frontiers] Skipping far away frontier.");
+                        }
                     }
                     else if(n_state == occupied)
                     {
