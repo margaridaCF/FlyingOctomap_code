@@ -95,7 +95,7 @@ public:
 		}
 		while(neighbors.size() > 0)
 		{
-			reply.frontiers.push_back(popHighestOccupancyNeighbourhood());
+			reply.frontiers.push_back(popLowestDistance());
 			frontier_counter++;
 		}
 		return frontier_counter;
