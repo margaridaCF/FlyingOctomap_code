@@ -66,8 +66,8 @@ namespace Frontiers{
 
 	void Circulator::increment()
 	{
-		for (int i = 0; i < 5; ++i)
-		{
+		// for (int i = 0; i < 5; ++i)
+		// {
 			// ROS_INFO_STREAM("[Circulator] count_from_beginning: " << count_from_beginning);
 			octree_it++;
 			count_from_beginning++;
@@ -82,7 +82,7 @@ namespace Frontiers{
 				ROS_WARN_STREAM("[Circulator] Iterated the whole space. " );
 				is_finished = true;
 			}
-		}
+		// }
 	}
 	bool Circulator::isFinished()
 	{
