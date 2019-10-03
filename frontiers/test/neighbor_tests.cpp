@@ -1056,6 +1056,27 @@ namespace LazyThetaStarOctree{
 		list.insert( voxel_msg);
         ASSERT_EQ(list.size(), 4);
 	}
+	
+    TEST(OrderedNeighblursTest, Heuristic_2D)
+    {
+        frontiers_msgs::VoxelMsg voxel_msg;
+        voxel_msg.occupied_neighborhood=0;
+        voxel_msg.size = 1;
+        voxel_msg.xyz_m.x = 0;
+        voxel_msg.xyz_m.y = 0;
+        voxel_msg.xyz_m.z = 0;
+        Frontiers::OrderedNeighbors list (voxel_msg);
+        double distance = list.piecewiseFunc_2d(1);
+        ASSERT_EQ(0, distance);
+         distance = list.piecewiseFunc_2d(2.5);
+        ASSERT_EQ(0, distance);
+         distance = list.piecewiseFunc_2d(4);
+        ASSERT_EQ(17, distance);
+         distance = list.piecewiseFunc_2d(5);
+        ASSERT_EQ(17, distance);
+         distance = list.piecewiseFunc_2d(6);
+        ASSERT_NEAR(14.32394487827058, distance, 0.1);
+    }
 }
 
 int main(int argc, char **argv){

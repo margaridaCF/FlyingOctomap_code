@@ -7,6 +7,7 @@
 
 namespace Frontiers
 {
+# define M_PI       3.14159265358979323846  /* pi */
 
  struct VoxelMsgHash
     {
@@ -48,8 +49,8 @@ namespace Frontiers
 class OrderedNeighbors
 {
 public:
-	OrderedNeighbors(frontiers_msgs::VoxelMsg const& current_position)
-		:current_position(current_position)
+	OrderedNeighbors(frontiers_msgs::VoxelMsg const& current_position, double max_distance = 0)
+		:current_position(current_position), max_distance(max_distance)
 	{
 	}
 
@@ -95,7 +96,7 @@ public:
 		}
 		while(neighbors.size() > 0)
 		{
-			reply.frontiers.push_back(popLowestDistance());
+			reply.frontiers.push_back(popHighestHeuristic());
 			frontier_counter++;
 		}
 		return frontier_counter;
@@ -105,11 +106,23 @@ public:
 	{
 		return neighbors.size();
 	}	
+    
+    double piecewiseFunc_2d(double distance)
+    {
+        double N = 1080; 
+        double tm = 17;
+        double voxel_height = 0.5;
+        double safety_distance = 2.5;
+        if      (distance <= safety_distance)                    return 0;
+        else if (distance < calculateDM(voxel_height, N, tm))   return tm;
+        else                                                    return calculate2dHeuristics(voxel_height, N, distance);
+    }
 
 
 private:
 	frontiers_msgs::VoxelMsg current_position;
 	unordered_set_voxel_msgs neighbors;
+    double max_distance;
 	double distance(const frontiers_msgs::VoxelMsg & a, const frontiers_msgs::VoxelMsg & b) const
 	{
 	    const double x_diff = a.xyz_m.x - b.xyz_m.x;
@@ -159,6 +172,52 @@ private:
         if(neighbors.erase(top) == 0)
         {
         	ROS_ERROR("Did not delete! ");
+            ros::Duration(10).sleep();
+        }
+        return top;
+    }
+
+
+
+    double calculateDM(double h, double N, double tm)
+    {
+        double top = h*N;
+        double bottom = 2*M_PI*tm;
+        return top/bottom;
+    }
+
+    double calculate2dHeuristics(double h, double N, double r)
+    {
+        double top = h*N;
+        double bottom = 2*M_PI*r;
+        return top/bottom;
+    }
+
+
+    double nearestNeighbourAndOccupied(unordered_set_voxel_msgs::iterator & i)
+    {
+        return (max_distance - i->distance) + i->occupied_neighborhood;
+    }
+
+    frontiers_msgs::VoxelMsg popHighestHeuristic ()
+    {
+        frontiers_msgs::VoxelMsg top;
+        double max = -1;
+        bool found = false;
+        for (unordered_set_voxel_msgs::iterator i = neighbors.begin(); i != neighbors.end(); ++i)
+        {
+            double temp = piecewiseFunc_2d(i->distance);
+            if(temp > max)
+            {
+                max = temp;
+                top = *i;
+                found = true;
+            }
+        }
+        if(!found) ROS_ERROR_STREAM("Didn't find anything");
+        else if(neighbors.erase(top) == 0)
+        {
+            ROS_ERROR("Did not delete! ");
             ros::Duration(10).sleep();
         }
         return top;

@@ -6,6 +6,7 @@ uint32 request_number
 uint32 request_id
 bool new_request
 uint32 global_search_it
+uint32 max_distance
 ---
 bool success
 uint32 frontiers_found
