@@ -93,6 +93,7 @@ namespace goal_state_machine
         int 								oppair_id;
         int 								frontier_request_count;
         int 								global_search_it;
+        int 								max_path_planner_distance;
 		std::ofstream 						log_file, csv_file;
 
 		observation_lib::OPPairs& getCurrentOPPairs();

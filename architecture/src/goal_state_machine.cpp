@@ -15,7 +15,7 @@ namespace goal_state_machine
 {
 
     GoalStateMachine::GoalStateMachine(ros::ServiceClient& find_frontiers_client, double distance_inFront, double distance_behind, int circle_divisions, geometry_msgs::Point& geofence_min, geometry_msgs::Point& geofence_max, rviz_interface::PublishingInput pi, double path_safety_margin, double sensing_distance, double local_fence_side)
-		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true), global_search_it(0)
+		: find_frontiers_client(find_frontiers_client), has_more_goals(false), frontier_index(0), geofence_min(geofence_min), geofence_max(geofence_max), pi(pi), path_safety_margin(path_safety_margin), sensing_distance(sensing_distance), oppair_id(0), new_map(true), global(true), first_request(true), local_fence_side(local_fence_side), first_global_request(true), global_search_it(0), max_path_planner_distance(45)
 	{
 		oppairs_side  = observation_lib::OPPairs(circle_divisions, sensing_distance, distance_inFront, distance_behind, observation_lib::translateAdjustDirection);
         unobservable_set = unobservable_pair_set(); 
@@ -370,6 +370,7 @@ namespace goal_state_machine
 		frontier_srv.request.current_position.x = uav_position.x();
 		frontier_srv.request.current_position.y = uav_position.y();
 		frontier_srv.request.current_position.z = uav_position.z();
+		frontier_srv.request.max_distance = max_path_planner_distance;
 		frontier_srv.request.request_id = frontier_request_count;
 		frontier_srv.request.new_request = new_map || first_global_request;
 		bool call = find_frontiers_client.call(frontier_srv);
