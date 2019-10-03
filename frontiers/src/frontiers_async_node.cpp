@@ -46,7 +46,7 @@ namespace frontiers_async_node
 		std::stringstream aux_envvar_home (std::getenv("HOME"));
 		folder_name = aux_envvar_home.str() + "/Flying_Octomap_code/src/data";
 		csv_file.open (frontiers_async_node::folder_name + "/current/frontiers.csv", std::ofstream::app);
-		csv_file << "time_ellapsed_millis,free,occupied,frontier_search_time\n";
+		csv_file << "time_ellapsed_millis,free,occupied,frontier_search_time,total_entropy\n";
 		csv_file.close();
 		ROS_WARN_STREAM("[Frontiers] Writting header for " << frontiers_async_node::folder_name << "/current/frontiers.csv");
 		start_exploration = std::chrono::high_resolution_clock::now();
@@ -161,8 +161,9 @@ namespace frontiers_async_node
 			double resolution = octree->getResolution();
 	        octomath::Vector3  max = octomath::Vector3(req.max.x-resolution, req.max.y-resolution, req.max.z-resolution);
 	        octomath::Vector3  min = octomath::Vector3(req.min.x+resolution, req.min.y+resolution, req.min.z+resolution);
-			std::pair<double, double> explored_volume_meters = volume::calculateVolume(*octree, geofence_min, geofence_max);
-			csv_file << ellapsed_time_millis.count()  << ", " << explored_volume_meters.first << ", " << explored_volume_meters.second << ", " << seconds.count() << std::endl;
+	        double total_entropy = 0;
+			std::pair<double, double> explored_volume_meters = volume::calculateVolume(*octree, geofence_min, geofence_max, total_entropy);
+			csv_file << ellapsed_time_millis.count()  << ", " << explored_volume_meters.first << ", " << explored_volume_meters.second << ", " << seconds.count()  << ", " <<  total_entropy << std::endl;
 			csv_file.close();
 			#endif
 

@@ -100,9 +100,20 @@ namespace volume
 		}
 		return 0;
 		
+	} 
+
+	double calculateEntropy(octomap::OcTree::leaf_bbx_iterator & it)
+	{
+		double p_occupied = it->getOccupancy();
+		// ROS_INFO_STREAM("p_occupied " << p_occupied);
+		// ROS_INFO_STREAM("p_occupied*std::log2(p_occupied)");
+		// ROS_INFO_STREAM("p_occupied*" << std::log2(p_occupied));
+		// ROS_INFO_STREAM(p_occupied*std::log2(p_occupied));
+		// ROS_INFO_STREAM((1-p_occupied)*std::log2(1-p_occupied));
+		return -(p_occupied*std::log2(p_occupied)+(1-p_occupied)*std::log2(1-p_occupied));
 	}
 
-	std::pair<double, double> calculateVolume(octomap::OcTree const& octree, octomath::Vector3 const& min, octomath::Vector3 const& max)
+	std::pair<double, double> calculateVolume(octomap::OcTree const& octree, octomath::Vector3 const& min, octomath::Vector3 const& max, double & total_entropy)
 	{
 		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
         if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
@@ -113,6 +124,7 @@ namespace volume
 		double free = 0;
 		double occupied = 0;
 		double volume_d;
+		total_entropy = 0;
 		while(it != octree.end_leafs_bbx())
 		{
 			volume_d = volumeInsideGeofence (min, max, it);
@@ -124,6 +136,7 @@ namespace volume
 			{
 				free += volume_d;
 			}
+			total_entropy += calculateEntropy(it);
 			it++;
 		}
 		std::pair<double, double> volume_pair = std::make_pair (free, occupied);
