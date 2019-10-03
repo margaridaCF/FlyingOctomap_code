@@ -102,19 +102,20 @@ namespace volume
 		
 	} 
 
-	double calculateEntropy(octomap::OcTree::leaf_bbx_iterator & it)
+	double calculateEntropy(double probability_occupied)
 	{
-		double p_occupied = it->getOccupancy();
+		// double p_occupied = it->getOccupancy();
 		// ROS_INFO_STREAM("p_occupied " << p_occupied);
 		// ROS_INFO_STREAM("p_occupied*std::log2(p_occupied)");
 		// ROS_INFO_STREAM("p_occupied*" << std::log2(p_occupied));
 		// ROS_INFO_STREAM(p_occupied*std::log2(p_occupied));
 		// ROS_INFO_STREAM((1-p_occupied)*std::log2(1-p_occupied));
-		return -(p_occupied*std::log2(p_occupied)+(1-p_occupied)*std::log2(1-p_occupied));
+		return -(probability_occupied*std::log2(probability_occupied)+(1-probability_occupied)*std::log2(1-probability_occupied));
 	}
 
 	std::pair<double, double> calculateVolume(octomap::OcTree const& octree, octomath::Vector3 const& min, octomath::Vector3 const& max, double & total_entropy)
 	{
+		double min_volume = octree.getResolution() * octree.getResolution() *octree.getResolution();
 		octomap::OcTreeKey bbxMinKey, bbxMaxKey;
         if(!octree.coordToKeyChecked(min, bbxMinKey) || !octree.coordToKeyChecked(max, bbxMaxKey))
         {
@@ -136,9 +137,13 @@ namespace volume
 			{
 				free += volume_d;
 			}
-			total_entropy += calculateEntropy(it);
+			total_entropy += (volume_d/min_volume)*calculateEntropy(it->getOccupancy());
 			it++;
 		}
+
+		double total_volume = (max.x() - min.x()) * (max.y() - min.y()) *(max.z() - min.z());
+		double unknown_volume = total_volume - (free + occupied); 
+		total_entropy += (unknown_volume/min_volume)*calculateEntropy(0.5);
 		std::pair<double, double> volume_pair = std::make_pair (free, occupied);
 		return volume_pair;
 	}
