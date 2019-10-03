@@ -142,7 +142,6 @@ namespace Frontiers{
 
                         if(distance(voxel_msg, current_position_voxel_msg) < request.max_distance)
                         {
-                            frontiers_count++;
                             neighborhood.insert(neighborhood.begin(),voxel_msg);
                             ROS_ERROR_STREAM("[Frontiers] Skipping far away frontier.");
                         }
@@ -155,12 +154,13 @@ namespace Frontiers{
                         surface_neighborhood += LazyThetaStarOctree::findSideLenght(octree.getTreeDepth(), depth, sidelength_lookup_table);
                     }
                 }
-                for (std::list<frontiers_msgs::VoxelMsg>::iterator it_n = neighborhood.begin(); it_n != neighborhood.end(); ++it_n)
+                for (std::list<frontiers_msgs::VoxelMsg>::iterator it_n = neighborhood.begin(); surface_neighborhood > 0 && it_n != neighborhood.end(); ++it_n)
                 {
                     frontiers_msgs::VoxelMsg voxel_msg;
                     voxel_msg = *it_n;
                     voxel_msg.occupied_neighborhood = surface_neighborhood;
                     allNeighbors.insert(voxel_msg);
+                    frontiers_count++;
                 }
             }
             it.increment();

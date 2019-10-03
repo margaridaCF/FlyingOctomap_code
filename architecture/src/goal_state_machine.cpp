@@ -498,7 +498,7 @@ namespace goal_state_machine
 			}
 			else
 			{
-				ROS_INFO_STREAM("[Frontier] Goal SM analyzed " << frontier_index << " out of " << frontier_srv.response.frontiers.size() << ". Going to request more.");
+				ROS_INFO_STREAM("[Goal SM] Analyzed " << frontier_index << " out of " << frontier_srv.response.frontiers.size() << ". Going to request more.");
 				has_more_goals = findFrontiersAllMap(uav_position);
 			}
 		}
