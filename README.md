@@ -1,5 +1,8 @@
 # FlyingOctomap
 An implementation of different algorithms over the octree implementation of octomap.
+For the latest version check tag https://github.com/margaridaCF/FlyingOctomap_code/tree/2019-09-04_1442_nearesNeighbour
+
+The website https://sites.google.com/view/lazythetastaronline/path-planning contains more information.
 
 The code was developed with a test-driven process, that is why so far there are no nodes only tests.
 Also, it is a work in progress. The separation of the interface and the implementation is on the roadmap.
